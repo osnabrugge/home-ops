@@ -16,12 +16,27 @@ spec:
         namespace: flux-system
       interval: 30m
   values:
+    updateStrategy: RollingUpdate
+    namespaceOverride: "networking"
     image:
       repository: ghcr.io/k8snetworkplumbingwg/whereabouts
       tag: v0.6.1-amd64
     service:
       main:
         enabled: false
-        # ports:
-        #   http:
-        #     enabled: false
+    serviceAccount:
+      create: true
+    securityContext:
+      privileged: true
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "50Mi"
+      limits:
+        cpu: "100m"
+        memory: "50Mi"
+    nodeSelector:
+      beta.kubernetes.io/arch: amd64
+    tolerations:
+      - operator: Exists
+        effect: NoSchedule
