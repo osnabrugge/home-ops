@@ -33,7 +33,6 @@ spec:
         cpu: "100m"
         memory: "50Mi"
       limits:
-        cpu: "100m"
         memory: "50Mi"
     nodeSelector:
       beta.kubernetes.io/arch: amd64
