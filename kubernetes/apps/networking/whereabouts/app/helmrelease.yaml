@@ -19,6 +19,9 @@ spec:
     image:
       repository: ghcr.io/k8snetworkplumbingwg/whereabouts
       tag: v0.6.1
-    ports:
-      http:
+    service:
+      main:
         enabled: false
+        # ports:
+        #   http:
+        #     enabled: false
