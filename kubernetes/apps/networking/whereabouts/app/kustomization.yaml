@@ -2,10 +2,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://github.com/k8snetworkplumbingwg/whereabouts/tree/master/doc/crds
-images:
-  - name: k8snetworkplumbingwg/whereabouts
-    newTag: v0.6.1-amd64
-commonLabels:
-  app.kubernetes.io/name: whereabouts
-  app.kubernetes.io/instance: whereabouts
+  - ./whereabouts.cni.cncf.io_ippools.yaml
+  - ./whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
+  - ./daemonset-install.yaml
