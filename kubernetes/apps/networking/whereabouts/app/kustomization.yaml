@@ -8,3 +8,5 @@ resources:
   - https://raw.githubusercontent.com/k8snetworkplumbingwg/whereabouts/v0.6.1/doc/crds/daemonset-install.yaml
   - https://raw.githubusercontent.com/k8snetworkplumbingwg/whereabouts/v0.6.1/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
   - https://raw.githubusercontent.com/k8snetworkplumbingwg/whereabouts/v0.6.1/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
+patchesStrategicMerge:
+  - patches/env.yaml
