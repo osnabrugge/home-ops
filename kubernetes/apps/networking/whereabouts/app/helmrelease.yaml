@@ -18,7 +18,7 @@ spec:
   values:
     image:
       repository: ghcr.io/k8snetworkplumbingwg/whereabouts
-      tag: v0.6.1
+      tag: v0.6.1-amd64
     service:
       main:
         enabled: false
