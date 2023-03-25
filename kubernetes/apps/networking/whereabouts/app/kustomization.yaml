@@ -1,7 +1,11 @@
 ---
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: networking
 resources:
-  - ./helmrelease.yaml
+  - https://github.com/k8snetworkplumbingwg/whereabouts?ref=v0.6.1
+images:
+  - name: k8snetworkplumbingwg/whereabouts
+    newTag: v0.6.1
+commonLabels:
+  app.kubernetes.io/name: whereabouts
+  app.kubernetes.io/instance: whereabouts
