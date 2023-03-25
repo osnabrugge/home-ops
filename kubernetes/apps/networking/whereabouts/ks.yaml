@@ -4,13 +4,13 @@ kind: Kustomization
 metadata:
   name: cluster-apps-whereabouts
   namespace: flux-system
-  labels:
-    substitution.flux.home.arpa/enabled: "true"
 spec:
-  interval: 10m
   path: "./kubernetes/apps/networking/whereabouts/app"
   prune: true
   sourceRef:
     kind: GitRepository
     name: home-kubernetes
   wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 3m
