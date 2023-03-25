@@ -2,7 +2,6 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: networking
 resources:
-  - https://github.com/k8snetworkplumbingwg/whereabouts/blob/v0.6.1/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
-  - https://github.com/k8snetworkplumbingwg/whereabouts/blob/v0.6.1/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
   - ./helmrelease.yaml
