@@ -15,5 +15,6 @@ resources:
   - ./kyverno.yaml
   - ./metallb.yaml
   - ./metrics-server.yaml
+  - ./rook-ceph.yaml
   - ./stakater.yaml
   - ./weave-gitops.yaml
