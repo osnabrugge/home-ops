@@ -2,8 +2,8 @@
 1apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: rook-ceph
+  name: prometheus-community
   namespace: flux-system
 spec:
   interval: 1h
-  url: https://charts.rook.io/release
+  url: https://prometheus-community.github.io/helm-charts
