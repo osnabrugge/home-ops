@@ -90,7 +90,7 @@ spec:
       hostNetwork: true      
       serviceAccountName: whereabouts
       nodeSelector:
-        kubernetes.io/arch: amd64
+        beta.kubernetes.io/arch: amd64
       tolerations:
       - operator: Exists
         effect: NoSchedule
@@ -102,13 +102,8 @@ spec:
           - >
             SLEEP=false /install-cni.sh &&
             /ip-control-loop -log-level debug
-        image: ghcr.io/k8snetworkplumbingwg/whereabouts:latest-amd64
+        image: ghcr.io/k8snetworkplumbingwg/whereabouts:v0.5.3-amd64
         env:
-        - name: NODENAME
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: spec.nodeName
         - name: WHEREABOUTS_NAMESPACE
           valueFrom:
             fieldRef:
@@ -116,10 +111,10 @@ spec:
         resources:
           requests:
             cpu: "100m"
-            memory: "100Mi"
+            memory: "50Mi"
           limits:
             cpu: "100m"
-            memory: "200Mi"
+            memory: "50Mi"
         securityContext:
           privileged: true
         volumeMounts:
