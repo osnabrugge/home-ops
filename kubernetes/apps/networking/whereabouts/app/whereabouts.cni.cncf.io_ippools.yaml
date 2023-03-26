@@ -1,3 +1,4 @@
+
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -15,8 +16,8 @@ spec:
     singular: ippool
   scope: Namespaced
   versions:
-    - name: v1alpha1
-      schema:
+  - name: v1alpha1
+    schema:
       openAPIV3Schema:
         description: IPPool is the Schema for the ippools API
         properties:
@@ -45,7 +46,7 @@ spec:
                     podref:
                       type: string
                   required:
-                    - id
+                  - id
                   type: object
                 description: Allocations is the set of allocated IPs for the given
                   range. Its` indices are a direct mapping to the IP with the same
@@ -56,12 +57,12 @@ spec:
                   an IP address and prefix length in CIDR notation
                 type: string
             required:
-              - allocations
-              - range
+            - allocations
+            - range
             type: object
         type: object
-      served: true
-      storage: true
+    served: true
+    storage: true
 status:
   acceptedNames:
     kind: ""
