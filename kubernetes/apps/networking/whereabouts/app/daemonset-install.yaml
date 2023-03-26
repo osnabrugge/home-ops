@@ -1,9 +1,8 @@
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: whereabouts
-  namespace: networking
+  namespace: kube-system
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,9 +13,9 @@ roleRef:
   kind: ClusterRole
   name: whereabouts-cni
 subjects:
-  - kind: ServiceAccount
-    name: whereabouts
-    namespace: networking
+- kind: ServiceAccount
+  name: whereabouts
+  namespace: kube-system
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -24,58 +23,53 @@ kind: ClusterRole
 metadata:
   name: whereabouts-cni
 rules:
-  - apiGroups:
-      - whereabouts.cni.cncf.io
-    resources:
-      - ippools
-      - overlappingrangeipreservations
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
-  - apiGroups:
-      - coordination.k8s.io
-    resources:
-      - leases
-    verbs:
-      - '*'
-  - apiGroups: [""]
-    resources:
-      - pods
-    verbs:
-      - list
-      - watch
-  - apiGroups: [""]
-    resources:
-      - nodes
-    verbs:
-      - get
-  - apiGroups: ["k8s.cni.cncf.io"]
-    resources:
-      - network-attachment-definitions
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - ""
-      - events.k8s.io
-    resources:
-      - events
-    verbs:
-      - create
-      - patch
-      - update
+- apiGroups:
+  - whereabouts.cni.cncf.io
+  resources:
+  - ippools
+  - overlappingrangeipreservations
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - '*'
+- apiGroups: [""]
+  resources:
+  - pods
+  verbs:
+  - list
+  - watch
+- apiGroups: ["k8s.cni.cncf.io"]
+  resources:
+    - network-attachment-definitions
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+  - ""
+  - events.k8s.io
+  resources:
+    - events
+  verbs:
+  - create
+  - patch
+  - update
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: whereabouts
-  namespace: networking
+  namespace: kube-system
   labels:
     tier: node
     app: whereabouts
@@ -92,46 +86,46 @@ spec:
         app: whereabouts
         name: whereabouts
     spec:
-      hostNetwork: true
+      hostNetwork: true      
       serviceAccountName: whereabouts
       nodeSelector:
         kubernetes.io/arch: amd64
       tolerations:
-        - operator: Exists
-          effect: NoSchedule
+      - operator: Exists
+        effect: NoSchedule
       containers:
-        - name: whereabouts
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - >
-              SLEEP=false /install-cni.sh &&
-              /ip-control-loop -log-level debug
-          image: ghcr.io/k8snetworkplumbingwg/whereabouts:latest-amd64
-          env:
-            - name: NODENAME
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: spec.nodeName
-            - name: WHEREABOUTS_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "100Mi"
-            limits:
-              cpu: "100m"
-              memory: "200Mi"
-          securityContext:
-            privileged: true
-          volumeMounts:
-            - name: cnibin
-              mountPath: /host/opt/cni/bin
-            - name: cni-net-dir
-              mountPath: /host/etc/cni/net.d
+      - name: whereabouts
+        command: [ "/bin/sh" ]
+        args:
+          - -c
+          - >
+            SLEEP=false /install-cni.sh &&
+            /ip-control-loop -log-level debug
+        image: ghcr.io/k8snetworkplumbingwg/whereabouts:latest-amd64
+        env:
+        - name: NODENAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: WHEREABOUTS_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+          limits:
+            cpu: "100m"
+            memory: "200Mi"
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: cnibin
+          mountPath: /host/opt/cni/bin
+        - name: cni-net-dir
+          mountPath: /host/etc/cni/net.d
       volumes:
         - name: cnibin
           hostPath:
