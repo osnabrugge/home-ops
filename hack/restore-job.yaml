@@ -41,7 +41,5 @@ spec:
             claimName: ${CLAIM}
         - name: snapshots
           nfs:
-            server: "${NAS_ADDR}"
+            server: "192.168.88.11"
             path: "/volume1/backup/home-cluster/kopia"
-      nodeSelector:
-        node-role.kubernetes.io/worker: "true"
