@@ -1,0 +1,13 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-fast
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: "${NAS_ADDR}"
+  share: /volume1/apps/pvcs
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+mountOptions:
+  - nfsvers=4.1
