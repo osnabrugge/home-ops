@@ -5,7 +5,7 @@ metadata:
   name: cluster-apps-prowlarr
   namespace: flux-system
 spec:
-  path: ./kubernetes/apps/default/prowlarr/app
+  path: ./kubernetes/apps/media-automation/prowlarr/app
   prune: true
   sourceRef:
     kind: GitRepository
