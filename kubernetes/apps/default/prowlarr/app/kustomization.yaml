@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: default
 resources:
   - ./config-pvc.yaml
-  # - ./externalsecret.yaml
+  - ./externalsecret.yaml
   - ./helmrelease.yaml
 labels:
   - pairs:
