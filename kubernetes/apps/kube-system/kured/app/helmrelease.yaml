@@ -1,0 +1,43 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kured
+  namespace: kube-system
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: kured
+      version: 4.4.2
+      sourceRef:
+        kind: HelmRepository
+        name: weaveworks-kured
+        namespace: flux-system
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    configuration:
+      startTime: "1:00"
+      endTime: "2:45"
+      timeZone: ${TIMEZONE}
+    tolerations:
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+    metrics:
+      create: true
+    extraEnvVars:
+      - name: TZ
+        value: ${TIMEZONE}
+      - name: KURED_NOTIFY_URL
+        valueFrom:
+          secretKeyRef:
+            name: kured-secret
+            key: pushover-webhook
