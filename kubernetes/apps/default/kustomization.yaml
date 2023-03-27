@@ -5,5 +5,5 @@ resources:
   - ./namespace.yaml
   - ./echo-server/ks.yaml
   - ./hajimari/ks.yaml
-  # - ./kopia/ks.yaml
+  - ./kopia/ks.yaml
   - ./prowlarr/ks.yaml
