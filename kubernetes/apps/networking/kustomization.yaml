@@ -9,5 +9,5 @@ resources:
   - ./k8s-gateway/ks.yaml
   - ./metallb/ks.yaml
   - ./multus/ks.yaml
-  - ./omada/ks.yaml
+  # - ./omada/ks.yaml
   - ./whereabouts/ks.yaml
