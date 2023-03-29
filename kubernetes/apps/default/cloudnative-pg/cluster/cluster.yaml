@@ -36,12 +36,12 @@ spec:
         connectionString:
           name: cloudnative-pg-secret
           key: AZURE_CONNECTION_STRING
-        storageAccount:
-          name: cloudnative-pg-secret
-          key: AZURE_STORAGE_ACCOUNT
-        storageKey:
-          name: cloudnative-pg-secret
-          key: AZURE_STORAGE_KEY
+        # storageAccount:
+        #   name: cloudnative-pg-secret
+        #   key: AZURE_STORAGE_ACCOUNT
+        # storageKey:
+        #   name: cloudnative-pg-secret
+        #   key: AZURE_STORAGE_KEY
   # Note: externalClusters is needed when recovering from an existing cnpg cluster
   # externalClusters:
   #   - name: *previous-cluster
