@@ -17,7 +17,7 @@ spec:
       interval: 15m
   test:
     enable: false
-  MaxHistory: 1
+  maxHistory: 1
   install:
     remediation:
       retries: 3
