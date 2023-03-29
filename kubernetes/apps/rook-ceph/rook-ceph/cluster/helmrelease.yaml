@@ -50,6 +50,49 @@ spec:
       bdev_enable_discard = true
       bdev_async_discard = true
     cephClusterSpec:
+      resources:
+        mgr:
+          requests:
+            cpu: "100m"
+            memory: "550M"
+          limits:
+            memory: "1250M"
+        mon:
+          requests:
+            cpu: "50m"
+            memory: "500M"
+          limits:
+            memory: "1100M"
+        osd:
+          requests:
+            cpu: "400m"
+            memory: "2700M"
+          limits:
+            memory: "6000M"
+        mgr-sidecar:
+          requests:
+            cpu: "200m"
+            memory: "100M"
+          limits:
+            memory: "250M"
+        crashcollector:
+          requests:
+            cpu: "15m"
+            memory: "64M"
+          limits:
+            memory: "64M"
+        logcollector:
+          requests:
+            cpu: "100m"
+            memory: "100M"
+          limits:
+            memory: "1G"
+        cleanup:
+          requests:
+            cpu: "250m"
+            memory: "100M"
+          limits:
+            memory: "1G"
       network:
         provider: multus
         selectors:
