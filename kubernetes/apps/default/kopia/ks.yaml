@@ -5,6 +5,8 @@ metadata:
   name: cluster-apps-kopia
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: cluster-apps-multus-definitions
   path: ./kubernetes/apps/default/kopia/app
   prune: true
   sourceRef:
