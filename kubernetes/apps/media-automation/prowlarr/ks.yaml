@@ -5,6 +5,8 @@ metadata:
   name: cluster-apps-prowlarr
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: cluster-apps-rook-ceph-cluster
   path: ./kubernetes/apps/media-automation/prowlarr/app
   prune: true
   sourceRef:
