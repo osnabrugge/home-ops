@@ -37,11 +37,9 @@ spec:
             10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
           hajimari.io/appName: "Rook"
           hajimari.io/icon: mdi:chess-rook
-        hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                pathType: Prefix
+        host:
+          name: &host "rook.${SECRET_DOMAIN}"
+          path: /
         tls:
           - hosts:
               - *host
