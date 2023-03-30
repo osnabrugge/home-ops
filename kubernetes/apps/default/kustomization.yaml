@@ -7,4 +7,4 @@ resources:
   - ./echo-server/ks.yaml
   - ./hajimari/ks.yaml
   - ./kopia/ks.yaml
-  - ./redis/k3.yaml
+  - ./redis/ks.yaml
