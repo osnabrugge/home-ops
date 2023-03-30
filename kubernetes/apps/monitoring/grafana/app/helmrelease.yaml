@@ -82,7 +82,7 @@ spec:
       #     contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'people') && 'Viewer'
       #   org_id: 1
       auth.basic:
-        enabled: false
+        enabled: true
         disable_login_form: false
       auth.anonymous:
         enabled: true
