@@ -28,5 +28,6 @@ resources:
   - ./redis-operator.yaml
   - ./rook-ceph.yaml
   - ./stakater.yaml
+  - ./stevehipwell.yaml
   - ./weave-gitops.yaml
   - ./weaveworks-kured.yaml
