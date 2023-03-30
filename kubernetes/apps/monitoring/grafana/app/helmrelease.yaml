@@ -225,10 +225,10 @@ spec:
       enabled: true
       ingressClassName: nginx
       annotations:
-        external-dns.alpha.kubernetes.io/target: ipv4.${SECRET_DOMAIN}"
+        external-dns.alpha.kubernetes.io/target: "ipv4.${SECRET_DOMAIN}"
         hajimari.io/icon: simple-icons:grafana
       hosts:
-        - &host grafana.${SECRET_DOMAIN}"
+        - &host "grafana.${SECRET_DOMAIN}"
       tls:
         - hosts:
             - *host
