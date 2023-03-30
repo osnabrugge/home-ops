@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helmrelease_v2beta1.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -26,6 +27,8 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    env:
+      TZ: ${TIMEZONE}
     hajimari:
       title: Apps
       darkTheme: espresso
@@ -40,6 +43,12 @@ spec:
       namespaceSelector:
         matchNames:
           - default
+          - downloaders
+          - flux-system
+          - media-automation
+          - monitoring
+          - networking
+          - rook-ceph
     ingress:
       main:
         enabled: true
