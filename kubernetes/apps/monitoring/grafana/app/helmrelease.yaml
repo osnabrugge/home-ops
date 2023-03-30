@@ -110,17 +110,17 @@ spec:
           - name: Alertmanager
             orgId: 1
         datasources:
-          - name: Prometheus
-            type: prometheus
-            access: proxy
-            url: http://thanos-query-frontend.monitoring.svc.cluster.local:10902
-            isDefault: true
-          - name: Loki
-            type: loki
-            access: proxy
-            url: http://loki-gateway.monitoring.svc.cluster.local
-            jsonData:
-              maxLines: 250
+          # - name: Prometheus
+          #   type: prometheus
+          #   access: proxy
+          #   url: http://thanos-query-frontend.monitoring.svc.cluster.local:10902
+          #   isDefault: true
+          # - name: Loki
+          #   type: loki
+          #   access: proxy
+          #   url: http://loki-gateway.monitoring.svc.cluster.local
+          #   jsonData:
+          #     maxLines: 250
           - name: Alertmanager
             type: alertmanager
             access: proxy
@@ -130,30 +130,30 @@ spec:
     dashboards:
       default:
         # Ref: https://grafana.com/grafana/dashboards/11312-unifi-poller-usw-insights-prometheus/
-        unifi-usw:
-          gnetId: 11312
-          revision: 9
-          datasource: Prometheus
-        # Ref: https://grafana.com/grafana/dashboards/7845-zfs/
-        zfs:
-          gnetId: 7845
-          revision: 4
-          datasource: Prometheus
-        # Ref: https://grafana.com/grafana/dashboards/13502-minio-dashboard/
-        minio:
-          gnetId: 13502
-          revision: 21
-          datasource: Prometheus
-        # Ref: https://grafana.com/grafana/dashboards/1860-node-exporter-full/
-        node-exporter-full:
-          gnetId: 1860
-          revision: 30
-          datasource: Prometheus
-        # Ref: https://grafana.com/grafana/dashboards/763-redis-dashboard-for-prometheus-redis-exporter-1-x/
-        redis:
-          gnetId: 763
-          revision: 4
-          datasource: Prometheus
+        # unifi-usw:
+        #   gnetId: 11312
+        #   revision: 9
+        #   datasource: Prometheus
+        # # Ref: https://grafana.com/grafana/dashboards/7845-zfs/
+        # zfs:
+        #   gnetId: 7845
+        #   revision: 4
+        #   datasource: Prometheus
+        # # Ref: https://grafana.com/grafana/dashboards/13502-minio-dashboard/
+        # minio:
+        #   gnetId: 13502
+        #   revision: 21
+        #   datasource: Prometheus
+        # # Ref: https://grafana.com/grafana/dashboards/1860-node-exporter-full/
+        # node-exporter-full:
+        #   gnetId: 1860
+        #   revision: 30
+        #   datasource: Prometheus
+        # # Ref: https://grafana.com/grafana/dashboards/763-redis-dashboard-for-prometheus-redis-exporter-1-x/
+        # redis:
+        #   gnetId: 763
+        #   revision: 4
+        #   datasource: Prometheus
         # Ref: https://grafana.com/grafana/dashboards/5342-ceph-pools/
         ceph-pools:
           gnetId: 5342
