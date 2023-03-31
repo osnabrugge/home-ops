@@ -24,7 +24,7 @@ spec:
       - secretRef:
           name: omada-exporter-secret
     omada:
-      host: https://omada-controller.networking.svc.cluster.local
+      host: https://omada.${SECRET_DOMAIN}
       request_timeout: 60
       site: Toronto
       insecure: true
