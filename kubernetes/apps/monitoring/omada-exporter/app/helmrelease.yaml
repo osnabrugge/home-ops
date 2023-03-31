@@ -20,6 +20,8 @@ spec:
       repository: ghcr.io/charlie-haley/omada_exporter
       pullPolicy: IfNotPresent
       tag: 0.8.1
+    env:
+      TZ: "${TIMEZONE}"
     omada:
       host: ${SECRET_OMADA_HOST}
       username: ${SECRET_OMADA_USERNAME}
