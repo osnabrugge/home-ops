@@ -1,0 +1,30 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: omada-exporter
+  namespace: monitoring
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: omada-exporter
+      version: 0.7.1
+      sourceRef:
+        kind: HelmRepository
+        name: charlie-haley
+        namespace: flux-system
+      interval: 10m
+  values:
+    image:
+      repository: ghcr.io/charlie-haley/omada_exporter
+      pullPolicy: IfNotPresent
+      tag: 0.8.1
+    envFrom:
+      - secretRef:
+          name: omada-exporter-secret
+    omada:
+      host: https://omada-controller.networking.svc.cluster.local
+      request_timeout: 60
+      site: Toronto
+      insecure: true
