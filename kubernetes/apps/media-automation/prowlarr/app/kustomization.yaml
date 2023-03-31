@@ -4,8 +4,8 @@ kind: Kustomization
 namespace: media-automation
 resources:
   - ./config-pvc.yaml
-  - ./externalsecret.yaml
-  - ./helmrelease.yaml
+  # - ./externalsecret.yaml
+  # - ./helmrelease.yaml
 labels:
   - pairs:
       app.kubernetes.io/name: prowlarr
