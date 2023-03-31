@@ -117,11 +117,11 @@ spec:
       kind: ConfigMap
       name: thanos-bucket-v1
       valuesKey: BUCKET_REGION
-    - targetPath: objstoreConfig.config.storage_account
-      kind: Secret
-      name: thanos-bucket-v1
-      valuesKey: AZURE_STORAGE_ACCOUNT
-    - targetPath: objstoreConfig.config.storage_account_key
-      kind: Secret
-      name: thanos-bucket-v1
-      valuesKey: AZURE_STORAGE_KEY
+    # - targetPath: objstoreConfig.config.storage_account
+    #   kind: Secret
+    #   name: thanos-secret
+    #   valuesKey: AZURE_STORAGE_ACCOUNT
+    # - targetPath: objstoreConfig.config.storage_account_key
+    #   kind: Secret
+    #   name: thanos-secret
+    #   valuesKey: AZURE_STORAGE_KEY
