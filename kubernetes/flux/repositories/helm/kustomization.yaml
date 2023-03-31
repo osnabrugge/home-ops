@@ -6,7 +6,7 @@ resources:
   - ./bitnami.yaml
   - ./bjw-s.yaml
   - ./calico.yaml
-  - ./charlie-haleys.yaml
+  - ./charlie-haley.yaml
   - ./cloudnative-pg.yaml
   - ./csi-driver-nfs.yaml
   - ./descheduler.yaml
