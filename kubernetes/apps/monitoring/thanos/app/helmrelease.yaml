@@ -34,6 +34,7 @@ spec:
     objstoreConfig:
       type: azure
       config:
+        container: thanos
         endpoint: thanos
     queryFrontend:
       enabled: true
