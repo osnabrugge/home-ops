@@ -110,11 +110,11 @@ spec:
           - name: Alertmanager
             orgId: 1
         datasources:
-          # - name: Prometheus
-          #   type: prometheus
-          #   access: proxy
-          #   url: http://thanos-query-frontend.monitoring.svc.cluster.local:10902
-          #   isDefault: true
+          - name: Prometheus
+            type: prometheus
+            access: proxy
+            url: http://thanos-query-frontend.monitoring.svc.cluster.local:10902
+            isDefault: true
           # - name: Loki
           #   type: loki
           #   access: proxy
@@ -145,15 +145,15 @@ spec:
         #   revision: 21
         #   datasource: Prometheus
         # # Ref: https://grafana.com/grafana/dashboards/1860-node-exporter-full/
-        # node-exporter-full:
-        #   gnetId: 1860
-        #   revision: 30
-        #   datasource: Prometheus
+        node-exporter-full:
+          gnetId: 1860
+          revision: 30
+          datasource: Prometheus
         # # Ref: https://grafana.com/grafana/dashboards/763-redis-dashboard-for-prometheus-redis-exporter-1-x/
-        # redis:
-        #   gnetId: 763
-        #   revision: 4
-        #   datasource: Prometheus
+        redis:
+          gnetId: 763
+          revision: 4
+          datasource: Prometheus
         # Ref: https://grafana.com/grafana/dashboards/5342-ceph-pools/
         ceph-pools:
           gnetId: 5342
