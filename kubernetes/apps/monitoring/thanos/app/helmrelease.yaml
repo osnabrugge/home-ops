@@ -34,8 +34,8 @@ spec:
     objstoreConfig:
       type: azure
       config:
-        container: blob.core.windows.net
-        endpoint: thanos
+        container: thanos
+        endpoint: blob.core.windows.net
     queryFrontend:
       enabled: true
       replicaCount: 3
