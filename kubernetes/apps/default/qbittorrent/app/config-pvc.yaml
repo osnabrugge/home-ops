@@ -15,4 +15,3 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: ceph-block
-  volumeName: pvc-bf3b557e-dee1-4104-b0f5-ce30ba476ab6

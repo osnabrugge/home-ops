@@ -1,8 +1,9 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helmrelease_v2beta1.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: &app qbittorrent
+  name: qbittorrent
   namespace: default
 spec:
   interval: 15m
@@ -32,7 +33,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/onedr0p/qbittorrent
-      tag: 4.5.2
+      tag: 4.5.2@sha256:a4a66d66ed11c5e3570078daf4e4adeb8a7f88b000a64aa760d46ef12fa7a4c6
     env:
       TZ: "${TIMEZONE}"
       QBITTORRENT__PORT: &port 8080
@@ -56,7 +57,7 @@ spec:
     ingress:
       main:
         enabled: true
-        ingressClassName: "nginx"
+        ingressClassName: nginx
         annotations:
           # nginx.ingress.kubernetes.io/configuration-snippet: |
           #   proxy_hide_header "x-webkit-csp";
@@ -80,21 +81,23 @@ spec:
       runAsUser: 568
       runAsGroup: 568
       fsGroup: 568
-      fsGroupChangePolicy: "OnRootMismatch"
-      supplementalGroups:
-        - 100
-    podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
+      fsGroupChangePolicy: OnRootMismatch
+      supplementalGroups: [10000]
     persistence:
       config:
         enabled: true
         existingClaim: qbittorrent-config
       media:
         enabled: true
-        mountPath: /data/nas
-        path: /volume1/share
-        server: "${NAS_ADDR}"
         type: nfs
+        server: "${NAS_ADDR}"
+        path: /volume1/share
+        mountPath: /data/nas
+      incomplete:
+        enabled: true
+        type: emptyDir
+    podAnnotations:
+      k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
     resources:
       requests:
         cpu: 10m
