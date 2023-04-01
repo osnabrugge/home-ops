@@ -9,6 +9,7 @@ resources:
   - ./hajimari/ks.yaml
   - ./kopia/ks.yaml
   - ./prowlarr/ks.yaml
+  - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
   - ./redis/ks.yaml
   - ./sonarr/ks.yaml
