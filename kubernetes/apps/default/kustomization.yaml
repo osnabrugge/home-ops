@@ -6,6 +6,7 @@ resources:
   - ./bazarr/ks.yaml
   - ./cloudnative-pg/ks.yaml
   - ./echo-server/ks.yaml
+  - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
   - ./kopia/ks.yaml
   - ./prowlarr/ks.yaml
