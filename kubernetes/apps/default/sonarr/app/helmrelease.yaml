@@ -26,6 +26,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    controller:
+      type: statefulset
+      annotations:
+        reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/onedr0p/sonarr
       tag: 3.0.10.1567@sha256:4ccde7e616022359b3a8e2283d54b8bcdf3709c57ca9714a919005ff0b1fe851
