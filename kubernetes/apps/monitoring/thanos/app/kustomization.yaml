@@ -5,7 +5,6 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - ./externalsecret.yaml
-  # - ./objectbucketclaim.yaml
   - ./helmrelease.yaml
 configMapGenerator:
   - name: thanos-bucket-replicate-dashboard
