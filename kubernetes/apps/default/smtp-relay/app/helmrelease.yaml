@@ -33,11 +33,13 @@ spec:
       annotations:
         reloader.stakater.com/auto: "true"
     image:
-      repository: docker.io/juanluisbaptiste/postfix
-      tag: 1.7.1
+      repository: ghcr.io/foxcpp/maddy
+      tag: 0.6.3
     env:
-      SMTP_SERVER: smtp.office.365
-      SERVER_HOSTNAME: "${SECRET_DOMAIN}"
+      DEBUG: "true"
+      SMTP_DOMAIN: "${SECRET_DOMAIN}"
+      SMTP_SERVER: "smtp.office365.com"
+      SMTP_PORT: "587"
     envFrom:
       - secretRef:
           name: smtp-relay-secret
@@ -48,8 +50,40 @@ spec:
         externalTrafficPolicy: Local
         ports:
           http:
-            port: 25
-
+            port: 2525
+          metrics:
+            enabled: true
+            port: 9749
+    serviceMonitor:
+      main:
+        enabled: true
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 10s
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: smtp-relay-configmap
+        subPath: maddy.conf
+        mountPath: /data/maddy.conf
+        readOnly: true
+      data:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 1Gi
+        mountPath: /dev/shm
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: *app
     resources:
       requests:
         cpu: 10m
