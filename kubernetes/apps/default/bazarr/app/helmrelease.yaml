@@ -1,8 +1,9 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helmrelease_v2beta1.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: &app bazarr
+  name: bazarr
   namespace: default
 spec:
   interval: 15m
@@ -14,7 +15,6 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-      interval: 15m
   maxHistory: 3
   install:
     createNamespace: true
@@ -34,6 +34,8 @@ spec:
     image:
       repository: ghcr.io/onedr0p/bazarr
       tag: 1.2.0@sha256:5e2fb884452dbfafba155a6aea6c0d0274905d159456cf6d733637b5ed9e1c13
+    env:
+      TZ: {$TIMEZONE}
     service:
       main:
         ports:
@@ -42,7 +44,7 @@ spec:
     ingress:
       main:
         enabled: true
-        ingressClassName: "nginx"
+        ingressClassName: nginx
         annotations:
           # nginx.ingress.kubernetes.io/configuration-snippet: |
           #   proxy_set_header Accept-Encoding "";
@@ -64,6 +66,7 @@ spec:
       runAsGroup: 568
       fsGroup: 568
       fsGroupChangePolicy: OnRootMismatch
+      supplementalGroups: [10000]
     persistence:
       config:
         enabled: true
@@ -71,14 +74,31 @@ spec:
         mountPath: /config
       media:
         enabled: true
-        mountPath: /data/nas
-        path: /volume1/share
-        server: "${NAS_ADDR}"
         type: nfs
+        server: "${NAS_ADDR}"
+        path: /volume1/share
+        mountPath: /data/nas
+      add-ons:
+        enabled: true
+        type: emptyDir
+        mountPath: /add-ons
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
-      secret.reloader.stakater.com/reload: *app
     resources:
       requests:
-        cpu: 50m
-        memory: 200Mi
+        cpu: 10m
+        memory: 250Mi
+      limits:
+        memory: 2000Mi
+    sidecars:
+      subcleaner:
+        image: registry.k8s.io/git-sync/git-sync:v3.6.5
+        imagePullPolicy: IfNotPresent
+        args:
+          - --repo=https://github.com/KBlixt/subcleaner.git
+          - --branch=master
+          - --depth=1
+          - --wait=21600 # 6 hours
+          - --root=/add-ons/subcleaner
+        volumeMounts:
+          - { name: add-ons, mountPath: /add-ons }
