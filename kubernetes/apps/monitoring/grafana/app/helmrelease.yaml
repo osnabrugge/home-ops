@@ -60,27 +60,27 @@ spec:
     envFromSecrets:
       - name: grafana-secret
     grafana.ini:
-      # auth:
-      #   signout_redirect_url: "https://auth.${SECRET_DOMAIN}/logout"
-      #   oauth_auto_login: false
-      # auth.generic_oauth:
-      #   enabled: true
-      #   name: Authelia
-      #   client_id: # Set by env vars
-      #   client_secret: # Set by env vars secret
-      #   auth_url: # Set by env vars
-      #   token_url: # Set by env vars
-      #   api_url: # Set by env vars
-      #   scopes: "openid profile email groups"
-      #   empty_scopes: false
-      #   login_attribute_path: preferred_username
-      #   groups_attribute_path: groups
-      #   name_attribute_path: name
-      #   use_pkce: true
-      # auth.generic_oauth.group_mapping:
-      #   role_attribute_path: |
-      #     contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'people') && 'Viewer'
-      #   org_id: 1
+      auth:
+        signout_redirect_url: "https://auth.${SECRET_DOMAIN}/logout"
+        oauth_auto_login: false
+      auth.generic_oauth:
+        enabled: true
+        name: Authelia
+        client_id: # Set by env vars
+        client_secret: # Set by env vars secret
+        auth_url: # Set by env vars
+        token_url: # Set by env vars
+        api_url: # Set by env vars
+        scopes: "openid profile email groups"
+        empty_scopes: false
+        login_attribute_path: preferred_username
+        groups_attribute_path: groups
+        name_attribute_path: name
+        use_pkce: true
+      auth.generic_oauth.group_mapping:
+        role_attribute_path: |
+          contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'people') && 'Viewer'
+        org_id: 1
       auth.basic:
         enabled: true
         disable_login_form: false
@@ -129,22 +129,6 @@ spec:
               implementation: prometheus
     dashboards:
       default:
-        # Ref: https://grafana.com/grafana/dashboards/11312-unifi-poller-usw-insights-prometheus/
-        # unifi-usw:
-        #   gnetId: 11312
-        #   revision: 9
-        #   datasource: Prometheus
-        # # Ref: https://grafana.com/grafana/dashboards/7845-zfs/
-        # zfs:
-        #   gnetId: 7845
-        #   revision: 4
-        #   datasource: Prometheus
-        # # Ref: https://grafana.com/grafana/dashboards/13502-minio-dashboard/
-        # minio:
-        #   gnetId: 13502
-        #   revision: 21
-        #   datasource: Prometheus
-        # # Ref: https://grafana.com/grafana/dashboards/1860-node-exporter-full/
         node-exporter-full:
           gnetId: 1860
           revision: 30
