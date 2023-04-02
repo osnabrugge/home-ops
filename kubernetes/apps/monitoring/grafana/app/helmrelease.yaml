@@ -39,8 +39,8 @@ spec:
       pspEnabled: false
     testFramework:
       enabled: false
-    admin:
-      existingSecret: grafana-secret
+    # admin:
+    #   existingSecret: grafana-secret
     env:
       GF_ANALYTICS_CHECK_FOR_UPDATES: false
       GF_AUTH_GENERIC_OAUTH_API_URL: https://auth.${SECRET_DOMAIN}/api/oidc/userinfo
@@ -82,8 +82,8 @@ spec:
           contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'people') && 'Viewer'
         org_id: 1
       auth.basic:
-        enabled: true
-        disable_login_form: false
+        enabled: false
+        # disable_login_form: false
       auth.anonymous:
         enabled: true
         org_name: HomeOps
