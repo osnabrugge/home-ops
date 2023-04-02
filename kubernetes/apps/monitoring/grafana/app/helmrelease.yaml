@@ -43,10 +43,10 @@ spec:
       existingSecret: grafana-secret
     env:
       GF_ANALYTICS_CHECK_FOR_UPDATES: false
-      GF_AUTH_GENERIC_OAUTH_API_URL: "https://auth.${SECRET_DOMAIN}/api/oidc/userinfo"
-      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://auth.${SECRET_DOMAIN}/api/oidc/authorization"
+      GF_AUTH_GENERIC_OAUTH_API_URL: https://auth.${SECRET_DOMAIN}/api/oidc/userinfo
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: https://auth.${SECRET_DOMAIN}/api/oidc/authorization
       GF_AUTH_GENERIC_OAUTH_CLIENT_ID: grafana
-      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://auth.${SECRET_DOMAIN}/api/oidc/token"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: https://auth.${SECRET_DOMAIN}/api/oidc/token
       GF_DATE_FORMATS_USE_BROWSER_LOCALE: true
       GF_EXPLORE_ENABLED: true
       GF_GRAFANA_NET_URL: https://grafana.net
@@ -56,12 +56,12 @@ spec:
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: natel-discrete-panel,pr0ps-trackmap-panel,panodata-map-panel
       GF_SECURITY_ALLOW_EMBEDDING: true
       GF_SECURITY_COOKIE_SAMESITE: grafana
-      GF_SERVER_ROOT_URL: "https://grafana.${SECRET_DOMAIN}"
+      GF_SERVER_ROOT_URL: https://grafana.${SECRET_DOMAIN}
     envFromSecrets:
       - name: grafana-secret
     grafana.ini:
       auth:
-        signout_redirect_url: "https://auth.${SECRET_DOMAIN}/logout"
+        signout_redirect_url: https://auth.${SECRET_DOMAIN}/logout
         oauth_auto_login: false
       auth.generic_oauth:
         enabled: true
@@ -129,11 +129,12 @@ spec:
               implementation: prometheus
     dashboards:
       default:
+        # Ref: https://grafana.com/grafana/dashboards/1860-node-exporter-full/
         node-exporter-full:
           gnetId: 1860
           revision: 30
           datasource: Prometheus
-        # # Ref: https://grafana.com/grafana/dashboards/763-redis-dashboard-for-prometheus-redis-exporter-1-x/
+        # Ref: https://grafana.com/grafana/dashboards/763-redis-dashboard-for-prometheus-redis-exporter-1-x/
         redis:
           gnetId: 763
           revision: 4
@@ -209,7 +210,7 @@ spec:
       enabled: true
       ingressClassName: nginx
       annotations:
-        external-dns.alpha.kubernetes.io/target: "ipv4.${SECRET_DOMAIN}"
+        external-dns.alpha.kubernetes.io/target: ipv4.${SECRET_DOMAIN}
         hajimari.io/icon: simple-icons:grafana
       hosts:
         - &host "grafana.${SECRET_DOMAIN}"
