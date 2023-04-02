@@ -1,0 +1,15 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: default
+resources:
+  # - ./externalsecret.yaml
+  - ./helmrelease.yaml
+  - ./config-pvc.yaml
+  # - ./cronjobs
+labels:
+  - pairs:
+      app.kubernetes.io/name: plex
+      app.kubernetes.io/instance: plex
+      app.kubernetes.io/part-of: plex
