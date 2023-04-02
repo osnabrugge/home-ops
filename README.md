@@ -15,7 +15,7 @@ _... managed with Flux, Renovate and GitHub Actions_ 🤖
 
 ## 📗Overview
 
-Semi-hyperconverged [k3s](https://k3s.io/) GitOps managed cluster. Will update once more workloads are deployed.
+Semi-hyperconverged [k3s](https://k3s.io/) GitOps managed cluster.
 
 ## Cluster Components
 
