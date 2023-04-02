@@ -10,7 +10,7 @@ resources:
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
   - ./kopia/ks.yaml
-  - ./overseer/ks.yaml
+  - ./overseerr/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
