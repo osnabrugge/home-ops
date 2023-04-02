@@ -61,12 +61,11 @@ spec:
       runAsGroup: 568
       fsGroup: 568
       fsGroupChangePolicy: OnRootMismatch
-    volumeClaimTemplates:
-      - name: config
+    persistence:
+      config:
+        enabled: true
+        existingClaim: overseerr-config
         mountPath: /app/config
-        accessMode: ReadWriteOnce
-        size: 1Gi
-        storageClass: ceph-block
     resources:
       requests:
         cpu: 10m
