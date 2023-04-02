@@ -18,3 +18,4 @@ resources:
   - ./redis/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
+  - ./tautulli/ks.yaml
