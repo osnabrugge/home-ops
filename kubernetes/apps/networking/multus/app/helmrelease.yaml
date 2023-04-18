@@ -24,7 +24,7 @@ spec:
 
     image:
       repository: ghcr.io/k8snetworkplumbingwg/multus-cni
-      tag: v3.93
+      tag: v3.9.3
       pullPolicy: Always
 
     cni:
