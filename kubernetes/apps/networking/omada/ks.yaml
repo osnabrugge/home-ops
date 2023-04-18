@@ -15,5 +15,5 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: home-kubernetes
+    name: home-ops-kubernetes
   wait: true

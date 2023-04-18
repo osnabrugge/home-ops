@@ -13,7 +13,7 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: home-kubernetes
+    name: home-ops-kubernetes
   healthChecks:
     - apiVersion: batch/v1
       kind: CronJob
