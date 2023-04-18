@@ -25,11 +25,13 @@ spec:
     image:
       repository: ghcr.io/k8snetworkplumbingwg/multus-cni
       tag: v4.0.1
+      pullPolicy: Always
 
     cni:
       image:
         repository: ghcr.io/angelnu/cni-plugins
         tag: 1.2.0
+        pullPolicy: Always
 
       paths:
         config: /etc/cni/net.d
