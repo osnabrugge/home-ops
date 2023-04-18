@@ -5,6 +5,7 @@ metadata:
   name: cluster-settings
   namespace: flux-system
 data:
+  CLUSTER_NAME: home-ops
   TIMEZONE: "America/Toronto"
   KUBE_VIP_ADDR: "192.168.10.50"
   NAS_ADDR: "192.168.88.11"
