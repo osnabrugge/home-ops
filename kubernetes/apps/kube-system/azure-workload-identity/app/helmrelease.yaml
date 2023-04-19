@@ -9,7 +9,7 @@ spec:
   interval: 15m
   chart:
     spec:
-      chart: azure-workload-identity
+      chart: workload-identity-webhook
       version: 1.0.0
       sourceRef:
         kind: HelmRepository
