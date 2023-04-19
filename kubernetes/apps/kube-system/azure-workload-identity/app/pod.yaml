@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: azure-workload-identity
+  namespace: kube-system
+  labels:
+    azure.workload.identity/use: "true"
+spec:
+  serviceAccountName: workload-identity-sa
+  containers:
+    - image: ghcr.io/azure/azure-workload-identity/msal-go
+      name: oidc
+      env:
+        - name: KEYVAULT_URL
+          value: https://keyvault-kube.vault.azure.net/
+        - name: SECRET_NAME
+          value: home-ops-kubernetes
