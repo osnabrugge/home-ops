@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   - ./azure-workload-identity/ks.yaml
-  # - ./external-secrets/ks.yaml
+  - ./external-secrets/ks.yaml
   - ./intel-device-plugin/ks.yaml
   - ./kured/ks.yaml
   - ./local-path-provisioner/ks.yaml
