@@ -50,7 +50,7 @@ spec:
         - name: pdu02
           module:
             - cyberpower
-          target: "192.168.10.5}"
+          target: "192.168.10.5"
       path: /snmp
       scrapeTimeout: 10s
       relabelings:
