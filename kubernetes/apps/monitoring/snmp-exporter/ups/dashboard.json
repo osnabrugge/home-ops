@@ -1055,8 +1055,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "192.168.1.160",
-          "value": "192.168.1.160"
+          "text": "192.168.10.3",
+          "value": "192.168.10.3"
         },
         "datasource": "Prometheus",
         "definition": "label_values(upsCommStatus,instance)",
