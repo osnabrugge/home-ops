@@ -19,7 +19,7 @@ spec:
     image:
       repository: ghcr.io/charlie-haley/omada_exporter
       pullPolicy: IfNotPresent
-      tag: 0.8.1
+      tag: 0.8.2
     env:
       TZ: "${TIMEZONE}"
     omada:
