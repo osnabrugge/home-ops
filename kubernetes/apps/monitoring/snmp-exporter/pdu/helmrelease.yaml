@@ -45,11 +45,11 @@ spec:
       params:
         - name: pdu01
           module:
-            - cyberpower
+            - pdu
           target: "192.168.10.4"
         - name: pdu02
           module:
-            - cyberpower
+            - pdu
           target: "192.168.10.5"
       path: /snmp
       scrapeTimeout: 10s
