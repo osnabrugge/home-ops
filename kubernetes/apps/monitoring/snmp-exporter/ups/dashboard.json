@@ -3,25 +3,63 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
         "type": "dashboard"
       }
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 38,
-  "iteration": 1585833708352,
+  "id": 167,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
-      "cacheTimeout": null,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 70
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 7,
         "w": 4,
@@ -31,46 +69,29 @@
       "id": 1,
       "links": [],
       "options": {
-        "fieldOptions": {
-          "calcs": ["last"],
-          "defaults": {
-            "decimals": 1,
-            "mappings": [],
-            "max": 100,
-            "min": 0,
-            "nullValueMode": "connected",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "orange",
-                  "value": 50
-                },
-                {
-                  "color": "red",
-                  "value": 70
-                }
-              ]
-            },
-            "unit": "percent"
-          },
-          "overrides": [],
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
           "values": false
         },
-        "orientation": "horizontal",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.6.2",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
-          "expr": "0.1*upsHighPrecOutputLoad{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceOutputLoad{instance=\"$instance\"}",
           "format": "table",
           "intervalFactor": 1,
+          "range": true,
           "refId": "A",
           "step": 1800
         }
@@ -79,23 +100,44 @@
       "type": "gauge"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "rgba(245, 54, 54, 0.9)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(50, 172, 45, 0.97)"
-      ],
-      "datasource": null,
-      "decimals": 2,
-      "format": "voltamp",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "decimals": 2,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "voltamp"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
@@ -104,66 +146,81 @@
         "y": 0
       },
       "id": 2,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
-          "expr": "0.01*upsHighPrecOutputCurrent{instance=\"$instance\"}*upsHighPrecOutputVoltage{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceOutputPower{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 2,
+          "range": true,
           "refId": "A",
           "step": 1800
         }
       ],
-      "thresholds": "",
       "title": "Output Power",
-      "type": "singlestat",
-      "valueFontSize": "100%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "mappings": [
+            {
+              "id": 0,
+              "op": "=",
+              "text": "N/A",
+              "type": 1,
+              "value": "null"
+            }
+          ],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 30
+              },
+              {
+                "color": "green",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 7,
         "w": 4,
@@ -173,54 +230,29 @@
       "id": 11,
       "links": [],
       "options": {
-        "fieldOptions": {
-          "calcs": ["last"],
-          "defaults": {
-            "decimals": 1,
-            "mappings": [
-              {
-                "id": 0,
-                "op": "=",
-                "text": "N/A",
-                "type": 1,
-                "value": "null"
-              }
-            ],
-            "max": 100,
-            "min": 0,
-            "nullValueMode": "connected",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "red",
-                  "value": null
-                },
-                {
-                  "color": "orange",
-                  "value": 30
-                },
-                {
-                  "color": "green",
-                  "value": 50
-                }
-              ]
-            },
-            "unit": "percent"
-          },
-          "overrides": [],
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
           "values": false
         },
-        "orientation": "horizontal",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.6.2",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
-          "expr": "0.1*upsHighPrecBatteryCapacity{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceBatteryCapacity{instance=\"$instance\"}",
           "format": "table",
           "intervalFactor": 1,
+          "range": true,
           "refId": "A",
           "step": 1800
         }
@@ -229,23 +261,47 @@
       "type": "gauge"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(245, 54, 54, 0.9)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(50, 172, 45, 0.97)"
-      ],
-      "datasource": null,
-      "decimals": 1,
-      "format": "m",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgba(245, 54, 54, 0.9)",
+                "value": null
+              },
+              {
+                "color": "rgba(237, 129, 40, 0.89)",
+                "value": 15
+              },
+              {
+                "color": "rgba(50, 172, 45, 0.97)",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
@@ -254,80 +310,82 @@
         "y": 0
       },
       "id": 3,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
-          "expr": "upsAdvBatteryRunTimeRemaining{instance=\"$instance\"}/60/100",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceBatteryRunTimeRemaining{instance=\"$instance\"}/60/100",
           "format": "time_series",
           "intervalFactor": 2,
+          "range": true,
           "refId": "A",
           "step": 1800
         }
       ],
-      "thresholds": "15,30",
       "title": "Run Time Remaining",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": true,
-      "colors": [
-        "rgba(50, 172, 45, 0.97)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(245, 54, 54, 0.9)"
-      ],
-      "datasource": null,
-      "format": "m",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgba(50, 172, 45, 0.97)",
+                "value": null
+              },
+              {
+                "color": "rgba(237, 129, 40, 0.89)",
+                "value": 0.5
+              },
+              {
+                "color": "rgba(245, 54, 54, 0.9)",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
@@ -336,81 +394,80 @@
         "y": 0
       },
       "id": 4,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
-          "expr": "upsBasicBatteryTimeOnBattery{instance=\"$instance\"}/60/100",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsBaseBatteryTimeOnBattery{instance=\"$instance\"}/60/100",
           "format": "time_series",
           "intervalFactor": 2,
+          "range": true,
           "refId": "A",
           "step": 1800
         }
       ],
-      "thresholds": "0.5,0.5",
       "title": "Time on Battery",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "avg"
+      "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "rgba(245, 54, 54, 0.9)",
-        "rgba(237, 129, 40, 0.89)",
-        "rgba(50, 172, 45, 0.97)"
-      ],
-      "datasource": null,
-      "decimals": 1,
-      "format": "celsius",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "decimals": 1,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
@@ -419,70 +476,57 @@
         "y": 0
       },
       "id": 12,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
       "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "tableColumn": "",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
-          "expr": "0.1*upsHighPrecBatteryTemperature{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceBatteryTemperature{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 2,
+          "range": true,
           "refId": "A",
           "step": 1800
         }
       ],
-      "thresholds": "",
       "title": "Battery Temperature",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "stat"
     },
     {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "decimals": 1,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -509,9 +553,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "9.4.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -521,26 +566,36 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "0.1*upsHighPrecInputLineVoltage{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceInputLineVoltage{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Line Input",
+          "range": true,
           "refId": "A",
           "step": 60
         },
         {
-          "expr": "0.1*upsHighPrecOutputVoltage{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceOutputVoltage{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Output",
+          "range": true,
           "refId": "B",
           "step": 60
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Voltage",
       "tooltip": {
         "shared": true,
@@ -549,33 +604,24 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "volt",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -583,8 +629,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "decimals": 1,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -610,9 +665,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "9.4.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -622,26 +678,36 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "0.1*upsHighPrecInputFrequency{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceInputFrequency{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Input",
+          "range": true,
           "refId": "A",
           "step": 60
         },
         {
-          "expr": "0.1*upsHighPrecOutputFrequency{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceOutputFrequency{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Output",
+          "range": true,
           "refId": "B",
           "step": 60
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Frequency",
       "tooltip": {
         "shared": true,
@@ -650,33 +716,24 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "hertz",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -684,8 +741,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "decimals": 1,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -710,9 +776,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "9.4.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -722,18 +789,22 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "0.1*upsHighPrecOutputCurrent{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceOutputPower{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Current",
+          "range": true,
           "refId": "A",
           "step": 60
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Output Current",
       "tooltip": {
         "shared": true,
@@ -742,33 +813,25 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "amp",
-          "label": null,
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -776,8 +839,17 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
       "decimals": 1,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
@@ -802,9 +874,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "9.4.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -814,18 +887,22 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "0.1*upsHighPrecBatteryActualVoltage{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceBatteryVoltage{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Voltage",
+          "range": true,
           "refId": "A",
           "step": 300
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Battery Voltage",
       "tooltip": {
         "shared": true,
@@ -834,33 +911,24 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "volt",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -868,7 +936,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -893,9 +970,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "9.4.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -905,18 +983,22 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "upsAdvOutputCurrent{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceOutputCurrent{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Current",
+          "range": true,
           "refId": "A",
           "step": 300
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Battery Current",
       "tooltip": {
         "shared": true,
@@ -925,33 +1007,25 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "amp",
-          "label": null,
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -959,7 +1033,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -984,9 +1067,10 @@
       "links": [],
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "9.4.7",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -996,18 +1080,22 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "upsHighPrecOutputCurrent{instance=\"$instance\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "upsAdvanceOutputCurrent{instance=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Current",
+          "range": true,
           "refId": "A",
           "step": 300
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Total DC Current",
       "tooltip": {
         "shared": true,
@@ -1016,63 +1104,61 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "amp",
-          "label": null,
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 22,
+  "revision": 1,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": [
       {
-        "allValue": null,
         "current": {
-          "text": "192.168.10.3",
-          "value": "192.168.10.3"
+          "selected": false,
+          "text": "10.0.0.6",
+          "value": "10.0.0.6"
         },
-        "datasource": "Prometheus",
-        "definition": "label_values(upsCommStatus,instance)",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "Prometheus"
+        },
+        "definition": "label_values(upsBaseBatteryStatus,instance)",
         "hide": 0,
         "includeAll": false,
         "label": "Device",
         "multi": false,
         "name": "instance",
         "options": [],
-        "query": "label_values(upsCommStatus,instance)",
+        "query": {
+          "query": "label_values(upsBaseBatteryStatus,instance)",
+          "refId": "StandardVariableQuery"
+        },
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
-        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -1096,10 +1182,21 @@
       "2h",
       "1d"
     ],
-    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
   },
   "timezone": "",
-  "title": "UPS",
+  "title": "CyberPower UPS",
   "uid": "000000012",
-  "version": 9
+  "version": 4,
+  "weekStart": ""
 }
