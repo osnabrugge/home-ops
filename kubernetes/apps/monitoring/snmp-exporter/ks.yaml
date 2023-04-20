@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/kustomization_v1beta2.json
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: cluster-apps-snmp-exporter-pdu
@@ -16,12 +16,12 @@ spec:
       kind: HelmRelease
       name: snmp-exporter-pdu
       namespace: monitoring
-  interval: 30m
+  interval: 15m
   retryInterval: 1m
   timeout: 3m
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/kustomization_v1beta2.json
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: cluster-apps-snmp-exporter-ups
@@ -37,6 +37,6 @@ spec:
       kind: HelmRelease
       name: snmp-exporter-ups
       namespace: monitoring
-  interval: 30m
+  interval: 15m
   retryInterval: 1m
   timeout: 3m
