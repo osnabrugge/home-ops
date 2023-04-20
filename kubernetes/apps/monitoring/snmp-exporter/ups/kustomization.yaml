@@ -6,7 +6,7 @@ namespace: monitoring
 resources:
   - ./configmap.yaml
   - ./helmrelease.yaml
-  - ./prometheus.yaml
+  - ./prometheusrule.yaml
 configMapGenerator:
   - name: ups-dashboard
     files:
