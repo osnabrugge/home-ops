@@ -46,7 +46,7 @@ spec:
         - name: ups01
           module:
             - cyberpowerups
-          target: "ups01.${SECRET_PRIVATE_DOMAIN}"
+          target: "192.168.10.3"
       path: /snmp
       scrapeTimeout: 10s
       relabelings:

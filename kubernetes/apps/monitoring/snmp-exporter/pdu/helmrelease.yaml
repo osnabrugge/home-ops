@@ -46,11 +46,11 @@ spec:
         - name: pdu01
           module:
             - cyberpower
-          target: "pdu01.${SECRET_PRIVATE_DOMAIN}"
+          target: "192.168.10.4"
         - name: pdu02
           module:
             - cyberpower
-          target: "pdu02.${SECRET_PRIVATE_DOMAIN}"
+          target: "192.168.10.5}"
       path: /snmp
       scrapeTimeout: 10s
       relabelings:
