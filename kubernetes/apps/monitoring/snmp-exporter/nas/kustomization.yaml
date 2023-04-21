@@ -9,9 +9,12 @@ configMapGenerator:
   - name: snmp-exporter-nas
     files:
       - ./snmp.yaml
-  - name: nas-dashboards
+  - name: nas-dashboard
     files:
-      - nas-dashboard.json=./dashboard.json
+      - nas-dashboard.json=./dashboards/nas-details.json
+  - name: nas-overview
+    files:
+      - nas-overview.json=./dashboards/nas-overview.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

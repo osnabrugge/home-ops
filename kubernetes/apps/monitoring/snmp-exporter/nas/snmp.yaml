@@ -1,6 +1,6 @@
 #yamllint disable-file
 # WARNING: This file was auto-generated using snmp_exporter generator, manual changes will be lost.
-synology:
+nas:
   walk:
   - 1.3.6.1.2.1.2
   - 1.3.6.1.2.1.25.2
@@ -1304,27 +1304,27 @@ synology:
   - name: systemStatus
     oid: 1.3.6.1.4.1.6574.1.1
     type: gauge
-    help: Synology system status Each meanings of status represented describe below
+    help: NAS system status Each meanings of status represented describe below
       - 1.3.6.1.4.1.6574.1.1
   - name: temperature
     oid: 1.3.6.1.4.1.6574.1.2
     type: gauge
-    help: Synology system temperature The temperature of Disk Station uses Celsius
+    help: NAS system temperature The temperature of Disk Station uses Celsius
       degree. - 1.3.6.1.4.1.6574.1.2
   - name: powerStatus
     oid: 1.3.6.1.4.1.6574.1.3
     type: gauge
-    help: Synology power status Each meanings of status represented describe below
+    help: NAS power status Each meanings of status represented describe below
       - 1.3.6.1.4.1.6574.1.3
   - name: systemFanStatus
     oid: 1.3.6.1.4.1.6574.1.4.1
     type: gauge
-    help: Synology system fan status Each meanings of status represented describe
+    help: NAS system fan status Each meanings of status represented describe
       below - 1.3.6.1.4.1.6574.1.4.1
   - name: cpuFanStatus
     oid: 1.3.6.1.4.1.6574.1.4.2
     type: gauge
-    help: Synology cpu fan status Each meanings of status represented describe below
+    help: NAS cpu fan status Each meanings of status represented describe below
       - 1.3.6.1.4.1.6574.1.4.2
   - name: modelName
     oid: 1.3.6.1.4.1.6574.1.5.1
@@ -1346,7 +1346,7 @@ synology:
   - name: controllerNumber
     oid: 1.3.6.1.4.1.6574.1.6
     type: gauge
-    help: Synology system controller number Controller A(0) Controller B(1) - 1.3.6.1.4.1.6574.1.6
+    help: NAS system controller number Controller A(0) Controller B(1) - 1.3.6.1.4.1.6574.1.6
   - name: storageIOIndex
     oid: 1.3.6.1.4.1.6574.101.1.1.1
     type: gauge
@@ -1888,7 +1888,7 @@ synology:
   - name: diskID
     oid: 1.3.6.1.4.1.6574.2.1.1.2
     type: OctetString
-    help: Synology disk ID The ID of disk is assigned by disk Station. - 1.3.6.1.4.1.6574.2.1.1.2
+    help: NAS disk ID The ID of disk is assigned by disk Station. - 1.3.6.1.4.1.6574.2.1.1.2
     indexes:
     - labelname: diskIndex
       type: gauge
@@ -1903,7 +1903,7 @@ synology:
   - name: diskModel
     oid: 1.3.6.1.4.1.6574.2.1.1.3
     type: DisplayString
-    help: Synology disk model name The disk model name will be showed here. - 1.3.6.1.4.1.6574.2.1.1.3
+    help: NAS disk model name The disk model name will be showed here. - 1.3.6.1.4.1.6574.2.1.1.3
     indexes:
     - labelname: diskIndex
       type: gauge
@@ -1918,7 +1918,7 @@ synology:
   - name: diskType
     oid: 1.3.6.1.4.1.6574.2.1.1.4
     type: DisplayString
-    help: Synology disk type The type of disk will be showed here, including SATA,
+    help: NAS disk type The type of disk will be showed here, including SATA,
       SSD and so on. - 1.3.6.1.4.1.6574.2.1.1.4
     indexes:
     - labelname: diskIndex
@@ -1934,7 +1934,7 @@ synology:
   - name: diskStatus
     oid: 1.3.6.1.4.1.6574.2.1.1.5
     type: gauge
-    help: Synology disk status Each meanings of status represented describe below
+    help: NAS disk status Each meanings of status represented describe below
       - 1.3.6.1.4.1.6574.2.1.1.5
     indexes:
     - labelname: diskIndex
@@ -1950,7 +1950,7 @@ synology:
   - name: diskTemperature
     oid: 1.3.6.1.4.1.6574.2.1.1.6
     type: gauge
-    help: Synology disk temperature The temperature of each disk uses Celsius degree.
+    help: NAS disk temperature The temperature of each disk uses Celsius degree.
       - 1.3.6.1.4.1.6574.2.1.1.6
     indexes:
     - labelname: diskIndex
@@ -1966,7 +1966,7 @@ synology:
   - name: diskRole
     oid: 1.3.6.1.4.1.6574.2.1.1.7
     type: OctetString
-    help: Synology disk role The role of the disk in system - 1.3.6.1.4.1.6574.2.1.1.7
+    help: NAS disk role The role of the disk in system - 1.3.6.1.4.1.6574.2.1.1.7
     indexes:
     - labelname: diskIndex
       type: gauge
@@ -1981,7 +1981,7 @@ synology:
   - name: diskRetry
     oid: 1.3.6.1.4.1.6574.2.1.1.8
     type: gauge
-    help: Synology disk retry count The count of each disk connection retries. - 1.3.6.1.4.1.6574.2.1.1.8
+    help: NAS disk retry count The count of each disk connection retries. - 1.3.6.1.4.1.6574.2.1.1.8
     indexes:
     - labelname: diskIndex
       type: gauge
@@ -1996,7 +1996,7 @@ synology:
   - name: diskBadSector
     oid: 1.3.6.1.4.1.6574.2.1.1.9
     type: gauge
-    help: Synology disk bad sector count The count of each disk I/O bad sector. -
+    help: NAS disk bad sector count The count of each disk I/O bad sector. -
       1.3.6.1.4.1.6574.2.1.1.9
     indexes:
     - labelname: diskIndex
@@ -2012,7 +2012,7 @@ synology:
   - name: diskIdentifyFail
     oid: 1.3.6.1.4.1.6574.2.1.1.10
     type: gauge
-    help: Synology disk identify fail count The count of each disk identify fails.
+    help: NAS disk identify fail count The count of each disk identify fails.
       - 1.3.6.1.4.1.6574.2.1.1.10
     indexes:
     - labelname: diskIndex
@@ -2028,7 +2028,7 @@ synology:
   - name: diskRemainLife
     oid: 1.3.6.1.4.1.6574.2.1.1.11
     type: gauge
-    help: Synology disk remainLife The estimate remain life of each disk. - 1.3.6.1.4.1.6574.2.1.1.11
+    help: NAS disk remainLife The estimate remain life of each disk. - 1.3.6.1.4.1.6574.2.1.1.11
     indexes:
     - labelname: diskIndex
       type: gauge
@@ -2043,7 +2043,7 @@ synology:
   - name: diskName
     oid: 1.3.6.1.4.1.6574.2.1.1.12
     type: OctetString
-    help: Synology disk name The name of disk which align to storage manager. - 1.3.6.1.4.1.6574.2.1.1.12
+    help: NAS disk name The name of disk which align to storage manager. - 1.3.6.1.4.1.6574.2.1.1.12
     indexes:
     - labelname: diskIndex
       type: gauge
@@ -2058,7 +2058,7 @@ synology:
   - name: diskHealthStatus
     oid: 1.3.6.1.4.1.6574.2.1.1.13
     type: gauge
-    help: Synology disk health status Each meanings of status represented describe
+    help: NAS disk health status Each meanings of status represented describe
       below - 1.3.6.1.4.1.6574.2.1.1.13
     indexes:
     - labelname: diskIndex
@@ -2089,7 +2089,7 @@ synology:
   - name: raidName
     oid: 1.3.6.1.4.1.6574.3.1.1.2
     type: DisplayString
-    help: Synology raid name The name of each raid will be showed here. - 1.3.6.1.4.1.6574.3.1.1.2
+    help: NAS raid name The name of each raid will be showed here. - 1.3.6.1.4.1.6574.3.1.1.2
     indexes:
     - labelname: raidIndex
       type: gauge
@@ -2104,7 +2104,7 @@ synology:
   - name: raidStatus
     oid: 1.3.6.1.4.1.6574.3.1.1.3
     type: gauge
-    help: Synology Raid status Each meanings of status represented describe below
+    help: NAS Raid status Each meanings of status represented describe below
       - 1.3.6.1.4.1.6574.3.1.1.3
     indexes:
     - labelname: raidIndex
@@ -2120,7 +2120,7 @@ synology:
   - name: raidFreeSize
     oid: 1.3.6.1.4.1.6574.3.1.1.4
     type: gauge
-    help: Synology raid freesize Free space in bytes. - 1.3.6.1.4.1.6574.3.1.1.4
+    help: NAS raid freesize Free space in bytes. - 1.3.6.1.4.1.6574.3.1.1.4
     indexes:
     - labelname: raidIndex
       type: gauge
@@ -2135,7 +2135,7 @@ synology:
   - name: raidTotalSize
     oid: 1.3.6.1.4.1.6574.3.1.1.5
     type: gauge
-    help: Synology raid totalsize Total space in bytes. - 1.3.6.1.4.1.6574.3.1.1.5
+    help: NAS raid totalsize Total space in bytes. - 1.3.6.1.4.1.6574.3.1.1.5
     indexes:
     - labelname: raidIndex
       type: gauge
@@ -2150,7 +2150,7 @@ synology:
   - name: raidHotspareCnt
     oid: 1.3.6.1.4.1.6574.3.1.1.6
     type: gauge
-    help: Synology raid hotspare Total hotspare disks count - 1.3.6.1.4.1.6574.3.1.1.6
+    help: NAS raid hotspare Total hotspare disks count - 1.3.6.1.4.1.6574.3.1.1.6
     indexes:
     - labelname: raidIndex
       type: gauge
