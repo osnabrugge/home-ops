@@ -8,7 +8,7 @@ resources:
 configMapGenerator:
   - name: snmp-exporter-synology-nas-dashboards
     files:
-      - ./dashboards.json
+      - ./dashboard.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
