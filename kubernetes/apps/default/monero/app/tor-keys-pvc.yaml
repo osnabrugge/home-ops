@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tor-keys-pvc
+  namespace: monero
+  labels:
+    app.kubernetes.io/name: &name tor
+    app.kubernetes.io/instance: *name
+    snapshot.home.arpa/enabled: "false"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ceph-block
