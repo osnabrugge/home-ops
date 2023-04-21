@@ -3285,7 +3285,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "default",
           "definition": "label_values(ssCpuUser, job)",
           "description": null,
           "error": null,
@@ -3311,7 +3311,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "default",
           "definition": "query_result(ssCpuUser{job=~'$JobName'})",
           "description": null,
           "error": null,
@@ -3337,7 +3337,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "default",
           "definition": "label_values(ifName{job=~'$JobName',instance=~'$Device'},ifName)",
           "description": "Physical Network Interfaces",
           "error": null,
@@ -3363,7 +3363,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "default",
           "definition": "label_values(ifType_info{job=~'$JobName',instance=~'$Device'},ifName)",
           "description": "Bonds an VLans",
           "error": null,
@@ -3389,7 +3389,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "default",
           "definition": "label_values(raidName{job=~'$JobName',instance=~'$Device'},raidName)",
           "description": null,
           "error": null,
@@ -3415,7 +3415,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "default",
           "definition": "label_values(diskID{job=~'$JobName',instance=~'$Device'},diskID)",
           "description": null,
           "error": null,
@@ -3441,7 +3441,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "default",
           "definition": "label_values(diskID{job=~'$JobName',instance=~'$Device'},diskID)",
           "description": null,
           "error": null,
