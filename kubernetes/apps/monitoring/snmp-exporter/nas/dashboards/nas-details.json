@@ -7160,8 +7160,8 @@
       {
         "current": {
           "selected": true,
-          "text": "4",
-          "value": "4"
+          "text": "1",
+          "value": "1"
         },
         "description": "Total Number of NAS Systems manually entered.",
         "error": null,
@@ -7171,11 +7171,11 @@
         "options": [
           {
             "selected": true,
-            "text": "4",
-            "value": "4"
+            "text": "1",
+            "value": "1"
           }
         ],
-        "query": "4",
+        "query": "1",
         "skipUrlSync": false,
         "type": "textbox"
       },
