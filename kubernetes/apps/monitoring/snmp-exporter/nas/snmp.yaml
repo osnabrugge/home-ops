@@ -2270,16 +2270,4 @@ synology:
       type: DisplayString
     - labels: []
       labelname: serviceInfoIndex
-  version: 2
-  max_repetitions: 25
-  retries: 3
-  timeout: 5s
-  auth:
-    community: synology
-    security_level: authNoPriv
-    username: ${SYNO_SNMP_USER}
-    password: ${SYNO_SNMP_PASS}
-    auth_protocol: SHA
-    priv_protocol: DES
-    priv_password: otherPass
-    context_name: context
+  version: 1
