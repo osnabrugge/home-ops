@@ -10,7 +10,7 @@ resources:
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
   - ./kopia/ks.yaml
-  - ./monero/ks.yaml
+  # - ./monero/ks.yaml
   - ./overseerr/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
