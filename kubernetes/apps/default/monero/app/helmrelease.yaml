@@ -27,7 +27,7 @@ spec:
       nameOverride: *app
     image:
       repository: sethsimmons/simple-monerod
-      tag: v0.18.0.0
+      tag: v0.18.2.2
     environment:
       user: 1000:1000
     args:
