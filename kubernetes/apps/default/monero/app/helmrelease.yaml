@@ -64,7 +64,7 @@ spec:
     #     volumeMounts:
     #       - name: bitmonero
     #         mountPath: /home/monero
-    additionalContainers:
+    sidecars:
       - name: tor
         image: goldy/tor-hidden-service
         tag: v0.4.7.8-57f8867
