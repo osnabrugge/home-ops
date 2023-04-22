@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -17,10 +18,10 @@ spec:
       interval: 30m
   values:
     tolerations:
-    - key: node-role.kubernetes.io/control-plane
-      operator: Exists
-    - key: node-role.kubernetes.io/master
-      operator: Exists
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
 
     image:
       repository: ghcr.io/k8snetworkplumbingwg/multus-cni
