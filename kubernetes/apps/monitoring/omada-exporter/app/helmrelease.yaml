@@ -22,6 +22,9 @@ spec:
       tag: 0.8.2
     env:
       TZ: "${TIMEZONE}"
+    envFrom:
+      - secretRef:
+          name: omada-exporter-secret
     omada:
       host: ${SECRET_OMADA_HOST}
       username: ${SECRET_OMADA_USERNAME}
