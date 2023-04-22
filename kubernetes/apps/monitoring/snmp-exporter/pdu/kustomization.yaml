@@ -11,7 +11,7 @@ configMapGenerator:
       - ./snmp.yaml
   - name: pdu-dashboard
     files:
-      - pdu-dashboard.json=./dashboard.json
+      - pdu-dashboard.json=./dashboards/pdu-details.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
