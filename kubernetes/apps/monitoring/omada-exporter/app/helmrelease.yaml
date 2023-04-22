@@ -38,7 +38,7 @@ spec:
       - secretRef:
           name: omada-exporter-secret
     omada:
-      host: ${SECRET_OMADA_HOST}
+      host: https://omada-controller.networking.svc.cluster.local:8043
       username: ${SECRET_OMADA_USERNAME}
       password: ${SECRET_OMADA_PASSWORD}
       request_timeout: 60
