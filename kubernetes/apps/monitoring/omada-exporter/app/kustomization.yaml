@@ -9,7 +9,7 @@ resources:
 configMapGenerator:
   - name: omada-controller-dashboard
     files:
-      - omada-controller-dashboard.json=https://github.com/charlie-haley/omada_exporter/blob/main/dashboard.json
+      - omada-controller-dashboard.json=./dashboards/omada-overview.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
