@@ -33,7 +33,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/onedr0p/prowlarr-nightly
-      tag: 1.3.3.3224@sha256:2d43bd507a55c748df7af78b5094653f4e2cd34b2b081afc0d2c903a78346e15
+      tag: 1.4.1.3231@sha256:799229ad9bbe4cabe4f246e902a07e626f3b1b5abb2f9cd131bd4a760bd3c076
     env:
       TZ: "${TIMEZONE}"
       PROWLARR__INSTANCE_NAME: Prowlarr
