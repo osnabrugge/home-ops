@@ -21,6 +21,10 @@ spec:
       kind: HelmRelease
       name: home-assistant
       namespace: default
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
   interval: 15m
   retryInterval: 1m
   timeout: 3m
