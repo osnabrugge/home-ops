@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./angelnu.yaml
   - ./azure-workload-identity.yaml
+  - ./backube.yaml
   - ./bitnami.yaml
   - ./bjw-s.yaml
   - ./calico.yaml
