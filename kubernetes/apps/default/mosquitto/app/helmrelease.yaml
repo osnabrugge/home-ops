@@ -48,7 +48,7 @@ spec:
         type: LoadBalancer
         annotations:
           coredns.io/hostname: mosquitto.${SECRET_DOMAIN}
-        externalIPs: ["$(SVC_MQTT_ADDR)"]
+        externalIPs: ["${SVC_MQTT_ADDR}"]
         externalTrafficPolicy: Local
         ports:
           http:
