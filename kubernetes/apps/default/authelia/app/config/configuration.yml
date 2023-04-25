@@ -36,3 +36,19 @@ identity_providers:
         scopes: ["openid", "profile", "groups", "email"]
         redirect_uris: ["https://grafana.${SECRET_DOMAIN}/login/generic_oauth"]
         userinfo_signing_algorithm: none
+      # - id: weave-gitops
+      #   description: Weave GitOps
+      #   secret: "${WEAVEGITOPS_OAUTH_CLIENT_SECRET}"
+      #   public: false
+      #   authorization_policy: two_factor
+      #   pre_configured_consent_duration: 1y
+      #   scopes: ["openid", "profile", "groups", "email"]
+      #   redirect_uris: ["https://gitops.devbu.io/oauth2/callback"]
+      #   userinfo_signing_algorithm: none
+      # - id: gitea
+      #   secret: "${GITEA_OAUTH_CLIENT_SECRET}"
+      #   public: false
+      #   authorization_policy: two_factor
+      #   scopes: ["openid", "profile", "groups", "email"]
+      #   redirect_uris: ["https://gitea.devbu.io/user/oauth2/authelia/callback"]
+      #   userinfo_signing_algorithm: none
