@@ -12,7 +12,7 @@ spec:
       imagePullPolicy: IfNotPresent
       dockerdWithinRunnerContainer: true
       ephemeral: true
-      repository: onedr0p/home-ops
+      repository: osnabrugge/home-ops
       labels: ["self-hosted"]
       volumeMounts:
         - name: cache-volume
