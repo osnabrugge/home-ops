@@ -110,4 +110,4 @@ jobs:
           cache-to: type=gha,mode=max
           labels: |
             org.opencontainers.image.source="${{ github.repositoryUrl }}"
-            org.opencontainers.image.authors="Devin Buhl <osnabrugge@users.noreply.github.com>"
+            org.opencontainers.image.authors="Sean van Osnabrugge <osnabrugge@users.noreply.github.com>"
