@@ -19,7 +19,8 @@ includes:
   terraform: .taskfiles/TerraformTasks.yml
   rook: .taskfiles/RookTasks.yml
   snapshot: .taskfiles/SnapshotTasks.yml
-  
+  es: .taskfiles/ExternalSecrets/Tasks.yml
+
 tasks:
 
   init:
