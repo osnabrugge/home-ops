@@ -76,10 +76,6 @@ spec:
         labels:
           snapshot.home.arpa/enabled: "true"
     persistence:
-      # config:
-      #   enabled: true
-      #   existingClaim: bazarr-config
-      #   mountPath: /config
       media:
         enabled: true
         type: nfs
