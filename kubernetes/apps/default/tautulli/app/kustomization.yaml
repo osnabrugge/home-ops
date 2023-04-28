@@ -5,8 +5,5 @@ kind: Kustomization
 namespace: default
 resources:
   - ./helmrelease.yaml
-  - ./config-pvc.yaml
-labels:
-  - pairs:
-      app.kubernetes.io/name: tautulli
-      app.kubernetes.io/instance: tautulli
+  # - ./config-pvc.yaml
+  # - ./volsync.yaml
