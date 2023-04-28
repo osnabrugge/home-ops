@@ -61,11 +61,14 @@ spec:
       runAsGroup: 568
       fsGroup: 568
       fsGroupChangePolicy: OnRootMismatch
-    persistence:
-      config:
-        enabled: true
-        existingClaim: overseerr-config
+    volumeClaimTemplates:
+      - name: config
         mountPath: /app/config
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-block
+        labels:
+          snapshot.home.arpa/enabled: "true"
     resources:
       requests:
         cpu: 10m
