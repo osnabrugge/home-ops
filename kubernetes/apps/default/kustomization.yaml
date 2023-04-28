@@ -14,7 +14,7 @@ resources:
   - ./kubernetes-schemas/ks.yaml
   - ./monero/ks.yaml
   - ./mosquitto/ks.yaml
-  # - ./overseerr/ks.yaml
+  - ./overseerr/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
