@@ -67,19 +67,19 @@ spec:
       fsGroup: 568
       fsGroupChangePolicy: OnRootMismatch
       supplementalGroups: [10000]
-    # volumeClaimTemplates:
-    #   - name: config
-    #     mountPath: /config
-    #     accessMode: ReadWriteOnce
-    #     size: 1Gi
-    #     storageClass: ceph-block
-    #     labels:
-    #       snapshot.home.arpa/enabled: "true"
-    persistence:
-      config:
-        enabled: true
-        existingClaim: bazarr-config
+    volumeClaimTemplates:
+      - name: config
         mountPath: /config
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-block
+        labels:
+          snapshot.home.arpa/enabled: "true"
+    persistence:
+      # config:
+      #   enabled: true
+      #   existingClaim: bazarr-config
+      #   mountPath: /config
       media:
         enabled: true
         type: nfs
