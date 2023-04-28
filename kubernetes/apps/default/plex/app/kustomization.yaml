@@ -6,6 +6,5 @@ namespace: default
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
-  # - ./config-pvc.yaml
-  # - ./volsync.yaml
+  - ./volsync.yaml
   - ./cronjobs
