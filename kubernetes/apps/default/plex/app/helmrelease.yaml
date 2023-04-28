@@ -63,10 +63,15 @@ spec:
       supplementalGroups: [44, 109, 10000]
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
+    volumeClaimTemplates:
+      - name: config
+        mountPath: /config
+        accessMode: ReadWriteOnce
+        size: 100Gi
+        storageClass: ceph-block
+        labels:
+          snapshot.home.arpa/enabled: "true"
     persistence:
-      config:
-        enabled: true
-        existingClaim: plex-config
       media:
         enabled: true
         type: nfs
