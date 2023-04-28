@@ -67,6 +67,8 @@ spec:
         accessMode: ReadWriteOnce
         size: 512Mi
         storageClass: ceph-block
+        labels:
+          snapshot.home.arpa/enabled: "true"
     persistence:
       config-file:
         enabled: true
