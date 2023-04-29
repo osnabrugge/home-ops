@@ -64,9 +64,6 @@ spec:
           storage:
             azure:
               container_name: loki
-          ring:
-            kvstore:
-              store: memberlist
         ruler:
           enable_api: true
           enable_alertmanager_v2: true
