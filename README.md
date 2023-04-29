@@ -6,7 +6,7 @@
 
 _... managed with Flux, Renovate and GitHub Actions_ 🤖
 
-[![Kubernetes](https://img.shields.io/badge/v1.26-blue?style=for-the-badge&logo=kubernetes&logoColor=white)](https://k3s.io/)
+[![Kubernetes](https://img.shields.io/badge/v1.27-blue?style=for-the-badge&logo=kubernetes&logoColor=white)](https://k3s.io/)
 [![Renovate](https://img.shields.io/github/actions/workflow/status/osnabrugge/home-ops/renovate.yaml?branch=main&label=&logo=renovatebot&style=for-the-badge&color=blue)](https://github.com/osnabrugge/home-ops/actions/workflows/renovate.yaml)
 
 [![Discord](https://img.shields.io/discord/673534664354430999?color=blue&style=for-the-badge&logo=discord)](https://discord.gg/M9xtHc9A "k8s at home Discord Community")
