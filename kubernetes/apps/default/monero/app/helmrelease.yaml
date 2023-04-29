@@ -50,20 +50,6 @@ spec:
       - --limit-rate-up=51200
       - --limit-rate-down=204800
       # - --prep-blocks-threads=8
-    # initContainers:
-    #   init-permission:
-    #     image: busybox:1.35.0
-    #     imagePullPolicy: IfNotPresent
-    #     command:
-    #       - sh
-    #       - -c
-    #     args:
-    #       - chown -R 1000:1000 /home/monero;
-    #     securityContext:
-    #       runAsUser: 0
-    #     volumeMounts:
-    #       - name: bitmonero
-    #         mountPath: /home/monero
     sidecars:
       tor:
         image: goldy/tor-hidden-service
@@ -108,13 +94,12 @@ spec:
         server: "192.168.88.11"
         path: /volume1/apps/monero/monerod
         mountPath: /home/monero
-        # existingClaim: monerod-data
     resources:
       requests:
         cpu: 200m
         memory: 800Mi
       limits:
-        memory: 2000Mi
+        memory: 4000Mi
     securityContext:
       readOnlyRootFilesystem: false
       runAsUser: 1000
