@@ -68,7 +68,7 @@ spec:
             port: 6010
           firewall:
             enabled: true
-            port: 6020
+            port: 5140
             protocol: UDP
     persistence:
       config:
