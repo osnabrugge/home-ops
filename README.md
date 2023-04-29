@@ -35,6 +35,7 @@ Semi-hyperconverged [k3s](https://k3s.io/) GitOps managed cluster.
 - [metallb](https://metallb.universe.tf/) - Load balancer for Kubernetes services
 - [multus](https://github.com/k8snetworkplumbingwg/multus-cni) - Enables multiple interfaces for pods to access my storage network and [whereabouts](https://github.com/k8snetworkplumbingwg/whereabouts) to ensure consistent IP addressing across physical nodes
 - [rook-ceph](https://github.com/rook/rook) - Provision persistent replicated storage with Kubernetes
+- [volsync](https://github.com/backube/volsync) and [snapscheduler](https://github.com/backube/snapscheduler) enable restic backup and recovery of persistent volume claims to Azure Blob Storage.
 
 Additional applications include [hajimari](https://github.com/toboshii/hajimari), [error-pages](https://github.com/tarampampam/error-pages), [echo-server](https://github.com/Ealenn/Echo-Server), [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller), [reloader](https://github.com/stakater/Reloader), [kured](https://github.com/weaveworks/kured) and more
 
