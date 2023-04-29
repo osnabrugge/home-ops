@@ -26,7 +26,7 @@ sources:
 
   firewall_source:
     type: syslog
-    address: 0.0.0.0:6020
+    address: 0.0.0.0:5140
     mode: udp
 
 #
@@ -42,13 +42,6 @@ transforms:
       .custom_app_name = .pod_labels."app.kubernetes.io/name" || .pod_labels.app || .pod_labels."k8s-app" || "unknown"
       # Drop pod_labels
       del(.pod_labels)
-
-  firewall_route:
-    type: route
-    inputs: ["firewall_source"]
-    route:
-      firewall: |
-        .facility == "kern" && match!(.message, r'^\[(.*?)\].(.*)')
 
   firewall_remap:
     type: remap
@@ -76,7 +69,7 @@ transforms:
         }
       }
 
-  firewall_wan_route:
+  firewall_route:
     type: route
     inputs: ["firewall_remap"]
     route:
@@ -84,13 +77,12 @@ transforms:
 
   firewall_geoip_remap:
     type: remap
-    inputs: ["firewall_wan_route.pass_action"]
+    inputs: ["firewall_route.pass_action"]
     source: |
-      .geoip = get_enrichment_table_record!(
-          "geoip_table", {
-              "ip": .message.SRC
-          }
-      )
+      .geoip = get_enrichment_table_record!("geoip_table",
+        {
+          "ip": .filter_source_ip
+        })
 
 #
 # Sinks
