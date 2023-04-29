@@ -26,7 +26,7 @@ sources:
 
   firewall_source:
     type: syslog
-    address: 0.0.0.0:5140
+    address: 0.0.0.0:6020
     mode: udp
 
 #
