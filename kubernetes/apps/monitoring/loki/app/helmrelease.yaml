@@ -62,12 +62,12 @@ spec:
           azure:
             container_name: loki
           boltdb_shipper:
-            active_index_directory: /data/loki/boltdb-shipper-active
-            cache_location: /data/loki/boltdb-shipper-cache
+            active_index_directory: /var/loki/boltdb-shipper-active
+            cache_location: /var/loki/boltdb-shipper-cache
             cache_ttl: 24h
             shared_store: azure
           filesystem:
-            directory: /data/loki/chunks
+            directory: /var/loki/chunks
         ruler:
           enable_api: true
           enable_alertmanager_v2: true
