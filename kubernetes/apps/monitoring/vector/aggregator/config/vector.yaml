@@ -45,7 +45,7 @@ transforms:
 
   firewall_remap:
     type: remap
-    inputs: ["firewall_route.firewall"]
+    inputs: ["firewall_source"]
     source: |
       msg = parse_csv!(string!(.message))
       # Only parse IPv4 / IPv6
