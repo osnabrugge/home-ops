@@ -69,7 +69,7 @@ spec:
           firewall:
             enabled: true
             port: 6020
-            # protocol: UDP
+            protocol: UDP
     persistence:
       config:
         enabled: true
