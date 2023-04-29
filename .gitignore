@@ -19,3 +19,7 @@ kubeconfig*
 kubernetes/schemas
 # extras
 config.xml
+.config.env
+
+
+
