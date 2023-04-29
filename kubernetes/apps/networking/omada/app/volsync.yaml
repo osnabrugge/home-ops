@@ -3,19 +3,67 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: omada-restic
+  name: omada-data-restic
   namespace: networking
 spec:
   secretStoreRef:
     kind: ClusterSecretStore
     name: azurekv
   target:
-    name: omada-restic-secret
+    name: omada-data--restic-secret
     creationPolicy: Owner
     template:
       engineVersion: v2
       data:
-        RESTIC_REPOSITORY: '{{ .REPOSITORY_TEMPLATE }}/tautulli'
+        RESTIC_REPOSITORY: '{{ .REPOSITORY_TEMPLATE }}/omada-data'
+        RESTIC_PASSWORD: '{{ .RESTIC_PASSWORD }}'
+        AZURE_ACCOUNT_NAME: '{{ .AZURE_ACCOUNT_NAME }}'
+        AZURE_ACCOUNT_KEY: '{{ .AZURE_ACCOUNT_KEY }}'
+  dataFrom:
+    - extract:
+        key: volsync-restic-template
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: omada-logs-restic
+  namespace: networking
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: azurekv
+  target:
+    name: omada-logs-restic-secret
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        RESTIC_REPOSITORY: '{{ .REPOSITORY_TEMPLATE }}/omada-logs'
+        RESTIC_PASSWORD: '{{ .RESTIC_PASSWORD }}'
+        AZURE_ACCOUNT_NAME: '{{ .AZURE_ACCOUNT_NAME }}'
+        AZURE_ACCOUNT_KEY: '{{ .AZURE_ACCOUNT_KEY }}'
+  dataFrom:
+    - extract:
+        key: volsync-restic-template
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: omada-work-restic
+  namespace: networking
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: azurekv
+  target:
+    name: omada-work-restic-secret
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        RESTIC_REPOSITORY: '{{ .REPOSITORY_TEMPLATE }}/omada-work'
         RESTIC_PASSWORD: '{{ .RESTIC_PASSWORD }}'
         AZURE_ACCOUNT_NAME: '{{ .AZURE_ACCOUNT_NAME }}'
         AZURE_ACCOUNT_KEY: '{{ .AZURE_ACCOUNT_KEY }}'
@@ -36,7 +84,7 @@ spec:
   restic:
     copyMethod: Snapshot
     pruneIntervalDays: 10
-    repository: omada-restic-secret
+    repository: omada-data-restic-secret
     cacheCapacity: 2Gi
     volumeSnapshotClassName: csi-ceph-blockpool
     storageClassName: ceph-block
@@ -61,7 +109,7 @@ spec:
   restic:
     copyMethod: Snapshot
     pruneIntervalDays: 10
-    repository: omada-restic-secret
+    repository: omada-logs-restic-secret
     cacheCapacity: 1Gi
     volumeSnapshotClassName: csi-ceph-blockpool
     storageClassName: ceph-block
@@ -86,7 +134,7 @@ spec:
   restic:
     copyMethod: Snapshot
     pruneIntervalDays: 10
-    repository: omada-restic-secret
+    repository: omada-work-restic-secret
     cacheCapacity: 1Gi
     volumeSnapshotClassName: csi-ceph-blockpool
     storageClassName: ceph-block
