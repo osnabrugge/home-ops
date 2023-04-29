@@ -58,12 +58,6 @@ spec:
               index:
                 prefix: loki_index_
                 period: 24h
-        storageConfig:
-          boltdb_shipper:
-            shared_store: azure
-            active_index_directory: /var/loki/data/loki/boltdb-shipper-active
-            cache_location: /var/loki/data/loki/boltdb-shipper-cache
-            cache_ttl: 24h
         common:
           path_prefix: /var/loki
           replication_factor: 3
