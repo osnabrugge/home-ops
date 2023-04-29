@@ -62,6 +62,8 @@ spec:
           path_prefix: /var/loki
           replication_factor: 3
           storage:
+            s3:
+              s3: null
             azure:
               container_name: loki
           ring:
