@@ -74,6 +74,8 @@ spec:
           enable_alertmanager_v2: true
           alertmanager_url: http://kube-prometheus-stack-alertmanager:9093
           storage:
+            s3:
+              s3: null
             type: local
             local:
               directory: /rules
