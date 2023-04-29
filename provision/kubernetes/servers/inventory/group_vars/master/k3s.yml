@@ -1,0 +1,33 @@
+---
+k3s_control_node: true
+k3s_server:
+  node-ip: "{{ ansible_host }}"
+  tls-san:
+    - "{{ k3s_registration_address }}" # IP to HAProxy on router
+  https-listen-port: 6443
+  docker: false
+  flannel-backend: "none" # This needs to be in quotes
+  disable:
+    - flannel
+    - local-storage
+    - metrics-server
+    - servicelb
+    - traefik
+  disable-network-policy: true
+  disable-cloud-controller: true
+  cluster-cidr: "10.42.0.0/16"
+  service-cidr: "10.43.0.0/16"
+  write-kubeconfig-mode: "0644"
+  etcd-expose-metrics: true
+  kube-controller-manager-arg:
+    - "bind-address=0.0.0.0"
+    - "service-account-private-key-file=/etc/pki/sa.key" # Required for Azure Workload Identity
+  kube-proxy-arg:
+    - "metrics-bind-address=0.0.0.0"
+  kube-scheduler-arg:
+    - "bind-address=0.0.0.0"
+  kube-apiserver-arg:
+    - "anonymous-auth=true"
+    - "service-account-issuer=https://oidcissuerc001f92f.blob.core.windows.net/oidc-test/" # Required for Azure Workload Identity
+    - "service-account-key-file=/etc/pki/sa.pub" # Required for Azure Workload Identity
+    - "service-account-signing-key-file=/etc/pki/sa.key" # Required for Azure Workload Identity
