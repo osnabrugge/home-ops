@@ -116,7 +116,9 @@ sinks:
       node: '{{ kubernetes.pod_node_name }}'
 
   firewall:
-    inputs: ["firewall_geoip_remap"]
+    inputs:
+      - firewall_route._unmatched
+      - firewall_geoip_remap
     type: loki
     endpoint: http://loki-gateway.monitoring.svc.cluster.local
     encoding:
