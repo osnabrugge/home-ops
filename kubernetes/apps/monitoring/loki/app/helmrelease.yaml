@@ -58,17 +58,19 @@ spec:
               index:
                 prefix: loki_index_
                 period: 24h
-        storage:
-          azure:
-            container_name: loki
+        common:
+          path_prefix: /var/loki
+          replication_factor: 3
+          storage:
+            azure:
+              container_name: loki
+          ring:
+            kvstore:
+              store: memberlist
         ruler:
           enable_api: true
           enable_alertmanager_v2: true
           alertmanager_url: http://kube-prometheus-stack-alertmanager:9093
-          storage:
-            type: local
-            local:
-              directory: /rules
           rule_path: /tmp/scratch
           ring:
             kvstore:
@@ -154,11 +156,11 @@ spec:
     test:
       enabled: false
   valuesFrom:
-    - targetPath: loki.structuredConfig.storage.azure.account_name
+    - targetPath: loki.structuredConfig.common.storage.azure.account_name
       kind: Secret
       name: loki-secret
       valuesKey: AZURE_ACCOUNT_NAME
-    - targetPath: loki.structuredConfig.storage.azure.account_key
+    - targetPath: loki.structuredConfig.common.storage.azure.account_key
       kind: Secret
       name: loki-secret
       valuesKey: AZURE_ACCOUNT_KEY
