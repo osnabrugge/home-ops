@@ -1,0 +1,21 @@
+---
+timezone: Etc/UTC
+public_ssh_keys:
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHgOrsxniJfrP3oLQxSp3LilpOQqOBlJLsttoCCCxgT2 sean@private"
+
+packages_install:
+  - hdparm
+  - htop
+  - ipvsadm
+  - lm-sensors
+  - nano
+  - nfs-common
+  - nvme-cli
+  - socat
+  - python3-kubernetes
+  - python3-yaml
+
+packages_remove:
+  - apparmor
+  - ufw
+  - unattended-upgrades
