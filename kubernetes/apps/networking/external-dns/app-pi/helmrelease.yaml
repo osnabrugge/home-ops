@@ -31,7 +31,7 @@ spec:
     # logLevel: debug
     provider: pihole
     env:
-      - name: pihole-password
+      - name: EXTERNAL_DNS_PIHOLE_PASSWORD
         valueFrom:
           secretKeyRef:
             name: external-dns-secret
