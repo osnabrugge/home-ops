@@ -29,7 +29,7 @@ spec:
   values:
     initContainers:
       01-init-db:
-        image: ghcr.io/onedr0p/postgres-initdb:14.7
+        image: ghcr.io/osnabrugge/postgres-initdb:14.7
         imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:
@@ -39,8 +39,8 @@ spec:
       annotations:
         reloader.stakater.com/auto: "true"
     image:
-      repository: ghcr.io/onedr0p/home-assistant
-      tag: 2023.4.6@sha256:b61019e4929fb904a2621df70785e4cfe923d61bad82167d23f67823df4d1246
+      repository: ghcr.io/osnabrugge/home-assistant
+      tag: 2023.4.6@sha256:d39eb2debe3410d04d802d54c20f9fd7a879d89e75a14fa1c0292c1efb2381a6
     env:
       TZ: "${TIMEZONE}"
       POSTGRES_HOST: postgres-rw.default.svc.cluster.local
