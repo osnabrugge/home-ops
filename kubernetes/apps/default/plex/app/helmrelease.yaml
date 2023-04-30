@@ -32,7 +32,7 @@ spec:
     hostNetwork: true
     image:
       repository: ghcr.io/osnabrugge/plex
-      tag: 1.32.0.6973-a787c5a8e@sha256:21742ce156ee167e7e56346b88dd5c7af16cf43f3d4f18fe51ac1990e286e637
+      tag: 1.32.0.6973-a787c5a8e@sha256:0717b162031bc78df3c0a18f5f19ac472c06cd204be96a73d0d8a5a005c031eb
     env:
       TZ: "{$TIMEZONE}"
     service:
