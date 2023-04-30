@@ -33,7 +33,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/osnabrugge/radarr
-      tag: 4.4.4.7068@sha256:1e6dd143a736f2dd1bf1c11a55dc087f5a21c358c05749d8b2abc230837c5e5c
+      tag: 4.4.4.7068@sha256:2b8b0a49cd5ebdbd5b9eb9d4ce394c86f31f3db05760c22a63b6d578d3bedec4
     env:
       TZ: "${TIMEZONE}"
       PUSHOVER_DEBUG: "false"
