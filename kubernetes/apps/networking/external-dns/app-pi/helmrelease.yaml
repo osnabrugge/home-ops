@@ -37,17 +37,12 @@ spec:
             name: external-dns-secret
             key: pihole-password
     extraArgs:
-      - --source=service
-      - --source=ingress
-      - --registry=noop
-      - --policy=upsert-only
       - --pihole-server=http://pi01.${SECRET_PRIVATE_DOMAIN}
       - --annotation-filter=external-dns.alpha.kubernetes.io/target
     policy: sync
     sources: ["ingress"]
+    registry: ["noop"]
     domainFilters: ["${SECRET_DOMAIN}"]
-    securityContext:
-      fsGroup: 65534
     serviceMonitor:
       enabled: true
     podAnnotations:
