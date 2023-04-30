@@ -37,6 +37,7 @@ spec:
             name: external-dns-secret
             key: pihole-password
     extraArgs:
+      - --registry=noop
       - --pihole-server=http://pi01.${SECRET_PRIVATE_DOMAIN}
       - --annotation-filter=external-dns.alpha.kubernetes.io/target
     policy: sync
