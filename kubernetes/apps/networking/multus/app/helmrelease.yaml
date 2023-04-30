@@ -13,14 +13,14 @@ spec:
       version: 4.0.0
       sourceRef:
         kind: HelmRepository
-        name: angelnu
+        name: osnabrugge
         namespace: flux-system
       interval: 30m
 
   values:
     image:
       repository: ghcr.io/k8snetworkplumbingwg/multus-cni
-      tag: v3.9.3
+      tag: v4.0.1
       pullPolicy: IfNotPresent
 
     tolerations:
