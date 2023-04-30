@@ -21,7 +21,7 @@ spec:
     image:
       repository: ghcr.io/k8snetworkplumbingwg/multus-cni
       tag: v4.0.1
-      pullPolicy: Exists
+      pullPolicy: IfNotPresent
 
     tolerations:
       - effect: NoSchedule
@@ -31,7 +31,7 @@ spec:
       image:
         repository: ghcr.io/osnabrugge/cni-plugins
         tag: 1.2.0
-        pullPolicy: Exists
+        pullPolicy: IfNotPresent
 
       paths:
         config: /etc/cni/net.d
