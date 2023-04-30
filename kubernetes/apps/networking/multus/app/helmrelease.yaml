@@ -29,7 +29,7 @@ spec:
 
     cni:
       image:
-        repository: ghcr.io/angelnu/cni-plugins
+        repository: ghcr.io/osnabrugge/cni-plugins
         tag: 1.2.0
         pullPolicy: Always
 
