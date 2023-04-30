@@ -72,52 +72,52 @@ spec:
       targets:
         - name: router01-icmp
           module: icmp
-          url: router01.${SECRET_PRIVATE_DOMAIN}
+          url: router01.${SECRET_DOMAIN}
         - name: nas01-icmp
           module: icmp
-          url: nas01.${SECRET_PRIVATE_DOMAIN}
+          url: nas01.${SECRET_DOMAIN}
         - name: pve01-icmp
           module: icmp
-          url: pve01.${SECRET_PRIVATE_DOMAIN}
+          url: pve01.${SECRET_DOMAIN}
         - name: tiny01-icmp
           module: icmp
-          url: tiny01.${SECRET_PRIVATE_DOMAIN}
+          url: tiny01.${SECRET_DOMAIN}
         - name: tiny02-icmp
           module: icmp
-          url: tiny02.${SECRET_PRIVATE_DOMAIN}
+          url: tiny02.${SECRET_DOMAIN}
         - name: tiny03-icmp
           module: icmp
-          url: tiny03.${SECRET_PRIVATE_DOMAIN}
+          url: tiny03.${SECRET_DOMAIN}
         - name: tiny04-icmp
           module: icmp
-          url: tiny04.${SECRET_PRIVATE_DOMAIN}
+          url: tiny04.${SECRET_DOMAIN}
         - name: tiny05-icmp
           module: icmp
-          url: tiny05.${SECRET_PRIVATE_DOMAIN}
+          url: tiny05.${SECRET_DOMAIN}
         - name: pi01-icmp
           module: icmp
-          url: pi01.${SECRET_PRIVATE_DOMAIN}
+          url: pi01.${SECRET_DOMAIN}
         - name: pi02-icmp
           module: icmp
-          url: pi02.${SECRET_PRIVATE_DOMAIN}
+          url: pi02.${SECRET_DOMAIN}
         # - name: hue01-icmp
         #   module: icmp
-        #   url: hue01.${SECRET_PRIVATE_DOMAIN}
+        #   url: hue01.${SECRET_DOMAIN}
         - name: ups01-icmp
           module: icmp
-          url: ups01.${SECRET_PRIVATE_DOMAIN}
+          url: ups01.${SECRET_DOMAIN}
         - name: pdu01-icmp
           module: icmp
-          url: pdu01.${SECRET_PRIVATE_DOMAIN}
+          url: pdu01.${SECRET_DOMAIN}
         - name: pdu02-icmp
           module: icmp
-          url: pdu02.${SECRET_PRIVATE_DOMAIN}
+          url: pdu02.${SECRET_DOMAIN}
         - name: kvm01-icmp
           module: icmp
-          url: kvm01.${SECRET_PRIVATE_DOMAIN}
+          url: kvm01.${SECRET_DOMAIN}
         - name: kvm02-icmp
           module: icmp
-          url: kvm02.${SECRET_PRIVATE_DOMAIN}
+          url: kvm02.${SECRET_DOMAIN}
     prometheusRule:
       enabled: true
       additionalLabels:
