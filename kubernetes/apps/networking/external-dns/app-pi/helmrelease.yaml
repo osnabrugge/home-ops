@@ -39,7 +39,6 @@ spec:
     extraArgs:
       - --pihole-server=http://pi01.${SECRET_PRIVATE_DOMAIN}
       - --annotation-filter=external-dns.alpha.kubernetes.io/target
-    policy: sync
     sources: ["ingress"]
     registry: noop
     domainFilters: ["${SECRET_DOMAIN}"]
