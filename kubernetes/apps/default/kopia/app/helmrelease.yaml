@@ -25,7 +25,7 @@ spec:
   values:
     initContainers:
       wait-for-repo:
-        image: ghcr.io/onedr0p/kopia:0.12.1@sha256:4ee9bc68299481fced34899eaec8bd42a6c9e5db902c6bef61ba0b0094b25b3b
+        image: ghcr.io/osnabrugge/kopia:0.13.0-rc2@sha256:e94ac60f1ae34d5cfd03dc52e00f2a5da7a1e83150d825e4aecf0f9c8b832d93
         command:
           - /bin/bash
           - -c
@@ -38,8 +38,8 @@ spec:
           - name: snapshots
             mountPath: /snapshots
     image:
-      repository: ghcr.io/onedr0p/kopia
-      tag: 0.12.1@sha256:4ee9bc68299481fced34899eaec8bd42a6c9e5db902c6bef61ba0b0094b25b3b
+      repository: ghcr.io/osnabrugge/kopia
+      tag: 0.13.0-rc2@sha256:e94ac60f1ae34d5cfd03dc52e00f2a5da7a1e83150d825e4aecf0f9c8b832d93
     env:
       KOPIA_PASSWORD: "none"
     command: kopia
