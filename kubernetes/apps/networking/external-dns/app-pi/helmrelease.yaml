@@ -38,10 +38,7 @@ spec:
             key: pihole-password
     extraArgs:
       - --pihole-server=http://pi01.${SECRET_DOMAIN}
-      - --annotation-filter=external-dns.alpha.kubernetes.io/target
-    sources: ["ingress"]
     registry: noop
-    domainFilters: ["${SECRET_DOMAIN}"]
     serviceMonitor:
       enabled: true
     podAnnotations:
