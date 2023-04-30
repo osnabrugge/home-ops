@@ -87,7 +87,7 @@ spec:
         app: whereabouts
         name: whereabouts
     spec:
-      hostNetwork: true      
+      hostNetwork: true
       serviceAccountName: whereabouts
       nodeSelector:
         beta.kubernetes.io/arch: amd64
@@ -110,11 +110,10 @@ spec:
               fieldPath: metadata.namespace
         resources:
           requests:
-            cpu: "100m"
-            memory: "50Mi"
+            cpu: 10m
+            memory: 20Mi
           limits:
-            cpu: "100m"
-            memory: "50Mi"
+            memory: 50Mi
         securityContext:
           privileged: true
         volumeMounts:

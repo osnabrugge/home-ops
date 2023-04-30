@@ -97,9 +97,9 @@ spec:
     resources:
       requests:
         cpu: 200m
-        memory: 800Mi
+        memory: 600Mi
       limits:
-        memory: 4000Mi
+        memory: 1000Mi
     securityContext:
       readOnlyRootFilesystem: false
       runAsUser: 1000
