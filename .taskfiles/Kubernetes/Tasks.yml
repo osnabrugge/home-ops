@@ -19,7 +19,7 @@ tasks:
     cmds:
       - |
         mkdir -p {{.CLUSTER_DIR}}/schemas
-        flux pull artifact oci://ghcr.io/onedr0p/kubernetes-schemas-oci:latest \
+        flux pull artifact oci://ghcr.io/osnabrugge/kubernetes-schemas-oci:latest \
             --output={{.CLUSTER_DIR}}/schemas
 
   mount:
@@ -37,7 +37,7 @@ tasks:
               "containers": [
                 {
                   "name": "debug",
-                  "image": "ghcr.io/onedr0p/alpine:rolling",
+                  "image": "ghcr.io/osnabrugge/alpine:rolling",
                   "command": [
                     "/bin/bash"
                   ],
