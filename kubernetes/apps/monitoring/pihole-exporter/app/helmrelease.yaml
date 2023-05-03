@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: pihole-exporter
+  namespace: monitoring
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.4.0
+      interval: 30m
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+
+  values:
+    image:
+      repository: ghcr.io/osnabrugge/pihole-exporter
+      tag: v0.4.0@sha256:0e8e100ed3916db1d816a4d23066e65509d79840f6e2b81df8bab42a070e2f6b
+    command: ["/monero-exporter", "--monero-addr=http://monerod.default.svc.cluster.local:18081"]
+    resources:
+      requests:
+        cpu: 15m
+        memory: 30M
+      limits:
+        memory: 60M
+
+    service:
+      main:
+        ports:
+          http:
+            enabled: false
+          metrics:
+            enabled: true
+            protocol: TCP
+            port: 9000
