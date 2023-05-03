@@ -2,6 +2,12 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+configMapGenerator:
+  - name: router
+    files:
+      - router-dashboard.json
+generatorOptions:
+  disableNameSuffixHash: true
 namespace: monitoring
 resources:
   - ./prometheusrule.yaml
