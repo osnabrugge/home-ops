@@ -10,6 +10,7 @@ resources:
   - ./loki/ks.yaml
   - ./monero-exporter/ks.yaml
   - ./omada-exporter/ks.yaml
+  - ./pihole-exporter/ks.yaml
   - ./snmp-exporter/ks.yaml
   - ./speedtest-exporter/ks.yaml
   - ./thanos/ks.yaml
