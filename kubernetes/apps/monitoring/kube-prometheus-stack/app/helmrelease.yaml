@@ -226,3 +226,21 @@ spec:
               resources:
                 requests:
                   storage: 20Gi
+        additionalScrapeConfigs:
+          # - job_name: k8s-lb
+          #   static_configs:
+          #     - targets: ["192.168.10.1:8080"] # router
+          - job_name: node-exporter
+            static_configs:
+              - targets: ["router01.${SECRET_DOMAIN}:9100", "kvm01.${SECRET_DOMAIN}:9100", "kvm02.${SECRET_DOMAIN}:9100"]
+          - job_name: kvm
+            metrics_path: /api/export/prometheus/metrics
+            basic_auth:
+              username: "${SECRET_KVM_USERNAME}"
+              password: "${SECRET_KVM_PASSWORD}"
+            static_configs:
+              - targets: ["kvm01.${SECRET_DOMAIN}"]
+              - targets: ["kvm02.${SECRET_DOMAIN}"]
+          - job_name: monerod
+            static_configs:
+              - targets: ["monerod.default.svc.cluster.local:9000"]
