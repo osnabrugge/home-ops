@@ -2,17 +2,17 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: monero-exporter
+  name: pihole-exporter
 spec:
   groups:
-    - name: monero-exporter
+    - name: pihole-exporter
       rules:
-        - alert: MoneroExporterAbsent
+        - alert: PiholeExporterAbsent
           annotations:
-            description: Monero Exporter has disappeared from Prometheus target discovery.
-            summary: Monero Exporter is down.
+            description: Pihole Exporter has disappeared from Prometheus target discovery.
+            summary: Pihole Exporter is down.
           expr: |
-            absent(up{job=~".*monero-exporter.*"} == 1)
+            absent(up{job=~".*pihole-exporter.*"} == 1)
           for: 75m
           labels:
             severity: critical
