@@ -2,11 +2,11 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: monero-exporter
+  name: pihole-exporter
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: monero-exporter
+      app.kubernetes.io/name: pihole-exporter
   endpoints:
     - port: metrics
       interval: 60m
