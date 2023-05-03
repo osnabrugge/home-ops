@@ -241,6 +241,6 @@ spec:
             static_configs:
               - targets: ["kvm01.${SECRET_DOMAIN}"]
               - targets: ["kvm02.${SECRET_DOMAIN}"]
-          - job_name: monerod
+          - job_name: monero-exporter
             static_configs:
-              - targets: ["monerod.default.svc.cluster.local:9000"]
+              - targets: ["monero-exporter.monitoring.svc.cluster.local:9000"]
