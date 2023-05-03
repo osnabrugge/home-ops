@@ -6,3 +6,4 @@ resources:
   - ./helmrelease.yaml
   - ./dashboard
   - ./prometheusrule.yaml
+  - ./servicemonitor.yaml
