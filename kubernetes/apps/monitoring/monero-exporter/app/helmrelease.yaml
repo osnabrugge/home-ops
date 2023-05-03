@@ -37,4 +37,4 @@ spec:
           metrics:
             enabled: true
             protocol: TCP
-            port: 9798
+            port: 9000
