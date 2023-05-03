@@ -35,6 +35,8 @@ spec:
     environment:
       user: 1000:1000
     args:
+      - --rpc-bind-ip=0.0.0.0
+      - --rpc-bind-port=18081
       - --rpc-restricted-bind-ip=0.0.0.0
       - --rpc-restricted-bind-port=18089
       # - --public-node
