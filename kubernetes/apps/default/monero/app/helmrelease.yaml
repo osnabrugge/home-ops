@@ -54,7 +54,7 @@ spec:
       # - --prep-blocks-threads=8
     sidecars:
       monero-exporter:
-        image: ghcr.io/osnabrugge/monero-exporter:kbld-rand-1633708808948946871-66361718615
+        image: ghcr.io/osnabrugge/monero-exporter:kbld-rand-1633708808948946871-663617186156
         imagePullPolicy: IfNotPresent
         command: ["/monero-exporter", "--monero-addr=http://127.0.0.1:18081"]
       tor:
