@@ -21,7 +21,7 @@ spec:
     image:
       repository: ghcr.io/osnabrugge/monero-exporter
       tag: kbld-rand-1633708808948946871-663617186156
-    command: ["--monero-addr=http://monerod.default.svc.cluster.local:18089"]
+    command: ["monero-exporter --monero-addr=http://monerod.default.svc.cluster.local:18089"]
     resources:
       requests:
         cpu: 15m
