@@ -3,20 +3,19 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: omada-exporter
+  name: &app omada-exporter
   namespace: monitoring
 spec:
-  interval: 30m
+  interval: 15m
   chart:
     spec:
-      chart: app-template
-      version: 1.4.0
-      interval: 30m
+      chart: omada-exporter
+      version: 0.7.1
       sourceRef:
         kind: HelmRepository
-        name: bjw-s
+        name: charlie-haley
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -28,26 +27,20 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    fullnameOverride: *app
     image:
       repository: ghcr.io/charlie-haley/omada_exporter
       pullPolicy: IfNotPresent
-      tag: 0.8.2@sha256:613913f8cdd5d72dad054acb98803d9890ef8157de6b47c0d4beec94a0ad7f55
+      tag: 0.8.2
     env:
       TZ: "${TIMEZONE}"
+    # envFrom:
+    #   - secretRef:
+    #       name: omada-exporter-secret
+    omada:
       host: https://omada-controller.networking.svc.cluster.local:8043
+      username: ${SECRET_OMADA_USERNAME}
+      password: ${SECRET_OMADA_PASSWORD}
       request_timeout: 60
       site: Toronto
       insecure: true
-    envFrom:
-      - secretRef:
-          name: omada-exporter-secret
-    service:
-      main:
-        ports:
-          http:
-            port: 9202
-    serviceMonitor:
-      main:
-        enabled: true
-        endpoints:
-          - port: 9202
