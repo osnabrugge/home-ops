@@ -35,8 +35,8 @@ spec:
     environment:
       user: 1000:1000
     args:
-      # - --rpc-bind-ip=0.0.0.0
-      # - --rpc-bind-port=18081
+      - --rpc-bind-ip=127.0.0.1
+      - --rpc-bind-port=18081
       - --rpc-restricted-bind-ip=0.0.0.0
       - --rpc-restricted-bind-port=18089
       # - --public-node
@@ -53,6 +53,10 @@ spec:
       - --limit-rate-down=204800
       # - --prep-blocks-threads=8
     sidecars:
+      monero-exporter:
+        image: ghcr.io/osnabrugge/monero-exporter
+        tag: kbld-rand-1633708808948946871-663617186156
+        command: ["/monero-exporter", "--monero-addr=http://127.0.0.1:18081"]
       tor:
         image: goldy/tor-hidden-service
         tag: v0.4.7.8-57f8867
@@ -72,16 +76,16 @@ spec:
         ports:
           http:
             enabled: false
+          monero-exporter:
+            enabled: true
+            port: 9000
+            targetPort: 9000
+            protocol: TCP
           p2p:
             enabled: true
             port: 18080
             targetPort: 18080
             protocol: TCP
-          # rpc:
-          #   enabled: true
-          #   port: 18081
-          #   targetPort: 18081
-          #   protocol: TCP
           # zmq:
           #   enabled: true
           #   port: 18083

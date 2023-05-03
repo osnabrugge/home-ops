@@ -243,7 +243,7 @@ spec:
               - targets: ["kvm02.${SECRET_DOMAIN}"]
           - job_name: monero-exporter
             static_configs:
-              - targets: ["monero-exporter.monitoring.svc.cluster.local:9000"]
+              - targets: ["monerod.default.svc.cluster.local:9000"]
           - job_name: pihole-exporter
             static_configs:
               - targets: ["pihole-exporter.monitoring.svc.cluster.local:9167"]
