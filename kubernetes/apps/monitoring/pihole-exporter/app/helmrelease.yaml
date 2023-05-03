@@ -23,8 +23,10 @@ spec:
       tag: v0.4.0@sha256:0e8e100ed3916db1d816a4d23066e65509d79840f6e2b81df8bab42a070e2f6b
     env:
       PIHOLE_HOSTNAME: 192.168.10.250,192.168.10.251
-      PIHOLE_PASSWORD: ${SECRET_PIHOLE_PASSWORD}
       PORT: 9617
+    envFrom:
+      - secretRef:
+          name: pihole-exporter-secret
     resources:
       requests:
         cpu: 15m
