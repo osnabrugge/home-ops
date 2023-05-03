@@ -35,8 +35,8 @@ spec:
     environment:
       user: 1000:1000
     args:
-      - --rpc-bind-ip=0.0.0.0
-      - --rpc-bind-port=18081
+      # - --rpc-bind-ip=0.0.0.0
+      # - --rpc-bind-port=18081
       - --rpc-restricted-bind-ip=0.0.0.0
       - --rpc-restricted-bind-port=18089
       # - --public-node
@@ -77,11 +77,11 @@ spec:
             port: 18080
             targetPort: 18080
             protocol: TCP
-          rpc:
-            enabled: true
-            port: 18081
-            targetPort: 18081
-            protocol: TCP
+          # rpc:
+          #   enabled: true
+          #   port: 18081
+          #   targetPort: 18081
+          #   protocol: TCP
           # zmq:
           #   enabled: true
           #   port: 18083
