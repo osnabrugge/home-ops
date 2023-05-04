@@ -125,9 +125,9 @@ spec:
           - name: k3s07
             devices:
               - name: "sdb"
-          - name: k3s08
-            devices:
-              - name: "sdb"
+          # - name: k3s08
+          #   devices:
+          #     - name: "sdb"
     cephBlockPools:
       - name: ceph-blockpool
         spec:
