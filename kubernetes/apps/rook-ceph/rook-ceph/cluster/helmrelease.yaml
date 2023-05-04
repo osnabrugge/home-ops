@@ -57,7 +57,7 @@ spec:
             cpu: "100m"
             memory: "550M"
           limits:
-            memory: "1250M"
+            memory: "1000M"
         mon:
           requests:
             cpu: "50m"
