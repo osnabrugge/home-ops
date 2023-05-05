@@ -2,7 +2,7 @@
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
-  name: macvlan-conf
+  name: macvlan-01-conf
   namespace: networking
 spec:
   config: '{
@@ -14,6 +14,25 @@ spec:
         "type": "whereabouts",
         "range": "192.168.88.0/24",
         "range_start": "192.168.88.201",
+        "range_end": "192.168.88.239"
+      }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: macvlan-02-conf
+  namespace: networking
+spec:
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "macvlan",
+      "master": "ens19",
+      "mode": "bridge",
+      "ipam": {
+        "type": "whereabouts",
+        "range": "192.168.88.0/24",
+        "range_start": "192.168.88.240",
         "range_end": "192.168.88.254"
       }
     }'
