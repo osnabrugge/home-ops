@@ -46,6 +46,10 @@
           namespace: tigera-operator
         - kind: Installation
           name: default
+        - kind: BGPConfiguration
+          name: default
+        - kind: BGPPeer
+          name: global
         - kind: CustomResourceDefinition
           name: alertmanagerconfigs.monitoring.coreos.com
         - kind: CustomResourceDefinition

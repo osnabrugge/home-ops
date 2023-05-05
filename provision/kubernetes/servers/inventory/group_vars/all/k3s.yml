@@ -1,4 +1,8 @@
 ---
+# Calico configuration
+calico_bgp_peer_ip: 192.168.10.1
+calico_bgp_as_number: 690801
+calico_bgp_external_ips: 192.168.11.0/24
 # k3s configuration
 # renovate: datasource=github-releases depName=k3s-io/k3s
 k3s_release_version: "v1.27.1+k3s1"
@@ -9,6 +13,8 @@ k3s_etcd_datastore: true
 k3s_registration_address: 192.168.10.50
 k3s_server_manifests_templates:
   - calico-installation.yaml.j2
+  - calico-bgpconfiguration.yaml.j2
+  - calico-bgppeer.yaml.j2
 k3s_server_manifests_urls:
   - url: https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/tigera-operator.yaml
     filename: calico-tigera-operator.yaml

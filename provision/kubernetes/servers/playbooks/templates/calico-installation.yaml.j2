@@ -7,6 +7,7 @@ spec:
   registry: quay.io
   imagePath: calico
   calicoNetwork:
+    bgp: Enabled
     ipPools: # Note: The ipPools section cannot be modified post-install.
       - blockSize: 26
         cidr: "{{ k3s_server['cluster-cidr'] }}"

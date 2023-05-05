@@ -11,6 +11,7 @@ env:
 
 includes:
   as: .taskfiles/Ansible/Tasks.yml
+  cs: .taskfiles/Cluster/Tasks.yml
   es: .taskfiles/ExternalSecrets/Tasks.yml
   fx: .taskfiles/Flux/Tasks.yml
   kp: .taskfiles/Kopia/Tasks.yml
