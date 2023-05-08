@@ -22,13 +22,13 @@ k3s_server:
   etcd-expose-metrics: true
   kube-controller-manager-arg:
     - "bind-address=0.0.0.0"
-    - "service-account-private-key-file=/etc/pki/sa.key" # Required for Azure Workload Identity
+    # - "service-account-private-key-file=/etc/pki/sa.key" # Required for Azure Workload Identity
   kube-proxy-arg:
     - "metrics-bind-address=0.0.0.0"
   kube-scheduler-arg:
     - "bind-address=0.0.0.0"
   kube-apiserver-arg:
     - "anonymous-auth=true"
-    - "service-account-issuer=https://oidcissuerc001f92f.blob.core.windows.net/oidc-test/" # Required for Azure Workload Identity
-    - "service-account-key-file=/etc/pki/sa.pub" # Required for Azure Workload Identity
-    - "service-account-signing-key-file=/etc/pki/sa.key" # Required for Azure Workload Identity
+    # - "service-account-issuer=https://oidcissuerc001f92f.blob.core.windows.net/oidc-test/" # Required for Azure Workload Identity
+    # - "service-account-key-file=/etc/pki/sa.pub" # Required for Azure Workload Identity
+    # - "service-account-signing-key-file=/etc/pki/sa.key" # Required for Azure Workload Identity

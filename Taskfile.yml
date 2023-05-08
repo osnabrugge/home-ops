@@ -2,7 +2,7 @@
 version: "3"
 
 vars:
-  ANSIBLE_DIR: "{{.ROOT_DIR}}/ansible"
+  ANSIBLE_DIR: "{{.ROOT_DIR}}/provision/kubernetes/servers"
   CLUSTER_DIR: "{{.ROOT_DIR}}/kubernetes"
   PROVISION_DIR: "{{.ROOT_DIR}}/provision"
 
