@@ -6,6 +6,8 @@ metadata:
   name: cluster-apps-omada-exporter
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: cluster-apps-omada
   path: ./kubernetes/apps/monitoring/omada-exporter/app
   prune: true
   sourceRef:
