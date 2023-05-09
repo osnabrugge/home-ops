@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   # - ./authelia/ks.yaml
-  # - ./bazarr/ks.yaml
+  - ./bazarr/ks.yaml
   - ./cloudnative-pg/ks.yaml
   - ./echo-server/ks.yaml
   - ./glauth/ks.yaml
@@ -14,12 +14,12 @@ resources:
   - ./kubernetes-schemas/ks.yaml
   # - ./monero/ks.yaml
   - ./mosquitto/ks.yaml
-  # - ./overseerr/ks.yaml
+  - ./overseerr/ks.yaml
   # - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
-  # - ./qbittorrent/ks.yaml
+  - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
   - ./redis/ks.yaml
-  # - ./smtp-relay/ks.yaml
+  - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
