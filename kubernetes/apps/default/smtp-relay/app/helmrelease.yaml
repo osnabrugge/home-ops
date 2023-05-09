@@ -36,7 +36,7 @@ spec:
       repository: docker.io/juanluisbaptiste/postfix
       tag: 1.7.1
     env:
-      SMTP_SERVER: smtp.office365.com
+      SMTP_SERVER: smtp.office365.com:587
       SERVER_HOSTNAME: "${SECRET_DOMAIN}"
     envFrom:
       - secretRef:
