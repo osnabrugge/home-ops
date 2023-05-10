@@ -161,6 +161,10 @@ spec:
         mountPath: /opt/tplink/EAPController/logs
         existingClaim: omada-logs-pvc
 
+    probes:
+      readiness:
+          initialDelaySeconds: 10
+
     resources:
       requests:
         cpu: 1200m
