@@ -170,7 +170,6 @@ spec:
           httpGet:
             host: omada.${SECRET_DOMAIN}
             path: /api/info
-            port: *port
             scheme: HTTPS
             httpHeaders:
               - name: Host
@@ -182,7 +181,6 @@ spec:
           httpGet:
             host: omada.${SECRET_DOMAIN}
             path: /api/info
-            port: *port
             scheme: HTTPS
             httpHeaders:
               - name: Host
@@ -194,7 +192,6 @@ spec:
           httpGet:
             host: omada.${SECRET_DOMAIN}
             path: /api/info
-            port: *port
             scheme: HTTPS
             httpHeaders:
               - name: Host
