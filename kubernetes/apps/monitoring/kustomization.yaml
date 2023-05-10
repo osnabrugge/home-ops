@@ -3,15 +3,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./namespace.yaml
-  - ./blackbox-exporter/ks.yaml
+  # - ./blackbox-exporter/ks.yaml
   # - ./grafana/ks.yaml
-  - ./kube-prometheus-stack/ks.yaml
-  - ./kubernetes-dashboard/ks.yaml
-  - ./loki/ks.yaml
-  - ./monero-exporter/ks.yaml
+  # - ./kube-prometheus-stack/ks.yaml
+  # - ./kubernetes-dashboard/ks.yaml
+  # - ./loki/ks.yaml
+  # - ./monero-exporter/ks.yaml
   # - ./omada-exporter/ks.yaml
-  - ./pihole-exporter/ks.yaml
-  - ./snmp-exporter/ks.yaml
-  - ./speedtest-exporter/ks.yaml
-  - ./thanos/ks.yaml
-  - ./vector/ks.yaml
+  # - ./pihole-exporter/ks.yaml
+  # - ./snmp-exporter/ks.yaml
+  # - ./speedtest-exporter/ks.yaml
+  # - ./thanos/ks.yaml
+  # - ./vector/ks.yaml

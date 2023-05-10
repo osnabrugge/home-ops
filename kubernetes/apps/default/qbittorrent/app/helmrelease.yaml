@@ -96,7 +96,7 @@ spec:
         enabled: true
         type: nfs
         server: "${NAS_ADDR}"
-        path: /volume1/share
+        path: "${NFS_SHARE}"
         mountPath: /data/nas
       incomplete:
         enabled: true
