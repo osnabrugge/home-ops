@@ -163,6 +163,8 @@ spec:
 
     probes:
       readiness:
+        enabled: true
+        spec:
           initialDelaySeconds: 40
 
     resources:
