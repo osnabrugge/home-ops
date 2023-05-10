@@ -77,7 +77,7 @@ spec:
         ports:
           http:
             enabled: true
-            port: 8043
+            port: &port 8043
             targetPort: 8043
             protocol: TCP
       controller:
@@ -162,10 +162,42 @@ spec:
         existingClaim: omada-logs-pvc
 
     probes:
+      liveness:
+        enabled: true
+        custom: true
+        spec:
+          httpGet:
+            path: /api/info
+            port: *port
+            scheme: HTTPS
+            httpHeaders:
+            - name: Custom-Header
+              value: kube.internal.health
+          initialDelaySeconds: 30
       readiness:
         enabled: true
+        custom: true
         spec:
-          initialDelaySeconds: 40
+          httpGet:
+            path: /api/info
+            port: *port
+            scheme: HTTPS
+            httpHeaders:
+            - name: Custom-Header
+              value: kube.internal.health
+          initialDelaySeconds: 30
+      startup:
+        enabled: true
+        custom: true
+        spec:
+          httpGet:
+            path: /api/info
+            port: *port
+            scheme: HTTPS
+            httpHeaders:
+            - name: Custom-Header
+              value: kube.internal.health
+          initialDelaySeconds: 30
 
     resources:
       requests:
