@@ -18,7 +18,7 @@
       command: "qm stop {{ vm.worker3_id }}"
 
     - name: destroy {{ vm.master3_name }}
-      command: "qm destroy {{ vm.master2_id }}"
+      command: "qm destroy {{ vm.master3_id }}"
 
     - name: destroy {{ vm.worker3_name }}
       command: "qm destroy {{ vm.worker3_id }}"
