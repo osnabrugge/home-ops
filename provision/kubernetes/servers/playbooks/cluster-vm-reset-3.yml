@@ -1,0 +1,24 @@
+---
+- name: Cluster Reset
+  hosts:
+    - tiny03
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  pre_tasks:
+    - name: Pausing for 2 seconds...
+      ansible.builtin.pause:
+        seconds: 2
+  tasks:
+
+    - name: stop {{ vm.master3_name }}
+      command: "qm stop {{ vm.master3_id }}"
+
+    - name: stop {{ vm.worker3_name }}
+      command: "qm stop {{ vm.worker3_id }}"
+
+    - name: destroy {{ vm.master3_name }}
+      command: "qm destroy {{ vm.master2_id }}"
+
+    - name: destroy {{ vm.worker3_name }}
+      command: "qm destroy {{ vm.worker3_id }}"
