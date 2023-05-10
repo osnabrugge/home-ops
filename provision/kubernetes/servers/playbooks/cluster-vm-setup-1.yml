@@ -1,0 +1,36 @@
+---
+- name: Cluster Setup
+  hosts:
+    - tiny01
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  pre_tasks:
+    - name: Pausing for 2 seconds...
+      ansible.builtin.pause:
+        seconds: 2
+  tasks:
+
+    - name: create {{ vm.master1_name }}
+      command: "qm clone 1{{ vm.template_id }} {{ vm.master1_id }} --name {{ vm.master1_name }} --format qcow2 --full --storage nfs-nas"
+
+    - name: resize {{ vm.master1_name }} disk
+      command: "qm resize {{ vm.master1_id }} scsi0 100G"
+
+    - name: set {{ vm.master1_name }} hardware
+      command: "qm set {{ vm.master1_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.master_cores }} --memory {{ vm.master_memory }} --net0 virtio,bridge=vmbr0 --cicustom user=nfs-nas:snippets/{{ vm.master1_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.master1_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml"
+
+    - name: start {{ vm.master1_name }}
+      command: "qm start {{ vm.master1_id }}"
+
+    - name: create {{ vm.worker1_name }}
+      command: "qm clone 1{{ vm.template_id}} {{ vm.worker1_id }} --name {{ vm.worker1_name }} --format raw --full --storage local-lvm"
+
+    - name: resize {{ vm.worker1_name }} disk
+      command: "qm resize {{ vm.worker1_id }} scsi0 100G"
+
+    - name: set {{ vm.worker1_name }} hardware
+      command: "qm set {{ vm.worker1_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.worker_cores }} --memory {{ vm.worker_memory }} --net0 virtio,bridge=vmbr0 --net1 virtio,bridge=vmbr1 --net2 virtio,bridge=vmbr2 --cicustom user=nfs-nas:snippets/{{ vm.worker1_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker1_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml -scsi1 /dev/disk/by-id/nvme-WD_Blue_SN570_1TB_21444T801931"
+
+    - name: start {{ vm.worker1_name }}
+      command: "qm start {{ vm.worker1_id }}"

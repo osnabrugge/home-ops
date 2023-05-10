@@ -1,0 +1,24 @@
+---
+- name: Cluster Setup
+  hosts:
+    - tiny04
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  pre_tasks:
+    - name: Pausing for 2 seconds...
+      ansible.builtin.pause:
+        seconds: 2
+  tasks:
+
+    - name: create {{ vm.worker4_name }}
+      command: "qm clone 4{{ vm.template_id}} {{ vm.worker4_id }} --name {{ vm.worker4_name }} --format raw --full --storage local-lvm"
+
+    - name: resize {{ vm.worker4_name }} disk
+      command: "qm resize {{ vm.worker4_id }} scsi0 100G"
+
+    - name: set {{ vm.worker4_name }} hardware
+      command: "qm set {{ vm.worker4_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.worker_cores }} --memory {{ vm.worker_memory }} --net0 virtio,bridge=vmbr0 --net1 virtio,bridge=vmbr1 --net2 virtio,bridge=vmbr2 --cicustom user=nfs-nas:snippets/{{ vm.worker4_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker4_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml -scsi1 /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404489F"
+
+    - name: start {{ vm.worker4_name }}
+      command: "qm start {{ vm.worker4_id }}"
