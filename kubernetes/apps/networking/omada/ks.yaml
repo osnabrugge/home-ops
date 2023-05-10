@@ -10,6 +10,7 @@ spec:
   dependsOn:
     - name: cluster-apps-rook-ceph-cluster
     - name: cluster-apps-multus-definitions
+    - name: cluster-apps-ingress-nginx
   interval: 10m
   path: "./kubernetes/apps/networking/omada/app"
   prune: true
