@@ -199,7 +199,7 @@ spec:
             httpHeaders:
               - name: Host
                 value: kube.internal.health
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
 
     resources:
       requests:
