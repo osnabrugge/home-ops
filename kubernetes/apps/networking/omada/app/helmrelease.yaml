@@ -163,11 +163,30 @@ spec:
 
     probes:
       liveness:
-        enabled: false
+        enabled: true
+        custom: true
+        spec:
+          httpGet:
+            path: /login
+            port: *port
+            scheme: HTTPS
       readiness:
-        enabled: false
+        enabled: true
+        custom: true
+        spec:
+          httpGet:
+            path: /login
+            port: *port
+            scheme: HTTPS
       startup:
-        enabled: false
+        enabled: true
+        custom: true
+        spec:
+          httpGet:
+            path: /login
+            port: *port
+            scheme: HTTPS
+          initialDelaySeconds: 30
 
     resources:
       requests:
