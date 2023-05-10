@@ -34,7 +34,7 @@ spec:
   values:
     global:
       nameOverride: *app
-    hostNetwork: true
+    # hostNetwork: true
 
     image:
       repository: mbentley/omada-controller
@@ -92,11 +92,11 @@ spec:
             port: 8088
             targetPort: 8088
             protocol: TCP
-          # mgmt-8043-tcp:
-          #   enabled: true
-          #   port: 8043
-          #   protocol: TCP
-          #   targetPort: 8043
+          mgmt-8043-tcp:
+            enabled: true
+            port: 8043
+            protocol: TCP
+            targetPort: 8043
           portal-8843-tcp:
             enabled: true
             port: 8843
@@ -162,48 +162,48 @@ spec:
         mountPath: /opt/tplink/EAPController/logs
         existingClaim: omada-logs-pvc
 
-    probes:
-      liveness:
-        enabled: true
-        custom: true
-        spec:
-          httpGet:
-            host: omada.${SECRET_DOMAIN}
-            path: /api/info
-            port: 443
-            scheme: HTTPS
-            httpHeaders:
-              - name: Host
-                value: kube.internal.health
-      readiness:
-        enabled: true
-        custom: true
-        spec:
-          httpGet:
-            host: omada.${SECRET_DOMAIN}
-            path: /api/info
-            port: 443
-            scheme: HTTPS
-            httpHeaders:
-              - name: Host
-                value: kube.internal.health
-      startup:
-        enabled: true
-        custom: true
-        spec:
-          httpGet:
-            host: omada.${SECRET_DOMAIN}
-            path: /api/info
-            port: 443
-            scheme: HTTPS
-            httpHeaders:
-              - name: Host
-                value: kube.internal.health
-          initialDelaySeconds: 60
+    # probes:
+    #   liveness:
+    #     enabled: true
+    #     custom: true
+    #     spec:
+    #       httpGet:
+    #         host: omada.${SECRET_DOMAIN}
+    #         path: /api/info
+    #         port: 443
+    #         scheme: HTTPS
+    #         httpHeaders:
+    #           - name: Host
+    #             value: kube.internal.health
+    #   readiness:
+    #     enabled: true
+    #     custom: true
+    #     spec:
+    #       httpGet:
+    #         host: omada.${SECRET_DOMAIN}
+    #         path: /api/info
+    #         port: 443
+    #         scheme: HTTPS
+    #         httpHeaders:
+    #           - name: Host
+    #             value: kube.internal.health
+    #   startup:
+    #     enabled: true
+    #     custom: true
+    #     spec:
+    #       httpGet:
+    #         host: omada.${SECRET_DOMAIN}
+    #         path: /api/info
+    #         port: 443
+    #         scheme: HTTPS
+    #         httpHeaders:
+    #           - name: Host
+    #             value: kube.internal.health
+    #       initialDelaySeconds: 60
 
     resources:
       requests:
         cpu: 1200m
-        memory: 800Mi
+        memory: 1200Mi
       limits:
         memory: 1500Mi
