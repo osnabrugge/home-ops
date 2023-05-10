@@ -34,6 +34,7 @@ spec:
   values:
     global:
       nameOverride: *app
+    hostNetwork: true
 
     image:
       repository: mbentley/omada-controller
@@ -167,7 +168,7 @@ spec:
         custom: true
         spec:
           httpGet:
-            host:
+            host: 127.0.0.1
             path: /api/info
             port: *port
             scheme: HTTPS
@@ -179,7 +180,7 @@ spec:
         custom: true
         spec:
           httpGet:
-            host:
+            host: 127.0.0.1
             path: /api/info
             port: *port
             scheme: HTTPS
@@ -191,7 +192,7 @@ spec:
         custom: true
         spec:
           httpGet:
-            host:
+            host: 127.0.0.1
             path: /api/info
             port: *port
             scheme: HTTPS
