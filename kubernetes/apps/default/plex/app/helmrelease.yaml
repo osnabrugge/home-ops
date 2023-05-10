@@ -80,7 +80,7 @@ spec:
         enabled: true
         type: nfs
         server: "${NAS_ADDR}"
-        path: /volume1/share/media
+        path: "${NFS_SHARE}/media"
         mountPath: /media
         readOnly: true
       transcode:

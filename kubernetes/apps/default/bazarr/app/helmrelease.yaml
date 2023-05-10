@@ -80,7 +80,7 @@ spec:
         enabled: true
         type: nfs
         server: "${NAS_ADDR}"
-        path: /volume1/share
+        path: "${NAS_ADDR}"
         mountPath: /data/nas
       add-ons:
         enabled: true

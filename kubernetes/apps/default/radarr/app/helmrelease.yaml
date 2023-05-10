@@ -89,7 +89,7 @@ spec:
       media:
         enabled: true
         mountPath: /data/nas
-        path: /volume1/share
+        path: "${NFS_SHARE}"
         server: "${NAS_ADDR}"
         type: nfs
       scripts:

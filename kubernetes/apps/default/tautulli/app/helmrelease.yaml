@@ -76,7 +76,7 @@ spec:
         enabled: true
         type: nfs
         server: "${NAS_ADDR}"
-        path: /volume1/share
+        path: "${NFS_SHARE}"
         mountPath: /data/nas
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
