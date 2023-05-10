@@ -170,8 +170,6 @@ spec:
             path: /api/info
             port: *port
             scheme: HTTPS
-            httpHeaders:
-              Host: kube.internal.health
       readiness:
         enabled: true
         custom: true
@@ -180,8 +178,6 @@ spec:
             path: /api/info
             port: *port
             scheme: HTTPS
-            httpHeaders:
-              Host: kube.internal.health
       startup:
         enabled: true
         custom: true
@@ -190,8 +186,6 @@ spec:
             path: /api/info
             port: *port
             scheme: HTTPS
-            httpHeaders:
-              Host: kube.internal.health
           initialDelaySeconds: 30
 
     resources:
