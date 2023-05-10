@@ -169,7 +169,6 @@ spec:
         type: HTTPS
         spec:
           httpGet:
-            host: 127.0.0.1
             path: /api/info
             port: *port
             scheme: HTTPS
@@ -180,7 +179,6 @@ spec:
         type: HTTPS
         spec:
           httpGet:
-            host: 127.0.0.1
             path: /api/info
             port: *port
             scheme: HTTPS
@@ -191,7 +189,6 @@ spec:
         type: HTTPS
         spec:
           httpGet:
-            host: 127.0.0.1
             path: /api/info
             port: *port
             scheme: HTTPS
