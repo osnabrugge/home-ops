@@ -165,41 +165,43 @@ spec:
     probes:
       liveness:
         enabled: false
-    #     custom: true
-    #     spec:
-    #       httpGet:
-    #         host: omada.${SECRET_DOMAIN}
-    #         path: /api/info
-    #         port: 443
-    #         scheme: HTTPS
-    #         httpHeaders:
-    #           - name: Host
-    #             value: kube.internal.health
+        custom: true
+        type: HTTPS
+        spec:
+          httpGet:
+            path: /api/info
+            port: *port
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: kube.internal.health
+
       readiness:
         enabled: false
-    #     custom: true
-    #     spec:
-    #       httpGet:
-    #         host: omada.${SECRET_DOMAIN}
-    #         path: /api/info
-    #         port: 443
-    #         scheme: HTTPS
-    #         httpHeaders:
-    #           - name: Host
-    #             value: kube.internal.health
+        custom: true
+        type: HTTPS
+        spec:
+          httpGet:
+            path: /api/info
+            port: *port
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: kube.internal.health
+
       startup:
         enabled: false
-    #     custom: true
-    #     spec:
-    #       httpGet:
-    #         host: omada.${SECRET_DOMAIN}
-    #         path: /api/info
-    #         port: 443
-    #         scheme: HTTPS
-    #         httpHeaders:
-    #           - name: Host
-    #             value: kube.internal.health
-    #       initialDelaySeconds: 60
+        custom: true
+        type: HTTPS
+        spec:
+          httpGet:
+            path: /api/info
+            port: *port
+            scheme: HTTPS
+            httpHeaders:
+              - name: Host
+                value: kube.internal.health
+          initialDelaySeconds: 60
 
     resources:
       requests:
