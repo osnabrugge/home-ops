@@ -169,6 +169,7 @@ spec:
         type: HTTPS
         spec:
           httpGet:
+            host: "${SVC_OMADA_ADDR}"
             path: /api/info
             port: *port
             scheme: HTTPS
@@ -182,6 +183,7 @@ spec:
         type: HTTPS
         spec:
           httpGet:
+            host: "${SVC_OMADA_ADDR}"
             path: /api/info
             port: *port
             scheme: HTTPS
@@ -195,6 +197,7 @@ spec:
         type: HTTPS
         spec:
           httpGet:
+            host: "${SVC_OMADA_ADDR}"
             path: /api/info
             port: *port
             scheme: HTTPS
