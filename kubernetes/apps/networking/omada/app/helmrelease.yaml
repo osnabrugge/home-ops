@@ -160,11 +160,11 @@ spec:
       logs:
         enabled: true
         mountPath: /opt/tplink/EAPController/logs
-        existingClaim: omada-logs-pvc
+        type: emptyDir
 
-    # probes:
-    #   liveness:
-    #     enabled: true
+    probes:
+      liveness:
+        enabled: false
     #     custom: true
     #     spec:
     #       httpGet:
@@ -175,8 +175,8 @@ spec:
     #         httpHeaders:
     #           - name: Host
     #             value: kube.internal.health
-    #   readiness:
-    #     enabled: true
+      readiness:
+        enabled: false
     #     custom: true
     #     spec:
     #       httpGet:
@@ -187,8 +187,8 @@ spec:
     #         httpHeaders:
     #           - name: Host
     #             value: kube.internal.health
-    #   startup:
-    #     enabled: true
+      startup:
+        enabled: false
     #     custom: true
     #     spec:
     #       httpGet:

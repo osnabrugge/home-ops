@@ -19,23 +19,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: omada-logs-pvc
-  namespace: networking
-  labels:
-    app.kubernetes.io/name: &name omada-controller
-    app.kubernetes.io/instance: *name
-    snapshot.home.arpa/enabled: "true"
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: ceph-block
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: omada-work-pvc
   namespace: networking
   labels:
