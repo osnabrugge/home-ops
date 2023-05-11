@@ -61,7 +61,7 @@ spec:
           namespaceSelector:
             any: true
       extraArgs:
-        default-ssl-certificate: "networking/${SECRET_DOMAIN/./-}-staging-tls"
+        default-ssl-certificate: "networking/${SECRET_DOMAIN/./-}-production-tls"
       podAnnotations:
         configmap.reloader.stakater.com/reload: cloudflare-networks
       resources:
