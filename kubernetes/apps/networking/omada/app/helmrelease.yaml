@@ -162,38 +162,6 @@ spec:
         mountPath: /opt/tplink/EAPController/logs
         type: emptyDir
 
-    probes:
-      liveness:
-        enabled: true
-        custom: true
-        type: HTTPS
-        spec:
-          httpGet:
-            path: /api/info
-            port: *port
-            scheme: HTTPS
-
-      readiness:
-        enabled: true
-        custom: true
-        type: HTTPS
-        spec:
-          httpGet:
-            path: /api/info
-            port: *port
-            scheme: HTTPS
-
-      startup:
-        enabled: true
-        custom: true
-        type: HTTPS
-        spec:
-          httpGet:
-            path: /api/info
-            port: *port
-            scheme: HTTPS
-          initialDelaySeconds: 60
-
     resources:
       requests:
         cpu: 1200m
