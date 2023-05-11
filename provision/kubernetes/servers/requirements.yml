@@ -7,7 +7,7 @@ collections:
   - name: kubernetes.core
     version: 2.4.0
   - name: ansible.utils
-    version: 2.9.0
+    version: 2.10.1
   - name: community.sops
     version: 1.6.1
 roles:
