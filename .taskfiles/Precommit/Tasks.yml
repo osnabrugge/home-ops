@@ -4,16 +4,42 @@ version: "3"
 tasks:
 
   init:
-    desc: Initialize pre-commit hooks
+    desc: Initialize workstation dependencies with Brew
     cmds:
-      - pre-commit install --install-hooks
+      - brew install {{.DEPS}} {{.CLI_ARGS}}
+    preconditions:
+      - sh: command -v brew
+        msg: |
+          Homebrew is not installed. Using MacOS, Linux or WSL?
+          Head over to https://brew.sh to get up and running.
+    vars:
+      DEPS: >-
+        age
+        ansible
+        direnv
+        fluxcd/tap/flux
+        go-task/tap/go-task
+        helm
+        ipcalc
+        jq
+        kubernetes-cli
+        kustomize
+        pre-commit
+        prettier
+        sops
+        stern
+        terraform
+        tflint
+        weaveworks/tap/gitops
+        yamllint
+        yq
 
-  run:
-    desc: Run pre-commit
+  verify:
+    desc: Verify env settings
     cmds:
-      - pre-commit run --all-files
+      - ./configure --verify
 
-  update:
-    desc: Update pre-commit hooks
+  configure:
+    desc: Configure repository from env settings
     cmds:
-      - pre-commit autoupdate
+      - ./configure
