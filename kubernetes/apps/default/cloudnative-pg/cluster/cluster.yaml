@@ -31,6 +31,7 @@ spec:
       wal:
         compression: bzip2
         maxParallel: 8
+      serverName: postgres-v3
       destinationPath: "https://backupkube.blob.core.windows.net/cnpg"
       azureCredentials:
         connectionString:
