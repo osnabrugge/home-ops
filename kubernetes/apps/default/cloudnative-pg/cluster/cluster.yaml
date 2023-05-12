@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/cluster_v1.json
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/postgresql.cnpg.io/cluster_v1.json
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -10,6 +10,9 @@ metadata:
 spec:
   instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:14.7
+  inheritedMetadata:
+    labels:
+      kube-image-keeper.enix.io/image-caching-policy: ignore
   primaryUpdateStrategy: unsupervised
   storage:
     size: 20Gi
@@ -31,8 +34,8 @@ spec:
       wal:
         compression: bzip2
         maxParallel: 8
-      serverName: postgres-v2 # change/increment when restoring as value cannot match existing cnpg cluster
       destinationPath: "https://backupkube.blob.core.windows.net/cnpg"
+      serverName: postgres-v2 # change/increment when restoring as value cannot match existing cnpg cluster
       azureCredentials:
         connectionString:
           name: cloudnative-pg-secret
