@@ -78,10 +78,10 @@ spec:
     persistence:
       media:
         enabled: true
-        type: nfs
-        server: "${NAS_ADDR}"
-        path: "${NAS_ADDR}"
         mountPath: /data/nas
+        path: "${NFS_SHARE}"
+        server: "${NAS_ADDR}"
+        type: nfs
       add-ons:
         enabled: true
         type: emptyDir
