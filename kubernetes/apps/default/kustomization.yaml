@@ -12,15 +12,15 @@ resources:
   - ./home-assistant/ks.yaml
   # - ./kopia/ks.yaml
   - ./kubernetes-schemas/ks.yaml
-  # - ./monero/ks.yaml
+  - ./monero/ks.yaml
   - ./mosquitto/ks.yaml
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
-  # - ./plex/ks.yaml
+  - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
   - ./redis/ks.yaml
-  # - ./smtp-relay/ks.yaml
+  - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
