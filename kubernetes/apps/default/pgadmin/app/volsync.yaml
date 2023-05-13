@@ -21,7 +21,7 @@ spec:
         AZURE_ACCOUNT_KEY: '{{ .AZURE_ACCOUNT_KEY }}'
   dataFrom:
     - extract:
-        key: volsync
+        key: volsync-restic-template
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/volsync.backube/replicationsource_v1alpha1.json
 apiVersion: volsync.backube/v1alpha1
