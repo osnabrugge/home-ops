@@ -5,7 +5,7 @@ resources:
   - ./namespace.yaml
   # - ./authelia/ks.yaml
   # - ./bazarr/ks.yaml
-  - ./cloudnative-pg/ks.yaml
+  # - ./cloudnative-pg/ks.yaml
   - ./echo-server/ks.yaml
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
@@ -15,7 +15,7 @@ resources:
   # - ./monero/ks.yaml
   - ./mosquitto/ks.yaml
   - ./overseerr/ks.yaml
-  - ./pgadmin/ks.yaml
+  # - ./pgadmin/ks.yaml
   # - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
