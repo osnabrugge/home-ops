@@ -1,0 +1,15 @@
+---
+- name: Update Cloud-Init Config
+  hosts:
+    - tiny05
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  pre_tasks:
+    - name: Pausing for 2 seconds...
+      ansible.builtin.pause:
+        seconds: 2
+  tasks:
+
+    - name: set {{ vm.worker5_name }} cloud-init config
+      command: "qm set {{ vm.worker5_id }} --cicustom user=nfs-nas:snippets/{{ vm.worker5_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker5_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml"
