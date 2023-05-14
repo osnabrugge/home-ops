@@ -22,13 +22,13 @@ spec:
   install:
     remediation:
       retries: 3
-    disableWait: true
+    # disableWait: true
   upgrade:
     remediation:
       retries: 3
       remediateLastFailure: true
     cleanupOnFail: true
-    disableWait: true
+    # disableWait: true
   rollback:
     timeout: 10m
     recreate: true
@@ -74,6 +74,11 @@ spec:
         tls:
           - hosts:
               - *host
+    probes:
+      startup:
+        enabled: true
+        spec:
+        initialDelaySeconds: 20
     service:
       main:
         enabled: true
