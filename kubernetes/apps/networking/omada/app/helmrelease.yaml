@@ -78,7 +78,7 @@ spec:
       startup:
         enabled: true
         spec:
-        initialDelaySeconds: 20
+          initialDelaySeconds: 20
     service:
       main:
         enabled: true
