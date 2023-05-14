@@ -31,7 +31,7 @@ spec:
       type: statefulset
     image:
       repository: ghcr.io/osnabrugge/tautulli
-      tag: 2.12.3@sha256:0cf2048f536132a75e4c2bbc7809c602f3f74b51a2eac87f54ed263d3974976c
+      tag: 2.12.3@sha256:f2c0e3b133bba762db5268ba1d58159afab25127b750d32273ed7479dadf1e29
     env:
       TZ: "${TIMEZONE}"
     service:
