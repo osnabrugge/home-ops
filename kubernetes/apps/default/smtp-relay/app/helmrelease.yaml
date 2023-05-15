@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: &app smtp-relay
+  name: smtp-relay
   namespace: default
 spec:
   interval: 15m
@@ -36,8 +36,9 @@ spec:
       repository: docker.io/juanluisbaptiste/postfix
       tag: 1.7.1
     env:
-      SMTP_SERVER: smtp.office365.com:587
-      SERVER_HOSTNAME: "${SECRET_DOMAIN}"
+      SMTP_SERVER: "smtp.office365.com"
+      SERVER_HOSTNAME: "{{ .Release.Name }}.${SECRET_DOMAIN}"
+      OVERWRITE_FROM: "info@${SECRET_DOMAIN}"
     envFrom:
       - secretRef:
           name: smtp-relay-secret
