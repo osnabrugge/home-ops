@@ -6,6 +6,7 @@ namespace: default
 resources:
   - ./helmrelease.yaml
   - ./externalsecret.yaml
+  - ./volsync.yaml
 # configMapGenerator:
 #   - name: smtp-relay
 #     files:
