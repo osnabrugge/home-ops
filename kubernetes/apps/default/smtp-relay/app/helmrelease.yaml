@@ -64,6 +64,12 @@ spec:
         ports:
           http:
             port: 25
+    volumeClaimTemplates:
+      - name: additional-config
+        mountPath: /docker-init.db/
+        accessMode: ReadWriteOnce
+        size: 100Mi
+        storageClass: ceph-block
     resources:
       requests:
         cpu: 10m
