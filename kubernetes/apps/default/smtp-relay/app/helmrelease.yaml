@@ -64,14 +64,6 @@ spec:
         ports:
           http:
             port: 25
-    persistence:
-      config:
-        enabled: true
-        type: configMap
-        name: *app
-        subPath: postfix.conf
-        mountPath: /etc/sasl-xoauth2.conf
-        readOnly: true
     resources:
       requests:
         cpu: 10m
