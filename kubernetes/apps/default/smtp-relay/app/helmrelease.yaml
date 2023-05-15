@@ -20,12 +20,10 @@ spec:
     createNamespace: true
     remediation:
       retries: 3
-    # disableWait: true
   upgrade:
     cleanupOnFail: true
     remediation:
       retries: 3
-    # disableWait: true
   uninstall:
     keepHistory: false
   values:
@@ -51,11 +49,48 @@ spec:
           name: smtp-relay-secret
     probes:
       liveness:
-        enabled: false
+        enabled: true
+        custom: true
+        spec:
+          exec:
+            command:
+              - sh
+              - -c
+              - >-
+                ps axf | fgrep -v grep | egrep -q '\{supervisord\}|/usr/bin/supervisord' &&
+                ps axf | fgrep -v grep | egrep -q '(/usr/lib/postfix/sbin/|/usr/libexec/postfix/)master'
+          failureThreshold: 2
+          initialDelaySeconds: 5
+          periodSeconds: 5
       readiness:
-        enabled: false
+        enabled: true
+        custom: true
+        spec:
+          exec:
+            command:
+              - sh
+              - -c
+              - >-
+                [ ! -f /tmp/container_is_terminating ] &&
+                printf "EHLO healthcheck\n" | nc 127.0.0.1 587 | grep -qE "^220.*ESMTP Postfix"
+          failureThreshold: 6
+          initialDelaySeconds: 10
+          periodSeconds: 60
       startup:
-        enabled: false
+        enabled: true
+        custom: true
+        spec:
+          exec:
+            command:
+              - sh
+              - -c
+              - >-
+                ps axf | fgrep -v grep | egrep -q '\{supervisord\}|/usr/bin/supervisord' &&
+                ps axf | fgrep -v grep | fgrep -q "postfix-script" &&
+                ps axf | fgrep -v grep | fgrep -q 'opendkim.sh'
+          failureThreshold: 12
+          initialDelaySeconds: 5
+          periodSeconds: 5
     service:
       main:
         type: LoadBalancer
