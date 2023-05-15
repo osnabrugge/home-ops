@@ -36,12 +36,11 @@ spec:
       annotations:
         reloader.stakater.com/auto: "true"
     image:
-      repository: docker.io/juanluisbaptiste/postfix
-      tag: 1.7.1
+      repository: boky/postfix
+      tag: v3.6.1
     env:
-      SMTP_SERVER: "smtp.office365.com"
-      SERVER_HOSTNAME: "{{ .Release.Name }}.${SECRET_DOMAIN}"
-      POSTFIX_inet_protocols: ipv4
+      RELAYHOST: "smtp.office365.com"
+      HOSTNAME: "{{ .Release.Name }}.${SECRET_DOMAIN}"
     envFrom:
       - secretRef:
           name: smtp-relay-secret
