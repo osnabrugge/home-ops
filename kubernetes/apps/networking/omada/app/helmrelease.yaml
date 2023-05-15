@@ -106,11 +106,11 @@ spec:
             port: 29810
             targetPort: 29810
             protocol: UDP
-          # old-eap-mgmt:  Not required as this is used before v5.x
-          #   enabled: true
-          #   port: 29811
-          #   protocol: TCP
-          #   targetPort: 29811
+          old-eap-mgmt:  #  Omada Documentation is wrong, this port is required for adoption.
+            enabled: true
+            port: 29811
+            protocol: TCP
+            targetPort: 29811
           old-eap-adopt: #  Omada Documentation is wrong, this port is required for adoption.
             enabled: true
             port: 29812
