@@ -70,6 +70,7 @@ spec:
         tls:
           - hosts:
               - *host
+
     probes:
       startup:
         enabled: true
@@ -86,45 +87,55 @@ spec:
         externalIPs: ["${SVC_OMADA_ADDR}"]
         externalTrafficPolicy: Local
         ports:
-          mgmt-8088-tcp:
-            enabled: true
-            port: 8088
-            targetPort: 8088
-            protocol: TCP
-          # mgmt-8043-tcp:  Not required as we are publishing via ingress.
+          # mgmt-8088-tcp: # Not required as igress performs redirection to HTTPS.
+          #   enabled: true
+          #   port: 8088
+          #   targetPort: 8088
+          #   protocol: TCP
+          # mgmt-8043-tcp: # Not required as we are publishing via ingress.
           #   enabled: true
           #   port: 8043
           #   protocol: TCP
           #   targetPort: 8043
-          portal-8843-tcp:
+          portal-https: # When the clients visit the Portal page via an HTTPS connection.
             enabled: true
             port: 8843
             targetPort: 8843
             protocol: TCP
-          eap-discovery:
+          eap-discovery: # Omada Controller and Omada Discovery Utility discover Omada devices.
             enabled: true
             port: 29810
             targetPort: 29810
             protocol: UDP
-          old-eap-mgmt:  #  Omada Documentation is wrong, this port is required for adoption.
+          eap-manager-v1:  # Omada Controller and Omada Discovery Utility manage the Omada devices running firmware fully adapted to Omada Controller v4*.
             enabled: true
             port: 29811
             protocol: TCP
             targetPort: 29811
-          old-eap-adopt: #  Omada Documentation is wrong, this port is required for adoption.
+          eap-adopt-v1: # Omada Controller and Omada Discovery Utility manage the Omada devices running firmware fully adapted to Omada Controller v4*.
             enabled: true
             port: 29812
             protocol: TCP
             targetPort: 29812
-          # old-eap-upgrade:
-          #   enabled: true
-          #   port: 29813
-          #   protocol: TCP
-          #   targetPort: 29813
-          eap-adopt:
+          eap-upgrade-v1: # When upgrading the firmware for the Omada devices running firmware fully adapted to Omada Controller v4*.
+            enabled: true
+            port: 29813
+            protocol: TCP
+            targetPort: 29813
+          eap-manager-v2: # Omada Controller and Omada Discovery Utility manage the Omada devices running firmware fully adapted to Omada Controller v5*.
             enabled: true
             port: 29814
             targetPort: 29814
+            protocol: TCP
+          eap-transfer=v2: # Starting from v5.9, Omada Controller receives Device Info and Packet Capture files from the Omada devices.
+            enabled: true
+            port: 29815
+            targetPort: 29815
+            protocol: TCP
+          eap-rtty: # Starting from v5.9, Omada Controller establishes the remote control terminal session with the Omada devices.
+            enabled: true
+            port: 29816
+            targetPort: 29816
             protocol: TCP
           # init-check:  Controller does not perform initation check since v3.2.4
           #   enabled: true
@@ -141,7 +152,7 @@ spec:
           #   port: 27017
           #   protocol: TCP
           #   targetPort: 27017
-          db-access:
+          eap-mongodb:
             enabled: true
             port: 27217
             targetPort: 27217
