@@ -20,12 +20,12 @@ spec:
     createNamespace: true
     remediation:
       retries: 3
-    disableWait: true
+    # disableWait: true
   upgrade:
     cleanupOnFail: true
     remediation:
       retries: 3
-    disableWait: true
+    # disableWait: true
   uninstall:
     keepHistory: false
   values:
@@ -49,13 +49,13 @@ spec:
     envFrom:
       - secretRef:
           name: smtp-relay-secret
-    probes:
-      liveness:
-        enabled: false
-      readiness:
-        enabled: false
-      startup:
-        enabled: false
+    # probes:
+    #   liveness:
+    #     enabled: false
+    #   readiness:
+    #     enabled: false
+    #   startup:
+    #     enabled: false
     service:
       main:
         type: LoadBalancer
