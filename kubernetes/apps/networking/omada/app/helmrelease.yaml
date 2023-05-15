@@ -127,7 +127,7 @@ spec:
             port: 29814
             targetPort: 29814
             protocol: TCP
-          eap-transfer=v2: # Starting from v5.9, Omada Controller receives Device Info and Packet Capture files from the Omada devices.
+          eap-transfer-v2: # Starting from v5.9, Omada Controller receives Device Info and Packet Capture files from the Omada devices.
             enabled: true
             port: 29815
             targetPort: 29815
