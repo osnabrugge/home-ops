@@ -35,6 +35,9 @@ spec:
       tag: latest@sha256:9b6344124256a2bbeedac4affea06c9829522ca6bb276e31cdd1d38a761d27c7
     service:
       main:
+        type: LoadBalancer
+        loadBalancerIP: "${SVC_SCHEMA_ADDR}"
+        externalTrafficPolicy: Local
         ports:
           http:
             port: 8080
