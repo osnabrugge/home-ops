@@ -40,7 +40,7 @@ spec:
     env:
       DEBUG: "true"
       SMTP_SERVER: "smtp.office365.com"
-      SERVER_DOMAIN: "${SECRET_DOMAIN}"
+      SMTP_DOMAIN: "${SECRET_DOMAIN}"
       SMTP_PORT: "587"
     envFrom:
       - secretRef:
