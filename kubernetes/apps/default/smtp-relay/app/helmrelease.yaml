@@ -39,7 +39,7 @@ spec:
       repository: boky/postfix
       tag: v3.6.1
     env:
-      RELAYHOST: "smtp.office365.com"
+      RELAYHOST: "smtp.office365.com:587"
       HOSTNAME: "{{ .Release.Name }}.${SECRET_DOMAIN}"
       ALLOWED_SENDER_DOMAINS: "${SECRET_DOMAIN}"
     envFrom:
