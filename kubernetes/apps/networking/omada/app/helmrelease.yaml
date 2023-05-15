@@ -111,11 +111,11 @@ spec:
           #   port: 29811
           #   protocol: TCP
           #   targetPort: 29811
-          # old-eap-adopt:
-          #   enabled: true
-          #   port: 29812
-          #   protocol: TCP
-          #   targetPort: 29812
+          old-eap-adopt: #  Omada Documentation is wrong, this port is required for adoption.
+            enabled: true
+            port: 29812
+            protocol: TCP
+            targetPort: 29812
           # old-eap-upgrade:
           #   enabled: true
           #   port: 29813
