@@ -28,6 +28,7 @@ spec:
     keepHistory: false
   values:
     controller:
+      type: statefulset
       replicas: 1
       strategy: RollingUpdate
       annotations:
@@ -38,7 +39,6 @@ spec:
     env:
       SMTP_SERVER: "smtp.office365.com"
       SERVER_HOSTNAME: "{{ .Release.Name }}.${SECRET_DOMAIN}"
-      OVERWRITE_FROM: "info@${SECRET_DOMAIN}"
     envFrom:
       - secretRef:
           name: smtp-relay-secret
