@@ -6,3 +6,11 @@ namespace: default
 resources:
   - ./helmrelease.yaml
   - ./externalsecret.yaml
+configMapGenerator:
+  - name: smtp-relay
+    files:
+      - config/maddy.conf
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
