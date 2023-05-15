@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: smtp-relay
+  name: &app smtp-relay
   namespace: default
 spec:
   interval: 15m
@@ -64,7 +64,14 @@ spec:
         ports:
           http:
             port: 25
-
+    persistence:
+      config:
+        enabled: true
+        type: configMap
+        name: *app
+        subPath: postfix.conf
+        mountPath: /etc/sasl-xoauth2.conf
+        readOnly: true
     resources:
       requests:
         cpu: 10m
