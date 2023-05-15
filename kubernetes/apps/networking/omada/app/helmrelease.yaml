@@ -34,7 +34,7 @@ spec:
   values:
     global:
       nameOverride: *app
-    hostNetwork: true
+    # hostNetwork: true
 
     image:
       repository: mbentley/omada-controller
@@ -70,6 +70,11 @@ spec:
         tls:
           - hosts:
               - *host
+    probes:
+      startup:
+        enabled: true
+        spec:
+          initialDelaySeconds: 30
     service:
       main:
         ports:
@@ -86,7 +91,7 @@ spec:
             port: 8088
             targetPort: 8088
             protocol: TCP
-          # mgmt-8043-tcp:
+          # mgmt-8043-tcp:  Not required as we are publishing via ingress.
           #   enabled: true
           #   port: 8043
           #   protocol: TCP
@@ -101,41 +106,41 @@ spec:
             port: 29810
             targetPort: 29810
             protocol: UDP
-          old-eap-mgmt:
-            enabled: true
-            port: 29811
-            protocol: TCP
-            targetPort: 29811
-          old-eap-adopt:
-            enabled: true
-            port: 29812
-            protocol: TCP
-            targetPort: 29812
-          old-eap-upgrade:
-            enabled: true
-            port: 29813
-            protocol: TCP
-            targetPort: 29813
+          # old-eap-mgmt:  Not required as this is used before v5.x
+          #   enabled: true
+          #   port: 29811
+          #   protocol: TCP
+          #   targetPort: 29811
+          # old-eap-adopt:
+          #   enabled: true
+          #   port: 29812
+          #   protocol: TCP
+          #   targetPort: 29812
+          # old-eap-upgrade:
+          #   enabled: true
+          #   port: 29813
+          #   protocol: TCP
+          #   targetPort: 29813
           eap-adopt:
             enabled: true
             port: 29814
             targetPort: 29814
             protocol: TCP
-          init-check:
-            enabled: true
-            port: 27001
-            targetPort: 27001
-            protocol: UDP
-          old-init-info:
-            enabled: true
-            port: 27002
-            protocol: TCP
-            targetPort: 27002
-          old-db-access:
-            enabled: true
-            port: 27017
-            protocol: TCP
-            targetPort: 27017
+          # init-check:  Controller does not perform initation check since v3.2.4
+          #   enabled: true
+          #   port: 27001
+          #   targetPort: 27001
+          #   protocol: UDP
+          # old-init-info:
+          #   enabled: true
+          #   port: 27002
+          #   protocol: TCP
+          #   targetPort: 27002
+          # old-db-access:  Not required since v3.x
+          #   enabled: true
+          #   port: 27017
+          #   protocol: TCP
+          #   targetPort: 27017
           db-access:
             enabled: true
             port: 27217
