@@ -41,6 +41,7 @@ spec:
     env:
       RELAYHOST: "smtp.office365.com"
       HOSTNAME: "{{ .Release.Name }}.${SECRET_DOMAIN}"
+      ALLOWED_SENDER_DOMAINS: "${SECRET_DOMAIN}"
     envFrom:
       - secretRef:
           name: smtp-relay-secret
