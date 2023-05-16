@@ -62,8 +62,11 @@ spec:
         loadBalancerIP: ["${SVC_SMTP_RELAY_ADD}"]
         externalTrafficPolicy: Local
         ports:
-          http:
+          smtp:
+            enabled: true
             port: 25
+            targetPort: 25
+            protocol: TCP
     volumeClaimTemplates:
       - name: additional-config
         mountPath: /docker-init.db/
