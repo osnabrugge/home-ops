@@ -56,6 +56,11 @@ spec:
         enabled: false
       startup:
         enabled: false
+    sidecars:
+      monero-exporter:
+        image: ghcr.io/osnabrugge/postfix-exporter
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/postfix_exporter"]
     service:
       main:
         type: LoadBalancer
