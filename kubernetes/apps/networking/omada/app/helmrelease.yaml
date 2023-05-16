@@ -34,7 +34,6 @@ spec:
   values:
     global:
       nameOverride: *app
-    # hostNetwork: true
 
     image:
       repository: mbentley/omada-controller
@@ -72,10 +71,14 @@ spec:
               - *host
 
     probes:
+      liveness:
+        enabled: true
+      readiness:
+        enabled: true
       startup:
         enabled: true
-        spec:
-          initialDelaySeconds: 30
+        # spec:
+        #   initialDelaySeconds: 30
     service:
       main:
         ports:
