@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: &app smtp-relay
+  name: smtp-relay
   namespace: default
 spec:
   interval: 15m
@@ -67,7 +67,7 @@ spec:
         externalIPs: ["${SVC_SMTP_RELAY_ADDR}"]
         externalTrafficPolicy: Local
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: "{{ .Release.Name }}.${CLUSTER_DOMAIN}"
+          external-dns.alpha.kubernetes.io/hostname: "smtp-relay.${CLUSTER_DOMAIN}"
         ports:
           http:
             port: 25
