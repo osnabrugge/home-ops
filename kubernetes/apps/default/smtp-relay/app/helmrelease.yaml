@@ -20,10 +20,12 @@ spec:
     createNamespace: true
     remediation:
       retries: 3
+    disableWait: true
   upgrade:
     cleanupOnFail: true
     remediation:
       retries: 3
+    disableWait: true
   uninstall:
     keepHistory: false
   values:
