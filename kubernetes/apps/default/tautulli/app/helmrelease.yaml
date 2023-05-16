@@ -34,6 +34,13 @@ spec:
       tag: 2.12.3@sha256:f2c0e3b133bba762db5268ba1d58159afab25127b750d32273ed7479dadf1e29
     env:
       TZ: "${TIMEZONE}"
+    probes:
+      liveness:
+        enabled: false
+      readiness:
+        enabled: false
+      startup:
+        enabled: false
     service:
       main:
         ports:
