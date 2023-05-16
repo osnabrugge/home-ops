@@ -40,7 +40,7 @@ spec:
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
-  name: magmt-conf
+  name: mgmt-conf
   namespace: networking
 spec:
   config: '{
@@ -59,7 +59,7 @@ spec:
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
-  name: magmt-omada-conf
+  name: mgmt-omada-conf
   namespace: networking
 spec:
   config: '{
