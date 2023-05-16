@@ -28,8 +28,8 @@ spec:
     keepHistory: false
   values:
     extraInitContainers:
-      - name: init-db
-        image: ghcr.io/osnabrugge/postgres-initdb:14.8
+      - name: 01-init-db
+        image: ghcr.io/onedr0p/postgres-init:14.8
         imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:

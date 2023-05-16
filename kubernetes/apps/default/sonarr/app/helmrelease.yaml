@@ -32,8 +32,8 @@ spec:
       annotations:
         reloader.stakater.com/auto: "true"
     image:
-      repository: ghcr.io/osnabrugge/sonarr
-      tag: 3.0.10.1567@sha256:15e2d156406c793f8294ccf2b5b050a499db4e4e5463615858b2d31b400f7017
+      repository: ghcr.io/onedr0p/sonarr-develop
+      tag: 4.0.0.497@sha256:d39243633cf1b87617b0c5dea7189b5a4fd065e706dde76766cb4d51dc4b9dd5
     env:
       TZ: "${TIMEZONE}"
       PUSHOVER_DEBUG: "false"
