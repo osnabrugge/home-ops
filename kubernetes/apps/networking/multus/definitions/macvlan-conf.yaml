@@ -70,6 +70,7 @@ spec:
       "ipam": {
         "type": "static",
         "addresses": {
-          "address": "192.168.30.103/24"
+        "address": "192.168.30.103/24"
+        }
       }
     }'
