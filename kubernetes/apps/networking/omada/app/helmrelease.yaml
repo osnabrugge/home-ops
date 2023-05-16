@@ -175,6 +175,9 @@ spec:
         mountPath: /opt/tplink/EAPController/logs
         type: emptyDir
 
+    podAnnotations:
+      k8s.v1.cni.cncf.io/networks: networking/mgmt-omada-conf
+
     resources:
       requests:
         cpu: 1200m
