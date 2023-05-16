@@ -32,8 +32,8 @@ spec:
       annotations:
         reloader.stakater.com/auto: "true"
     image:
-      repository: ghcr.io/osnabrugge/qbittorrent
-      tag: 4.5.2@sha256:acc24a816b73ff80a7c6c85f3d59da03b95f3f71e03e205314c9b009b14fc1f1
+      repository: ghcr.io/onedr0p/qbittorrent
+      tag: 4.5.2@sha256:0efdd8d3ef3964d658d78ea7789efa285e9c01d1d436da2903cfde462a7fe67a
     env:
       TZ: "${TIMEZONE}"
       QBITTORRENT__PORT: &port 8080

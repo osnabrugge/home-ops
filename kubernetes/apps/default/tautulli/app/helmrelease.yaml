@@ -30,8 +30,8 @@ spec:
     controller:
       type: statefulset
     image:
-      repository: ghcr.io/osnabrugge/tautulli
-      tag: 2.12.3@sha256:f2c0e3b133bba762db5268ba1d58159afab25127b750d32273ed7479dadf1e29
+      repository: ghcr.io/onedr0p/tautulli
+      tag: 2.12.3@sha256:6049e9877a7ac505a33c134ad58ca5b29dfbc34c1505e5df7d7784428942a9d0
     env:
       TZ: "${TIMEZONE}"
     probes:

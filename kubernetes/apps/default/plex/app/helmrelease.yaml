@@ -31,8 +31,8 @@ spec:
       type: statefulset
     hostNetwork: true
     image:
-      repository: ghcr.io/osnabrugge/plex
-      tag: 1.32.1.6999-91e1e2e2c@sha256:17e8044ac18fef6eef804d7adeabb9f1006fe79c8086a1324aa25b0754d480c7
+      repository: ghcr.io/onedr0p/plex
+      tag: 1.32.1.6999-91e1e2e2c@sha256:fa9bbdbd8a73d110c703839619b9e1cc13524187b00662955235c02e07cef50c
     env:
       TZ: "{$TIMEZONE}"
     service:
