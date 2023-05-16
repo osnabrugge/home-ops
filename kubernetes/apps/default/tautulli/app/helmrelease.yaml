@@ -86,7 +86,7 @@ spec:
         path: "${NFS_SHARE}"
         mountPath: /data/nas
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
+      k8s.v1.cni.cncf.io/networks: networking/storage-conf
     resources:
       requests:
         cpu: 10m

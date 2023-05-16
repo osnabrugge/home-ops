@@ -97,7 +97,7 @@ spec:
       network:
         provider: multus
         selectors:
-          cluster: networking/macvlan-conf
+          cluster: networking/storage-conf
         connections:
           compression:
             enabled: false

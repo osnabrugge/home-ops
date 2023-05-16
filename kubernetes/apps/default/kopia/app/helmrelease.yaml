@@ -90,7 +90,7 @@ spec:
         path: /volume1/backup/home-cluster/kopia
         mountPath: /snapshots
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
+      k8s.v1.cni.cncf.io/networks: networking/storage-conf
       configmap.reloader.stakater.com/reload: *app
     resources:
       requests:

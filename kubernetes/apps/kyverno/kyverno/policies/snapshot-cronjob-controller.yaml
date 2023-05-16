@@ -83,7 +83,7 @@ spec:
                 template:
                   metadata:
                     annotations:
-                      k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
+                      k8s.v1.cni.cncf.io/networks: networking/storage-conf
                   spec:
                     automountServiceAccountToken: false
                     restartPolicy: OnFailure

@@ -97,7 +97,7 @@ spec:
             targetPort: 18089
             protocol: TCP
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/macvlan-conf
+      k8s.v1.cni.cncf.io/networks: networking/storage-conf
     persistence:
       bitmonero:
         enabled: true
