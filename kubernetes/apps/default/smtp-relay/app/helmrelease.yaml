@@ -59,11 +59,10 @@ spec:
     service:
       main:
         type: LoadBalancer
-        loadBalancerIP: ["${SVC_SMTP_RELAY_ADD}"]
+        externalIPs: ["${SVC_SMTP_RELAY_ADD}"]
         externalTrafficPolicy: Local
         ports:
-          smtp:
-            enabled: true
+          http:
             port: 25
             targetPort: 25
             protocol: TCP
