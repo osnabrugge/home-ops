@@ -45,13 +45,13 @@ spec:
     envFrom:
       - secretRef:
           name: smtp-relay-secret
-    # probes:
-    #   liveness:
-    #     enabled: false
-    #   readiness:
-    #     enabled: false
-    #   startup:
-    #     enabled: false
+    probes:
+      liveness:
+        enabled: false
+      readiness:
+        enabled: false
+      startup:
+        enabled: false
     service:
       main:
         type: LoadBalancer
