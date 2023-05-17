@@ -84,8 +84,9 @@ spec:
       transcode:
         enabled: true
         type: emptyDir
-    nodeSelector:
+    podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-conf
+    nodeSelector:
       intel.feature.node.kubernetes.io/gpu: "true"
     resources:
       requests:
