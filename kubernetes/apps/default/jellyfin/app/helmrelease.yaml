@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: plex
+  name: jellyfin
   namespace: default
 spec:
   interval: 15m
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -29,32 +29,47 @@ spec:
   values:
     controller:
       type: statefulset
-    hostNetwork: true
     image:
-      repository: ghcr.io/onedr0p/plex
-      tag: 1.32.1.6999-91e1e2e2c@sha256:fa9bbdbd8a73d110c703839619b9e1cc13524187b00662955235c02e07cef50c
+      repository: ghcr.io/onedr0p/jellyfin
+      tag: 10.8.10@sha256:1ef614db6a4c589777eb48bc9004d573b9c09f0d6d573a509041c6060f3a956b
     env:
-      TZ: "{$TIMEZONE}"
+      TZ: ${TIMEZONE}
     service:
       main:
         type: LoadBalancer
-        externalIPs: ["${SVC_PLEX_ADDR}"]
+        externalIPs: ["${SVC_JELLYFIN_ADDR}"]
         externalTrafficPolicy: Local
         ports:
           http:
-            port: 32400
+            port: &port 8096
+    # serviceMonitor:
+    #   main:
+    #     enabled: true
+    probes:
+      liveness: &probes
+        enabled: true
+        custom: true
+        spec:
+          httpGet:
+            path: /health
+            port: *port
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+      readiness: *probes
+      startup:
+        enabled: false
     ingress:
       main:
         enabled: true
         ingressClassName: nginx
         annotations:
-          external-dns.alpha.kubernetes.io/target: ipv4.${SECRET_DOMAIN}
-          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-          hajimari.io/icon: mdi:plex
+          hajimari.io/icon: simple-icons:jellyfin
         hosts:
           - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
             paths:
-              - path: /web/
+              - path: /
                 pathType: Prefix
         tls:
           - hosts:
@@ -69,10 +84,8 @@ spec:
       - name: config
         mountPath: /config
         accessMode: ReadWriteOnce
-        size: 100Gi
+        size: 50Gi
         storageClass: ceph-block
-        labels:
-          snapshot.home.arpa/enabled: "true"
     persistence:
       media:
         enabled: true
@@ -91,7 +104,7 @@ spec:
       requests:
         gpu.intel.com/i915: 1
         cpu: 100m
-        memory: 2000Mi
+        memory: 1000Mi
       limits:
         gpu.intel.com/i915: 1
-        memory: 10000Mi
+        memory: 4000Mi
