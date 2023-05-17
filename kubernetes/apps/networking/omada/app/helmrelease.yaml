@@ -70,13 +70,13 @@ spec:
           - hosts:
               - *host
 
-    probes:
-      liveness:
-        enabled: false
-      readiness:
-        enabled: false
-      startup:
-        enabled: false
+    # probes:
+    #   liveness:
+    #     enabled: false
+    #   readiness:
+    #     enabled: false
+    #   startup:
+    #     enabled: false
         # spec:
         #   initialDelaySeconds: 30
     service:
