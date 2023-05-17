@@ -24,9 +24,6 @@ access_control:
     - domain: ["letsblockit.${SECRET_DOMAIN"]
       resources: ["^/lists.*$"]
       policy: bypass
-    - domain: ["wizarr.devbu.io"]
-      resources: ["^/join.*$", "^/j/.*$", "^/setup.*$", "^/static/.*$"]
-      policy: bypass
 
 identity_providers:
   oidc:
