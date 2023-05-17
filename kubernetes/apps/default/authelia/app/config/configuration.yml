@@ -21,7 +21,7 @@ access_control:
     - domain: ["jellyfin.${SECRET_DOMAIN}"]
       resources: ["^/metrics.*$"]
       policy: deny
-    - domain: ["letsblockit.${SECRET_DOMAIN"]
+    - domain: ["letsblockit.${SECRET_DOMAIN}"]
       resources: ["^/lists.*$"]
       policy: bypass
 
