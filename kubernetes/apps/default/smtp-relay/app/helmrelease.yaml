@@ -49,15 +49,46 @@ spec:
     envFrom:
       - secretRef:
           name: smtp-relay-secret
-    # probes:
-    #   liveness:
-    #     enabled: false
-    #   readiness:
-    #     enabled: false
-    #   startup:
-    #     enabled: false
+    probes:
+      liveness:
+        enabled: true
+        custom: true
+        spec:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 2
+          exec:
+            command:
+              - sh
+              - -c
+              - >-
+                ps axf | fgrep -v grep | egrep -q '\{supervisord\}|/usr/bin/supervisord' &&
+                ps axf | fgrep -v grep | egrep -q '(/usr/lib/postfix/sbin/|/usr/libexec/postfix/)master'
+      readiness:
+        enabled: true
+        custom: true
+        spec:
+          exec:
+            command:
+              - sh
+              - -c
+              - >-
+                [ ! -f /tmp/container_is_terminating ] &&
+                printf "EHLO healthcheck\n" | nc 127.0.0.1 587 | grep -qE "^220.*ESMTP Postfix"
+      startup:
+        enabled: true
+        custom: true
+        spec:
+          exec:
+            command:
+              - sh
+              - -c
+              - >-
+                ps axf | fgrep -v grep | egrep -q '\{supervisord\}|/usr/bin/supervisord' &&
+                ps axf | fgrep -v grep | fgrep -q "postfix-script" &&
+                ps axf | fgrep -v grep | fgrep -q 'opendkim.sh'
     sidecars:
-      monero-exporter:
+      postfix-exporter:
         image: ghcr.io/osnabrugge/postfix-exporter
         imagePullPolicy: IfNotPresent
         command: ["/bin/postfix_exporter"]
