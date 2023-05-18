@@ -51,11 +51,11 @@ spec:
           name: smtp-relay-secret
     probes:
       liveness:
-        enabled: true
+        enabled: false
       readiness:
-        enabled: true
+        enabled: false
       startup:
-        enabled: true
+        enabled: false
     sidecars:
       postfix-exporter:
         image: ghcr.io/osnabrugge/postfix-exporter
