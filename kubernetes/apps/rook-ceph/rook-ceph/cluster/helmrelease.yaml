@@ -128,9 +128,9 @@ spec:
           - name: k3s08
             devices:
               - name: "sdb"
-          - name: k3s09
-            devices:
-              - name: "nvme1n1"
+          # - name: k3s09
+          #   devices:
+          #     - name: "nvme1n1"
     cephBlockPools:
       - name: ceph-blockpool
         spec:
