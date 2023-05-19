@@ -41,8 +41,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/authelia/authelia
-      # TODO: Switch to release tag on next release
-      tag: master@sha256:ca4109ba995d7aae00b502ca677b0ea073f3938a369c958127e3e2ea99d76c43
+      tag: v4.38.0-beta2
     args: ["--config", "/config/configuration.yml", "--config.experimental.filters", "expand-env"]
     env:
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN: ou=users
@@ -104,9 +103,9 @@ spec:
             path: /api/health
             port: *port
           initialDelaySeconds: 0
-          periodSeconds: 30
-          timeoutSeconds: 5
-          failureThreshold: 5
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
       readiness: *probes
       startup:
         enabled: false
