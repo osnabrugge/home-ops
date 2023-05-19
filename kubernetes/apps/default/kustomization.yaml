@@ -9,7 +9,7 @@ resources:
   - ./echo-server/ks.yaml
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
-  - ./home-assistant/ks.yaml
+  # - ./home-assistant/ks.yaml
   # - ./jellyfin/ks.yaml
   # - ./kopia/ks.yaml
   - ./kubernetes-schemas/ks.yaml
@@ -19,7 +19,7 @@ resources:
   - ./mosquitto/ks.yaml
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
-  # - ./plex/ks.yaml
+  - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
