@@ -92,7 +92,7 @@ spec:
         labels:
           snapshot.home.arpa/enabled: "true"
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/mgmt-hass-conf
+      k8s.v1.cni.cncf.io/networks: networking/mgmt-iot-conf
     resources:
       requests:
         cpu: 10m
