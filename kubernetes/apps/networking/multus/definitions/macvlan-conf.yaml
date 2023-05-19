@@ -71,7 +71,28 @@ spec:
         "type": "static",
         "addresses": [
           {
-            "address": "192.168.30.103/24"
+            "address": "192.168.30.103/32"
+          }
+        ]
+      }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: mgmt-hass-conf
+  namespace: networking
+spec:
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "macvlan",
+      "master": "mgmt",
+      "mode": "bridge",
+      "ipam": {
+        "type": "static",
+        "addresses": [
+          {
+            "address": "192.168.30.112/32"
           }
         ]
       }
