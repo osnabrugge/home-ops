@@ -53,7 +53,7 @@ spec:
         check_for_updates: false
         check_for_plugin_updates: false
       auth:
-        oauth_auto_login: false
+        oauth_auto_login: true
       auth.generic_oauth:
         enabled: true
         name: Authelia
@@ -69,8 +69,7 @@ spec:
         role_attribute_path: |
           contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'people') && 'Viewer'
       auth.basic:
-        enabled: true
-        disable_login_form: false
+        enabled: false
       auth.anonymous:
         enabled: false
         # org_id: 1
