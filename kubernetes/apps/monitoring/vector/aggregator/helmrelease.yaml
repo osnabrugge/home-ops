@@ -86,6 +86,8 @@ spec:
         enabled: true
         type: emptyDir
         mountPath: /usr/share/GeoIP
+    podAnnotations:
+      k8s.v1.cni.cncf.io/networks: networking/mgmt-vector-conf
     topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: kubernetes.io/hostname
