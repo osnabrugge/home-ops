@@ -64,8 +64,9 @@ metadata:
 spec:
   config: '{
       "cniVersion": "0.3.1",
-      "type": "win-overlay",
-      "device": "ens21",
+      "type": "vlan",
+      "master": "ens17f0",
+      "vlan": "300",
       "ipam": {
         "type": "static",
         "addresses": [
