@@ -66,7 +66,7 @@ spec:
       "cniVersion": "0.3.1",
       "type": "macvlan",
       "master": "ens21",
-      "mode": "bridge",
+      "mode": "passthru",
       "ipam": {
         "type": "static",
         "addresses": [
