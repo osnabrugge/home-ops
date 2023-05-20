@@ -64,7 +64,7 @@ metadata:
 spec:
   config: '{
       "cniVersion": "0.3.1",
-      "type": "host-device",
+      "type": "win-overlay",
       "device": "ens21",
       "ipam": {
         "type": "static",
