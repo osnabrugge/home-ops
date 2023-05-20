@@ -64,8 +64,9 @@ metadata:
 spec:
   config: '{
       "cniVersion": "0.3.1",
-      "type": "host-device",
-      "device": "mgmt",
+      "type": "ipvlan",
+      "mode": "l2",
+      "master": "mgmt",
       "ipam": {
         "type": "static",
         "addresses": [
