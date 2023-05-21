@@ -85,7 +85,7 @@ spec:
         enabled: true
         type: emptyDir
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/storage-conf
+      k8s.v1.cni.cncf.io/networks: networking/storage-conf-v2
     nodeSelector:
       intel.feature.node.kubernetes.io/gpu: "true"
     resources:
