@@ -27,7 +27,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "macvlan",
-      "master": "ens28",
+      "master": "ens27",
       "mode": "bridge",
       "ipam": {
         "type": "whereabouts",
