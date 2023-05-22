@@ -10,7 +10,6 @@ spec:
       "type": "macvlan",
       "master": "storage",
       "mode": "bridge",
-      "mtu": 9000,
       "ipam": {
         "type": "whereabouts",
         "range": "192.168.88.0/24",
@@ -30,7 +29,6 @@ spec:
       "type": "macvlan",
       "master": "ens28",
       "mode": "bridge",
-      "mtu": 9000,
       "ipam": {
         "type": "whereabouts",
         "range": "192.168.88.0/24",
@@ -88,7 +86,6 @@ spec:
       "type": "macvlan",
       "master": "ens27",
       "mode": "bridge",
-      "mtu": 9000,
       "ipam": {
         "type": "static",
         "addresses": [
