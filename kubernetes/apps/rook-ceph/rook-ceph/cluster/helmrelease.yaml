@@ -97,7 +97,7 @@ spec:
       network:
         provider: multus
         selectors:
-          cluster: networking/storage-conf
+          cluster: networking/storage-conf-v2
         connections:
           compression:
             enabled: false
