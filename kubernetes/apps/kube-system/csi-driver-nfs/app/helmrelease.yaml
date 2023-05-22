@@ -3,37 +3,26 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: node-feature-discovery
+  name: csi-driver-nfs
   namespace: kube-system
 spec:
   interval: 15m
   chart:
     spec:
-      chart: node-feature-discovery
-      version: 0.13.1
+      chart: csi-driver-nfs
+      version: v4.2.0
       sourceRef:
         kind: HelmRepository
-        name: node-feature-discovery
+        name: csi-driver-nfs
         namespace: flux-system
   maxHistory: 2
   install:
     createNamespace: true
-    crds: CreateReplace
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
-    crds: CreateReplace
     remediation:
       retries: 3
   uninstall:
     keepHistory: false
-  values:
-    worker:
-      config:
-        core:
-          sources: ["custom", "pci", "usb"]
-        sources:
-          usb:
-            deviceClassWhitelist: ["02", "03", "0e", "ef", "fe", "ff"]
-            deviceLabelFields: ["class", "vendor", "device"]
