@@ -50,28 +50,28 @@ objects:
       max_area: 100000
       threshold: 0.7
 
-go2rtc:
-  streams:
-    frigate_front_hq: rtspx://camera.${SECRET_DOMAIN}:7441/VhpNUnYrG82LKaQ2
-    frigate_front_lq: rtspx://camera.${SECRET_DOMAIN}:7441/xD5e6G8yFbeTktSW
+# go2rtc:
+#   streams:
+#     frigate_front_hq: rtspx://camera.${SECRET_DOMAIN}:7441/VhpNUnYrG82LKaQ2
+#     frigate_front_lq: rtspx://camera.${SECRET_DOMAIN}:7441/xD5e6G8yFbeTktSW
 
-cameras:
-  frigate_front:
-    ffmpeg:
-      inputs:
-        - path: rtsp://localhost:8554/frigate_front_lq
-          roles: ["detect"]
-        - path: rtsp://localhost:8554/frigate_front_hq
-          roles: ["record"]
-    detect:
-      width: 960
-      height: 720
-      fps: 10
-    objects:
-      filters:
-        person:
-          mask:
-            - 39,445,199,427,198,263,36,228
-            - 304,218,304,408,198,434,198,262
-            - 305,411,485,382,615,393,612,335,578,321,574,233,549,118,308,209
+# cameras:
+#   frigate_front:
+#     ffmpeg:
+#       inputs:
+#         - path: rtsp://localhost:8554/frigate_front_lq
+#           roles: ["detect"]
+#         - path: rtsp://localhost:8554/frigate_front_hq
+#           roles: ["record"]
+#     detect:
+#       width: 960
+#       height: 720
+#       fps: 10
+#     objects:
+#       filters:
+#         person:
+#           mask:
+#             - 39,445,199,427,198,263,36,228
+#             - 304,218,304,408,198,434,198,262
+#             - 305,411,485,382,615,393,612,335,578,321,574,233,549,118,308,209
 
