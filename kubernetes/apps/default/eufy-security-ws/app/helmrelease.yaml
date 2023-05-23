@@ -29,14 +29,12 @@ spec:
   values:
     controller:
       type: statefulset
-      annotations:
-        reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/osnabrugge/eufy-security-ws
       tag: 1.3.5
     env:
       TZ: ${TIMEZONE}
-      DEBUG: "true"
+      DEBUG: false
       COUNTRY: CA
       TRUSTED_DEVICE_NAME: *app
       PORT: &port 3000
@@ -48,40 +46,11 @@ spec:
         ports:
           http:
             port: *port
-    probes:
-      liveness: &probes
-        enabled: false
-        custom: true
-        spec:
-          httpGet:
-            path: /api/version
-            port: *port
-          initialDelaySeconds: 0
-          periodSeconds: 10
-          timeoutSeconds: 1
-          failureThreshold: 3
-      readiness: *probes
-      startup:
-        enabled: false
-    ingress:
-      main:
-        enabled: true
-        ingressClassName: nginx
-        annotations:
-          hajimari.io/icon: mdi:shield-home
-        hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/iot-eufy-conf
     resources:
       requests:
-        cpu: 5m
+        cpu: 1m
         memory: 70Mi
       limits:
-        memory: 150Mi
+        memory: 100Mi
