@@ -23,7 +23,7 @@ ffmpeg:
   global_args: ["-hide_banner", "-loglevel", "warning"]
   hwaccel_args: ["-hwaccel", "vaapi", "-hwaccel_device", "/dev/dri/renderD128", "-hwaccel_output_format", "yuv420p"]
   output_args:
-    record: preset-record-ubiquiti
+    record: preset-record-generic-audio-aac
 
 snapshots:
   enabled: true
@@ -50,28 +50,18 @@ objects:
       max_area: 100000
       threshold: 0.7
 
-# go2rtc:
-#   streams:
-#     frigate_front_hq: rtspx://camera.${SECRET_DOMAIN}:7441/VhpNUnYrG82LKaQ2
-#     frigate_front_lq: rtspx://camera.${SECRET_DOMAIN}:7441/xD5e6G8yFbeTktSW
+cameras:
+  frigate_office:
+    ffmpeg:
+      inputs:
+        - path: rtsp://${FRIGATE_RTSP_USERNAME}:${FRIGATE_RTSP_PASSWORD}@192.168.10.2/live2
+          input_args: preset-rtsp-generic
+          roles:
+            - detect
+            - record
+    detect:
+      width: 1920
+      height: 1080
+      fps: 15
 
-# cameras:
-#   frigate_front:
-#     ffmpeg:
-#       inputs:
-#         - path: rtsp://localhost:8554/frigate_front_lq
-#           roles: ["detect"]
-#         - path: rtsp://localhost:8554/frigate_front_hq
-#           roles: ["record"]
-#     detect:
-#       width: 960
-#       height: 720
-#       fps: 10
-#     objects:
-#       filters:
-#         person:
-#           mask:
-#             - 39,445,199,427,198,263,36,228
-#             - 304,218,304,408,198,434,198,262
-#             - 305,411,485,382,615,393,612,335,578,321,574,233,549,118,308,209
 
