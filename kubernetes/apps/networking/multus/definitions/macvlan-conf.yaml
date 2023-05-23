@@ -46,7 +46,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "macvlan",
-      "master": "iot",
+      "master": "ens28",
       "mode": "bridge",
       "ipam": {
         "type": "whereabouts",
@@ -105,7 +105,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "macvlan",
-      "master": "ens17",
+      "master": "ens28",
       "mode": "bridge",
       "ipam": {
         "type": "static",
@@ -126,7 +126,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "macvlan",
-      "master": "ens17",
+      "master": "ens28",
       "mode": "bridge",
       "ipam": {
         "type": "static",
