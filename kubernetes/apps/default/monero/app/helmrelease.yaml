@@ -63,6 +63,9 @@ spec:
         env:
           MONEROD_TOR_SERVICE_HOSTS: 18089:monerod:18089
           MONEROD_TOR_SERVICE_VERSION: 3
+        envFrom:
+          - secretRef:
+              name: monerod-secret
         persistence:
           tor-keys:
             enabled: true
