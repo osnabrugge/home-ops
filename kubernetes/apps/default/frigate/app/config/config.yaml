@@ -51,6 +51,19 @@ objects:
       threshold: 0.7
 
 cameras:
+  frigate_front:
+    ffmpeg:
+      inputs:
+        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.194/live2
+          input_args: preset-rtsp-generic
+          roles:
+            - detect
+            - record
+    detect:
+      width: 1920
+      height: 1080
+      fps: 15
+
   frigate_office:
     ffmpeg:
       inputs:
