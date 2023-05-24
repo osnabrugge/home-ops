@@ -21,7 +21,7 @@ database:
 
 ffmpeg:
   global_args: ["-hide_banner", "-loglevel", "warning"]
-  hwaccel_args: ["-hwaccel", "vaapi", "-hwaccel_device", "/dev/dri/renderD128", "-hwaccel_output_format", "yuv420p"]
+  hwaccel_args: ["allow_profile_mismatch", "-hwaccel", "vaapi", "-hwaccel_device", "/dev/dri/renderD128", "-hwaccel_output_format", "vaaoi"]
   output_args:
     record: preset-record-generic-audio-aac
 
@@ -62,7 +62,7 @@ cameras:
     detect:
       width: 1920
       height: 1080
-      fps: 15
+      fps: 5
 
   office:
     ffmpeg:
@@ -70,12 +70,7 @@ cameras:
         - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live2
           input_args: preset-rtsp-generic
           roles:
-            - detect
             - record
-    detect:
-      width: 1920
-      height: 1080
-      fps: 15
 
   backdeck:
     ffmpeg:
@@ -83,12 +78,7 @@ cameras:
         - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live3
           input_args: preset-rtsp-generic
           roles:
-            - detect
             - record
-    detect:
-      width: 1920
-      height: 1080
-      fps: 15
 
   backyard:
     ffmpeg:
@@ -96,9 +86,4 @@ cameras:
         - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live1
           input_args: preset-rtsp-generic
           roles:
-            - detect
             - record
-    detect:
-      width: 1920
-      height: 1080
-      fps: 15
