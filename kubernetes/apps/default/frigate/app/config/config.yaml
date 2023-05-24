@@ -54,7 +54,7 @@ cameras:
   frigate_front:
     ffmpeg:
       inputs:
-        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.194/live2
+        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.194/live0
           input_args: preset-rtsp-generic
           roles:
             - detect
