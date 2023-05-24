@@ -48,6 +48,13 @@ spec:
     envFrom:
       - secretRef:
           name: home-assistant-secret
+    sidecars:
+      rtsp-simple-server:
+        image: ghcr.io/osnabrugge/rtsp-simple-server:v0.23.2
+        imagePullPolicy: IfNotPresent
+        env:
+          MTX_PROTOCOLS: tcp
+          RTSP_PROTOCOLS: tcp
     service:
       main:
         type: LoadBalancer
@@ -56,6 +63,26 @@ spec:
         ports:
           http:
             port: 8123
+          rtmp:
+            enabled: true
+            port: 1935
+            targetPort: 1935
+            protocol: TCP
+          rtsp:
+            enabled: true
+            port: 8554
+            targetPort: 8554
+            protocol: TCP
+          hls:
+            enabled: true
+            port: 8888
+            targetPort: 8888
+            protocol: TCP
+          webrtc:
+            enabled: true
+            port: 8889
+            targetPort: 8889
+            protocol: TCP
     ingress:
       main:
         enabled: true
@@ -96,6 +123,6 @@ spec:
     resources:
       requests:
         cpu: 10m
-        memory: 300Mi
+        memory: 700Mi
       limits:
-        memory: 500Mi
+        memory: 1000Mi
