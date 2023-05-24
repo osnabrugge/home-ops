@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://frigate.devbu.io/api/config/schema.json
 logger:
-  default: debug
+  default: info
   # logs:
   #   frigate.record: debug
 
@@ -51,7 +51,7 @@ objects:
       threshold: 0.7
 
 cameras:
-  frigate_front:
+  front:
     ffmpeg:
       inputs:
         - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.194/live0
@@ -64,7 +64,7 @@ cameras:
       height: 1080
       fps: 15
 
-  frigate_office:
+  office:
     ffmpeg:
       inputs:
         - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live2
@@ -77,4 +77,15 @@ cameras:
       height: 1080
       fps: 15
 
-
+  backdeck:
+    ffmpeg:
+      inputs:
+        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live3
+          input_args: preset-rtsp-generic
+          roles:
+            - detect
+            - record
+    detect:
+      width: 1920
+      height: 1080
+      fps: 15
