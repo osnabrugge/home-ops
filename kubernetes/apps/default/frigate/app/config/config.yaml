@@ -64,26 +64,26 @@ cameras:
       height: 1080
       fps: 5
 
-  office:
-    ffmpeg:
-      inputs:
-        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live2
-          input_args: preset-rtsp-generic
-          roles:
-            - record
+  # office:
+  #   ffmpeg:
+  #     inputs:
+  #       - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live2
+  #         input_args: preset-rtsp-generic
+  #         roles:
+  #           - record
 
-  backdeck:
-    ffmpeg:
-      inputs:
-        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live3
-          input_args: preset-rtsp-generic
-          roles:
-            - record
+  # backdeck:
+  #   ffmpeg:
+  #     inputs:
+  #       - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live3
+  #         input_args: preset-rtsp-generic
+  #         roles:
+  #           - record
 
-  backyard:
-    ffmpeg:
-      inputs:
-        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live1
-          input_args: preset-rtsp-generic
-          roles:
-            - record
+  # backyard:
+  #   ffmpeg:
+  #     inputs:
+  #       - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.10.2/live1
+  #         input_args: preset-rtsp-generic
+  #         roles:
+  #           - record
