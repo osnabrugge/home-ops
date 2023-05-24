@@ -38,7 +38,7 @@ spec:
     image:
       repository: mbentley/omada-controller
       tag: 5.9@sha256:6d3f58ae6207d6185d83040066606cbf7e33ce4c41d9cb27f8696dd477d771d3
-      imagePullPolicy: Always
+      pullPolicy: Always
     env:
       TZ: ${TIMEZONE}
       MANAGE_HTTP_PORT: "8088"
