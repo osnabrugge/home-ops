@@ -35,16 +35,9 @@ spec:
       tag: latest@sha256:a4d76fac92f26dc8118fccf099ee4c7b136c3bc2620d78f22d0ee1917e7270a9
     service:
       main:
-        type: LoadBalancer
-        externalIPs: ["192.168.11.114"]
-        externalTrafficPolicy: Local
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: schemas.local
         ports:
           http:
             port: 8080
-            targetPort: 8080
-            protocol: TCP
     ingress:
       main:
         enabled: true
