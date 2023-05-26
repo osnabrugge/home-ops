@@ -20,13 +20,11 @@ spec:
   install:
     remediation:
       retries: 3
-    # disableWait: true
   upgrade:
     remediation:
       retries: 3
       remediateLastFailure: true
     cleanupOnFail: true
-    # disableWait: true
   rollback:
     timeout: 10m
     recreate: true
@@ -34,7 +32,6 @@ spec:
   values:
     global:
       nameOverride: *app
-
     image:
       repository: mbentley/omada-controller
       tag: 5.9@sha256:6d3f58ae6207d6185d83040066606cbf7e33ce4c41d9cb27f8696dd477d771d3
@@ -47,7 +44,6 @@ spec:
       PORTAL_HTTPS_PORT: "8843"
       SHOW_SERVER_LOGS: "true"
       SHOW_MONGODB_LOGS: "true"
-
     ingress:
       main:
         enabled: true
@@ -60,7 +56,6 @@ spec:
           nginx.ingress.kubernetes.io/upstream-vhost: "omada.${SECRET_DOMAIN}:8043"
           nginx.ingress.kubernetes.io/proxy-redirect-from: "~https://(.+):8043/(.+)/login$"
           nginx.ingress.kubernetes.io/proxy-redirect-to: "https://$1/$2/login"
-
         hosts:
           - host: &host "omada.${SECRET_DOMAIN}"
             paths:
@@ -69,16 +64,6 @@ spec:
         tls:
           - hosts:
               - *host
-
-    # probes:
-    #   liveness:
-    #     enabled: false
-    #   readiness:
-    #     enabled: false
-    #   startup:
-    #     enabled: false
-        # spec:
-        #   initialDelaySeconds: 30
     service:
       main:
         ports:
@@ -90,16 +75,6 @@ spec:
         externalIPs: ["${SVC_OMADA_ADDR}"]
         externalTrafficPolicy: Local
         ports:
-          # mgmt-8088-tcp: # Not required as igress performs redirection to HTTPS.
-          #   enabled: true
-          #   port: 8088
-          #   targetPort: 8088
-          #   protocol: TCP
-          # mgmt-8043-tcp: # Not required as we are publishing via ingress.
-          #   enabled: true
-          #   port: 8043
-          #   protocol: TCP
-          #   targetPort: 8043
           portal-https: # When the clients visit the Portal page via an HTTPS connection.
             enabled: true
             port: 8843
@@ -140,27 +115,11 @@ spec:
             port: 29816
             targetPort: 29816
             protocol: TCP
-          # init-check:  Controller does not perform initation check since v3.2.4
-          #   enabled: true
-          #   port: 27001
-          #   targetPort: 27001
-          #   protocol: UDP
-          # old-init-info:
-          #   enabled: true
-          #   port: 27002
-          #   protocol: TCP
-          #   targetPort: 27002
-          # old-db-access:  Not required since v3.x
-          #   enabled: true
-          #   port: 27017
-          #   protocol: TCP
-          #   targetPort: 27017
           eap-mongodb:
             enabled: true
             port: 27217
             targetPort: 27217
             protocol: TCP
-
     persistence:
       data:
         enabled: true
@@ -174,10 +133,10 @@ spec:
         enabled: true
         mountPath: /opt/tplink/EAPController/logs
         type: emptyDir
-
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/mgmt-omada-conf
-
+    nodeSelector:
+      network: "storage"
     resources:
       requests:
         cpu: 1200m
