@@ -29,6 +29,7 @@ resources:
   - ./metallb.yaml
   - ./metrics-server.yaml
   - ./node-feature-discovery.yaml
+  - ./nvidia.yaml
   - ./osnabrugge.yaml
   - ./piraeus.yaml
   - ./prometheus-community.yaml
