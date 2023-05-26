@@ -120,6 +120,8 @@ spec:
           snapshot.home.arpa/enabled: "true"
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/iot-hass-conf
+    nodeSelector:
+      network: "storage"
     resources:
       requests:
         cpu: 10m
