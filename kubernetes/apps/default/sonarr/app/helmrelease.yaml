@@ -116,6 +116,8 @@ spec:
         readOnly: true
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-conf-v2
+    nodeSelector:
+      network: "storage"
     resources:
       requests:
         cpu: 10m

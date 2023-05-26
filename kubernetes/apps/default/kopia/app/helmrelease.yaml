@@ -92,6 +92,8 @@ spec:
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-conf-v2
       configmap.reloader.stakater.com/reload: *app
+    nodeSelector:
+      network: storage
     resources:
       requests:
         cpu: 10m
