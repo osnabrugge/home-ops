@@ -101,6 +101,8 @@ spec:
             protocol: TCP
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-conf-v2
+    nodeSelector:
+      network: storage
     persistence:
       bitmonero:
         enabled: true
