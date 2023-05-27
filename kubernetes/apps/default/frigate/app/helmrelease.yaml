@@ -6,7 +6,7 @@ metadata:
   name: frigate
   namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
@@ -131,7 +131,6 @@ spec:
     nodeSelector:
       # google.feature.node.kubernetes.io/coral: "true"
       # intel.feature.node.kubernetes.io/gpu: "true"
-      nvidia.com/gpu: 1
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
