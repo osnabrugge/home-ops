@@ -43,6 +43,7 @@ spec:
       tag: 1.1.0-arcface-r100-gpu
     env:
       TZ: ${TIMEZONE}
+      POSTGRES_DB: compreface
       EXTERNAL_DB: true
     envFrom:
       - secretRef:
@@ -66,3 +67,11 @@ spec:
         tls:
           - hosts:
               - *host
+    resources:
+      requests:
+        cpu: 10m
+        memory: 1000Mi
+        nvidia.com/gpu: "1"
+      limits:
+        memory: 6000Mi
+        nvidia.com/gpu: "1"
