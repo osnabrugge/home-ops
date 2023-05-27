@@ -43,10 +43,9 @@ spec:
       tag: 1.1.0-mobilenet
     env:
       TZ: ${TIMEZONE}
-      postgres_db: compreface
-      postgres_port: 5432
-      external_db: true
-      save_images_to_db: true
+      POSTGRES_DB: compreface
+      EXTERNAL_DB: true
+      SAVE_IMAGES_TO_DB: true
     envFrom:
       - secretRef:
           name: compreface-secret
