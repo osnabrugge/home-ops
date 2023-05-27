@@ -57,7 +57,7 @@ spec:
               - *host
     volumeClaimTemplates:
       - name: config
-        mountPath: /storage
+        mountPath: /.storage
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: ceph-block
