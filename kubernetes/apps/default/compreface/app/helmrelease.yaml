@@ -51,9 +51,16 @@ spec:
           name: compreface-secret
     service:
       main:
+        type: LoadBalancer
+        annotations:
+          coredns.io/hostname: compreface.${SECRET_DOMAIN}
+        externalIPs: ["${SVC_COMPREFACE_ADDR}"]
+        externalTrafficPolicy: Local
         ports:
           http:
-            port: 80
+            port: 8000
+            targetPort: 80
+            protocol: TCP
     ingress:
       main:
         enabled: true
