@@ -1,0 +1,89 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: double-take
+  namespace: default
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    controller:
+      type: statefulset
+      annotations:
+        reloader.stakater.com/auto: "true"
+    image:
+      repository: jakowenko/double-take
+      tag: 1.13.1
+    env:
+      TZ: ${TIMEZONE}
+    service:
+      main:
+        ports:
+          http:
+            port: 3000
+    ingress:
+      main:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          hajimari.io/icon: mdi:cctv
+        hosts:
+          - host: &host dt.${SECRET_DOMAIN}
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    volumeClaimTemplates:
+      - name: config
+        mountPath: /storage
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: ceph-block
+    config:
+      mqtt:
+        host: mosquitto.default.svc.cluster.local
+        username:
+          valueFrom:
+            secretKeyRef:
+              name: mosquitto-secret
+              key: username
+        password:
+          valueFrom:
+            secretKeyRef:
+              name: mosquitto-secret
+              key: password
+      frigate:
+        url: http://frigate.default.svc.cluster.local:5000
+      cameras:
+        - front:
+            detect:
+              match:
+                save: true
+              unknown:
+                save: true
+      detectors:
+        compreface:
+          enabled: true
+          url: http://compreface.default.svc.cluster.local:5000

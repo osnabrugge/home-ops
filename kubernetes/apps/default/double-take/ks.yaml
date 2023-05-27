@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-apps-double-take
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: cluster-apps-mosquitto
+    - name: cluster-apps-frigate
+    - name: cluster-apps-compreface
+    - name: cluster-apps-rook-ceph-cluster
+    - name: cluster-apps-volsync
+  path: ./kubernetes/apps/default/double-take/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: home-ops-kubernetes
+  wait: true
+  interval: 30m
+  retryInterval: 1m
+  timeout: 5m
