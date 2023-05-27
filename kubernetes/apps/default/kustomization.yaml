@@ -6,6 +6,8 @@ resources:
   - ./authelia/ks.yaml
   - ./bazarr/ks.yaml
   - ./cloudnative-pg/ks.yaml
+  - ./compreface/ks.yaml
+  # - ./double-take/ks.yaml
   - ./echo-server/ks.yaml
   - ./eufy-security-ws/ks.yaml
   - ./frigate/ks.yaml
