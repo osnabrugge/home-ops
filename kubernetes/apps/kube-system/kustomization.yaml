@@ -14,6 +14,6 @@ resources:
   - ./metrics-server/ks.yaml
   - ./node-feature-discovery/ks.yaml
   # - ./nvidia-gpu-feature-discovery/ks.yaml
-  # - ./nvidia-gpu-operator/ks.yaml
+  - ./nvidia-gpu-operator/ks.yaml
   - ./reloader/ks.yaml
   - ./snapshot-controller/ks.yaml

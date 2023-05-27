@@ -24,8 +24,4 @@ spec:
     driver:
       enabled: false
     toolkit:
-      enabled: false
-      env:
-        - name: NVIDIA_VISIBLE_DEVICES
-          value: void
-
+      enabled: true
