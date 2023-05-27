@@ -30,7 +30,7 @@ model:
 
 ffmpeg:
   global_args: ["-hide_banner", "-loglevel", "warning"]
-  hwaccel_args: ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"]
+  hwaccel_args: ["preset-nvidia-h264"]
   output_args:
     record: preset-record-generic-audio-aac
 
