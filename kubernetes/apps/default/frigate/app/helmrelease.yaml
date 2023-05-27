@@ -36,7 +36,6 @@ spec:
       tag: 0.12.0-tensorrt
     env:
       TZ: ${TIMEZONE}
-      LIBVA_DRIVER_NAME: i965
       FRIGATE_MQTT_USERNAME:
         valueFrom:
           secretKeyRef:
