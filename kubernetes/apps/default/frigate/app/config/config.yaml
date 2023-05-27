@@ -14,14 +14,23 @@ mqtt:
 database:
   path: /data/frigate.db
 
-# detectors:
+detectors:
+  tensorrt:
+    type: tensorrt
 #   coral:
 #     type: edgetpu
 #     device: usb
 
+model:
+  path: /trt-models/yolov7-tiny-416.trt
+  input_tensor: nchw
+  input_pixel_format: rgb
+  width: 416
+  height: 416
+
 ffmpeg:
   global_args: ["-hide_banner", "-loglevel", "warning"]
-  hwaccel_args: ["-hwaccel", "vaapi", "-hwaccel_device", "/dev/dri/renderD128", "-hwaccel_output_format", "yuv420p"]
+  hwaccel_args: ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda", "-gpu 0"]
   output_args:
     record: preset-record-generic-audio-aac
 

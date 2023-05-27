@@ -116,6 +116,12 @@ spec:
         medium: Memory
         sizeLimit: 4Gi
         mountPath: /dev/shm
+      trt-models:
+        enabled: true
+        type: hostPath
+        hostPath: /home/sean/trt-models
+        hostPathType: Directory
+        mountPath: /trt-models
       usb:
         enabled: true
         type: hostPath
@@ -124,7 +130,8 @@ spec:
         mountPath: /dev/bus/usb
     nodeSelector:
       # google.feature.node.kubernetes.io/coral: "true"
-      intel.feature.node.kubernetes.io/gpu: "true"
+      # intel.feature.node.kubernetes.io/gpu: "true"
+      nvidia.com/gpu: 1
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
