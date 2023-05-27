@@ -29,7 +29,6 @@ resources:
   - ./metallb.yaml
   - ./metrics-server.yaml
   - ./node-feature-discovery.yaml
-  - ./nvidia-gpu-feature-discovery.yaml
   - ./nvidia.yaml
   - ./osnabrugge.yaml
   - ./piraeus.yaml
