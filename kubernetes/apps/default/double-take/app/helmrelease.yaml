@@ -91,4 +91,4 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: compreface-secret
-                key: api-key
+                key: API_KEY
