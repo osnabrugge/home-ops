@@ -86,4 +86,9 @@ spec:
       detectors:
         compreface:
           enabled: true
-          url: http://compreface.default.svc.cluster.local:5000
+          url: http://compreface.default.svc.cluster.local
+          key:
+            valueFrom:
+              secretKeyRef:
+                name: compreface-secret
+                key: api-key
