@@ -56,7 +56,7 @@ spec:
           - hosts:
               - *host
     volumeClaimTemplates:
-      - name: config
+      - name: double-take
         mountPath: /.storage
         accessMode: ReadWriteOnce
         size: 10Gi
