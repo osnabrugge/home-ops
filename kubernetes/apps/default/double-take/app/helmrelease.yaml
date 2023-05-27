@@ -61,34 +61,3 @@ spec:
         accessMode: ReadWriteOnce
         size: 10Gi
         storageClass: ceph-block
-    config:
-      mqtt:
-        host: mosquitto.default.svc.cluster.local
-        username:
-          valueFrom:
-            secretKeyRef:
-              name: mosquitto-secret
-              key: username
-        password:
-          valueFrom:
-            secretKeyRef:
-              name: mosquitto-secret
-              key: password
-      frigate:
-        url: http://frigate.default.svc.cluster.local:5000
-      cameras:
-        - front:
-            detect:
-              match:
-                save: true
-              unknown:
-                save: true
-      detectors:
-        compreface:
-          enabled: true
-          url: http://compreface.default.svc.cluster.local:8000
-          key:
-            valueFrom:
-              secretKeyRef:
-                name: compreface-secret
-                key: API_KEY
