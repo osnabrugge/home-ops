@@ -3,19 +3,19 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: &app bind9
+  name: bind9
   namespace: networking
 spec:
-  interval: 30m
+  interval: 15m
   chart:
     spec:
-      chart: app-template
-      version: 1.5.0
+      chart: bind9
+      version: 9-0.3.1
       sourceRef:
         kind: HelmRepository
-        name: bjw-s
+        name: bind9
         namespace: flux-system
-  maxHistory: 2
+  maxHistory: 3
   install:
     createNamespace: true
     remediation:
@@ -27,30 +27,19 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    chartMode: authoritative
+    authoritative:
+      ipv6_enabled: false
+    mount_configuration_from_secret:
+      enabled: true
+      secretName: bind9-secret
     image:
-      repository: ubuntu/bind9
-      tag: edge
-    fullnameOverride: *app
-    env:
-      ports:
-        - containerPort: 53
-          protocol: TCP
-        - containerPort: 53
-          protocol: UDP
-    service:
-      main:
-        type: LoadBalancer
-        externalIPs: ["${SVC_BIND9_ADDR}"]
-        externalTrafficPolicy: Local
-        ports:
-          http:
-            enabled: false
-          bind9-tcp:
-            port: 5656
-            protocol: TCP
-            targetPort: 53
-          bind9-udp:
-            port: 5353
-            protocol: UDP
-            targetPort: 53
-
+      repository: internetsystemsconsortium/bind9
+      pullPolicy: IfNotPresent
+      tag: "9.19"
+    resources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
