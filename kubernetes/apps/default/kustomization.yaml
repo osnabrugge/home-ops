@@ -23,10 +23,14 @@ resources:
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
   - ./plex/ks.yaml
+  - ./plex-auto-languages/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
   - ./redis/ks.yaml
+  - ./scrypted/ks.yaml
+  - ./shlink/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
+  - ./unpackerr/ks.yaml
