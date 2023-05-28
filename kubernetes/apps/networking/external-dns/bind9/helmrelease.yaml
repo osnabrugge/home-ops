@@ -41,7 +41,17 @@ spec:
       type: LoadBalancer
       externalIPs: ["${SVC_BIND9_ADDR}"]
       externalTrafficPolicy: Local
-      port: 53
+      ports:
+        bind9-tcp:
+          enabled: true
+          port: 53
+          targetPort: 53
+          protocol: TCP
+        bind9-udp:
+          enabled: true
+          port: 53
+          targetPort: 53
+          protocol: UDP
     resources:
       limits:
         memory: 128Mi
