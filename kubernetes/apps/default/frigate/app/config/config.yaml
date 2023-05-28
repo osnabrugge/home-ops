@@ -69,6 +69,28 @@ cameras:
       height: 500
     ffmpeg:
       inputs:
+        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.20/cam/realmonitor?channel=1&subtype=1
+          input_args: preset-rtsp-generic
+          roles:
+            - detect
+        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.20/live
+          input_args: preset-rtsp-generic
+          roles:
+            - record
+    detect:
+      width: 1920
+      height: 1080
+      fps: 5
+
+  backyard:
+    mqtt:
+      timestamp: False
+      bounding_box: False
+      crop: True
+      quality: 100
+      height: 500
+    ffmpeg:
+      inputs:
         - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.194/live0
           input_args: preset-rtsp-generic
           roles:
