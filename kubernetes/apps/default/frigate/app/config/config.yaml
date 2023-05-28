@@ -59,6 +59,15 @@ objects:
       max_area: 100000
       threshold: 0.7
 
+go2rtc:
+  streams:
+    front:
+      - rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.20/live
+    front_substream:
+      - rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.20/cam/realmonitor?channel=1&subtype=1
+    backyard:
+      - rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.194/live0
+
 cameras:
   front:
     mqtt:
@@ -69,12 +78,12 @@ cameras:
       height: 500
     ffmpeg:
       inputs:
-        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.20/cam/realmonitor?channel=1&subtype=1
-          input_args: preset-rtsp-generic
+        - path: rtsp://127.0.0.1:8554/front_substream
+          input_args: preset-rtsp-restream
           roles:
             - detect
-        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.20/live
-          input_args: preset-rtsp-generic
+        - path: rtsp://127.0.0.1:8554/front
+          input_args: preset-rtsp-restream
           roles:
             - record
     detect:
@@ -91,8 +100,8 @@ cameras:
       height: 500
     ffmpeg:
       inputs:
-        - path: rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.194/live0
-          input_args: preset-rtsp-generic
+        - path: rtsp://127.0.0.1:8554/backyard
+          input_args: preset-rtsp-restream
           roles:
             - detect
             - record
