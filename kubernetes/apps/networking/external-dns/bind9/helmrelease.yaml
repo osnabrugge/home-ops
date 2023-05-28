@@ -36,7 +36,7 @@ spec:
     image:
       repository: internetsystemsconsortium/bind9
       pullPolicy: IfNotPresent
-      tag: "9.19"
+      tag: "9.18"
     resources:
       limits:
         memory: 128Mi
