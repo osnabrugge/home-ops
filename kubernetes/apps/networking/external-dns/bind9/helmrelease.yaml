@@ -13,7 +13,7 @@ spec:
       version: bind9-0.3.1
       sourceRef:
         kind: HelmRepository
-        name: bind9
+        name: johanneskastl-bind9-isc
         namespace: flux-system
   maxHistory: 3
   install:
