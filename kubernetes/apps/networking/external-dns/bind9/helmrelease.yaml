@@ -42,12 +42,12 @@ spec:
       externalIPs: ["${SVC_BIND9_ADDR}"]
       externalTrafficPolicy: Local
       ports:
-        bind9-tcp:
+        bind9-dns-tcp:
           enabled: true
           port: 53
           targetPort: 53
           protocol: TCP
-        bind9-udp:
+        bind9-dns-udp:
           enabled: true
           port: 53
           targetPort: 53
