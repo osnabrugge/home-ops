@@ -36,7 +36,6 @@ spec:
       repository: ubuntu/bind9
       tag: edge
     fullnameOverride: *app
-    provider: rfc2136
     env:
       ports:
       - containerPort: 53
