@@ -7,6 +7,7 @@ resources:
   - ./angelnu.yaml
   - ./azure-workload-identity.yaml
   - ./backube.yaml
+  - ./bind9.yaml
   - ./bitnami.yaml
   - ./bjw-s.yaml
   - ./calico.yaml
