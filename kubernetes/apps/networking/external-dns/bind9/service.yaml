@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bind9-lb
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: bind9.${SECRET_DOMAIN}
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  externalIPs: ["${SVC_BIND9_ADDR}"]
+  ports:
+    - name: bind9-tcp
+      port: 53
+      protocol: TCP
+      targetPort: 5053
+    - name: bind9-udp
+      port: 53
+      protocol: UDP
+      targetPort: 5053
