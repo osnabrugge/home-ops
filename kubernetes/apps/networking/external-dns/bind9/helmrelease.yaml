@@ -38,20 +38,8 @@ spec:
       pullPolicy: IfNotPresent
       tag: "9.18"
     service:
-      type: LoadBalancer
-      externalIPs: ["${SVC_BIND9_ADDR}"]
-      externalTrafficPolicy: Local
-      ports:
-        bind9-dns-tcp:
-          enabled: true
-          port: 53
-          targetPort: 5053
-          protocol: TCP
-        bind9-dns-udp:
-          enabled: true
-          port: 53
-          targetPort: 5053
-          protocol: UDP
+      type: ClusterIP
+      port: 53
     resources:
       limits:
         memory: 128Mi
