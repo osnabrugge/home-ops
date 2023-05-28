@@ -37,6 +37,11 @@ spec:
       repository: internetsystemsconsortium/bind9
       pullPolicy: IfNotPresent
       tag: "9.18"
+    service:
+      type: LoadBalancer
+      externalIPs: ["${SVC_BIND9_ADDR}"]
+      externalTrafficPolicy: Local
+      port: 53
     resources:
       limits:
         memory: 128Mi
