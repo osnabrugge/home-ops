@@ -27,21 +27,16 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    controller:
-      type: deployment
-      replicas: 1
-      annotations:
-        reloader.stakater.com/auto: "true"
     image:
       repository: ubuntu/bind9
       tag: edge
     fullnameOverride: *app
     env:
       ports:
-      - containerPort: 53
-        protocol: TCP
-      - containerPort: 53
-        protocol: UDP
+        - containerPort: 53
+          protocol: TCP
+        - containerPort: 53
+          protocol: UDP
     service:
       main:
         type: LoadBalancer
