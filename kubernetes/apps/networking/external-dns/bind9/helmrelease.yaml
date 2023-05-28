@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: bind9
-      version: bind9-0.3.1
+      version: bind9
       sourceRef:
         kind: HelmRepository
         name: johanneskastl-bind9-isc
