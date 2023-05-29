@@ -5,4 +5,7 @@ kind: Kustomization
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
-  - ./service.yaml
+configMapGenerator:
+  - name: bind9-configmap
+    files:
+      - named.conf=./config/named.conf
