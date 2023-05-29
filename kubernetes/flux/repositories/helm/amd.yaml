@@ -1,10 +1,10 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/source.toolkit.fluxcd.io/helmrepository_v1beta2.json
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
+kind: HelmChart
 metadata:
   name: amd
   namespace: flux-system
 spec:
   interval: 2h
-  url: https://github.com/RadeonOpenCompute/k8s-device-plugin/tree/master/helm/amd-gpu
+  url: https://github.com/RadeonOpenCompute/k8s-device-plugin/releases/download/amd-gpu-helm-0.8.0/amd-gpu-0.8.0.tgz
