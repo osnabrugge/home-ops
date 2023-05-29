@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: amd-device-plugin
+  namespace: kube-system
+spec:
+  interval: 15m
+  chart:
+    spec:
+      # renovate: registryUrl=https://github.com/RadeonOpenCompute/k8s-device-plugin
+      chart: amd-gpu
+      version: v1.25.2.3
+      sourceRef:
+        kind: HelmRepository
+        name: amd
+        namespace: flux-system
+      interval: 15m
+  # https://github.com/RadeonOpenCompute/k8s-device-plugin/blob/master/helm/amd-gpu/values.yaml
+  values:
+    nfd:
+      enabled: false
+    labeller:
+      enabled: true
+
