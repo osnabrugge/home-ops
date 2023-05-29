@@ -10,8 +10,12 @@ spec:
   chart:
     spec:
       # renovate: registryUrl=https://github.com/RadeonOpenCompute/k8s-device-plugin
-      chart: https://github.com/RadeonOpenCompute/k8s-device-plugin/releases/download/amd-gpu-helm-0.8.0/amd-gpu-0.8.0.tgz
-      interval: 15m
+      chart: amd-gpu
+      version: 0.8.0
+      sourceRef:
+        kind: HelmRepository
+        name: osnabrugge
+        namespace: flux-system
   # https://github.com/RadeonOpenCompute/k8s-device-plugin/blob/master/helm/amd-gpu/values.yaml
   values:
     nfd:
