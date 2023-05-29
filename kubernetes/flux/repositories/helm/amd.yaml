@@ -7,4 +7,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 2h
-  url: https://github.com/RadeonOpenCompute/k8s-device-plugin
+  url: https://github.com/RadeonOpenCompute/k8s-device-plugin/tree/master/helm/amd-gpu
