@@ -10,10 +10,7 @@ spec:
   chart:
     spec:
       # renovate: registryUrl=https://github.com/RadeonOpenCompute/k8s-device-plugin
-      sourceRef:
-        kind: HelmCart
-        name: amd
-        namespace: flux-system
+      chart: https://github.com/RadeonOpenCompute/k8s-device-plugin/releases/download/amd-gpu-helm-0.8.0/amd-gpu-0.8.0.tgz
       interval: 15m
   # https://github.com/RadeonOpenCompute/k8s-device-plugin/blob/master/helm/amd-gpu/values.yaml
   values:
