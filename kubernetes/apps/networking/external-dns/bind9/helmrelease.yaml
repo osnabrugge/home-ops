@@ -4,18 +4,18 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: bind9
-  namespace: networking
+  namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
-      chart: bind9
-      version: 0.3.1
+      chart: app-template
+      version: 1.5.0
       sourceRef:
         kind: HelmRepository
-        name: bind9
+        name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -27,27 +27,73 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    extraArgs:
-      - --dns01-recursive-nameservers=1.1.1.1:53,9.9.9.9:53
-      - --dns01-recursive-nameservers-only
-    podDnsPolicy: None
-    podDnsConfig:
+    initContainers:
+      01-init-geoip:
+        image: ghcr.io/maxmind/geoipupdate:v5.1.1
+        imagePullPolicy: IfNotPresent
+        env:
+          - { name: GEOIPUPDATE_EDITION_IDS, value: GeoLite2-City }
+          - { name: GEOIPUPDATE_FREQUENCY, value: "0" }
+          - { name: GEOIPUPDATE_VERBOSE, value: "true" }
+        envFrom:
+          - secretRef:
+              name: bind9-secret
+        volumeMounts:
+          - { name: geoip, mountPath: /usr/share/GeoIP }
+    controller:
+    image:
+      repository: internetsystemsconsortium/bind9
+      tag: "9.18"
+    command:
+      - "/usr/sbin/named"
+      - "-g"
+      - "-c"
+      - "/etc/named/named.conf"
+      - "-u"
+      - "bind"
+    serviceAccount:
+      create: true
+      name: bind9
+    env:
+      TZ: ${TIMEZONE}
+    envFrom:
+      - secretRef:
+          name: bind9-secret
+    dnsPolicy: None
+    dnsConfig:
       nameservers:
         - "1.1.1.1"
         - "9.9.9.9"
-    chartMode: authoritative
-    authoritative:
-      ipv6_enabled: false
-    mount_configuration_from_secret:
-      enabled: true
-      secretName: bind9-secret
-    image:
-      repository: internetsystemsconsortium/bind9
-      pullPolicy: IfNotPresent
-      tag: "9.18"
+    podSecurityContext:
+      fsGroup: 106
     service:
-      type: ClusterIP
-      port: 53
+      main:
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+        ports:
+          http:
+            enabled: false
+          dns-tcp:
+            primary: true
+            port: 53
+            protocol: TCP
+            targetPort: 53
+          dns-udp:
+            port: 53
+            protocol: UDP
+            targetPort: 53
+    persistence:
+      config:
+        enabled: true
+        name: bind9-config
+        mountPath: /etc/named
+        readOnly: true
+      config-file:
+        enabled: true
+        type: configMap
+        name: bind9-configmap
+        mountPath: var/cache/bind/named.conf
+        subPath: named.conf
     resources:
       limits:
         memory: 128Mi
