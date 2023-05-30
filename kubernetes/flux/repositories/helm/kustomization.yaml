@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./actions-runner-controller.yaml
   - ./angelnu.yaml
+  - ./amd.yaml
   - ./azure-workload-identity.yaml
   - ./backube.yaml
   - ./bind9.yaml
