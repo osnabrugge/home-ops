@@ -29,7 +29,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: cluster-apps-amd-node-labeller
+  name: cluster-apps-amd-gpu-node-labeller
   namespace: flux-system
 spec:
   dependsOn:
