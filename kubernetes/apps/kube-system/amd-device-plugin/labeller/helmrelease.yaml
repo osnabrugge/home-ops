@@ -4,7 +4,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: amd-device-plugin
+  name: amd-gpu-node-labeller
   namespace: kube-system
 spec:
   interval: 15m
@@ -32,12 +32,21 @@ spec:
       type: daemonset
     image:
       repository: docker.io/rocm/k8s-device-plugin
-      tag: 1.25.2.3@sha256:9853a43b85083565f0a130daaeff7c6b1f0a117affe8e5ca5003fb30d1edb92e
+      tag: labeller-1.25.2.3@sha256:73eef8e85970897ddda1ae474790e77018382858c324ca6747f391c9ef643319
       pullPolicy: IfNotPresent
+    command: ["/root/k8s-node-labeller"]
+    args: ["-vram", "-cu-count", "-simd-count", "-device-id", "-family"]
     env:
       TZ: ${TIMEZONE}
+      DS_NODE_NAME:
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+    serviceAccount:
+      create: false
+      name: amd-gpu-node-labeller
     securityContext:
-      allowPrivilegeEscalation: false
+      privileged: true
       capabilities:
         drop: ["ALL"]
     priorityClassName: system-node-critical
@@ -49,10 +58,10 @@ spec:
         enabled: true
         type: hostPath
         hostPath: /sys
-      device-plugins:
+      dev:
         enabled: true
         type: hostPath
-        hostPath: /var/lib/kubelet/device-plugins
+        hostPath: /dev
     tolerations:
       - key: CriticalAddonsOnly
         operator: Exists
