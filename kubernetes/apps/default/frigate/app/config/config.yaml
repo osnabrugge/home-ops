@@ -17,9 +17,9 @@ database:
 detectors:
   tensorrt:
     type: tensorrt
-#   coral:
-#     type: edgetpu
-#     device: usb
+  coral:
+    type: edgetpu
+    device: usb
 
 model:
   path: /trt-models/yolov7-tiny-416.trt
