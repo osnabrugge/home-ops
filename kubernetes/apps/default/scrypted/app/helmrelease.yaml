@@ -68,14 +68,11 @@ spec:
         accessMode: ReadWriteOnce
         size: 1Gi
         storageClass: ceph-block
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
-      intel.feature.node.kubernetes.io/gpu: "true"
     resources:
       requests:
-        gpu.intel.com/i915: 1
+        amd.com/gpu: 1
         cpu: 10m
         memory: 250Mi
       limits:
-        gpu.intel.com/i915: 1
+        amd.com/gpu: 1
         memory: 2000Mi
