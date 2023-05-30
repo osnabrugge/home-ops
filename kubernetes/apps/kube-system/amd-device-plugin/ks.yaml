@@ -33,7 +33,7 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-    - name: cluster-apps-amd-device-plugin
+    - name: cluster-apps-node-feature-discovery
   path: ./kubernetes/apps/kube-system/amd-device-plugin/labeller
   prune: true
   sourceRef:
