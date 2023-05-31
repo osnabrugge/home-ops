@@ -33,4 +33,4 @@ resources:
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
-  # - ./unpackerr/ks.yaml
+  - ./unpackerr/ks.yaml
