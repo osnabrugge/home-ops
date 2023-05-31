@@ -19,9 +19,9 @@ spec:
     storageClass: local-path
   superuserSecret:
     name: cloudnative-pg-secret
-  # bootstrap:
-  #   recovery:
-  #     source: &previous-cluster postgres
+  bootstrap:
+    recovery:
+      source: &previous-cluster postgres
   postgresql:
     parameters:
       max_connections: "600"
@@ -35,20 +35,20 @@ spec:
         compression: bzip2
         maxParallel: 8
       destinationPath: "https://backupkube.blob.core.windows.net/cnpg"
-      serverName: postgres # change/increment when restoring as value cannot match existing cnpg cluster
+      serverName: postgresv1 # change/increment when restoring as value cannot match existing cnpg cluster
       azureCredentials:
         connectionString:
           name: cloudnative-pg-secret
           key: azure-connection-string
   # Note: externalClusters is needed when recovering from an existing cnpg cluster
-  # externalClusters:
-  #   - name: *previous-cluster
-  #     barmanObjectStore:
-  #       wal:
-  #         compression: bzip2
-  #         maxParallel: 8
-  #       destinationPath: "https://backupkube.blob.core.windows.net/cnpg"
-  #       azureCredentials:
-  #         connectionString:
-  #           name: cloudnative-pg-secret
-  #           key: azure-connection-string
+  externalClusters:
+    - name: *previous-cluster
+      barmanObjectStore:
+        wal:
+          compression: bzip2
+          maxParallel: 8
+        destinationPath: "https://backupkube.blob.core.windows.net/cnpg"
+        azureCredentials:
+          connectionString:
+            name: cloudnative-pg-secret
+            key: azure-connection-string
