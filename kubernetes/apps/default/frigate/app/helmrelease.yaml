@@ -49,6 +49,7 @@ spec:
     envFrom:
       - secretRef:
           name: frigate-secret
+    runtimeClassName: nvidia
     service:
       main:
         type: LoadBalancer
