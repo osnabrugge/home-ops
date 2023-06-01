@@ -13,7 +13,7 @@ resources:
   # - ./frigate/ks.yaml
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
-  # - ./home-assistant/ks.yaml
+  - ./home-assistant/ks.yaml
   # - ./jellyfin/ks.yaml
   - ./kubernetes-schemas/ks.yaml
   - ./letsblockit/ks.yaml
