@@ -120,6 +120,12 @@ spec:
             port: 27217
             targetPort: 27217
             protocol: TCP
+    livenessProbe:
+      enabled: false
+    readinessProbe:
+      enabled: false
+    startupProbe:
+      enabled: false
     persistence:
       data:
         enabled: true
