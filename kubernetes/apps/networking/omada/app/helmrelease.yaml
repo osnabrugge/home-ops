@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.0
+      version: 1.5.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -34,7 +34,7 @@ spec:
       nameOverride: *app
     image:
       repository: mbentley/omada-controller
-      tag: 5.9@sha256:a886952b683339b67d50057ab6f848679558ca6a58d0571cd8685b169f1069fa
+      tag: 5.9@sha256:178dd32825929c03f1f1845f8832f31f9607616b8d138dc92f6403796f6f346f
       pullPolicy: Always
     env:
       TZ: ${TIMEZONE}
