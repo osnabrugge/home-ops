@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: rook-ceph
 resources:
   - ./helmrelease.yaml
-  - ./prometheusrule.yaml
+  # - ./prometheusrule.yaml
 labels:
   - pairs:
       app.kubernetes.io/name: rook-ceph
