@@ -6,6 +6,17 @@ namespace: default
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
+patchesStrategicMerge:
+  - |
+    $patch: merge
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: monitoringQueriesConfigMap
+    data:
+      queries.yaml: |
+        pg_replication:
+          primary: true
 configMapGenerator:
   - name: cloudnative-pg-dashboard
     files:
