@@ -19,4 +19,5 @@ vm:
   worker4_name: k3s07
   worker5_id: 408
   worker5_name: k3s08
+  worker5_mac: 3e:22:e6:59:da:f2
   template_id: 12004

@@ -18,7 +18,7 @@
       command: "qm resize {{ vm.worker5_id }} scsi0 100G"
 
     - name: set {{ vm.worker5_name }} hardware
-      command: "qm set {{ vm.worker5_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.worker_cores }} --memory {{ vm.worker_memory }} --net0 virtio,bridge=vmbr0 -hostpci0 02:10.0 -hostpci1 02:10.2 -hostpci2 02:10.4 -hostpci3 02:10.6 --cicustom user=nfs-nas:snippets/{{ vm.worker5_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker5_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml -scsi1 /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404511V -hostpci4 00:02"
+      command: "qm set {{ vm.worker5_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --balloon 0 --cpu host --cores {{ vm.worker_cores }} --memory {{ vm.worker_memory }} --net0 virtio,bridge=vmbr0,macaddr={{ vm.worker5_mac }} -hostpci0 02:10.0 -hostpci1 02:10.2 -hostpci2 02:10.4 -hostpci3 02:10.6 --cicustom user=nfs-nas:snippets/{{ vm.worker5_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker5_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml -scsi1 /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404511V -hostpci4 00:02,mdev=i915-GVTg_V5_4"
 
     - name: start {{ vm.worker5_name }}
       command: "qm start {{ vm.worker5_id }}"
