@@ -43,7 +43,7 @@ spec:
     controller:
     image:
       repository: internetsystemsconsortium/bind9
-      tag: "9.18"
+      tag: "9.19"
     command:
       - "/usr/sbin/named"
       - "-g"

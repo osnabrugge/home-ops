@@ -41,7 +41,7 @@ spec:
     image:
       repository: internetsystemsconsortium/bind9
       pullPolicy: IfNotPresent
-      tag: "9.18"
+      tag: "9.19"
     service:
       type: ClusterIP
       port: 53
