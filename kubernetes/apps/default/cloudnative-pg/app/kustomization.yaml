@@ -6,6 +6,7 @@ namespace: default
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
+# Key was removed for unknown reason, adding back to resolve https://github.com/cloudnative-pg/cloudnative-pg/issues/1814
 patchesStrategicMerge:
   - |
     $patch: merge
