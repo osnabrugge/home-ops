@@ -51,6 +51,16 @@ spec:
       bdev_enable_discard = true
       bdev_async_discard = true
     cephClusterSpec:
+      placement:
+        all:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: role
+                      operator: In
+                      values:
+                        - storage-node
       resources:
         mgr:
           requests:

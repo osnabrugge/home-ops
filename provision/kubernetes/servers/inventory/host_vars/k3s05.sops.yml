@@ -4,6 +4,7 @@ ansible_become_pass: d3BWRqK*2W4^n&BJVheH
 k3s_agent:
     node-label:
         - network=storage
+        - role=storage-node
 sops:
     kms: []
     gcp_kms: []
@@ -19,8 +20,8 @@ sops:
             Tlc5QzZFZk1OMVdYaGFlWnRXSmJLaDAK0P3HIJc7atvJJn2C5JHgc8zJazzqiCQK
             hUfF1pOPTl7KPBNtg2i3HieFAsHi+ZAtHYcGI/2lwlFbFWZsU8rsVQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-06-01T00:13:16Z"
-    mac: ENC[AES256_GCM,data:2UVri6VVpd63BGlYyE1Rfx/lByCQxkO7Xe7jrnn+8ENIn3LX1EDoG5xP/OpYTftmGRtKTNkMmHKF75e+XIisP9SLSCWByzDmWIUiqIa8mmCd4SMAtxFxrlyB/xyV5pzfzzHArnNr7QxBIDjaTk7Ijkb5QLbw1y5umrYFAcK4Ip0=,iv:Uk06p3BD60VAn3n8aHxE8WbgoTg8rk5VoTWe3ePfdD4=,tag:+Br83wAgQRWEk2v63Fp6nQ==,type:str]
+    lastmodified: "2023-06-02T22:25:20Z"
+    mac: ENC[AES256_GCM,data:wT2NQpLAJ5g22ig1eV78uHR84tc5sqfXo1rATHPqRI6req5Xvv5ZgkoP4MTAQvqnElAbCRcuxaevrsyil6std5vUfkLsTQRMP0rX0ENduxJ0GJKX3DThzOfUJzQ3+ZoiSBhwlxLhtYhFuki8ffnDlLL5sFqrUQx43jjSCRHVngg=,iv:vuNwP06TUXfgn0/iwk3dvT3Nf4hSCh3Vd+KZa6xlH/Q=,tag:yT7eViDM/caca7mxncZdOw==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3
