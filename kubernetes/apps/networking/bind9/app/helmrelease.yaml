@@ -6,7 +6,7 @@ metadata:
   name: bind9
   namespace: default
 spec:
-  interval: 30m
+  interval: 15m
   chart:
     spec:
       chart: app-template
@@ -43,6 +43,8 @@ spec:
     controller:
       replicas: 2
       strategy: RollingUpdate
+      annotations:
+        reloader.stakater.com/auto: "true"
     image:
       repository: internetsystemsconsortium/bind9
       tag: "9.19"
