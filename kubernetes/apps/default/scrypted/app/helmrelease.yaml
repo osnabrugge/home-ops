@@ -34,6 +34,7 @@ spec:
       tag: 18-bullseye-full-v0.23.0
     env:
       TZ: ${TIMEZONE}
+      HIP_VISIBLE_DEVICES: 0
     service:
       main:
         ports:
