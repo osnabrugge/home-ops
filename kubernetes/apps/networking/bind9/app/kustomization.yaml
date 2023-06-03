@@ -6,7 +6,11 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./service.yaml
-# configMapGenerator:
-#   - name: bind9-configmap
-#     files:
-#       - named.conf=./config/named.conf
+configMapGenerator:
+  - name: bind9-configmap
+    files:
+      - ./scripts/bind9-conf.sh
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
