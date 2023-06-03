@@ -25,13 +25,28 @@
             path: /etc/hosts
             block: |
               127.0.1.1   {{ inventory_hostname }}
-    - name: Packages
+    - name: Add Package Repositories
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
       block:
-        # - name: Packages | Add apt repositories
-        #   ansible.builtin.apt_repository:
-        #     repo: "{{ item }}"
-        #     update_cache: true
-        #   loop: "{{ packages_repositories | default([]) }}"
+        - name: Add Fish Shell Repository
+          ansible.builtin.deb822_repository:
+            name: ppa:fish-shell/release-3
+            uris: "https://ppa.launchpadcontent.net/fish-shell/release-3/ubuntu/"
+            suites: ["{{ ansible_distribution_release | lower }}"]
+            components: [main]
+            signed_by: "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x59FDA1CE1B84B3FAD89366C027557F056DC33CA5"
+            enabled: true
+        # - name: Add Intel Repository
+        #   ansible.builtin.deb822_repository:
+        #     name: intel-gpu-jammy
+        #     state: present
+        #     types: [deb]
+        #     uris: "https://repositories.intel.com/graphics/ubuntu"
+        #     suites: ["{{ ansible_distribution_release | lower }}"]
+        #     components: [arc]
+        #     signed_by: "https://repositories.intel.com/graphics/intel-graphics.key"
+        #     enabled: true
+          notify: Update apt cache
         - name: Packages | Install common packages
           ansible.builtin.apt:
             name: "{{ packages_install | default([]) }}"
@@ -161,6 +176,9 @@
           when: grub_status.changed
 
   handlers:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
     - name: Reboot
       ansible.builtin.reboot:
         msg: Rebooting nodes
