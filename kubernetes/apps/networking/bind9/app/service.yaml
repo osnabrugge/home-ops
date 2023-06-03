@@ -12,10 +12,10 @@ spec:
   externalIPs: ["${SVC_BIND9_ADDR}"]
   ports:
     - name: bind9-tcp
-      port: 53
+      port: 5053
       protocol: TCP
       targetPort: 5053
     - name: bind9-udp
-      port: 53
+      port: 5053
       protocol: UDP
       targetPort: 5053
