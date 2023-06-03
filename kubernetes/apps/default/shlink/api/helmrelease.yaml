@@ -42,6 +42,8 @@ spec:
     image:
       repository: ghcr.io/shlinkio/shlink
       tag: 3.6.0-non-root
+      args:
+        - -vvv
     env:
       DEFAULT_DOMAIN: &host ln.${SECRET_DOMAIN}
       DISABLE_TRACKING_FROM: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
