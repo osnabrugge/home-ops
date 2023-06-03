@@ -9,7 +9,7 @@ resources:
   - ./kubernetes-dashboard/ks.yaml
   - ./loki/ks.yaml
   - ./monero-exporter/ks.yaml
-  # - ./omada-exporter/ks.yaml
+  - ./omada-exporter/ks.yaml
   - ./pihole-exporter/ks.yaml
   - ./snmp-exporter/ks.yaml
   - ./speedtest-exporter/ks.yaml
