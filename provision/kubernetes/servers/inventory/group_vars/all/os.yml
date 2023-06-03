@@ -35,4 +35,6 @@ packages_install:
 packages_remove:
   - apparmor
   - ufw
+  - iptables
+  - nftables
   - unattended-upgrades

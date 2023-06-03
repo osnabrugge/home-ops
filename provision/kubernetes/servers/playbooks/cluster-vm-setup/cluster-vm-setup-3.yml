@@ -18,7 +18,7 @@
       command: "qm resize {{ vm.master3_id }} scsi0 50G"
 
     - name: set {{ vm.master3_name }} hardware
-      command: "qm set {{ vm.master3_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.master_cores }} --memory {{ vm.master_memory }} --net0 virtio,bridge=vmbr0 --cicustom user=nfs-nas:snippets/{{ vm.master3_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.master3_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml"
+      command: "qm set {{ vm.master3_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.master_cores }} --memory {{ vm.master_memory }} --net0 virtio,bridge=vmbr0 --cicustom user=nfs-nas:snippets/{{ vm.master3_name }}-user.yml,network=nfs-nas:snippets/{{ vm.master3_name }}-network.yml,meta=nfs-nas:snippets/meta.yml"
 
     - name: start {{ vm.master3_name }}
       command: "qm start {{ vm.master3_id }}"
@@ -30,7 +30,7 @@
       command: "qm resize {{ vm.worker3_id }} scsi0 100G"
 
     - name: set {{ vm.worker3_name }} hardware
-      command: "qm set {{ vm.worker3_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.worker_cores }} --memory {{ vm.worker_memory }} --net0 virtio,bridge=vmbr0 -hostpci0 02:10.0 -hostpci1 02:10.2 -hostpci2 02:10.4 -hostpci3 02:10.6 --cicustom user=nfs-nas:snippets/{{ vm.worker3_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker3_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml -scsi1 /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404382B"
+      command: "qm set {{ vm.worker3_id }} --boot order=scsi0;ide2 --efidisk0 local-lvm:1,format=raw,efitype=4m --bios ovmf --cpu cputype=host --cores {{ vm.worker_cores }} --memory {{ vm.worker_memory }} --net0 virtio,bridge=vmbr0 -hostpci0 02:10.0 -hostpci1 02:10.2 -hostpci2 02:10.4 -hostpci3 02:10.6 --cicustom user=nfs-nas:snippets/{{ vm.worker3_name }}-user.yml,network=nfs-nas:snippets/{{ vm.worker3_name }}-network.yml,meta=nfs-nas:snippets/meta.yml -scsi1 /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404382B"
 
     - name: start {{ vm.worker3_name }}
       command: "qm start {{ vm.worker3_id }}"

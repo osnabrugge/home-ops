@@ -12,7 +12,7 @@
   tasks:
 
     - name: set {{ vm.master3_name }} cloud-init config
-      command: "qm set {{ vm.master3_id }} --cicustom user=nfs-nas:snippets/{{ vm.master3_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.master3_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml"
+      command: "qm set {{ vm.master3_id }} --cicustom user=nfs-nas:snippets/{{ vm.master3_name }}-user.yml,network=nfs-nas:snippets/{{ vm.master3_name }}-network.yml,meta=nfs-nas:snippets/meta.yml"
 
     - name: set {{ vm.worker3_name }} cloud-init config
-      command: "qm set {{ vm.worker3_id }} --cicustom user=nfs-nas:snippets/{{ vm.worker3_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker3_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml"
+      command: "qm set {{ vm.worker3_id }} --cicustom user=nfs-nas:snippets/{{ vm.worker3_name }}-user.yml,network=nfs-nas:snippets/{{ vm.worker3_name }}-network.yml,meta=nfs-nas:snippets/meta.yml"

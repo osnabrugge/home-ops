@@ -12,4 +12,4 @@
   tasks:
 
     - name: set {{ vm.worker5_name }} cloud-init config
-      command: "qm set {{ vm.worker5_id }} --cicustom user=nfs-nas:snippets/{{ vm.worker5_name }}-user.yaml,network=nfs-nas:snippets/{{ vm.worker5_name }}-network.yaml,meta=nfs-nas:snippets/meta.yaml"
+      command: "qm set {{ vm.worker5_id }} --cicustom user=nfs-nas:snippets/{{ vm.worker5_name }}-user.yml,network=nfs-nas:snippets/{{ vm.worker5_name }}-network.yml,meta=nfs-nas:snippets/meta.yml"
