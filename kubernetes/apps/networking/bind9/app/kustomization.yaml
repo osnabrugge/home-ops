@@ -8,8 +8,9 @@ resources:
   - ./service.yaml
 configMapGenerator:
   - name: bind9-configmap
+    namespace: networking
     files:
-      - ./scripts/bind9-conf.sh
+      - ./scripts/bind9-config.sh
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
