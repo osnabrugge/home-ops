@@ -6,19 +6,6 @@ namespace: default
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
-# Key was removed for unknown reason, adding back to resolve https://github.com/cloudnative-pg/cloudnative-pg/issues/1814
-patchesStrategicMerge:
-  - |
-    $patch: merge
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: monitoringQueriesConfigMap
-      namespace: default
-    data:
-      queries.yaml: |
-        pg_replication:
-          primary: true
 configMapGenerator:
   - name: cloudnative-pg-dashboard
     files:
