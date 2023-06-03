@@ -34,3 +34,4 @@ resources:
   - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
   # - ./unpackerr/ks.yaml
+  - ./vaultwarden/ks.yaml
