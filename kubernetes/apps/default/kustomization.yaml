@@ -14,7 +14,7 @@ resources:
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
   - ./home-assistant/ks.yaml
-  # - ./jellyfin/ks.yaml
+  - ./jellyfin/ks.yaml
   - ./kubernetes-schemas/ks.yaml
   - ./letsblockit/ks.yaml
   - ./miniflux/ks.yaml
@@ -23,7 +23,7 @@ resources:
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
   - ./plex/ks.yaml
-  # - ./plex-auto-languages/ks.yaml
+  - ./plex-auto-languages/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
@@ -32,5 +32,5 @@ resources:
   # - ./shlink/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
-  # - ./tautulli/ks.yaml
+  - ./tautulli/ks.yaml
   # - ./unpackerr/ks.yaml
