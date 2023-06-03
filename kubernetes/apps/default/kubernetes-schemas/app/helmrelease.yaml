@@ -35,18 +35,14 @@ spec:
       tag: latest@sha256:e109353af79fd83630bb260c32cae0a9608589ea09b01f89870332fdc70607ae
     service:
       main:
-        ports:
-          http:
-            port: 8080
-      internal:
         type: LoadBalancer
         externalIPs: ["192.168.11.116"]
         externalTrafficPolicy: Local
         annotations:
           external-dns.alpha.kubernetes.io/hostname: smtp-relay.${SECRET_DOMAIN}
         ports:
-          internal:
-            port: 80
+          http:
+            port: 8080
             targetPort: 8080
             protocol: TCP
     ingress:
