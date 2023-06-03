@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
+# yaml-language-server: $schema=http://kubernetes-schemas.local.lan:8080/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -32,7 +32,7 @@ spec:
       strategy: RollingUpdate
     image:
       repository: ghcr.io/osnabrugge/kubernetes-schemas-web
-      tag: latest@sha256:e109353af79fd83630bb260c32cae0a9608589ea09b01f89870332fdc70607ae
+      tag: latest@sha256:f35235b51fe23e4de1d69eff59b6cd0ee578e294b5c3f829b31c6345424ce042
     service:
       main:
         type: LoadBalancer
