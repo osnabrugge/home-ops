@@ -27,19 +27,19 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    # initContainers:
-    #   01-init-geoip:
-    #     image: ghcr.io/maxmind/geoipupdate:v5.1.1
-    #     imagePullPolicy: IfNotPresent
-    #     env:
-    #       - { name: GEOIPUPDATE_EDITION_IDS, value: GeoLite2-City }
-    #       - { name: GEOIPUPDATE_FREQUENCY, value: "0" }
-    #       - { name: GEOIPUPDATE_VERBOSE, value: "true" }
-    #     envFrom:
-    #       - secretRef:
-    #           name: bind9-secret
-    #     volumeMounts:
-    #       - { name: geoip, mountPath: /usr/share/GeoIP }
+    initContainers:
+      01-init-geoip:
+        image: ghcr.io/maxmind/geoipupdate:v5.1.1
+        imagePullPolicy: IfNotPresent
+        env:
+          - { name: GEOIPUPDATE_EDITION_IDS, value: GeoLite2-City }
+          - { name: GEOIPUPDATE_FREQUENCY, value: "0" }
+          - { name: GEOIPUPDATE_VERBOSE, value: "true" }
+        envFrom:
+          - secretRef:
+              name: bind9-secret
+        volumeMounts:
+          - { name: geoip, mountPath: /usr/share/GeoIP }
     controller:
       replicas: 1
       strategy: RollingUpdate
@@ -113,10 +113,10 @@ spec:
         enabled: true
         type: emptyDir
         mountPath: /var/log
-      # geoip:
-      #   enabled: true
-      #   type: emptyDir
-      #   mountPath: /usr/share/GeoIP
+      geoip:
+        enabled: true
+        type: emptyDir
+        mountPath: /usr/share/GeoIP
     resources:
       limits:
         memory: 128Mi
