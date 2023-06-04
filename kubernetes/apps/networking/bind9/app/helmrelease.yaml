@@ -101,8 +101,12 @@ spec:
         enabled: true
         type: secret
         name: bind9-secret
-        mountPAth: /var/lib/bind
-        readOnly: true
+        mountPath: /var/lib/bind
+        items:
+          - key: named.conf.local
+            path: named.conf.local
+          - key: db.local.lan
+            path: db.local.lan
       cache:
         enabled: true
         type: emptyDir
