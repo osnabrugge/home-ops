@@ -11,13 +11,19 @@ spec:
       - sleep
       - "infinity"
     imagePullPolicy: IfNotPresent
-  restartPolicy: Always
-  volumeMounts:
-  - name: config
-    subPath: "named.conf"
-    mountPath: "/etc/named/named.conf"
-    readOnly: true
+    volumeMounts:
+    - name: config
+      subPath: "named.conf"
+      mountPath: "/etc/named/named.conf"
+      readOnly: true
+    - name: secret-volume
+      mountPath: "/named_config"
+      readOnly: true
   volumes:
   - name: config
     configMap:
       name: bind9-configmap
+  - name: secret-volume
+    secret:
+      secretName: bind9-secret
+
