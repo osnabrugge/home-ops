@@ -95,7 +95,7 @@ spec:
         subPath: named.conf
         mountPath: /etc/bind/named.conf
         readOnly: true
-      user-conf:
+      zone-conf:
         enabled: true
         type: secret
         name: bind9-secret
