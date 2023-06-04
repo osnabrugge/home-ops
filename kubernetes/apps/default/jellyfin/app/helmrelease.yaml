@@ -98,7 +98,7 @@ spec:
         enabled: true
         type: nfs
         server: "${NAS_ADDR}"
-        path: "apps/jellyfin/recordings"
+        path: "/volume1/apps/jellyfin/recordings"
         mountPath: /recordings
         readOnly: false
       transcode:
