@@ -99,7 +99,7 @@ spec:
         enabled: true
         type: secret
         name: bind9-secret
-        mountPAth: /named_config/
+        mountPAth: /etc/bind/zones/
         readOnly: true
     resources:
       limits:
