@@ -80,27 +80,39 @@ spec:
             enabled: false
           dns-tcp:
             primary: true
-            port: 5053
+            port: 53
             protocol: TCP
-            targetPort: 5053
+            targetPort: 53
           dns-udp:
-            port: 5053
+            port: 53
             protocol: UDP
-            targetPort: 5053
+            targetPort: 53
     persistence:
       named-conf:
         enabled: true
         type: configMap
         name: bind9-configmap
         subPath: named.conf
-        mountPath: /etc/named/named.conf
+        mountPath: /etc/bind/named.conf
         readOnly: true
       user-conf:
         enabled: true
         type: secret
         name: bind9-secret
-        mountPAth: /etc/bind/zones/
+        mountPAth: /var/lib/bind/
         readOnly: true
+      cache:
+        enabled: true
+        type: emptyDir
+        mountPath: /var/cache/bind
+      logs:
+        enabled: true
+        type: emptyDir
+        mountPath: /var/log
+      # geoip:
+      #   enabled: true
+      #   type: emptyDir
+      #   mountPath: /usr/share/GeoIP
     resources:
       limits:
         memory: 128Mi
