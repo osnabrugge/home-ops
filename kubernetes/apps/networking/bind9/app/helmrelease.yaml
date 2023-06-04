@@ -52,7 +52,7 @@ spec:
       - "/usr/sbin/named"
       - "-g"
       - "-c"
-      - "/etc/named/named.conf"
+      - "/etc/bind/named.conf"
       - "-u"
       - "bind"
     serviceAccount:
