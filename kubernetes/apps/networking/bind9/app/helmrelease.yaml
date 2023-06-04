@@ -88,12 +88,19 @@ spec:
             protocol: UDP
             targetPort: 5053
     persistence:
-      scripts:
+      named-conf:
         enabled: true
         type: configMap
         name: bind9-configmap
-        subPath: bind9-config.sh
-        mountPath: /scripts/bind9-config.sh
+        subPath: named.conf
+        mountPath: /etc/named/named.conf
+        defaultMode: 0775
+        readOnly: true
+      user-conf:
+        enabled: true
+        type: secret
+        name: bind9-secret
+        mountPAth: /etc/named/named_config/
         defaultMode: 0775
         readOnly: true
     resources:

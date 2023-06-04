@@ -9,7 +9,7 @@ resources:
 configMapGenerator:
   - name: bind9-configmap
     files:
-      - ./scripts/bind9-config.sh
+      - ./config/named.conf
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
