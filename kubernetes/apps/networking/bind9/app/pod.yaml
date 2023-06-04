@@ -17,7 +17,7 @@ spec:
       mountPath: "/etc/named/named.conf"
       readOnly: true
     - name: secret-volume
-      mountPath: "/named_config"
+      mountPath: "/etc/bind/zones/"
       readOnly: true
   volumes:
   - name: config
