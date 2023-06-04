@@ -49,14 +49,12 @@ spec:
       repository: internetsystemsconsortium/bind9
       tag: "9.19"
     command:
-      - sleep
-      - "infinity"
-      # - "/usr/sbin/named"
-      # - "-g"
-      # - "-c"
-      # - "/etc/bind/named.conf"
-      # - "-u"
-      # - "bind"
+      - "/usr/sbin/named"
+      - "-g"
+      - "-c"
+      - "/etc/bind/named.conf"
+      - "-u"
+      - "bind"
     serviceAccount:
       create: true
       name: bind9
