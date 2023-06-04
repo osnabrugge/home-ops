@@ -93,13 +93,13 @@ spec:
         type: configMap
         name: bind9-configmap
         subPath: named.conf
-        mountPath: /etc/bind/named.conf
+        mountPath: /etc/bind
         readOnly: true
       user-conf:
         enabled: true
         type: secret
         name: bind9-secret
-        mountPAth: /var/lib/bind/
+        mountPAth: /var/lib/bind
         readOnly: true
       cache:
         enabled: true
