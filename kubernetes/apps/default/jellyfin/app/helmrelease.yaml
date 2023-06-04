@@ -94,6 +94,13 @@ spec:
         path: "${NFS_SHARE}/media"
         mountPath: /media
         readOnly: true
+      recordings:
+        enabled: true
+        type: nfs
+        server: "${NAS_ADDR}"
+        path: "apps/jellyfin/recordings"
+        mountPath: /recordings
+        readOnly: false
       transcode:
         enabled: true
         type: emptyDir
