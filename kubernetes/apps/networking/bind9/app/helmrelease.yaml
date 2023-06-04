@@ -92,8 +92,7 @@ spec:
         enabled: true
         type: configMap
         name: bind9-configmap
-        subPath: named.conf
-        mountPath: /etc/named/named.conf
+        mountPath: /etc/named/
         defaultMode: 0775
         readOnly: true
       user-conf:
