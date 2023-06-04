@@ -88,12 +88,16 @@ spec:
             protocol: UDP
             targetPort: 53
     persistence:
+      config:
+        enabled: true
+        type: emptyDir
+        mountPath: /etc/bind
       named-conf:
         enabled: true
         type: configMap
         name: bind9-configmap
         subPath: named.conf
-        mountPath: /etc/bind
+        mountPath: /etc/bind/named.conf
         readOnly: true
       user-conf:
         enabled: true
