@@ -103,8 +103,10 @@ spec:
         items:
           - key: named.conf.local
             path: named.conf.local
-          - key: db.local.lan
-            path: db.local.lan
+          - key: db.fwdzone
+            path: db.fwdzone
+          - key: db.revzone
+          - path: db.revzone
       cache:
         enabled: true
         type: emptyDir
@@ -119,7 +121,7 @@ spec:
         mountPath: /usr/share/GeoIP
     resources:
       limits:
-        memory: 128Mi
+        memory: 300Mi
       requests:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 10m
+        memory: 150Mi
