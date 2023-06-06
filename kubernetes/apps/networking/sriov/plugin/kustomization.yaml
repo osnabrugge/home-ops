@@ -8,3 +8,7 @@ configMapGenerator:
   - name: sriovdp-configmap
     files:
       - sriovdp-configmap.json=./config/config.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
