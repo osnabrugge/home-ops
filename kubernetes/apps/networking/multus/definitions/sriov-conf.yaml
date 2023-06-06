@@ -39,7 +39,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
-      "vlan": "200",
+      "vlan": 200,
       "ipam": {
         "type": "whereabouts",
         "range": "192.168.20.0/24",
@@ -59,7 +59,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
-      "vlan": "300",
+      "vlan": 300,
       "ipam": {
         "type": "whereabouts",
         "range": "192.168.30.0/24",
@@ -79,7 +79,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
-      "vlan": "300",
+      "vlan": 300,
       "ipam": {
         "type": "static",
         "addresses": [
@@ -101,7 +101,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
-      "vlan": "200",
+      "vlan": 200,
       "ipam": {
         "type": "static",
         "addresses": [
@@ -123,7 +123,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
-      "vlan": "200",
+      "vlan": 200,
       "ipam": {
         "type": "static",
         "addresses": [
@@ -145,7 +145,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
-      "vlan": "200",
+      "vlan": 200,
       "ipam": {
         "type": "static",
         "addresses": [
