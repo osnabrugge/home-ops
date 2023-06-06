@@ -150,9 +150,9 @@ spec:
           #         k8s.v1.cni.cncf.io/networks: storage-sriov-conf
           #       prepareosd:
           #         k8s.v1.cni.cncf.io/networks: storage-sriov-conf
-          # - name: k3s09
-          #   devices:
-          #     - name: "nvme1n1"
+          - name: k3s09
+            devices:
+              - name: "nvme1n1"
     cephBlockPools:
       - name: ceph-blockpool
         spec:
