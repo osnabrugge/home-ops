@@ -45,6 +45,9 @@ spec:
       name: sriov-device-plugin
     securityContext:
       privileged: true
+    service:
+      main:
+        enabled: false
     persistence:
       devicesock:
         enabled: true

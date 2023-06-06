@@ -45,6 +45,9 @@ spec:
       capabilities:
         drop: ["ALL"]
     priorityClassName: system-node-critical
+    service:
+      main:
+        enabled: false
     persistence:
       cnibin:
         enabled: true
