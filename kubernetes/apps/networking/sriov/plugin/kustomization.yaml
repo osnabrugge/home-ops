@@ -5,9 +5,9 @@ namespace: networking
 resources:
   - ./helmrelease.yaml
 configMapGenerator:
-  - name: sriovdp-configmap
+  - name: sriovdp-config
     files:
-      - sriovdp-configmap.json=./config/config.json
+      - ./config/configmap.yaml
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
