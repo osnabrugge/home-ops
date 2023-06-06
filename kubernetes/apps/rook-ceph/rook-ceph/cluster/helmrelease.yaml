@@ -135,18 +135,21 @@ spec:
           - name: k3s07
             devices:
               - name: "sdb"
-          # - name: k3s08
-          #   devices:
-          #     - name: "nvme0n1"
-          #   resources:
-          #     osd:
-          #       requests:
-          #         intel.com/sriov_netdevice: '1'
-          #       limits:
-          #         intel.com/sriov_netdevice: '1'
-          #   config:
-          #     annotations:
-          #       k8s.v1.cni.cncf.io/networks: storage-sriov-conf
+          - name: k3s08
+            devices:
+              - name: "nvme0n1"
+            resources:
+              osd:
+                requests:
+                  intel.com/sriov_netdevice: '1'
+                limits:
+                  intel.com/sriov_netdevice: '1'
+            config:
+              annotations:
+                osd:
+                  k8s.v1.cni.cncf.io/networks: storage-sriov-conf
+                prepareosd:
+                  k8s.v1.cni.cncf.io/networks: storage-sriov-conf
           # - name: k3s09
           #   devices:
           #     - name: "nvme1n1"
