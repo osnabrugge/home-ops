@@ -7,6 +7,6 @@ resources:
   - ./external-dns/ks.yaml
   - ./ingress-nginx/ks.yaml
   - ./multus/ks.yaml
-  # - ./omada/ks.yaml
+  - ./omada/ks.yaml
   - ./sriov/ks.yaml
   - ./whereabouts/ks.yaml
