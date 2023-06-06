@@ -3,8 +3,8 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: amd-gpu-node-labeller
-  namespace: kube-system
+  name: sriov-cni
+  namespace: networking
 spec:
   interval: 15m
   chart:
@@ -29,48 +29,39 @@ spec:
   values:
     controller:
       type: daemonset
+      labels:
+        tier: node
+        app: sriov-cni
     image:
-      repository: docker.io/rocm/k8s-device-plugin
-      tag: labeller-1.25.2.3@sha256:73eef8e85970897ddda1ae474790e77018382858c324ca6747f391c9ef643319
+      repository: ghcr.io/k8snetworkplumbingwg/sriov-cni
+      tag: v2.7.0@sha256:fce504e683275ab59215065ddf6433ca80d1b4b53f0d4b0cdf037da6701c7cb4
       pullPolicy: IfNotPresent
-    command: ["/root/k8s-node-labeller"]
-    args: ["-vram", "-cu-count", "-simd-count", "-device-id", "-family"]
     env:
       TZ: ${TIMEZONE}
-      DS_NODE_NAME:
-        valueFrom:
-          fieldRef:
-            fieldPath: spec.nodeName
-    serviceAccount:
-      create: false
-      name: amd-gpu-node-labeller
     securityContext:
-      privileged: true
+      allowPrivilegeEscalation: false
+      privileged: false
+      readOnlyRootFilesystem: true
       capabilities:
         drop: ["ALL"]
     priorityClassName: system-node-critical
-    service:
-      main:
-        enabled: false
     persistence:
-      sys:
+      cnibin:
         enabled: true
         type: hostPath
-        hostPath: /sys
-      dev:
-        enabled: true
-        type: hostPath
-        hostPath: /dev
+        hostPath: /opt/cni/bin
+        mountPath: /host/opt/cni/bin
     tolerations:
-      - key: CriticalAddonsOnly
+      - key: node-role.kubernetes.io/master
         operator: Exists
+        effect: NoSchedule
     nodeSelector:
-      feature.node.kubernetes.io/pci-0300_1002.present: "true"
       kubernetes.io/arch: amd64
+      device: sriov-nic
     resources:
       requests:
-        cpu: 10m
-        memory: 10Mi
+        cpu: 100m
+        memory: 50Mi
       limits:
-        memory: 100Mi
+        memory: 50Mi
 
