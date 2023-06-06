@@ -10,9 +10,7 @@ spec:
   config: '{
       "cniVersion": "0.3.1",
       "type": "sriov",
-      "vlan": "800",
-      "spoofchk": "off",
-      "trust": "on",
+      "vlan": 800,
       "ipam": {
         "type": "whereabouts",
         "range": "192.168.88.0/24",
