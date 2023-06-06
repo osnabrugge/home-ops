@@ -6,16 +6,17 @@ metadata:
   name: kube-prometheus-stack
   namespace: monitoring
 spec:
-  interval: 15m
+  interval: 30m
+  timeout: 15m
   chart:
     spec:
       chart: kube-prometheus-stack
-      version: 46.5.0
+      version: 46.6.0
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     crds: CreateReplace
@@ -28,6 +29,13 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: local-path-provisioner
+      namespace: kube-system
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: thanos
+      namespace: monitoring
   values:
     cleanPrometheusOperatorObjectNames: true
     alertmanager:
@@ -119,7 +127,10 @@ spec:
             etcd:
               enabled: true
     kube-state-metrics:
-      metricLabelsAllowlist: ["persistentvolumeclaims=[*]"]
+      metricLabelsAllowlist:
+        - "pods=[*]"
+        - "deployments=[*]"
+        - "persistentvolumeclaims=[*]"
       prometheus:
         monitor:
           enabled: true
@@ -157,7 +168,10 @@ spec:
             action: drop
     kubeControllerManager:
       enabled: true
-      endpoints: ["192.168.10.51", "192.168.10.52", "192.168.10.53"]
+      endpoints: &cp
+        - 192.168.10.51
+        - 192.168.10.52
+        - 192.168.10.53
       serviceMonitor:
         metricRelabelings:
           # Remove duplicate metrics
@@ -166,13 +180,13 @@ spec:
             action: keep
     kubeEtcd:
       enabled: true
-      endpoints: ["192.168.10.51", "192.168.10.52", "192.168.10.53"]
+      endpoints: *cp
     kubeProxy:
       enabled: false # Disabled because eBPF
-      endpoints: ["192.168.10.51", "192.168.10.52", "192.168.10.53"]
+      endpoints: *cp
     kubeScheduler:
       enabled: true
-      endpoints: ["192.168.10.51", "192.168.10.52", "192.168.10.53"]
+      endpoints: *cp
       serviceMonitor:
         metricRelabelings:
           # Remove duplicate metrics
@@ -201,17 +215,12 @@ spec:
       prometheusSpec:
         replicas: 3
         replicaExternalLabelName: __replica__
-        scrapeInterval: 1m
         ruleSelectorNilUsesHelmValues: false
         serviceMonitorSelectorNilUsesHelmValues: false
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false
         enableAdminAPI: true
         walCompression: true
-        # Remote write with Thanos Receiver
-        # remoteWrite:
-        #   - url: http://thanos-receive-router.monitoring.svc.cluster.local:19291/api/v1/receive
-        # remoteWriteDashboards: true
         thanos:
           image: quay.io/thanos/thanos:v0.31.0
           objectStorageConfig:
@@ -227,12 +236,12 @@ spec:
                 requests:
                   storage: 20Gi
         additionalScrapeConfigs:
-          # - job_name: k8s-lb
-          #   static_configs:
-          #     - targets: ["192.168.10.1:8080"] # router
+          - job_name: k8s-lb
+            static_configs:
+              - targets: ["192.168.10.1:8080"] # router
           - job_name: node-exporter
             static_configs:
-              - targets: ["kvm01.${SECRET_DOMAIN}:9100", "kvm02.${SECRET_DOMAIN}:9100", "tiny01.${SECRET_DOMAIN}:9100", "tiny02.${SECRET_DOMAIN}:9100", "tiny03.${SECRET_DOMAIN}:9100", "tiny04.${SECRET_DOMAIN}:9100", "tiny05.${SECRET_DOMAIN}:9100"]
+              - targets: ["kvm01.${SECRET_DOMAIN}:9100", "kvm02.${SECRET_DOMAIN}:9100", "tiny01.${SECRET_DOMAIN}:9100", "tiny02.${SECRET_DOMAIN}:9100", "tiny03.${SECRET_DOMAIN}:9100", "tiny04.${SECRET_DOMAIN}:9100"]
           - job_name: router
             static_configs:
               - targets: ["router01.${SECRET_DOMAIN}:9100"]
