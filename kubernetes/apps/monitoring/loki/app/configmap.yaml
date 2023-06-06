@@ -22,6 +22,20 @@ data:
             annotations:
               summary: "SMART has reported failures on host {{ $labels.hostname }}"
       #
+      # frigate
+      #
+      - name: frigate
+        rules:
+          - alert: FrigateUnableToReachMQTT
+            expr: |
+              sum(count_over_time({app="frigate"} |~ "(?i)unable to connect to mqtt server"[2m])) > 0
+            for: 2m
+            labels:
+              severity: critical
+              category: logs
+            annotations:
+              summary: "Frigate is unable to reach MQTT"
+      #
       # *arr
       #
       - name: arr
