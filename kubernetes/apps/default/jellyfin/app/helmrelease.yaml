@@ -79,7 +79,7 @@ spec:
       runAsGroup: 568
       fsGroup: 568
       fsGroupChangePolicy: OnRootMismatch
-      supplementalGroups: [44, 110, 10000]
+      supplementalGroups: [44, 109, 110, 10000] # 109 is for baremetal, 110 is for vm
     volumeClaimTemplates:
       - name: config
         mountPath: /config
@@ -107,7 +107,7 @@ spec:
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-conf-v2
     nodeSelector:
-      network: "storage"
+      role: "storage-node"
       intel.feature.node.kubernetes.io/gpu: "true"
     resources:
       requests:

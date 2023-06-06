@@ -142,7 +142,7 @@ spec:
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/mgmt-omada-conf
     nodeSelector:
-      network: "storage"
+      role: "storage-node"
     resources:
       requests:
         cpu: 1200m
