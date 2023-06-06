@@ -69,10 +69,11 @@ spec:
         enabled: true
         type: configMap
         name: sriovdp-configmap
-        mountPath: /etc/pcidp
-        items:
-          - key: config.json
-            path: config.json
+        subPath: config.json
+        mountPath: /etc/pcidp/config.json
+        # items:
+        #   - key: config.json
+        #     path: config.json
     tolerations:
       - key: node-role.kubernetes.io/master
         operator: Exists
