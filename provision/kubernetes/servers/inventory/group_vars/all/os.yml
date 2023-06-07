@@ -12,6 +12,7 @@ packages_install:
   - ebtables
   - fish
   - fzf
+  - gcc
   - gdisk
   - hdparm
   - htop
@@ -24,6 +25,7 @@ packages_install:
   - nfs-common
   - ntpdate
   - nvme-cli
+  - make
   - open-iscsi
   - psmisc
   - python3-kubernetes
