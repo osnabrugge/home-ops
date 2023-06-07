@@ -31,15 +31,14 @@ spec:
   values:
     master:
       tolerations:
-      - key: "node-role.kubernetes.io/master"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-      - key: "node-role.kubernetes.io/control-plane"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
     worker:
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+        - effect: "NoExecute"
+          operator: "Exists"
+        - effect: "NoSchedule"
+          operator: "Exists"
       config:
         core:
           sources: ["custom", "pci", "usb"]
