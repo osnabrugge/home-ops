@@ -31,7 +31,32 @@ spec:
   values:
     master:
       tolerations:
+        - effect: "NoExecute"
+          operator: "Exists"
+        - effect: "NoSchedule"
+          operator: "Exists"
+      resources:
+        requests:
+          cpu: 5m
+          memory: 64M
+        limits:
+          memory: 64M
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: "node-role.kubernetes.io/master"
+                    operator: In
+                    values: [""]
     worker:
+      resources:
+        requests:
+          cpu: 5m
+          memory: 64M
+        limits:
+          memory: 64M
       tolerations:
         - key: "node-role.kubernetes.io/master"
           operator: "Exists"
