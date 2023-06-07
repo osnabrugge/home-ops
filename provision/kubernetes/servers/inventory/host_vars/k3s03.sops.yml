@@ -1,6 +1,9 @@
 kind: Secret
 ansible_user: sean
 ansible_become_pass: d3BWRqK*2W4^n&BJVheH
+k3s_server:
+    node-taint:
+        - node-role.kubernetes.io/master=:NoSchedule
 sops:
     kms: []
     gcp_kms: []
@@ -16,8 +19,8 @@ sops:
             dERnMGMxZ3U4dGorbVJQRnFjdVJRZ1kKwxVdAGdOjhqP5qJjImaLZ8DC3kbNkF4P
             pMhqcOKEonkuZW1zzhtGpSwVzs7QXzdGUQ+/YLOzGO98VKHJuNumaA==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2023-06-07T05:58:52Z"
-    mac: ENC[AES256_GCM,data:F253dJ+GGlCHilWjk2Z295k6ZNSNhj+syBtMJGXRJLleluEsnE/vOQ6Z0d8c5XHOnQ3GCLzcJTq6booK9Q6Up/5qae9D5Zr6+l3nJPp9fzGnppu3AtzjM51foKE9VcwyT/vctL1SfHlU1RyT4FHKwyQFM16eEXYcUh1/zrMfRko=,iv:V66NDcyJ6MYmY5DczFI3Yg3tnj2u5yuVDJTiL8ml+hE=,tag:bP3m8BjHBui6ars7nmp5Yg==,type:str]
+    lastmodified: "2023-06-07T12:14:17Z"
+    mac: ENC[AES256_GCM,data:63M4fjMCdMCvL2NVIDoQB2HfrY7wfOLXe3FHUN7tTQsqxt1tqwHrzQqpgXnxWL5BDO9kvdqX60yvUQZHUCz9ASAG+FQsKUPUjb3YhGYKUNpNwlHirB355THEi5r9pPkfbL5Qi2n7dkB7WqnQpMyI2b4uicofjOBxHAw5k8UimdM=,iv:YkSO+WDdrfnfTHpARExbb6xRSmgMnAnycF+O1h2I1jE=,tag:snoOnCigdqB4BBhJIJ0vfg==,type:str]
     pgp: []
     encrypted_regex: ^(data|stringData)$
     version: 3.7.3

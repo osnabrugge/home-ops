@@ -32,5 +32,4 @@ k3s_server:
     # - "service-account-issuer=https://oidcissuerc001f92f.blob.core.windows.net/oidc-test/" # Required for Azure Workload Identity
     # - "service-account-key-file=/etc/pki/sa.pub" # Required for Azure Workload Identity
     # - "service-account-signing-key-file=/etc/pki/sa.key" # Required for Azure Workload Identity
-  node-taint:
-      - node-role.kubernetes.io/master=:NoSchedule
+

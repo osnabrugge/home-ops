@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=http://kubernetes-schemas.local.lan:8080/nfd.k8s-sigs.io/nodefeaturerule_v1alpha1.json
+apiVersion: nfd.k8s-sigs.io/v1alpha1
+kind: NodeFeatureRule
+metadata:
+  name: sriov-enabled-nic
+spec:
+  rules:
+    #  Label nodes with that are SR-IOV capable with the class and vendor ID
+    - name: sriov-enabled-nic
+      labels:
+        pci-<device label>.sriov.capable: "true"
+        sriov_numvfs: "@pci.device.sriov_numvfs"
+      matchFeatures:
+        - feature: network-sriov.capable
+          matchExpressions:
+            value: {op: IsTrue}

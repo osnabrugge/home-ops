@@ -30,26 +30,12 @@ spec:
     keepHistory: false
   values:
     master:
-      tolerations:
-        - effect: "NoExecute"
-          operator: "Exists"
-        - effect: "NoSchedule"
-          operator: "Exists"
       resources:
         requests:
           cpu: 5m
           memory: 64M
         limits:
           memory: 64M
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              preference:
-                matchExpressions:
-                  - key: "node-role.kubernetes.io/master"
-                    operator: In
-                    values: [""]
     worker:
       resources:
         requests:
@@ -57,17 +43,10 @@ spec:
           memory: 64M
         limits:
           memory: 64M
-      tolerations:
-        - key: "node-role.kubernetes.io/master"
-          operator: "Exists"
-        - effect: "NoExecute"
-          operator: "Exists"
-        - effect: "NoSchedule"
-          operator: "Exists"
       config:
         core:
-          sources: ["custom", "pci", "usb"]
+          labelsources: ["custom", "pci", "usb"]
         sources:
           usb:
-            deviceClassWhitelist: ["02", "03", "0e", "ef", "fe", "ff"]
+            deviceClassWhitelist: ["01", "02", "03", "0e", "10", "ef", "fe", "ff"]
             deviceLabelFields: ["class", "vendor", "device"]
