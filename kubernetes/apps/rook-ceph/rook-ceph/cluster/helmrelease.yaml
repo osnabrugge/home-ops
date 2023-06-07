@@ -123,6 +123,9 @@ spec:
         config:
           osdsPerDevice: "1"
         nodes:
+          - name: k3s01
+            devices:
+              - name: "nvme0n1"
           # - name: k3s04
           #   devices:
           #     - name: "sdb"
