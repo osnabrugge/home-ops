@@ -79,7 +79,7 @@ spec:
       runAsGroup: 568
       fsGroup: 568
       fsGroupChangePolicy: OnRootMismatch
-      supplementalGroups: [44, 109, 110, 10000] # 109 is for baremetal, 110 is for vm
+      supplementalGroups: [44, 106, 107, 109, 110, 10000] # 44, 106, 109 (baremetal) 44, 107, 110 (vm)
     volumeClaimTemplates:
       - name: config
         mountPath: /config
