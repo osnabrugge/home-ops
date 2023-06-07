@@ -61,6 +61,14 @@ spec:
                       operator: In
                       values:
                         - storage-node
+        prepareosd:
+          tolerations:
+            - key: "node-role.kubernetes.io/master"
+              operator: "Exists"
+            - effect: "NoExecute"
+              operator: "Exists"
+            - effect: "NoSchedule"
+              operator: "Exists"
         osd:
           tolerations:
             - key: "node-role.kubernetes.io/master"
