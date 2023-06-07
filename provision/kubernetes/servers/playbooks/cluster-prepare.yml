@@ -107,6 +107,12 @@
             enabled: false
             masked: true
             state: stopped
+        - name: System Configuration (1) | Disable lxd activation
+          ansible.builtin.systemd:
+            service: snap.lxd.activate.service
+            enabled: false
+            masked: true
+            state: stopped
         - name: System Configuration (1) | Enable fstrim
           ansible.builtin.systemd:
             service: fstrim.timer
