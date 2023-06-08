@@ -7,7 +7,6 @@ metadata:
   labels:
     app.kubernetes.io/name: &name omada-controller
     app.kubernetes.io/instance: *name
-    snapshot.home.arpa/enabled: "true"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -24,7 +23,6 @@ metadata:
   labels:
     app.kubernetes.io/name: &name omada-controller
     app.kubernetes.io/instance: *name
-    snapshot.home.arpa/enabled: "true"
 spec:
   accessModes:
     - ReadWriteOnce
