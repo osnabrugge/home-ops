@@ -32,7 +32,7 @@ spec:
       strategy: RollingUpdate
     image:
       repository: ghcr.io/osnabrugge/kubernetes-schemas-web
-      tag: latest@sha256:6db5960f4af9d2898e3e5e2beadc824fc2310625cea5ef70bb94b419317ce6ae
+      tag: latest@sha256:267259c1a249f2ef8945617572f9b5dd9c11578614fd7a3bfa5ffa45c7b4f4d7
     service:
       main:
         type: LoadBalancer
