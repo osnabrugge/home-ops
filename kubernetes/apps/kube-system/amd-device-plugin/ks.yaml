@@ -1,6 +1,5 @@
 # This deployment is a modification of the following helm chart which has many issues
 # https://github.com/RadeonOpenCompute/k8s-device-plugin/tree/master/helm/amd-gpu
-
 ---
 # yaml-language-server: $schema=http://kubernetes-schemas.local.lan:8080/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -16,34 +15,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: home-ops-kubernetes
-  healthChecks:
-    - apiVersion: helm.toolkit.fluxcd.io/v2beta1
-      kind: HelmRelease
-      name: amd-device-plugin
-      namespace: kube-system
+  wait: true
   interval: 30m
   retryInterval: 1m
-  timeout: 3m
----
-# yaml-language-server: $schema=http://kubernetes-schemas.local.lan:8080/kustomize.toolkit.fluxcd.io/kustomization_v1.json
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: cluster-apps-amd-gpu-node-labeller
-  namespace: flux-system
-spec:
-  dependsOn:
-    - name: cluster-apps-node-feature-discovery
-  path: ./kubernetes/apps/kube-system/amd-device-plugin/labeller
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: home-ops-kubernetes
-  healthChecks:
-    - apiVersion: helm.toolkit.fluxcd.io/v2beta1
-      kind: HelmRelease
-      name: amd-gpu-node-labeller
-      namespace: kube-system
-  interval: 30m
-  retryInterval: 1m
-  timeout: 3m
+  timeout: 5m

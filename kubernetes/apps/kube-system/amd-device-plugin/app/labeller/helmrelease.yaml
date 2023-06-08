@@ -6,7 +6,7 @@ metadata:
   name: amd-gpu-node-labeller
   namespace: kube-system
 spec:
-  interval: 15m
+  interval: 35m
   chart:
     spec:
       chart: app-template
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -26,6 +26,9 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: amd-gpu-plugin
+      namespace: kube-system
   values:
     controller:
       type: daemonset
