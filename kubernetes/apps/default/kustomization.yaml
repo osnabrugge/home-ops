@@ -8,7 +8,6 @@ resources:
   - ./cloudnative-pg/ks.yaml
   - ./compreface/ks.yaml
   - ./double-take/ks.yaml
-  - ./echo-server/ks.yaml
   # - ./eufy-security-ws/ks.yaml
   - ./frigate/ks.yaml
   - ./glauth/ks.yaml
