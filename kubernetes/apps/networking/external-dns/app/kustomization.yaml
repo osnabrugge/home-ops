@@ -5,4 +5,4 @@ kind: Kustomization
 namespace: networking
 resources:
   - ./cloudflare
-  # - ./pihole
+  - ./pihole
