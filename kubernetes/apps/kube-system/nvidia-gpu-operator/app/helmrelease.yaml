@@ -6,7 +6,7 @@ metadata:
   name: nvidia-gpu-operator
   namespace: kube-system
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       # renovate: registryUrl=https://github.com/NVIDIA/gpu-operator
@@ -16,7 +16,16 @@ spec:
         kind: HelmRepository
         name: nvidia
         namespace: flux-system
-      interval: 15m
+  maxHistory: 2
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
   # https://github.com/NVIDIA/gpu-operator/blob/master/deployments/gpu-operator/values.yaml
   values:
     nfd:
