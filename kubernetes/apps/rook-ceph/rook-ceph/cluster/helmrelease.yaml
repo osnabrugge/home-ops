@@ -6,7 +6,8 @@ metadata:
   name: rook-ceph-cluster
   namespace: rook-ceph
 spec:
-  interval: 15m
+  interval: 30m
+  timeout: 15m
   chart:
     spec:
       chart: rook-ceph-cluster
@@ -15,7 +16,7 @@ spec:
         kind: HelmRepository
         name: rook-ceph
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -34,8 +35,6 @@ spec:
       dashboard:
         ingressClassName: "nginx"
         annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: |
-            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
           hajimari.io/appName: "Rook"
           hajimari.io/icon: mdi:chess-rook
         host:
@@ -50,76 +49,8 @@ spec:
       [global]
       bdev_enable_discard = true
       bdev_async_discard = true
+      osd_class_update_on_start = false
     cephClusterSpec:
-      placement:
-        all:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: role
-                      operator: In
-                      values:
-                        - storage-node
-        prepareosd:
-          tolerations:
-            - key: "node-role.kubernetes.io/master"
-              operator: "Exists"
-            - effect: "NoExecute"
-              operator: "Exists"
-            - effect: "NoSchedule"
-              operator: "Exists"
-        osd:
-          tolerations:
-            - key: "node-role.kubernetes.io/master"
-              operator: "Exists"
-            - effect: "NoExecute"
-              operator: "Exists"
-            - effect: "NoSchedule"
-              operator: "Exists"
-      resources:
-        mgr:
-          requests:
-            cpu: "100m"
-            memory: "550M"
-          limits:
-            memory: "1000M"
-        mon:
-          requests:
-            cpu: "50m"
-            memory: "500M"
-          limits:
-            memory: "1100M"
-        osd:
-          requests:
-            cpu: "400m"
-            memory: "2700M"
-          limits:
-            memory: "6000M"
-        mgr-sidecar:
-          requests:
-            cpu: "200m"
-            memory: "100M"
-          limits:
-            memory: "250M"
-        crashcollector:
-          requests:
-            cpu: "15m"
-            memory: "64M"
-          limits:
-            memory: "64M"
-        logcollector:
-          requests:
-            cpu: "100m"
-            memory: "100M"
-          limits:
-            memory: "1G"
-        cleanup:
-          requests:
-            cpu: "250m"
-            memory: "100M"
-          limits:
-            memory: "1G"
       network:
         provider: multus
         selectors:
@@ -141,19 +72,19 @@ spec:
         nodes:
           - name: k3s01
             devices:
-              - name: "nvme0n1"
+              - name: /dev/disk/by-id/nvme-WD_Blue_SN570_1TB_21444T801931
           - name: k3s02
             devices:
-              - name: "nvme0n1"
+              - name: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404474P
           - name: k3s03
             devices:
-              - name: "nvme0n1"
+              - name: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404382B
           - name: k3s04
             devices:
-              - name: "nvme0n1"
+              - name: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404489F
           - name: k3s05
             devices:
-              - name: "nvme0n1"
+              - name: /dev/disk/by-id/vme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404511V
     cephBlockPools:
       - name: ceph-blockpool
         spec:
@@ -232,7 +163,7 @@ spec:
                 memory: 1Gi
               limits:
                 memory: 2Gi
-            instances: 1
+            instances: 2
           healthCheck:
             bucket:
               interval: 60s
