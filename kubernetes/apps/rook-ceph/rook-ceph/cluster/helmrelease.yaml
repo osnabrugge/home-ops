@@ -123,7 +123,7 @@ spec:
       network:
         provider: multus
         selectors:
-          cluster: networking/storage-conf-v2
+          cluster: networking/storage-sriov-conf
         connections:
           compression:
             enabled: false
@@ -142,36 +142,18 @@ spec:
           - name: k3s01
             devices:
               - name: "nvme0n1"
-          # - name: k3s04
-          #   devices:
-          #     - name: "sdb"
-          - name: k3s05
-            devices:
-              - name: "sdb"
-          - name: k3s06
-            devices:
-              - name: "sdb"
-          - name: k3s07
-            devices:
-              - name: "sdb"
-          - name: k3s08
+          - name: k3s02
             devices:
               - name: "nvme0n1"
-          #   resources:
-          #     osd:
-          #       requests:
-          #         intel.com/sriov_netdevice: '1'
-          #       limits:
-          #         intel.com/sriov_netdevice: '1'
-          #   config:
-          #     annotations:
-          #       osd:
-          #         k8s.v1.cni.cncf.io/networks: storage-sriov-conf
-          #       prepareosd:
-          #         k8s.v1.cni.cncf.io/networks: storage-sriov-conf
-          - name: k3s09
+          - name: k3s03
             devices:
-              - name: "nvme1n1"
+              - name: "nvme0n1"
+          - name: k3s04
+            devices:
+              - name: "nvme0n1"
+          - name: k3s05
+            devices:
+              - name: "nvme0n1"
     cephBlockPools:
       - name: ceph-blockpool
         spec:

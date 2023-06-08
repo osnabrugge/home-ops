@@ -116,12 +116,10 @@ spec:
         accessMode: ReadWriteOnce
         size: 5Gi
         storageClass: ceph-block
-        labels:
-          snapshot.home.arpa/enabled: "true"
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/iot-hass-conf
+      k8s.v1.cni.cncf.io/networks: networking/iot-hass-sriov-conf
     nodeSelector:
-      role: "storage-node"
+      feature.node.kubernetes.io/network-sriov.capable: "true"
     resources:
       requests:
         cpu: 10m

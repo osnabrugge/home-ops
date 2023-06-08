@@ -79,21 +79,6 @@ spec:
         - name: pve01-icmp
           module: icmp
           url: pve01.${SECRET_DOMAIN}
-        - name: tiny01-icmp
-          module: icmp
-          url: tiny01.${SECRET_DOMAIN}
-        - name: tiny02-icmp
-          module: icmp
-          url: tiny02.${SECRET_DOMAIN}
-        - name: tiny03-icmp
-          module: icmp
-          url: tiny03.${SECRET_DOMAIN}
-        - name: tiny04-icmp
-          module: icmp
-          url: tiny04.${SECRET_DOMAIN}
-        - name: tiny05-icmp
-          module: icmp
-          url: tiny05.${SECRET_DOMAIN}
         - name: pi01-icmp
           module: icmp
           url: pi01.${SECRET_DOMAIN}

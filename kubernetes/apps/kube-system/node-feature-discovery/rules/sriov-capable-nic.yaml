@@ -3,15 +3,15 @@
 apiVersion: nfd.k8s-sigs.io/v1alpha1
 kind: NodeFeatureRule
 metadata:
-  name: sriov-enabled-nic
+  name: sriov-capable-nic
 spec:
   rules:
-    #  Label nodes with that are SR-IOV capable with the class and vendor ID
-    - name: sriov-enabled-nic
+    #  Label nodes with SR-IOV capable NICs
+    - name: sriov-capable-nic
       labels:
-        pci-<device label>.sriov.capable: "true"
-        sriov_numvfs: "@pci.device.sriov_numvfs"
+        feature.node.kubernetes.io/network-sriov.capable: "true"
       matchFeatures:
         - feature: network-sriov.capable
           matchExpressions:
             value: {op: IsTrue}
+
