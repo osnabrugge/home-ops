@@ -6,7 +6,7 @@ metadata:
   name: ingress-nginx
   namespace: networking
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: ingress-nginx
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: ingress-nginx
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -29,16 +29,11 @@ spec:
   values:
     controller:
       replicaCount: 2
-      extraEnvs:
-        - name: TZ
-          value: "${TIMEZONE}"
       service:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: ingress.${SECRET_DOMAIN}
         externalIPs: ["${SVC_INGRESS_ADDR}"]
         externalTrafficPolicy: Local
-      publishService:
-        enabled: true
       ingressClassResource:
         default: true
       config:
@@ -62,11 +57,17 @@ spec:
             any: true
       extraArgs:
         default-ssl-certificate: "networking/${SECRET_DOMAIN/./-}-production-tls"
-      podAnnotations:
-        configmap.reloader.stakater.com/reload: cloudflare-networks
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+              app.kubernetes.io/component: controller
       resources:
         requests:
-          cpu: 10m
+          cpu: 100m
           memory: 250Mi
         limits:
           memory: 500Mi
@@ -78,10 +79,3 @@ spec:
       extraEnvs:
         - { name: TEMPLATE_NAME, value: lost-in-space }
         - { name: SHOW_DETAILS, value: "false" }
-  valuesFrom:
-    # Cloudflare Networks
-    # https://www.cloudflare.com/ips/
-    - targetPath: controller.config.proxy-real-ip-cidr
-      kind: ConfigMap
-      name: cloudflare-networks
-      valuesKey: cloudflare-networks.txt
