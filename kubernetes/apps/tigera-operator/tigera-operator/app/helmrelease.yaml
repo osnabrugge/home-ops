@@ -6,7 +6,7 @@ metadata:
   name: tigera-operator
   namespace: tigera-operator
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: tigera-operator
@@ -46,12 +46,5 @@ spec:
         multiInterfaceMode: None
         nodeAddressAutodetectionV4:
           cidrs: ["192.168.42.0/24"]
-      controlPlaneTolerations:
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoSchedule
-        - key: node-role.kubernetes.io/master
-          operator: Exists
-          effect: NoSchedule
       nodeMetricsPort: 9091
       typhaMetricsPort: 9093
