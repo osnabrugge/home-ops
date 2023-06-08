@@ -21,7 +21,7 @@ spec:
     name: cloudnative-pg-secret
   bootstrap:
     recovery:
-      source: &previous-cluster postgres
+      source: &previous-cluster postgresv1
   postgresql:
     parameters:
       max_connections: "600"
@@ -35,7 +35,7 @@ spec:
         compression: bzip2
         maxParallel: 8
       destinationPath: "https://backupkube.blob.core.windows.net/cnpg"
-      serverName: postgresv1 # change/increment when restoring as value cannot match existing cnpg cluster
+      serverName: postgresv2 # change/increment when restoring as value cannot match existing cnpg cluster
       azureCredentials:
         connectionString:
           name: cloudnative-pg-secret

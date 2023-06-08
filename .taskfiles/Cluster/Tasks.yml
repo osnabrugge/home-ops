@@ -41,11 +41,6 @@ tasks:
     cmds:
       - kubectl get nodes {{.CLI_ARGS | default "-o wide"}}
 
-  pods:
-    desc: List all the pods in your cluster
-    cmds:
-      - kubectl get pods {{.CLI_ARGS | default "-A"}}
-
   kustomizations:
     desc: List all the kustomizations in your cluster
     cmds:

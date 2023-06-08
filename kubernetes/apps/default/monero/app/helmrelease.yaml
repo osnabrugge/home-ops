@@ -100,9 +100,9 @@ spec:
             targetPort: 18089
             protocol: TCP
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/storage-conf-v2
+      k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
     nodeSelector:
-      role: "storage-node"
+      feature.node.kubernetes.io/network-sriov.capable: "true"
     persistence:
       bitmonero:
         enabled: true

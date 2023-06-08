@@ -1,5 +1,5 @@
 ---
-timezone: Etc/UTC
+timezone: America/Toronto
 public_ssh_keys:
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHgOrsxniJfrP3oLQxSp3LilpOQqOBlJLsttoCCCxgT2 sean@private"
 # packages_repositories:

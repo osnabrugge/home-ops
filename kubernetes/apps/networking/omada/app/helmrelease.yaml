@@ -140,9 +140,9 @@ spec:
         mountPath: /opt/tplink/EAPController/logs
         type: emptyDir
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/mgmt-omada-conf
+      k8s.v1.cni.cncf.io/networks: networking/mgmt-omada-sriov-conf
     nodeSelector:
-      role: "storage-node"
+      feature.node.kubernetes.io/network-sriov.capable: "true"
     resources:
       requests:
         cpu: 1200m

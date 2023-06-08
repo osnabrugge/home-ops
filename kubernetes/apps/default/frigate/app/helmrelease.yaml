@@ -130,7 +130,7 @@ spec:
         mountPath: /dev/bus/usb
     nodeSelector:
       # google.feature.node.kubernetes.io/coral: "true"
-      # intel.feature.node.kubernetes.io/gpu: "true"
+      feature.node.kubernetes.io/network-sriov.capable: "true"
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -141,7 +141,7 @@ spec:
                   values: ["plex"]
             topologyKey: kubernetes.io/hostname
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/iot-frigate-conf
+      k8s.v1.cni.cncf.io/networks: networking/iot-frigate-sriov-conf
     resources:
       requests:
         cpu: 10m

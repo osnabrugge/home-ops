@@ -115,9 +115,9 @@ spec:
         defaultMode: 0775
         readOnly: true
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/storage-conf-v2
+      k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
     nodeSelector:
-      role: "storage-node"
+      feature.node.kubernetes.io/network-sriov.capable: "true"
     resources:
       requests:
         cpu: 10m

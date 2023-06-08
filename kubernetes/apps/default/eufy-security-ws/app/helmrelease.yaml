@@ -46,7 +46,9 @@ spec:
           http:
             port: *port
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/iot-eufy-conf
+      k8s.v1.cni.cncf.io/networks: networking/iot-eufy-sriov-conf
+    nodeSelector:
+      feature.node.kubernetes.io/network-sriov.capable: "true"
     resources:
       requests:
         cpu: 1m
