@@ -1,4 +1,4 @@
-DISK="/dev/sdb"
+DISK="/dev/nvme0n1"
 
 # Zap the disk to a fresh, usable state (zap-all is important, b/c MBR has to be clean)
 sgdisk --zap-all $DISK
