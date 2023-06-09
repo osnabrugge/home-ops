@@ -6,7 +6,7 @@ metadata:
   name: metrics-server
   namespace: kube-system
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: metrics-server
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: metrics-server
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
