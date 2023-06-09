@@ -140,7 +140,7 @@ spec:
                   values: ["plex"]
             topologyKey: kubernetes.io/hostname
     podAnnotations:
-      k8s.v1.cni.cncf.io/networks: networking/iot-frigate-sriov-conf
+      k8s.v1.cni.cncf.io/networks: networking/iot-frigate-conf
     resources:
       requests:
         cpu: 10m
