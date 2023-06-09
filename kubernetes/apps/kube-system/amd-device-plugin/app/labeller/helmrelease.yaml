@@ -27,7 +27,7 @@ spec:
   uninstall:
     keepHistory: false
   dependsOn:
-    - name: amd-gpu-plugin
+    - name: amd-device-plugin
       namespace: kube-system
   values:
     controller:
