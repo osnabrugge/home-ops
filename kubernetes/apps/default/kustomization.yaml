@@ -17,7 +17,7 @@ resources:
   - ./kubernetes-schemas/ks.yaml
   - ./letsblockit/ks.yaml
   - ./miniflux/ks.yaml
-  - ./monero/ks.yaml
+  # - ./monero/ks.yaml
   - ./mosquitto/ks.yaml
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
