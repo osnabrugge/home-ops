@@ -107,13 +107,14 @@ spec:
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
     nodeSelector:
-      feature.node.kubernetes.io/network-sriov.configured=true
       intel.feature.node.kubernetes.io/gpu: "true"
     resources:
       requests:
-        gpu.intel.com/i915: 1
         cpu: 100m
         memory: 1000Mi
-      limits:
         gpu.intel.com/i915: 1
+        intel.com/sriov_netdevice: 1
+      limits:
         memory: 4000Mi
+        gpu.intel.com/i915: 1
+        intel.com/sriov_netdevice: 1

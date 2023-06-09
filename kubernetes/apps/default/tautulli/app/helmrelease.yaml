@@ -85,11 +85,11 @@ spec:
         mountPath: /data/nas
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
-    nodeSelector:
-      feature.node.kubernetes.io/network-sriov.configured=true
     resources:
       requests:
         cpu: 10m
         memory: 150Mi
+        intel.com/sriov_netdevice: 1
       limits:
         memory: 200Mi
+        intel.com/sriov_netdevice: 1
