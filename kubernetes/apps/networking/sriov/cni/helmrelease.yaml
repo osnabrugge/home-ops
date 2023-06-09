@@ -6,7 +6,7 @@ metadata:
   name: sriov-cni
   namespace: networking
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -55,12 +55,10 @@ spec:
         hostPath: /opt/cni/bin
         mountPath: /host/opt/cni/bin
     tolerations:
-      - key: node-role.kubernetes.io/master
+      - effect: NoSchedule
         operator: Exists
-        effect: NoSchedule
     nodeSelector:
       kubernetes.io/arch: amd64
-      device: sriov-nic
     resources:
       requests:
         cpu: 100m
