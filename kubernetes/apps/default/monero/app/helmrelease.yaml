@@ -99,10 +99,13 @@ spec:
             port: 18089
             targetPort: 18089
             protocol: TCP
+    securityContext:
+      readOnlyRootFilesystem: false
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
-    nodeSelector:
-      feature.node.kubernetes.io/network-sriov.configured=true
     persistence:
       bitmonero:
         enabled: true
@@ -114,10 +117,7 @@ spec:
       requests:
         cpu: 200m
         memory: 600Mi
+        intel.com/sriov_netdevice: 1
       limits:
         memory: 1000Mi
-    securityContext:
-      readOnlyRootFilesystem: false
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
+        intel.com/sriov_netdevice: 1

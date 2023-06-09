@@ -141,11 +141,11 @@ spec:
         type: emptyDir
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/mgmt-omada-sriov-conf
-    nodeSelector:
-      feature.node.kubernetes.io/network-sriov.configured=true
     resources:
       requests:
         cpu: 1200m
         memory: 2000Mi
+        intel.com/sriov_netdevice: 1
       limits:
         memory: 3000Mi
+        intel.com/sriov_netdevice: 1

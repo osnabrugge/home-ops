@@ -118,11 +118,11 @@ spec:
         storageClass: ceph-block
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/iot-hass-sriov-conf
-    nodeSelector:
-      feature.node.kubernetes.io/network-sriov.configured=true
     resources:
       requests:
         cpu: 10m
         memory: 700Mi
+        intel.com/sriov_netdevice: 1
       limits:
         memory: 1000Mi
+        intel.com/sriov_netdevice: 1

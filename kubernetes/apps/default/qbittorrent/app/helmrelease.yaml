@@ -101,11 +101,11 @@ spec:
         type: emptyDir
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
-    nodeSelector:
-      feature.node.kubernetes.io/network-sriov.configured=true
     resources:
       requests:
         cpu: 10m
         memory: 250Mi
+        intel.com/sriov_netdevice: 1
       limits:
         memory: 3000Mi
+        intel.com/sriov_netdevice: 1
