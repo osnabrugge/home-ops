@@ -9,23 +9,16 @@ metadata:
 spec:
   config: '{
       "cniVersion": "0.3.1",
-      "plugins": [
-        {
-          "type": "sriov",
-          "vlan": 800,
-          "spoofchk": "off",
-          "trust": "on",
-          "ipam": {
-            "type": "whereabouts",
-            "range": "192.168.88.0/24",
-            "range_start": "192.168.88.201",
-            "range_end": "192.168.88.254"
-          }
-        }, {
-          "type": "tuning",
-          "mtu": 9000
-        }
-      ]
+      "type": "sriov",
+      "vlan": 800,
+      "spoofchk": "off",
+      "trust": "on",
+      "ipam": {
+        "type": "whereabouts",
+        "range": "192.168.88.0/24",
+        "range_start": "192.168.88.201",
+        "range_end": "192.168.88.254"
+      }
     }'
 ---
 apiVersion: "k8s.cni.cncf.io/v1"
@@ -40,6 +33,8 @@ spec:
       "cniVersion": "0.3.1",
       "type": "sriov",
       "vlan": 300,
+      "spoofchk": "off",
+      "trust": "on",
       "ipam": {
         "type": "static",
         "addresses": [
@@ -62,6 +57,8 @@ spec:
       "cniVersion": "0.3.1",
       "type": "sriov",
       "vlan": 200,
+      "spoofchk": "off",
+      "trust": "on",
       "ipam": {
         "type": "static",
         "addresses": [
@@ -84,6 +81,8 @@ spec:
       "cniVersion": "0.3.1",
       "type": "sriov",
       "vlan": 200,
+      "spoofchk": "off",
+      "trust": "on",
       "ipam": {
         "type": "static",
         "addresses": [
@@ -106,6 +105,8 @@ spec:
       "cniVersion": "0.3.1",
       "type": "sriov",
       "vlan": 200,
+      "spoofchk": "off",
+      "trust": "on",
       "ipam": {
         "type": "static",
         "addresses": [
