@@ -130,7 +130,6 @@ spec:
         mountPath: /dev/bus/usb
     nodeSelector:
       # google.feature.node.kubernetes.io/coral: "true"
-      # feature.node.kubernetes.io/network-sriov.configured=true
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -147,8 +146,6 @@ spec:
         cpu: 10m
         memory: 1000Mi
         nvidia.com/gpu: "1"
-        intel.com/sriov_netdevice: '1'
       limits:
         memory: 6000Mi
         nvidia.com/gpu: "1"
-        intel.com/sriov_netdevice: '1'
