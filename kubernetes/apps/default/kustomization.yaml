@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   - ./authelia/ks.yaml
-  # - ./bazarr/ks.yaml
+  - ./bazarr/ks.yaml
   - ./cloudnative-pg/ks.yaml
   - ./compreface/ks.yaml
   # - ./double-take/ks.yaml
@@ -23,14 +23,14 @@ resources:
   - ./pgadmin/ks.yaml
   # - ./plex/ks.yaml
   # - ./plex-auto-languages/ks.yaml
-  # - ./prowlarr/ks.yaml
-  # - ./qbittorrent/ks.yaml
-  # - ./radarr/ks.yaml
+  - ./prowlarr/ks.yaml
+  - ./qbittorrent/ks.yaml
+  - ./radarr/ks.yaml
   - ./redis/ks.yaml
   # - ./scrypted/ks.yaml
   # - ./shlink/ks.yaml
   - ./smtp-relay/ks.yaml
-  # - ./sonarr/ks.yaml
+  - ./sonarr/ks.yaml
   # - ./tautulli/ks.yaml
   # - ./unpackerr/ks.yaml
   # - ./vaultwarden/ks.yaml
