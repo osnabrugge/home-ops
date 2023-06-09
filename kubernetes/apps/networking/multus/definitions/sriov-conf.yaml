@@ -18,8 +18,8 @@ spec:
           "ipam": {
             "type": "whereabouts",
             "range": "192.168.88.0/24",
-            "range_start": "192.168.88.100",
-            "range_end": "192.168.88.199"
+            "range_start": "192.168.88.201",
+            "range_end": "192.168.88.254"
           }
         }, {
           "type": "tuning",
