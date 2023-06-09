@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name:
+  name: whereabouts
   namespace: networking
 ---
 kind: ClusterRoleBinding
