@@ -21,8 +21,8 @@ resources:
   - ./mosquitto/ks.yaml
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
-  - ./plex/ks.yaml
-  - ./plex-auto-languages/ks.yaml
+  # - ./plex/ks.yaml
+  # - ./plex-auto-languages/ks.yaml
   - ./prowlarr/ks.yaml
   # - ./qbittorrent/ks.yaml
   # - ./radarr/ks.yaml
@@ -32,5 +32,5 @@ resources:
   - ./smtp-relay/ks.yaml
   # - ./sonarr/ks.yaml
   # - ./tautulli/ks.yaml
-  - ./unpackerr/ks.yaml
+  # - ./unpackerr/ks.yaml
   - ./vaultwarden/ks.yaml
