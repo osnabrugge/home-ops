@@ -5,4 +5,4 @@ kind: Kustomization
 namespace: rook-ceph
 resources:
   - ./helmrelease.yaml
-  - ./prometheusrule.yaml
+  # - ./prometheusrule.yaml
