@@ -64,6 +64,17 @@ spec:
         enabled: true
         urlPrefix: /
         ssl: false
+      resources:
+        osds:
+          limits:
+            intel.com/sriov_netdevice: '1'
+          requests:
+            intel.com/sriov_netdevice: '1'
+        prepareosd:
+          limits:
+            intel.com/sriov_netdevice: '1'
+          requests:
+            intel.com/sriov_netdevice: '1'
       storage:
         useAllNodes: false
         useAllDevices: false
