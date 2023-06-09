@@ -45,7 +45,7 @@ spec:
           memory: 64M
       config:
         core:
-          labelsources: ["custom", "pci", "usb"]
+          labelsources: ["custom", "network", "pci", "usb"]
         sources:
           usb:
             deviceClassWhitelist: ["01", "02", "03", "0e", "10", "ef", "fe", "ff"]
