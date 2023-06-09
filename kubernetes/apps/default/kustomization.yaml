@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - ./namespace.yaml
   - ./authelia/ks.yaml
-  # - ./bazarr/ks.yaml
+  - ./bazarr/ks.yaml
   - ./cloudnative-pg/ks.yaml
   - ./compreface/ks.yaml
   # - ./double-take/ks.yaml
@@ -13,16 +13,16 @@ resources:
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
   - ./home-assistant/ks.yaml
-  # - ./jellyfin/ks.yaml
+  - ./jellyfin/ks.yaml
   - ./kubernetes-schemas/ks.yaml
   - ./letsblockit/ks.yaml
   - ./miniflux/ks.yaml
-  # - ./monero/ks.yaml
+  - ./monero/ks.yaml
   - ./mosquitto/ks.yaml
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
-  # - ./plex/ks.yaml
-  # - ./plex-auto-languages/ks.yaml
+  - ./plex/ks.yaml
+  - ./plex-auto-languages/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
@@ -30,7 +30,7 @@ resources:
   - ./scrypted/ks.yaml
   # - ./shlink/ks.yaml
   - ./smtp-relay/ks.yaml
-  # - ./sonarr/ks.yaml
-  # - ./tautulli/ks.yaml
-  # - ./unpackerr/ks.yaml
+  - ./sonarr/ks.yaml
+  - ./tautulli/ks.yaml
+  - ./unpackerr/ks.yaml
   - ./vaultwarden/ks.yaml
