@@ -5,7 +5,7 @@ resources:
   - ./namespace.yaml
   - ./authelia/ks.yaml
   - ./bazarr/ks.yaml
-  # - ./cloudnative-pg/ks.yaml
+  - ./cloudnative-pg/ks.yaml
   - ./compreface/ks.yaml
   - ./double-take/ks.yaml
   # - ./eufy-security-ws/ks.yaml
