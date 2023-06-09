@@ -142,7 +142,7 @@ spec:
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/mgmt-omada-sriov-conf
     nodeSelector:
-      feature.node.kubernetes.io/network-sriov.capable: "true"
+      feature.node.kubernetes.io/network-sriov.configured=true
     resources:
       requests:
         cpu: 1200m

@@ -25,6 +25,7 @@ metadata:
 spec:
   dependsOn:
     - name: cluster-apps-rook-ceph
+    - name: cluster-apps-sriov-plugin
     - name: cluster-apps-multus-definitions
   path: ./kubernetes/apps/rook-ceph/rook-ceph/cluster
   prune: true

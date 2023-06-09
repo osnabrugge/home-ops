@@ -85,7 +85,7 @@ spec:
     podAnnotations:
       k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
     nodeSelector:
-      feature.node.kubernetes.io/network-sriov.capable: "true"
+      feature.node.kubernetes.io/network-sriov.configured=true
       intel.feature.node.kubernetes.io/gpu: "true"
     resources:
       requests:
