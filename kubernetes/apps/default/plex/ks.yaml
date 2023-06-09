@@ -8,8 +8,6 @@ metadata:
 spec:
   dependsOn:
     - name: cluster-apps-external-secrets-stores
-    - name: cluster-apps-rook-ceph-cluster
-    - name: cluster-apps-intel-device-plugin-gpu
   path: ./kubernetes/apps/default/plex/app
   prune: true
   sourceRef:
