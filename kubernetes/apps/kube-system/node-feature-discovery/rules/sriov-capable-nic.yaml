@@ -14,4 +14,6 @@ spec:
         - feature: network-sriov.capable
           matchExpressions:
             value: {op: IsTrue}
-
+          matchExpressions:
+            operstate: {op: In, value: ["up"]}
+            speed: {op: Gt, value: ["9999"]}
