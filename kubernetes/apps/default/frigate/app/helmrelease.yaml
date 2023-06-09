@@ -130,7 +130,7 @@ spec:
         mountPath: /dev/bus/usb
     nodeSelector:
       # google.feature.node.kubernetes.io/coral: "true"
-      feature.node.kubernetes.io/network-sriov.capable: "true"
+      feature.node.kubernetes.io/network-sriov.configured=true
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
