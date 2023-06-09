@@ -37,6 +37,8 @@ spec:
       repository: ghcr.io/k8snetworkplumbingwg/whereabouts
       tag: v0.6.2-amd64@sha256:d230669d2ece0a247bda83d67a3bb293678f5d81bd292d0f8bc15de547f52874
       pullPolicy: IfNotPresent
+    serviceAccount:
+      name: whereabouts
     command: [ "/bin/sh" ]
     args:
       - -c
