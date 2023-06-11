@@ -26,12 +26,17 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: volsync
+      namespace: volsync
   values:
     controller:
       type: statefulset
     image:
       repository: ghcr.io/koush/scrypted
-      tag: 18-bullseye-full-v0.23.0
+      tag: 18-jammy-full-v0.39.1
     env:
       TZ: ${TIMEZONE}
       HIP_VISIBLE_DEVICES: 0

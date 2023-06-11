@@ -6,7 +6,7 @@ metadata:
   name: mosquitto
   namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -26,6 +26,9 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   values:
     initContainers:
       01-init-config:
@@ -88,6 +91,6 @@ spec:
     resources:
       requests:
         cpu: 10m
-        memory: 10Mi
-      limits:
         memory: 50Mi
+      limits:
+        memory: 150Mi

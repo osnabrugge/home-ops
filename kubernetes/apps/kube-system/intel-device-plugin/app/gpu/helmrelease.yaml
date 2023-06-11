@@ -6,7 +6,7 @@ metadata:
   name: intel-device-plugin-gpu
   namespace: kube-system
 spec:
-  interval: 30m5m
+  interval: 30m
   chart:
     spec:
       chart: intel-device-plugins-gpu
@@ -32,10 +32,3 @@ spec:
     name: intel-gpu-plugin
     sharedDevNum: 3
     nodeFeatureRule: true
-    # tolerations:
-    #   - key: "node-role.kubernetes.io/master"
-    #     operator: "Exists"
-    #   - effect: "NoExecute"
-    #     operator: "Exists"
-    #   - effect: "NoSchedule"
-    #     operator: "Exists"

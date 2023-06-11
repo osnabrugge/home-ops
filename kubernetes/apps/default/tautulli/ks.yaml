@@ -6,8 +6,6 @@ metadata:
   name: cluster-apps-tautulli
   namespace: flux-system
 spec:
-  dependsOn:
-    - name: cluster-apps-rook-ceph-cluster
   path: ./kubernetes/apps/default/tautulli/app
   prune: true
   sourceRef:

@@ -6,7 +6,7 @@ metadata:
   name: snapshot-controller
   namespace: kube-system
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: snapshot-controller
@@ -37,6 +37,15 @@ spec:
         parameters:
           clusterID: rook-ceph
           csi.storage.k8s.io/snapshotter-secret-name: rook-csi-rbd-provisioner
+          csi.storage.k8s.io/snapshotter-secret-namespace: rook-ceph
+        deletionPolicy: Delete
+      - name: csi-ceph-filesystem
+        driver: rook-ceph.cephfs.csi.ceph.com
+        annotations:
+          snapshot.storage.kubernetes.io/is-default-class: "false"
+        parameters:
+          clusterID: rook-ceph
+          csi.storage.k8s.io/snapshotter-secret-name: rook-csi-cephfs-provisioner
           csi.storage.k8s.io/snapshotter-secret-namespace: rook-ceph
         deletionPolicy: Delete
     serviceMonitor:

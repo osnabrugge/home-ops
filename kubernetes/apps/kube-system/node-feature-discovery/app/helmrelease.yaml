@@ -6,11 +6,11 @@ metadata:
   name: node-feature-discovery
   namespace: kube-system
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: node-feature-discovery
-      version: 0.13.1
+      version: 0.13.2
       sourceRef:
         kind: HelmRepository
         name: node-feature-discovery
@@ -29,20 +29,7 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    master:
-      resources:
-        requests:
-          cpu: 5m
-          memory: 64M
-        limits:
-          memory: 64M
     worker:
-      resources:
-        requests:
-          cpu: 5m
-          memory: 64M
-        limits:
-          memory: 64M
       config:
         core:
           labelsources: ["custom", "network", "pci", "usb"]

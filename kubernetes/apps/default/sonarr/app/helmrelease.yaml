@@ -6,7 +6,7 @@ metadata:
   name: sonarr
   namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -26,6 +26,11 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: volsync
+      namespace: volsync
   values:
     controller:
       type: statefulset
@@ -37,10 +42,8 @@ spec:
     env:
       TZ: "${TIMEZONE}"
       PUSHOVER_DEBUG: "false"
-      PUSHOVER_APP_URL: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
       SONARR__INSTANCE_NAME: Sonarr
       SONARR__PORT: &port 80
-      SONARR__APPLICATION_URL: "https://{{ .Release.Name }}.${SECRET_DOMAIN}"
       SONARR__LOG_LEVEL: info
     envFrom:
       - secretRef:
@@ -74,8 +77,6 @@ spec:
           #   proxy_set_header Accept-Encoding "";
           #   sub_filter '</head>' '<link rel="stylesheet" type="text/css" href="https://theme-park.${SECRET_DOMAIN}/css/base/sonarr/nord.css"></head>';
           #   sub_filter_once on;
-          nginx.ingress.kubernetes.io/whitelist-source-range: |
-            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
           hajimari.io/icon: mdi:television-classic
         hosts:
           - host: *host
@@ -101,9 +102,9 @@ spec:
       media:
         enabled: true
         type: nfs
-        server: "${NAS_ADDR}"
-        path: "${NFS_SHARE}"
-        mountPath: /data/nas
+        server: expanse.turbo.ac
+        path: /eros/Media
+        mountPath: /media
       scripts:
         enabled: true
         type: configMap

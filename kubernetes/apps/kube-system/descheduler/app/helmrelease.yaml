@@ -6,7 +6,7 @@ metadata:
   name: descheduler
   namespace: kube-system
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: descheduler
@@ -15,8 +15,7 @@ spec:
         kind: HelmRepository
         name: descheduler
         namespace: flux-system
-      interval: 15m
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -38,26 +37,21 @@ spec:
       strategies:
         RemoveDuplicates:
           enabled: true
-
         RemovePodsViolatingNodeTaints:
           enabled: true
-
         RemovePodsViolatingNodeAffinity:
           enabled: true
           params:
             nodeAffinityType:
               - requiredDuringSchedulingIgnoredDuringExecution
-
         RemovePodsViolatingTopologySpreadConstraint:
           enabled: true
           params:
             includeSoftConstraints: true
-
         RemovePodsViolatingInterPodAntiAffinity:
           enabled: true
           params:
             nodeFit: true
-
         LowNodeUtilization:
           enabled: true
           params:
@@ -70,7 +64,6 @@ spec:
                 cpu: 60
                 memory: 60
                 pods: 35
-
         RemoveFailedPods:
           enabled: true
           params:
@@ -82,15 +75,12 @@ spec:
               excludeOwnerKinds:
                 - Job
               minPodLifetimeSeconds: 3600
-
         RemovePodsHavingTooManyRestarts:
           enabled: true
           params:
             podsHavingTooManyRestarts:
               podRestartThreshold: 100
               includingInitContainers: true
-
-
     resources:
       requests:
         cpu: 5m

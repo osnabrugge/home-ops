@@ -6,7 +6,7 @@ metadata:
   name: kured
   namespace: kube-system
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: kured
@@ -15,13 +15,17 @@ spec:
         kind: HelmRepository
         name: weaveworks-kured
         namespace: flux-system
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
       retries: 3
   upgrade:
+    cleanupOnFail: true
     remediation:
       retries: 3
+  uninstall:
+    keepHistory: false
   values:
     configuration:
       startTime: "1:00"

@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - ./externalsecret.yaml
+  - ./objectbucketclaim.yaml
   - ./helmrelease.yaml
 configMapGenerator:
   - name: thanos-bucket-replicate-dashboard
@@ -40,7 +41,3 @@ generatorOptions:
     kustomize.toolkit.fluxcd.io/substitute: disabled
   labels:
     grafana_dashboard: "true"
-labels:
-  - pairs:
-      app.kubernetes.io/name: thanos
-      app.kubernetes.io/instance: thanos

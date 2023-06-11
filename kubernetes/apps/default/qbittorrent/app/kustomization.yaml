@@ -6,4 +6,5 @@ namespace: default
 resources:
   - ./helmrelease.yaml
   - ./volsync.yaml
-  - ./cronjobs
+  - ./qbittools-reannounce
+  - ./qbittools-tagging
