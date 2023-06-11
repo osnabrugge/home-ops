@@ -1,8 +1,0 @@
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  annotations:
-    azure.workload.identity/client-id: ab0e7708-6ad4-4c9f-a257-fb969a306d28
-  name: workload-identity-sa
-  namespace: kube-system
