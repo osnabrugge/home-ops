@@ -6,7 +6,7 @@ metadata:
   name: qbittorrent
   namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -26,6 +26,11 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: volsync
+      namespace: volsync
   values:
     controller:
       type: statefulset
@@ -36,8 +41,9 @@ spec:
       tag: 4.5.3@sha256:5f97e1e998a498cc27ba08abcdad5be61bd396f833157c6b6c1f3d672915f2fa
     env:
       TZ: "${TIMEZONE}"
-      QBITTORRENT__PORT: &port 8080
-      QBITTORRENT__BT_PORT: &port-bt 42883
+      QBITTORRENT__BT_PORT: &bittorrentPort 50413
+      QBT_Preferences__WebUI__AlternativeUIEnabled: "false"
+      QBT_Preferences__WebUI__RootFolder: ""
     service:
       main:
         ports:
@@ -50,9 +56,9 @@ spec:
         ports:
           bittorrent:
             enabled: true
-            port: *port-bt
+            port: *bittorrentPort
             protocol: TCP
-            targetPort: *port-bt
+            targetPort: *bittorrentPort
         externalTrafficPolicy: Local
     ingress:
       main:
@@ -66,8 +72,6 @@ spec:
           #   proxy_set_header Accept-Encoding "";
           #   sub_filter '</head>' '<link rel="stylesheet" type="text/css" href="https://theme-park.${SECRET_DOMAIN}/css/base/qbittorrent/nord.css"></head>';
           #   sub_filter_once on;
-          nginx.ingress.kubernetes.io/whitelist-source-range: |
-            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
           hajimari.io/icon: mdi:download
         hosts:
           - host: &host "qb.${SECRET_DOMAIN}"
@@ -89,6 +93,8 @@ spec:
         accessMode: ReadWriteOnce
         size: 1Gi
         storageClass: ceph-block
+    # Note: If downloading very large torrents it might be worth using NFS for your download directory.
+    # Beware if you are downloading torrents directly to a ZFS dataset that dataset will accrue fragmentation.
     persistence:
       media:
         enabled: true

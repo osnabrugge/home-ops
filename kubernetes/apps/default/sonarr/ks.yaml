@@ -7,8 +7,8 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-    - name: cluster-apps-rook-ceph-cluster
-    - name: cluster-apps-multus-definitions
+    - name: cluster-apps-cloudnative-pg-cluster
+    - name: cluster-apps-external-secrets-stores
   path: ./kubernetes/apps/default/sonarr/app
   prune: true
   sourceRef:

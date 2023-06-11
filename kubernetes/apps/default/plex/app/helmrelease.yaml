@@ -6,7 +6,7 @@ metadata:
   name: plex
   namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -26,10 +26,18 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: intel-device-plugin-gpu
+      namespace: kube-system
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: volsync
+      namespace: volsync
   values:
     controller:
       type: statefulset
-    hostNetwork: true
+      annotations:
+        reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/onedr0p/plex
       tag: 1.32.3.7162-b0a36929b@sha256:7b7017f94b1054d46b80243dce9be8483aa1c162852b87c7782bbbfe5ec74a68
@@ -37,9 +45,6 @@ spec:
       TZ: "{$TIMEZONE}"
     service:
       main:
-        type: LoadBalancer
-        externalIPs: ["${SVC_PLEX_ADDR}"]
-        externalTrafficPolicy: Local
         ports:
           http:
             port: 32400
@@ -48,13 +53,13 @@ spec:
         enabled: true
         ingressClassName: nginx
         annotations:
-          external-dns.alpha.kubernetes.io/target: ipv4.${SECRET_DOMAIN}
+          external-dns.alpha.kubernetes.io/target: ingress.devbu.io
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           hajimari.io/icon: mdi:plex
         hosts:
           - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
             paths:
-              - path: /web/
+              - path: /
                 pathType: Prefix
         tls:
           - hosts:
@@ -96,3 +101,15 @@ spec:
         memory: 10000Mi
         gpu.intel.com/i915: 1
         intel.com/sriov_netdevice: 1
+    sidecars:
+      auto-languages:
+        image: docker.io/remirigal/plex-auto-languages:v1.2.1
+        imagePullPolicy: IfNotPresent
+        env:
+          - { name: PLEX_URL, value: http://localhost:32400 }
+          - { name: REFRESH_LIBRARY_ON_SCAN, value: "false" }
+        envFrom:
+          - secretRef:
+              name: plex-auto-languages-secret
+        volumeMounts:
+          - { name: local, mountPath: /.local }

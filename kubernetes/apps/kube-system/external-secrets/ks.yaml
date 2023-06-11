@@ -30,10 +30,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: home-ops-kubernetes
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-age
   wait: true
   interval: 30m
   retryInterval: 1m

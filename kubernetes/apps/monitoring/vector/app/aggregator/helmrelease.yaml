@@ -6,7 +6,8 @@ metadata:
   name: &app vector-aggregator
   namespace: monitoring
 spec:
-  interval: 15m
+  interval: 30m
+  timeout: 15m
   chart:
     spec:
       chart: app-template
@@ -66,10 +67,10 @@ spec:
           kubernetes:
             enabled: true
             port: 6010
-          firewall:
+          vyos:
             enabled: true
-            port: 5140
-            protocol: UDP
+            port: 6020
+            # protocol: UDP
     persistence:
       config:
         enabled: true

@@ -1,9 +1,9 @@
 ---
-# yaml-language-server: $schema=http://kubernetes-schemas.local.lan:8080/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: &app shlink-api
+  name: &app shlink
   namespace: default
 spec:
   interval: 30m
@@ -26,12 +26,15 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: redis
+      namespace: database
   values:
     initContainers:
       01-init-db:
         image: ghcr.io/onedr0p/postgres-init:14.8
         imagePullPolicy: IfNotPresent
-        envFrom:
+        envFrom: &envFrom
           - secretRef:
               name: shlink-secret
     controller:
@@ -52,15 +55,27 @@ spec:
       REDIS_SENTINEL_SERVICE: redis-master
       REDIS_SERVERS: redis-node-0.redis-headless.database.svc.cluster.local:26379,redis-node-1.redis-headless.database.svc.cluster.local:26379,redis-node-2.redis-headless.database.svc.cluster.local:26379
       TIMEZONE: ${TIMEZONE}
-      SHELL_VERBOSITY: 3
-    envFrom:
-      - secretRef:
-          name: shlink-secret
+    envFrom: *envFrom
     service:
       main:
         ports:
           http:
             port: *port
+    probes:
+      liveness: &probes
+        enabled: true
+        custom: true
+        spec:
+          httpGet:
+            path: /rest/health
+            port: *port
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+      readiness: *probes
+      startup:
+        enabled: false
     ingress:
       main:
         enabled: true

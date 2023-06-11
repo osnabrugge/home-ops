@@ -6,7 +6,7 @@ metadata:
   name: &app authelia
   namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: app-template
@@ -26,12 +26,17 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: glauth
+      namespace: default
+    - name: redis
+      namespace: default
   values:
     initContainers:
       01-init-db:
         image: ghcr.io/onedr0p/postgres-init:14.8
         imagePullPolicy: IfNotPresent
-        envFrom:
+        envFrom: &envFrom
           - secretRef:
               name: authelia-secret
     controller:
@@ -41,7 +46,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/authelia/authelia
-      tag: v4.38.0-beta2
+      tag: master@sha256:a3647c3dd136402745c7639e446944004145630c822f27e22f999c414c234d2f
     args: ["--config", "/config/configuration.yml", "--config.experimental.filters", "expand-env"]
     env:
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN: ou=users
@@ -52,30 +57,32 @@ spec:
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_MAIL_ATTRIBUTE: mail
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_URL: "ldap://glauth.default.svc.cluster.local:389"
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER: cn=search,ou=svcaccts,dc=home,dc=arpa
+      AUTHELIA_AUTHENTICATION_BACKEND_LDAP_START_TLS: "false"
+      AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TIMEOUT: 5s
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERNAME_ATTRIBUTE: uid
       AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER: "(&({username_attribute}={input})(objectClass=posixAccount))"
       AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_DISABLE: "true"
+      AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL: 1m
       AUTHELIA_DEFAULT_REDIRECTION_URL: https://auth.${SECRET_DOMAIN}
       AUTHELIA_DUO_API_DISABLE: "true"
-      AUTHELIA_LOG_LEVEL: debug
+      AUTHELIA_LOG_LEVEL: info
+      AUTHELIA_NOTIFIER_DISABLE_STARTUP_CHECK: "true"
       AUTHELIA_NOTIFIER_SMTP_DISABLE_REQUIRE_TLS: "true"
       AUTHELIA_NOTIFIER_SMTP_HOST: smtp-relay.${SECRET_DOMAIN}
       AUTHELIA_NOTIFIER_SMTP_PORT: 25
-      AUTHELIA_NOTIFIER_SMTP_SENDER: "Authelia <info@${SECRET_DOMAIN}>"
-      AUTHELIA_NOTIFIER_DISABLE_STARTUP_CHECK: "true"
+      AUTHELIA_NOTIFIER_SMTP_SENDER: Authelia <info@${SECRET_DOMAIN}>
       AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "true"
       AUTHELIA_SERVER_PORT: &port 80
       AUTHELIA_SESSION_DOMAIN: ${SECRET_DOMAIN}
+      AUTHELIA_SESSION_NAME: authelia-home-ops
       AUTHELIA_SESSION_REDIS_DATABASE_INDEX: 14
       AUTHELIA_SESSION_REDIS_HOST: redis.default.svc.cluster.local
-      AUTHELIA_TELEMETRY_METRICS_ADDRESS: "tcp://0.0.0.0:8080"
+      AUTHELIA_TELEMETRY_METRICS_ADDRESS: tcp://0.0.0.0:8080
       AUTHELIA_TELEMETRY_METRICS_ENABLED: "true"
-      AUTHELIA_THEME: grey
+      AUTHELIA_THEME: dark
       AUTHELIA_TOTP_ISSUER: authelia.com
       AUTHELIA_WEBAUTHN_DISABLE: "true"
-    envFrom:
-      - secretRef:
-          name: authelia-secret
+    envFrom: *envFrom
     enableServiceLinks: false
     service:
       main:

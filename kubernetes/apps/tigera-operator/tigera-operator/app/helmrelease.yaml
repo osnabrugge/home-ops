@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: tigera-operator
-      version: v3.26.0
+      version: v3.25.1
       sourceRef:
         kind: HelmRepository
         name: calico
@@ -35,6 +35,7 @@ spec:
       imagePath: calico
       calicoNetwork:
         bgp: Enabled
+        hostPorts: Disabled
         linuxDataplane: BPF # or Iptables
         # Note: The ipPools section cannot be modified post-install.
         ipPools:
@@ -44,6 +45,7 @@ spec:
             natOutgoing: Enabled
             nodeSelector: all()
         multiInterfaceMode: None
+        containerIPForwarding: "Enabled"
         nodeAddressAutodetectionV4:
           cidrs: ["192.168.42.0/24"]
       nodeMetricsPort: 9091

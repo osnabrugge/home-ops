@@ -62,8 +62,8 @@ spec:
       complete:
         enabled: true
         type: nfs
-        server: "${NAS_ADDR}"
-        path: "${NFS_SHARE}/downloads/complete"
+        server: expanse.turbo.ac
+        path: /eros/Media/Downloads/qbittorrent/complete
         mountPath: /complete
     resources:
       requests:

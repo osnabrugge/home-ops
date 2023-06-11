@@ -6,7 +6,7 @@ metadata:
   name: hajimari
   namespace: default
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: hajimari
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: hajimari
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -43,9 +43,7 @@ spec:
       namespaceSelector:
         matchNames:
           - default
-          - downloaders
           - flux-system
-          - media-automation
           - monitoring
           - networking
           - rook-ceph
@@ -54,8 +52,6 @@ spec:
         enabled: true
         ingressClassName: nginx
         annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: |
-            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
           hajimari.io/enable: "false"
         hosts:
           - host: &host "hajimari.${SECRET_DOMAIN}"
@@ -66,7 +62,7 @@ spec:
           - hosts:
               - *host
     podAnnotations:
-      configmap.reloader.stakater.com/reload: hajimari-settings
+      configmap.reloader.stakater.com/reload: "hajimari-settings"
     persistence:
       data:
         enabled: true

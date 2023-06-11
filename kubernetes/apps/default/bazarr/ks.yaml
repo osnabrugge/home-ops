@@ -5,10 +5,12 @@ kind: Kustomization
 metadata:
   name: cluster-apps-bazarr
   namespace: flux-system
+  labels:
+    integration.home.arpa/postgres: "true"
+    integration.home.arpa/rook: "true"
 spec:
   dependsOn:
-    - name: cluster-apps-rook-ceph-cluster
-    - name: cluster-apps-multus-definitions
+    - name: cluster-apps-cloudnative-pg-cluster
   path: ./kubernetes/apps/default/bazarr/app
   prune: true
   sourceRef:

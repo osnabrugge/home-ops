@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: kube-system
@@ -7,8 +8,3 @@ resources:
   - ./prometheusrule.yaml
   - ./externalsecret.yaml
 
-labels:
-  - pairs:
-      app.kubernetes.io/name: kured
-      app.kubernetes.io/instance: kured
-      app.kubernetes.io/part-of: kured

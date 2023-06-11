@@ -6,7 +6,8 @@ metadata:
   name: thanos
   namespace: monitoring
 spec:
-  interval: 15m
+  interval: 30m
+  timeout: 15m
   chart:
     spec:
       chart: thanos
@@ -15,7 +16,7 @@ spec:
         kind: HelmRepository
         name: bitnami
         namespace: flux-system
-  maxHistory: 3
+  maxHistory: 2
   install:
     createNamespace: true
     remediation:
@@ -26,16 +27,20 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: local-path-provisioner
+      namespace: kube-system
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   values:
     image:
       registry: quay.io
       repository: thanos/thanos
       tag: v0.31.0
     objstoreConfig:
-      type: azure
+      type: s3
       config:
-        container: thanos
-        endpoint: blob.core.windows.net
+        insecure: true
     queryFrontend:
       enabled: true
       replicaCount: 3
@@ -43,10 +48,8 @@ spec:
         enabled: true
         ingressClassName: nginx
         annotations:
-          nginx.ingress.kubernetes.io/whitelist-source-range: |
-            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
           hajimari.io/enable: "false"
-        hostname: &host "thanos-query-frontend.${SECRET_DOMAIN}"
+        hostname: &host thanos-query-frontend.devbu.io
         tls: true
         extraTls:
           - hosts:

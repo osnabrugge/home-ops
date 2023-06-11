@@ -6,7 +6,7 @@ metadata:
   name: &app snmp-exporter-ups
   namespace: monitoring
 spec:
-  interval: 15m
+  interval: 30m
   chart:
     spec:
       chart: prometheus-snmp-exporter
@@ -46,7 +46,7 @@ spec:
         - name: ups01
           module:
             - ups
-          target: "192.168.10.3"
+          target: ups01
       path: /snmp
       scrapeTimeout: 10s
       relabelings:

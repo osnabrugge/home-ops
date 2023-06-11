@@ -26,6 +26,9 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
+  dependsOn:
+    - name: nvidia-gpu-operator
+      namespace: kube-system
   values:
     controller:
       type: statefulset
