@@ -41,3 +41,4 @@ resources:
   - ./stevehipwell.yaml
   - ./weave-gitops.yaml
   - ./weaveworks-kured.yaml
+  - ./weaveworks.yaml
