@@ -6,8 +6,7 @@ metadata:
   name: thanos
   namespace: monitoring
 spec:
-  interval: 30m
-  timeout: 15m
+  interval: 15m
   chart:
     spec:
       chart: thanos
@@ -16,7 +15,7 @@ spec:
         kind: HelmRepository
         name: bitnami
         namespace: flux-system
-  maxHistory: 2
+  maxHistory: 3
   install:
     createNamespace: true
     remediation:
@@ -27,20 +26,16 @@ spec:
       retries: 3
   uninstall:
     keepHistory: false
-  dependsOn:
-    - name: local-path-provisioner
-      namespace: kube-system
-    - name: rook-ceph-cluster
-      namespace: rook-ceph
   values:
     image:
       registry: quay.io
       repository: thanos/thanos
       tag: v0.31.0
     objstoreConfig:
-      type: s3
+      type: azure
       config:
-        insecure: true
+        container: thanos
+        endpoint: blob.core.windows.net
     queryFrontend:
       enabled: true
       replicaCount: 3
@@ -48,8 +43,10 @@ spec:
         enabled: true
         ingressClassName: nginx
         annotations:
+          nginx.ingress.kubernetes.io/whitelist-source-range: |
+            10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
           hajimari.io/enable: "false"
-        hostname: &host thanos-query-frontend.devbu.io
+        hostname: &host "thanos-query-frontend.${SECRET_DOMAIN}"
         tls: true
         extraTls:
           - hosts:
@@ -109,16 +106,11 @@ spec:
       serviceMonitor:
         enabled: true
   valuesFrom:
-    - targetPath: objstoreConfig.config.bucket
-      kind: ConfigMap
-      name: thanos-bucket-v1
-      valuesKey: BUCKET_NAME
-    - targetPath: objstoreConfig.config.endpoint
-      kind: ConfigMap
-      name: thanos-bucket-v1
-      valuesKey: BUCKET_HOST
-    - targetPath: objstoreConfig.config.region
-      kind: ConfigMap
-      name: thanos-bucket-v1
-      valuesKey: BUCKET_REGION
-
+    - targetPath: objstoreConfig.config.storage_account
+      kind: Secret
+      name: thanos-secret
+      valuesKey: AZURE_STORAGE_ACCOUNT
+    - targetPath: objstoreConfig.config.storage_account_key
+      kind: Secret
+      name: thanos-secret
+      valuesKey: AZURE_STORAGE_KEY
