@@ -16,6 +16,7 @@ resources:
   - ./jellyfin/ks.yaml
   - ./kubernetes-schemas/ks.yaml
   - ./letsblockit/ks.yaml
+  - ./lldap/ks.yaml
   - ./miniflux/ks.yaml
   - ./monero/ks.yaml
   - ./mosquitto/ks.yaml
