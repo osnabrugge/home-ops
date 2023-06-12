@@ -8,7 +8,7 @@ metadata:
 spec:
   dependsOn:
     - name: cluster-apps-external-secrets-stores
-  path: ./kubernetes/apps/database/redis/app
+  path: ./kubernetes/apps/default/redis/app
   prune: true
   sourceRef:
     kind: GitRepository
