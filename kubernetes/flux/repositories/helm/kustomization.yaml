@@ -6,7 +6,6 @@ resources:
   - ./actions-runner-controller.yaml
   - ./angelnu.yaml
   - ./amd.yaml
-  - ./azure-workload-identity.yaml
   - ./backube.yaml
   - ./bind9.yaml
   - ./bitnami.yaml
@@ -24,11 +23,9 @@ resources:
   - ./ingress-nginx.yaml
   - ./intel.yaml
   - ./jetstack.yaml
-  - ./k8s-gateway.yaml
   - ./kubernetes-dashboard.yaml
   - ./kyverno.yaml
   - ./lwolf.yaml
-  - ./metallb.yaml
   - ./metrics-server.yaml
   - ./node-feature-discovery.yaml
   - ./nvidia.yaml
