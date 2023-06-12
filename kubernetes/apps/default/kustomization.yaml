@@ -29,7 +29,7 @@ resources:
   - ./scrypted/ks.yaml
   # - ./shlink/ks.yaml
   - ./smtp-relay/ks.yaml
-  # - ./sonarr/ks.yaml
+  - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
   # - ./unpackerr/ks.yaml
   - ./vaultwarden/ks.yaml
