@@ -3,13 +3,13 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./namespace.yaml
-  # - ./authelia/ks.yaml
-  # - ./bazarr/ks.yaml
+  - ./authelia/ks.yaml
+  - ./bazarr/ks.yaml
   - ./cloudnative-pg/ks.yaml
-  # - ./compreface/ks.yaml
-  # - ./double-take/ks.yaml
+  - ./compreface/ks.yaml
+  - ./double-take/ks.yaml
   # - ./eufy-security-ws/ks.yaml
-  # - ./frigate/ks.yaml
+  - ./frigate/ks.yaml
   - ./glauth/ks.yaml
   - ./hajimari/ks.yaml
   - ./home-assistant/ks.yaml
@@ -21,15 +21,15 @@ resources:
   - ./mosquitto/ks.yaml
   - ./overseerr/ks.yaml
   - ./pgadmin/ks.yaml
-  # - ./plex/ks.yaml
-  # - ./prowlarr/ks.yaml
+  - ./plex/ks.yaml
+  - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
-  # - ./radarr/ks.yaml
+  - ./radarr/ks.yaml
   - ./redis/ks.yaml
   - ./scrypted/ks.yaml
   # - ./shlink/ks.yaml
   - ./smtp-relay/ks.yaml
-  # - ./sonarr/ks.yaml
+  - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
-  # - ./unpackerr/ks.yaml
+  - ./unpackerr/ks.yaml
   - ./vaultwarden/ks.yaml
