@@ -49,7 +49,7 @@ spec:
         ingressClassName: nginx
         annotations:
           hajimari.io/enable: "false"
-        hostname: &host thanos-query-frontend.devbu.io
+        hostname: &host thanos-query-frontend.devbu.io${SECRET_DOMAIN}
         tls: true
         extraTls:
           - hosts:
