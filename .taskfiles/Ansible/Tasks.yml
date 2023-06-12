@@ -20,12 +20,6 @@ tasks:
     preconditions:
       - test -f "{{.ANSIBLE_DIR}}/requirements.yml"
 
-  list:
-    desc: List all the hosts
-    dir: "{{.ANSIBLE_DIR}}"
-    cmds:
-      - ansible all -i {{.ANSIBLE_INVENTORY_DIR}}/hosts.yml --list-hosts
-
   prepare:
     desc: Prepare all the k8s nodes for running k3s
     dir: "{{.ANSIBLE_DIR}}"

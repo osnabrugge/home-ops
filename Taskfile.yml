@@ -12,13 +12,10 @@ env:
 
 includes:
   as: .taskfiles/Ansible/Tasks.yml
-  cs: .taskfiles/Cluster/Tasks.yml
   es: .taskfiles/ExternalSecrets/Tasks.yml
   fx: .taskfiles/Flux/Tasks.yml
   ku: .taskfiles/Kubernetes/Tasks.yml
   pc: .taskfiles/Precommit/Tasks.yml
-  pr: .taskfiles/Prereqs/Tasks.yml
-  rk: .taskfiles/Rook/Tasks.yml
   vs: .taskfiles/VolSync/Tasks.yml
 
 tasks:

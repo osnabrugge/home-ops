@@ -8,7 +8,7 @@
       "ignoreTests": true,
       "automergeType": "branch",
       "matchUpdateTypes": ["digest"],
-      "matchPackagePattern": ["ghcr.io/osnabrugge"]
+      "matchPackagePatterns": ["ghcr.io/bjw-s", "ghcr.io/onedr0p"]
     },
     {
       "description": "Auto merge GitHub Actions",
