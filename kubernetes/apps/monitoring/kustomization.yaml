@@ -15,7 +15,7 @@ resources:
   - ./snmp-exporter/ks.yaml
   - ./smartctl-exporter/ks.yaml
   - ./speedtest-exporter/ks.yaml
-  - ./thanos/ks.yaml
+  # - ./thanos/ks.yaml
   - ./vector/ks.yaml
   # Standard Resources
   - ./miscellaneous
