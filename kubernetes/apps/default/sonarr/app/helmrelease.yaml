@@ -102,9 +102,9 @@ spec:
       media:
         enabled: true
         type: nfs
-        server: expanse.turbo.ac
-        path: /eros/Media
-        mountPath: /media
+        server: "${NAS_ADDR}"
+        path: "${NFS_SHARE}"
+        mountPath: /data/nas
       scripts:
         enabled: true
         type: configMap
