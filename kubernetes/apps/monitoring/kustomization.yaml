@@ -7,15 +7,15 @@ resources:
     # Flux-Kustomizations
   - ./blackbox-exporter/ks.yaml
   - ./grafana/ks.yaml
-  # - ./kube-prometheus-stack/ks.yaml
-  # - ./loki/ks.yaml
+  - ./kube-prometheus-stack/ks.yaml
+  - ./loki/ks.yaml
   - ./monero-exporter/ks.yaml
   - ./omada-exporter/ks.yaml
   - ./pihole-exporter/ks.yaml
   - ./snmp-exporter/ks.yaml
   - ./smartctl-exporter/ks.yaml
   - ./speedtest-exporter/ks.yaml
-  # - ./thanos/ks.yaml
+  - ./thanos/ks.yaml
   - ./vector/ks.yaml
   # Standard Resources
   - ./miscellaneous
