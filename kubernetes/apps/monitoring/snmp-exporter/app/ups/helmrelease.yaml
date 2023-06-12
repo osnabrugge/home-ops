@@ -46,7 +46,7 @@ spec:
         - name: ups01
           module:
             - ups
-          target: ups01
+          target: "192.168.10.3"
       path: /snmp
       scrapeTimeout: 10s
       relabelings:
