@@ -28,7 +28,7 @@ spec:
     keepHistory: false
   dependsOn:
     - name: redis
-      namespace: database
+      namespace: default
   values:
     initContainers:
       01-init-db:
