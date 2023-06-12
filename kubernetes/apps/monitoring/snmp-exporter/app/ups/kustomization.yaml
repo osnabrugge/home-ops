@@ -10,9 +10,6 @@ resources:
 configMapGenerator:
   - name: ups-dashboard
     files:
-      - ./snmp.yaml
-  - name: ups-dashboard
-    files:
       - ups-dashboard.json=./dashboards.json
 generatorOptions:
   disableNameSuffixHash: true
