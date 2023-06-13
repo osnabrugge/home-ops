@@ -29,10 +29,6 @@ spec:
   values:
     crds:
       install: true
-    updateStrategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 1
     grafana:
       enabled: true
       annotations:
