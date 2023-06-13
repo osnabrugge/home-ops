@@ -13,6 +13,7 @@ resources:
   - ./calico.yaml
   - ./charlie-haley.yaml
   - ./cloudnative-pg.yaml
+  - ./crossplane.yaml
   - ./csi-driver-nfs.yaml
   - ./descheduler.yaml
   - ./emqx.yaml
