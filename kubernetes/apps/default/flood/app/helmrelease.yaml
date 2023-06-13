@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=http://kubernetes-schemas.local.lan:8080/helm.toolkit.fluxcd.io/helmrelease_v2beta1.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: &app flood
+  namespace: default
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 1.5.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  maxHistory: 2
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: volsync
+      namespace: volsync
+    - name: qbittorrent
+      namespace: default
+  values:
+    controller:
+      type: statefulset
+    image:
+      repository: jesec/flood
+      tag: master@sha256:b68ff02379c8d4746f05a8a6e3d599a7723f2a73c32e608c393367b46f7e63dc
+    imagePullPolicy: IfNotPresent
+    envFrom:
+      - secretRef:
+          name: flood-secret
+    env:
+      FLOOD_OPTION_RUNDIR: /data
+      FLOOD_OPTION_AUTH: "none"
+      FLOOD_OPTION_QBURL: "http://qbittorrent.default.svc.cluster.local:80"
+    service:
+      main:
+        ports:
+          http:
+            port: 3000
+    ingress:
+      main:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          hajimari.io/icon: mdi:download
+        hosts:
+          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - *host
+    podSecurityContext:
+      runAsUser: 568
+      runAsGroup: 568
+      fsGroup: 568
+      fsGroupChangePolicy: OnRootMismatch
+      supplementalGroups: [10000]
+    volumeClaimTemplates:
+      - name: config
+        mountPath: /data
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-block
+    resources:
+      requests:
+        memory: 250Mi
+        cpu: 15m
+      limits:
+        memory: 512Mi
