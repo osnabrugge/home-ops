@@ -40,7 +40,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: exadel/compreface
-      tag: 1.1.0-mobilenet
+      tag: 1.1.0-arcface-r100
     env:
       TZ: ${TIMEZONE}
       POSTGRES_DB: compreface
