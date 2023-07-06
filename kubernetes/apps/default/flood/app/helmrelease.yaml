@@ -37,7 +37,7 @@ spec:
       type: statefulset
     image:
       repository: jesec/flood
-      tag: master@sha256:b68ff02379c8d4746f05a8a6e3d599a7723f2a73c32e608c393367b46f7e63dc
+      tag: master@sha256:255a3dac391f97b81ff901fcf37d72fb641ec466f03b2f92120b74fdc86203ae
     imagePullPolicy: IfNotPresent
     envFrom:
       - secretRef:
