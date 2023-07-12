@@ -28,3 +28,5 @@ k3s_server:
     - "bind-address=0.0.0.0"
   kube-apiserver-arg:
     - "anonymous-auth=true"
+  node-taint:
+    - "k3s-controlplane=true:NoExecute"
