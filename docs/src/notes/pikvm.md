@@ -219,74 +219,74 @@ kvmd:
                 switch: false
             server8_led:
                 driver: tes
-                pin: 0
+                pin: 8
                 mode: input
             server8_switch:
                 driver: tes
-                pin: 0
+                pin: 8
                 mode: output
                 switch: false
             server9_led:
                 driver: tes
-                pin: 1
+                pin: 9
                 mode: input
             server9_switch:
                 driver: tes
-                pin: 1
+                pin: 9
                 mode: output
                 switch: false
             server10_led:
                 driver: tes
-                pin: 2
+                pin: 10
                 mode: input
             server10_switch:
                 driver: tes
-                pin: 2
+                pin: 10
                 mode: output
                 switch: false
             server11_led:
                 driver: tes
-                pin: 3
+                pin: 11
                 mode: input
             server11_switch:
                 driver: tes
-                pin: 3
+                pin: 11
                 mode: output
                 switch: false
             server12_led:
                 driver: tes
-                pin: 4
+                pin: 12
                 mode: input
             server12_switch:
                 driver: tes
-                pin: 4
+                pin: 12
                 mode: output
                 switch: false
             server13_led:
                 driver: tes
-                pin: 5
+                pin: 13
                 mode: input
             server13_switch:
                 driver: tes
-                pin: 5
+                pin: 13
                 mode: output
                 switch: false
             server14_led:
                 driver: tes
-                pin: 6
+                pin: 14
                 mode: input
             server14_switch:
                 driver: tes
-                pin: 6
+                pin: 14
                 mode: output
                 switch: false
             server15_led:
                 driver: tes
-                pin: 7
+                pin: 15
                 mode: input
             server15_switch:
                 driver: tes
-                pin: 7
+                pin: 15
                 mode: output
                 switch: false
 
