@@ -14,7 +14,7 @@ kvmd:
         drivers:
             tes:
                 type: tesmart
-                host: 192.168.10.31
+                host: 192.168.10.10
                 port: 5000
             wol_server0:
                 type: wol
