@@ -37,7 +37,7 @@ spec:
     restartPolicy: OnFailure
     image:
       repository: ghcr.io/onedr0p/jbops
-      tag: 1.0.893@sha256:1bc69e70fc9e177cc5a9870ea38bd4b515cadbe9ad72edf7bbff81b09f5bd05b
+      tag: 1.0.893@sha256:d82c3def42728f487cdb022cf9607ffba4a79ad9c2bc01d1f97f52a1ef2c1caa
     args: ["/entrypoint.sh", "--playlists", "Smart Toons"]
     env:
       TZ: "{$TIMEZONE}"
