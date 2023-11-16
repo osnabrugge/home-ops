@@ -38,7 +38,7 @@ Additional applications include [hajimari](https://github.com/toboshii/hajimari)
 
 ## 🤝 Thanks
 
-A lot of inspiration for my cluster came from the people that have shared their clusters over at [awesome-home-kubernetes](https://github.com/k8s-at-home/awesome-home-kubernetes).  A few in particular deserve a ton of recognition for their hardwork, talent and help to the community:
+A lot of inspiration for my cluster came from the memmbers of the [Kubernetes @Home Discord](https://discord.gg/k8s-at-home) community.  In addition to this great template, the community has also created additional resources that are invaluable once you've setup your cluster.  I strongly encourage you take a look at the [k8s-at-home GitHub topic](https://github.com/topics/k8s-at-home) and the [Kubernetes @Home search](https://nanne.dev/k8s-at-home-search/).  These tools are invaluable as you deploy additional workloads/apps to save you time, generaete new ideas and overcome blockers.
 
 - [angelnu/k8s-gitops](https://github.com/angelnu/k8s-gitops)
 - [billimek/k8s-gitops](https://github.com/billimek/k8s-gitops)
