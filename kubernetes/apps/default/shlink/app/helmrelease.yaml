@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.2.0
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -44,7 +44,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/shlinkio/shlink
-      tag: 3.6.3-non-root
+      tag: 3.6.4-non-root
     env:
       DEFAULT_DOMAIN: &host ln.${SECRET_DOMAIN}
       DISABLE_TRACKING_FROM: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16

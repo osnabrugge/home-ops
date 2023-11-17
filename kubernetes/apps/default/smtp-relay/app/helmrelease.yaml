@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.2.0
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -37,7 +37,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: boky/postfix
-      tag: v3.6.1
+      tag: v4.0.2
     env:
       TZ: "${TIMEZONE}"
       POSTFIX_smtp_tls_security_level: "encrypt"
