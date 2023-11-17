@@ -10,7 +10,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 1.5.1
+      version: 2.2.0
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -45,7 +45,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/onedr0p/home-assistant
-      tag: 2023.7.1@sha256:53a01ba5ee421bc6ba3ab89d63ba20d40cb6684cb2230000cf72f524d262ba82
+      tag: 2023.11.2@sha256:29a2a48386bcd182c97229892ef123f4ee9d4b1dead7e5ea31a2ecc85fa13ab3
     env:
       TZ: "${TIMEZONE}"
       POSTGRES_HOST: postgres-rw.default.svc.cluster.local
@@ -55,7 +55,7 @@ spec:
           name: home-assistant-secret
     sidecars:
       rtsp-simple-server:
-        image: ghcr.io/osnabrugge/rtsp-simple-server:v0.23.6
+        image: ghcr.io/osnabrugge/rtsp-simple-server:v0.23.8
         imagePullPolicy: IfNotPresent
         env:
           MTX_PROTOCOLS: tcp
