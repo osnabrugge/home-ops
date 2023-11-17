@@ -40,7 +40,7 @@ spec:
         reloader.stakater.com/auto: "true"
     image:
       repository: ghcr.io/onedr0p/plex
-      tag: 1.32.4.7195-7c8f9d3b6@sha256:39c4ad71d92790d54b2d14be5fdabca940591ab2b9f8291d02653cd4f80d9d4f
+      tag: 1.32.7.7621-871adbd44@sha256:f9f77dc5e17cab9fae5ece663a64d026e3c75142b3b60bb4a52bf061957412be
     env:
       TZ: "{$TIMEZONE}"
     service:
