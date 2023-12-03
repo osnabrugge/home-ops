@@ -34,7 +34,7 @@ spec:
         app: sriovdp
     image:
       repository: ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin
-      tag: v3.6.1
+      tag: v3.6.2
       pullPolicy: IfNotPresent
     args: ["--log-dir=sriovdp", "--log-level=10"]
     env:
