@@ -1,31 +1,31 @@
 ---
-name: "Publish Infrastructure"
+name: "Publish Terraform"
 
 on:
   workflow_dispatch:
   push:
     branches: ["main"]
-    paths: ["infrastructure/**"]
+    paths: ["terraform/**"]
 
 jobs:
-  publish-infrastructure:
-    name: Publish Infrastructure
+  publish-terraform:
+    name: Publish Terraform
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       packages: write
-      id-token: write
     steps:
       - name: Generate Token
-        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
-        id: generate-token
+        uses: actions/create-github-app-token@2986852ad836768dfea7781f31828eb3e17990fa # v1.6.2
+        id: app-token
         with:
-          app_id: "${{ secrets.BOT_APP_ID }}"
-          private_key: "${{ secrets.BOT_APP_PRIVATE_KEY }}"
+          app-id: "${{ secrets.BOT_APP_ID }}"
+          private-key: "${{ secrets.BOT_APP_PRIVATE_KEY }}"
 
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          token: "${{ steps.generate-token.outputs.token }}"
+          token: "${{ steps.app-token.outputs.token }}"
 
       - name: Setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
@@ -44,13 +44,13 @@ jobs:
       - name: Generate tag
         id: generate-tag
         shell: bash
-        run: echo "tag=ghcr.io/${{ github.repository_owner }}/manifests/infrastructure:$(git rev-parse --short HEAD)" >> "${GITHUB_OUTPUT}"
+        run: echo "tag=ghcr.io/${{ github.repository_owner }}/manifests/terraform:$(git rev-parse --short HEAD)" >> "${GITHUB_OUTPUT}"
 
       - name: Publish manifests
         shell: bash
         run: |
           flux push artifact oci://${{ steps.generate-tag.outputs.tag }} \
-              --path="./infrastructure" \
+              --path="./terraform" \
               --source="$(git config --get remote.origin.url)" \
               --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 

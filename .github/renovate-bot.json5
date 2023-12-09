@@ -1,6 +1,0 @@
-{
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "username": "seanv-bot[bot]",
-  "gitAuthor": "seanv-bot <36882695+seanv-bot[bot]@users.noreply.github.com>",
-  "repositories": ["osnabrugge/home-ops"]
-}
