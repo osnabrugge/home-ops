@@ -55,7 +55,7 @@ spec:
           name: home-assistant-secret
     sidecars:
       rtsp-simple-server:
-        image: ghcr.io/osnabrugge/rtsp-simple-server:v1.3.1
+        image: ghcr.io/osnabrugge/rtsp-simple-server:v1.4.0
         imagePullPolicy: IfNotPresent
         env:
           MTX_PROTOCOLS: tcp
