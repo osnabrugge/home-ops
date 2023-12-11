@@ -4,12 +4,14 @@ Thumbs.db
 .venv/
 .task/
 .terraform
-*.tfstate
 *.tfvars
+.cache_ggshield
 .decrypted~*
+*.secret.env
+*.secret.yaml
 *.agekey
 *.pub
 *.key
 *.pem
-kubeconfig*
+kubeconfig
 config.xml

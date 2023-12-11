@@ -74,15 +74,10 @@
         stale_containers_state: disabled
 
     - name: Helm controller
-      notify: Restart Kubernetes
       when: k3s_control_node
       ansible.builtin.include_tasks: tasks/helm_controller.yaml
 
-
-
-
     - name: Copy custom containerd configuration
-      notify: Restart Kubernetes
       ansible.builtin.copy:
         src: files/config.toml.tmpl
         dest: /var/lib/rancher/k3s/agent/etc/containerd/config.toml.tmpl
@@ -93,12 +88,3 @@
     - name: Azure Workload Identity
       when: k3s_control_node
       ansible.builtin.include_tasks: tasks/azwi.yaml
-
-  handlers:
-    - name: Restart Kubernetes
-      ansible.builtin.include_role:
-        name: xanmanning.k3s
-        public: true
-      vars:
-        k3s_state: restarted
-
