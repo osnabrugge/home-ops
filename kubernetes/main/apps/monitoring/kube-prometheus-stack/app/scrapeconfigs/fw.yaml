@@ -1,0 +1,10 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/monitoring.coreos.com/scrapeconfig_v1alpha1.json
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: fw01-vnstat
+spec:
+  staticConfigs:
+    - targets: ["fw01.${SECRET_DOMAIN}:8685"]
+  metricsPath: /metrics

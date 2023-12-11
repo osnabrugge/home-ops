@@ -1,0 +1,11 @@
+{
+    "resourceList": [{
+            "resourceName": "sriov",
+            "selectors": {
+                "vendors": ["8086"],
+                "devices": ["10ed"],
+                "drivers": ["ixgbevf"]
+            }
+        }
+    ]
+}
