@@ -1,0 +1,89 @@
+---
+- name: Azure Workload Identity
+  block:
+    - name: "Generate private key on {{ k3s_control_delegate }}"
+      ansible.builtin.command: # Revert to shell module if command module fails (ansible-lint complains about shell usage)
+        cmd: openssl genrsa -out "{{ k3s_data_dir }}/server/tls/azwi.key" 2048
+        creates: "{{ k3s_data_dir }}/server/tls/azwi.key"
+      delegate_to: "{{ k3s_control_delegate }}"
+
+    - name: "Generate public key {{ k3s_control_delegate }}"
+      ansible.builtin.command:
+        cmd: openssl rsa -in "{{ k3s_data_dir }}/server/tls/azwi.key" -pubout -out "{{ k3s_data_dir }}/server/tls/azwi.crt"
+        creates: "{{ k3s_data_dir }}/server/tls/azwi.crt"
+      delegate_to: "{{ k3s_control_delegate }}"
+
+    - name: "Capture private key from {{ k3s_control_delegate }}"
+      ansible.builtin.slurp:
+        path: "{{ k3s_data_dir }}/server/tls/azwi.key"
+      register: azwi_slurped_private_key
+      delegate_to: "{{ k3s_control_delegate }}"
+
+    - name: "Capture public key from {{ k3s_control_delegate }}"
+      ansible.builtin.slurp:
+        path: "{{ k3s_data_dir }}/server/tls/azwi.crt"
+      register: azwi_slurped_public_key
+      delegate_to: "{{ k3s_control_delegate }}"
+
+    - name: Copy RSA key pair to remaining control plane nodes
+      ansible.builtin.copy:
+        content: "{{ item.content | b64decode }}"
+        dest: "{{ k3s_data_dir }}/server/tls/{{ item.filename }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { content: "{{ azwi_slurped_private_key.content }}", filename: "azwi.key", mode: '0600' }
+        - { content: "{{ azwi_slurped_public_key.content }}", filename: "azwi.crt", mode: '0644' }
+
+    - name: Update kube-apiserver-arg
+      ansible.builtin.lineinfile:
+        path: "{{ k3s_config_file }}"
+        regexp: '^kube-apiserver-arg:\\n- anonymous-auth=true$'
+        line: |
+          kube-apiserver-arg:
+          - anonymous-auth=true
+          - service-account-issuer=https://oidckube.blob.core.windows.net/oidc
+          - service-account-key-file={{ k3s_data_dir }}/server/tls/azwi.crt
+          - service-account-signing-key-file={{ k3s_data_dir }}/server/tls/azwi.key
+
+    - name: Update kube-controller-manager-arg
+      ansible.builtin.lineinfile:
+        path: "{{ k3s_config_file }}"
+        regexp: '^kube-controller-manager-arg:\\n- bind-address=0.0.0.0$'
+        line: |
+          kube-controller-manager-arg:
+          - bind-address=0.0.0.0
+          - service-account-private-key-file={{ k3s_data_dir }}/server/tls/azwi.key
+
+    - name: Remove extra blank lines from k3s config file
+      ansible.builtin.lineinfile:
+        path: "{{ k3s_config_file }}"
+        regexp: '^$'
+        state: absent
+
+    - name: Fetch public key
+      ansible.builtin.fetch:
+        src: "{{ k3s_data_dir }}/server/tls/azwi.crt"
+        dest: "/tmp/azwi.crt"
+        flat: true
+      delegate_to: "{{ k3s_control_delegate }}"
+
+    - name: Generate JWKS document
+      ansible.builtin.command:
+        cmd: azwi jwks --public-keys "/tmp/azwi.crt" --output-file "/tmp/jwks.json"
+      delegate_to: localhost
+      environment:
+        PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
+      changed_when: true
+
+    - name: Upload JWKS document to Azure Blob Storage
+      ansible.builtin.command:
+        cmd: az storage blob upload --connection-string "{{ azure_connection_string }}" --container-name oidc --file "/tmp/jwks.json" --name openid/v1/jwks --overwrite
+      delegate_to: localhost
+      environment:
+        PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
+      changed_when: true
+
+    - name: Restart k3s
+      ansible.builtin.service:
+        name: k3s
+        state: restarted

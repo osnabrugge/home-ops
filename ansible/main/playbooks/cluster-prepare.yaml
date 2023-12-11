@@ -1,0 +1,304 @@
+---
+- name: Prepare System
+  hosts: kubernetes
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  pre_tasks:
+    - name: Pausing for 2 seconds...
+      ansible.builtin.pause:
+        seconds: 2
+  tasks:
+    - name: Locale
+      block:
+        - name: Locale | Set timezone
+          community.general.timezone:
+            name: "{{ timezone | default('Etc/UTC') }}"
+
+    - name: Packages
+      block:
+        - name: Packages | Add fish key
+          ansible.builtin.get_url:
+            url: https://download.opensuse.org/repositories/shells:fish:release:3/Debian_12/Release.key
+            dest: /etc/apt/trusted.gpg.d/fish.asc
+            owner: root
+            group: root
+            mode: "0644"
+        - name: Packages | Add fish repository
+          ansible.builtin.apt_repository:
+            repo: deb [signed-by=/etc/apt/trusted.gpg.d/fish.asc] http://download.opensuse.org/repositories/shells:/fish:/release:/3/Debian_12/ /
+            filename: fish
+            update_cache: true
+        - name: Packages | Add non-free repository
+          ansible.builtin.apt_repository:
+            repo: deb http://deb.debian.org/debian/ stable main contrib non-free
+            filename: non-free
+            update_cache: true
+        - name: Packages | Install
+          ansible.builtin.apt:
+            name: apt-transport-https,ca-certificates,conntrack,curl,dirmngr,dnsutils,fish,gdisk,gnupg,hdparm,htop,iperf3,iptables,iputils-ping,ipvsadm,
+              libseccomp2,lm-sensors,neofetch,net-tools,parted,psmisc,python3,python3-apt,python3-openshift,python3-kubernetes,python3-yaml,
+              smartmontools,socat,software-properties-common,unzip,util-linux
+            install_recommends: false
+        - name: Packages | Additional worker packages
+          when: not k3s_control_node
+          ansible.builtin.apt:
+            name: i965-va-driver-shaders,intel-gpu-tools,intel-media-va-driver-non-free,nvme-cli,nfs-common,open-iscsi
+            install_recommends: false
+
+    - name: User Configuration
+      block:
+        - name: User Configuration | SSH keys
+          ansible.posix.authorized_key:
+            user: "{{ ansible_user }}"
+            key: "https://github.com/{{ github_username }}.keys"
+        - name: User Configuration | Silence login
+          ansible.builtin.file:
+            dest: "{{ '/home/' + ansible_user if ansible_user != 'root' else '/root' }}/.hushlogin"
+            state: touch
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0644"
+            modification_time: preserve
+            access_time: preserve
+        - name: User Configuration | Add user to sudoers
+          when: ansible_user != 'root'
+          ansible.builtin.copy:
+            content: "{{ ansible_user }} ALL=(ALL:ALL) NOPASSWD:ALL"
+            dest: "/etc/sudoers.d/{{ ansible_user }}"
+            owner: root
+            group: root
+            mode: "0440"
+        - name: User Configuration | Fish shell (1)
+          ansible.builtin.user:
+            name: "{{ ansible_user }}"
+            shell: /usr/bin/fish
+        - name: User Configuration | Fish shell (2)
+          ansible.builtin.file:
+            path: "{{ '/home/' + ansible_user if ansible_user != 'root' else '/root' }}/.config/fish/functions"
+            state: directory
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            recurse: true
+        - name: User Configuration | Fish shell (3)
+          ansible.builtin.copy:
+            dest: "{{ '/home/' + ansible_user if ansible_user != 'root' else '/root' }}/.config/fish/functions/fish_greeting.fish"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0755"
+            content: neofetch --config none
+        - name: User Configuration | Fish shell (3)
+          ansible.builtin.copy:
+            dest: "{{ '/home/' + ansible_user if ansible_user != 'root' else '/root' }}/.config/fish/functions/k.fish"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: "0755"
+            content: |
+              function k --wraps=kubectl --description 'kubectl shorthand'
+                  kubectl $argv
+              end
+
+    - name: Network Configuration
+      notify: Reboot
+      block:
+        - name: Network Configuration | Set hostname
+          ansible.builtin.hostname:
+            name: "{{ inventory_hostname }}"
+        - name: Network Configuration | Update hosts
+          ansible.builtin.copy:
+            dest: /etc/hosts
+            content: |
+              127.0.0.1 localhost
+              127.0.1.1 {{ inventory_hostname }}
+              # The following lines are desirable for IPv6 capable hosts
+              # ::1     localhost ip6-localhost ip6-loopback
+              # ff02::1 ip6-allnodes
+              # ff02::2 ip6-allrouters
+            mode: preserve
+        # https://github.com/cilium/cilium/issues/18706
+        - name: Network Configuration | Cilium (1)
+          ansible.builtin.lineinfile:
+            dest: /etc/systemd/networkd.conf
+            regexp: ManageForeignRoutingPolicyRules
+            line: ManageForeignRoutingPolicyRules=no
+        - name: Network Configuration | Cilium (2)
+          ansible.builtin.lineinfile:
+            dest: /etc/systemd/networkd.conf
+            regexp: ManageForeignRoutes
+            line: ManageForeignRoutes=no
+        - name: Network Configuration | Master Interfaces
+          when: k3s_control_node
+          ansible.builtin.template:
+            src: network-config.j2
+            dest: /etc/systemd/network/{{ item.name }}.network
+            mode: "0644"
+          loop:
+            - { name: "eth0", dhcp4: "yes", mtu: "1500" }
+        - name: Network Configuration | Worker Interfaces
+          when: not k3s_control_node
+          ansible.builtin.template:
+            src: network-config.j2
+            dest: /etc/systemd/network/{{ item.name }}.network
+            mode: "0644"
+          loop:
+            - { name: "eno1", dhcp4: "yes", mtu: "9000" }
+            - { name: "enp1s0", dhcp4: "no", mtu: "9000" }
+        - name: "Check if the ifupdown package exists"
+          ansible.builtin.stat:
+            path: "/lib/systemd/system/networking.service"
+          register: networking_service
+        - name: "Disabling networking.service"
+          ansible.builtin.systemd:
+            name: "networking"
+            enabled: false
+          when: networking_service.stat.exists
+          notify: Enable networkd
+
+    - name: Network Configuration | Workers
+      when: not k3s_control_node
+      notify: Reboot
+      block:
+        - name: Network Configuration | sriov
+          ansible.builtin.lineinfile:
+            path: /etc/modprobe.d/ixgbe.conf
+            line: "options ixgbe allow_unsupported_sfp=1"
+            create: true
+            mode: "0644"
+          notify: Update initramfs
+
+    - name: Sytem Configuration
+      notify: Reboot
+      block:
+        - name: System Configuration | Neofetch
+          ansible.builtin.copy:
+            dest: /etc/profile.d/neofetch.sh
+            mode: "0755"
+            content: neofetch --config none
+        - name: System Configuration | Disable apparmor
+          ansible.builtin.systemd:
+            name: apparmor
+            state: stopped
+            masked: true
+        - name: System Configuration | Disable swap
+          ansible.posix.mount:
+            name: "{{ item }}"
+            fstype: swap
+            state: absent
+          loop: ["none", "swap"]
+
+    - name: System Configuration | Raspberry PI Masters
+      when: k3s_control_node
+      notify: Reboot
+      block:
+        - name: System Configuration | Add cgroup_memory
+          ansible.builtin.lineinfile:
+            dest: /boot/cmdline.txt
+            regexp: '^(.*)$'
+            line: '\1 cgroup_memory=1 cgroup_enable=memory'
+            backrefs: true
+            state: present
+            insertafter: EOF
+        - name: System Configuration | Sysctl
+          ansible.posix.sysctl:
+            name: "{{ item.key }}"
+            value: "{{ item.value }}"
+            sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+            reload: true
+          with_dict: "{{ sysctl_config }}"
+          vars:
+            sysctl_config:
+              net.ipv6.conf.all.disable_ipv6: 1
+              net.ipv6.conf.default.disable_ipv6: 1
+              net.ipv6.conf.lo.disable_ipv6: 1
+
+    - name: System Configuration | Workers
+      when: not k3s_control_node
+      notify: Reboot
+      block:
+        - name: System Configuration | NFS
+          ansible.builtin.copy:
+            src: files/nfsmount.conf
+            dest: /etc/nfsmount.conf
+            owner: root
+            group: root
+            mode: "0644"
+        - name: System Configuration | Kernel modules (1)
+          community.general.modprobe:
+            name: "{{ item }}"
+            state: present
+          loop: ["br_netfilter", "ceph", "ip_vs", "ip_vs_rr", "nbd", "overlay", "rbd", "tcp_bbr", "vfio", "vfio_iommu_type1", "vfio_pci", "vfio_virqfd"]
+          notify: Update initramfs
+        - name: System Configuration | Kernel modules (2)
+          ansible.builtin.copy:
+            dest: "/etc/modules-load.d/{{ item }}.conf"
+            mode: "0644"
+            content: "{{ item }}"
+          loop: ["br_netfilter", "ceph", "ip_vs", "ip_vs_rr", "nbd", " overlay", "rbd", "tcp_bbr", "vfio", "vfio_iommu_type1", "vfio_pci", "vfio_virqfd"]
+          notify: Update initramfs
+        - name: System Configuration | Sysctl
+          ansible.posix.sysctl:
+            name: "{{ item.key }}"
+            value: "{{ item.value }}"
+            sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+            reload: true
+          with_dict: "{{ sysctl_config }}"
+          vars:
+            sysctl_config:
+              fs.inotify.max_queued_events: 65536
+              fs.inotify.max_user_watches: 524288
+              fs.inotify.max_user_instances: 8192
+              net.ipv6.conf.all.disable_ipv6: 1
+              net.ipv6.conf.default.disable_ipv6: 1
+              net.ipv6.conf.lo.disable_ipv6: 1
+        - name: System Configuration | Grub (1)
+          ansible.builtin.replace:
+            path: /etc/default/grub
+            regexp: '^(GRUB_CMDLINE_LINUX=(?:(?![" ]{{ item.key | regex_escape }}=).)*)(?:[" ]{{ item.key | regex_escape }}=\S+)?(.*")$'
+            replace: '\1 {{ item.key }}={{ item.value }}\2'
+          with_dict: "{{ grub_config }}"
+          vars:
+            grub_config:
+              pci: "assign-busses"
+              intel_iommu: "on"
+              iommu: "pt"
+              pcie_acs_override: "downstream,multifunction"
+              apparmor: "0"
+              mitigations: "off"
+          register: grub_status
+        - name: System Configuration | Grub (2) # noqa: no-changed-when no-handler
+          ansible.builtin.command: update-grub
+          when: grub_status.changed
+
+    - name: Install Services
+      when: not k3s_control_node
+      block:
+        - name: Check if sriov service file exists
+          ansible.builtin.stat:
+            path: /etc/systemd/system/sriov.service
+          register: sriov_service_file
+        - name: Install Service | sriov
+          when: not sriov_service_file.stat.exists
+          ansible.builtin.template:
+            src: sriov.service.j2
+            dest: /etc/systemd/system/sriov.service
+            mode: "0644"
+          notify: Enable sriov
+
+  handlers:
+    - name: Update initramfs
+      ansible.builtin.command: update-initramfs -u -k all
+      changed_when: "'changed' in ansible_run_tags"
+    - name: Enable networkd
+      ansible.builtin.service:
+        name: systemd-networkd
+        state: started
+        enabled: true
+    - name: Enable sriov
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: sriov.service
+        enabled: true
+    - name: Reboot
+      ansible.builtin.reboot:
+        msg: Rebooting nodes
+        reboot_timeout: 3600

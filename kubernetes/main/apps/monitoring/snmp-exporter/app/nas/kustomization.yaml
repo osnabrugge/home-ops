@@ -1,0 +1,21 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - ./configmap.yaml
+  - ./helmrelease.yaml
+configMapGenerator:
+  - name: nas-dashboard
+    files:
+      - nas-dashboard.json=./resources/nas-details.json
+  - name: nas-overview
+    files:
+      - nas-overview.json=./resources/nas-overview.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+  labels:
+    grafana_dashboard: "true"

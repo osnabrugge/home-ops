@@ -1,0 +1,22 @@
+[Unit]
+Description=Script to enable SR-IOV on boot
+[Service]
+Type=oneshot
+# Wait for interface to be available
+ExecStartPre=/usr/lib/systemd/systemd-networkd-wait-online --interface=enp1s0
+# Enable the VFs
+ExecStart=/usr/bin/bash -c "/usr/bin/echo 4 > /sys/class/net/enp1s0/device/sriov_numvfs"
+# Wait for VFs to be created
+ExecStart=/usr/bin/bash -c "timeout=10; count=0; while [ $count -lt 4 ]; do count=$(ip link show | grep -c enp1s0v); sleep 1; timeout=$((timeout-1)); if [ $timeout -eq 0 ]; then break; fi; done"
+# Setting MTU to 9000 on all VFs
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set enp1s0v0 mtu 9000"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set enp1s0v1 mtu 9000"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set enp1s0v2 mtu 9000"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set enp1s0v3 mtu 9000"
+# Enable Trust and Disable Spoof Checking on all VFs
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set dev enp1s0 vf 0 trust on spoofchk off"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set dev enp1s0 vf 1 trust on spoofchk off"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set dev enp1s0 vf 2 trust on spoofchk off"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip link set dev enp1s0 vf 3 trust on spoofchk off"
+[Install]
+WantedBy=multi-user.target

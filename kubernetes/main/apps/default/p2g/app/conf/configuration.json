@@ -1,0 +1,74 @@
+{
+  "App": {
+    "OutputDirectory": "./output",
+    "EnablePolling": true,
+    "PollingIntervalSeconds": 86400,
+    "CloseWindowOnFinish": false,
+    "CheckForUpdates": true
+  },
+
+  "Format": {
+    "Fit": true,
+    "Json": false,
+    "Tcx": false,
+    "SaveLocalCopy": true,
+    "IncludeTimeInHRZones": false,
+    "IncludeTimeInPowerZones": false,
+    "DeviceInfoPath": "./deviceInfo.xml"
+  },
+
+  "Peloton": {
+    "Email": "${PELOTON_EMAIL}",
+    "Password": "${PELOTON_PASSWORD}",
+    "NumWorkoutsToDownload": 5,
+    "ExcludeWorkoutTypes": [ ]
+  },
+
+  "Garmin": {
+    "Email": "${GARMIN_EMAIL}",
+    "Password": "${GARMIN_PASSWORD}",
+    "TwoStepVerificationEnabled": false,
+    "Upload": true,
+    "FormatToUpload": "fit",
+    "UploadStrategy": 2
+  },
+
+  "Observability": {
+
+    "Prometheus": {
+      "Enabled": true,
+      "Port": 4000
+    },
+
+    "Jaeger": {
+      "Enabled": false,
+      "AgentHost": "localhost",
+      "AgentPort": 6831
+    },
+
+    "WriteTo": [
+      { "Name": "Console" },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "./output/log.txt",
+          "rollingInterval": "Day",
+          "retainedFileCountLimit": 7
+        }
+      },
+      {
+        "Name": "GrafanaLoki",
+        "Args": {
+          "uri": "http://loki-gateway.monitoring.svc.cluster.local",
+          "textFormatter": "Serilog.Sinks.Grafana.Loki.LokiJsonTextFormatter, Serilog.Sinks.Grafana.Loki",
+          "labels": [
+            {
+              "key": "app",
+              "value": "p2g"
+            }
+          ]
+        }
+    }]
+  }
+}
+
