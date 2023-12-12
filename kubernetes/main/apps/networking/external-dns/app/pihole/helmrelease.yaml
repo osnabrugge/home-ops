@@ -34,7 +34,6 @@ spec:
             name: external-dns-pihole-secret
             key: pihole-password
     extraArgs:
-      - --ingress-class=internal
       - --pihole-server=http://pi01.${SECRET_DOMAIN}
     policy: upsert-only
     sources: ["service", "ingress"]
