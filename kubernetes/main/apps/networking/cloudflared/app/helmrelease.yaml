@@ -49,8 +49,6 @@ spec:
               - tunnel
               - --loglevel
               - debug
-              - --logfile
-              - /var/log/cloudflared/tunnel.log
               - --config
               - /etc/cloudflared/config/config.yaml
               - run
