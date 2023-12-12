@@ -88,3 +88,8 @@
     - name: Azure Workload Identity
       when: k3s_control_node
       ansible.builtin.include_tasks: tasks/azwi.yaml
+
+    - name: Restart k3s
+      ansible.builtin.service:
+        name: k3s
+        state: restarted

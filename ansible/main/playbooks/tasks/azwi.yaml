@@ -60,30 +60,27 @@
         regexp: '^$'
         state: absent
 
-    - name: Fetch public key
-      ansible.builtin.fetch:
-        src: "{{ k3s_data_dir }}/server/tls/azwi.crt"
-        dest: "/tmp/azwi.crt"
-        flat: true
-      delegate_to: "{{ k3s_control_delegate }}"
+    # TODO: Resolve issue with ansible giving error "No module named 'urllib3'"" for az storage blob upload
 
-    - name: Generate JWKS document
-      ansible.builtin.command:
-        cmd: azwi jwks --public-keys "/tmp/azwi.crt" --output-file "/tmp/jwks.json"
-      delegate_to: localhost
-      environment:
-        PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
-      changed_when: true
+    # - name: Fetch public key
+    #   ansible.builtin.fetch:
+    #     src: "{{ k3s_data_dir }}/server/tls/azwi.crt"
+    #     dest: "/tmp/azwi.crt"
+    #     flat: true
+    #   delegate_to: "{{ k3s_control_delegate }}"
 
-    - name: Upload JWKS document to Azure Blob Storage
-      ansible.builtin.command:
-        cmd: az storage blob upload --connection-string "{{ azure_connection_string }}" --container-name oidc --file "/tmp/jwks.json" --name openid/v1/jwks --overwrite
-      delegate_to: localhost
-      environment:
-        PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
-      changed_when: true
+    # - name: Generate JWKS document
+    #   ansible.builtin.command:
+    #     cmd: azwi jwks --public-keys "/tmp/azwi.crt" --output-file "/tmp/jwks.json"
+    #   delegate_to: localhost
+    #   environment:
+    #     PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
+    #   changed_when: true
 
-    - name: Restart k3s
-      ansible.builtin.service:
-        name: k3s
-        state: restarted
+    # - name: Upload JWKS document to Azure Blob Storage
+    #   ansible.builtin.command:
+    #     cmd: az storage blob upload --connection-string "{{ azure_connection_string }}" --container-name oidc --file "/tmp/jwks.json" --name openid/v1/jwks --overwrite
+    #   delegate_to: localhost
+    #   environment:
+    #     PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
+    #   changed_when: true
