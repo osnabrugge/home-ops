@@ -49,6 +49,8 @@ spec:
               - tunnel
               - --loglevel
               - debug
+              - --logfile
+              - /var/log/cloudflared.log
               - --config
               - /etc/cloudflared/config/config.yaml
               - run
@@ -115,7 +117,5 @@ spec:
             subPath: credentials.json
             readOnly: true
       logs:
-        existingClaim: cloudflared-logs
-        globalMounts:
-          - path: /var/log/cloudflared
-            readOnly: false
+        type: hostPath
+        hostPath: /var/log
