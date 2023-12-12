@@ -47,6 +47,10 @@ spec:
               TUNNEL_POST_QUANTUM: true
             args:
               - tunnel
+              - --loglevel
+              - debug
+              - --logfile
+              - /var/log/cloudflared/tunnel.log
               - --config
               - /etc/cloudflared/config/config.yaml
               - run
@@ -112,3 +116,8 @@ spec:
           - path: /etc/cloudflared/creds/credentials.json
             subPath: credentials.json
             readOnly: true
+      logs:
+        existingClaim: cloudflared-logs
+        globalMounts:
+          - path: /var/log/cloudflared
+            readOnly: false
