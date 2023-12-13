@@ -6,8 +6,8 @@ metadata:
   name: policy
 spec:
   loadBalancerIPs: true
-  # interfaces:
-  #   - ^eth0|^eno1
+  interfaces:
+    - ^eth0|^eno1
   nodeSelector:
     matchLabels:
       kubernetes.io/os: linux
