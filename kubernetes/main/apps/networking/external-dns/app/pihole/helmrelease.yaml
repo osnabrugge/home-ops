@@ -33,7 +33,7 @@ spec:
     extraArgs:
       - --pihole-server=http://192.168.10.250
     policy: upsert-only
-    sources: ["service", "ingress"]
+    sources: ["ingress"]
     registry: noop
     serviceMonitor:
       enabled: true
