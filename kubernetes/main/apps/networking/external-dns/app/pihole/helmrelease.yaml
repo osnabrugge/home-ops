@@ -31,7 +31,7 @@ spec:
       - secretRef:
           name: pihole-password
     extraArgs:
-      - --pihole-server=http://192.168.10.250
+      - --pihole-server=http://pi01.${SECRET_DOMAIN}
     policy: upsert-only
     sources: ["ingress"]
     registry: noop
