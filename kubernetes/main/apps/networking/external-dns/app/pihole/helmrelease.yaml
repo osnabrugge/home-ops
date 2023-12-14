@@ -27,14 +27,11 @@ spec:
   values:
     fullnameOverride: *app
     provider: pihole
-    env:
-      - name: EXTERNAL_DNS_PIHOLE_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: external-dns-pihole-secret
-            key: pihole-password
+    envFrom:
+      - secretRef:
+          name: pihole-password
     extraArgs:
-      - --pihole-server=http://pi01.${SECRET_DOMAIN}
+      - --pihole-server=http://192.168.10.250
     policy: upsert-only
     sources: ["service", "ingress"]
     registry: noop
