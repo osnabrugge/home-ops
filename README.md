@@ -10,7 +10,7 @@ _... managed with Flux, Renovate and GitHub Actions_ 🤖
 [![Renovate](https://img.shields.io/github/actions/workflow/status/osnabrugge/home-ops/renovate.yaml?branch=main&label=&logo=renovatebot&style=for-the-badge&color=blue)](https://github.com/osnabrugge/home-ops/actions/workflows/renovate.yaml)
 
 [![Discord](https://img.shields.io/discord/673534664354430999?color=blue&style=for-the-badge&logo=discord)](https://discord.gg/M9xtHc9A "k8s at home Discord Community")
-[![Home-Internet](https://img.shields.io/uptimerobot/status/m792892408-a2f5ebd5a54fff87945cd162?color=brightgreeen&label=Home%20Internet&style=for-the-badge&logo=pfSense&logoColor=white)](https://stats.uptimerobot.com/wvKDmHvrpQ)
+[![Home-Internet](https://img.shields.io/uptimerobot/status/m792892408-a2f5ebd5a54fff87945cd162?color=brightgreeen&label=Home%20Internet&style=for-the-badge&logo=opnSense&logoColor=white)](https://stats.uptimerobot.com/wvKDmHvrpQ)
 
 </div>
 
