@@ -16,7 +16,6 @@ k3s_server:
   kube-controller-manager-arg: ["bind-address=0.0.0.0"]
   kube-scheduler-arg: ["bind-address=0.0.0.0"]
   node-ip: "{{ ansible_host }}"
-  node-taint: ["CriticalAddonsOnly=true:NoExecute"]
   pause-image: registry.k8s.io/pause:3.9
   secrets-encryption: true
   service-cidr: 10.33.0.0/16

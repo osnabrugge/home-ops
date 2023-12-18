@@ -8,33 +8,27 @@ kubernetes:
       hosts:
         k3s01:
           ansible_host: 192.168.10.51
+          ceph_drives:
+            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404474P
         k3s02:
           ansible_host: 192.168.10.52
+          ceph_drives:
+            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404474P
         k3s03:
           ansible_host: 192.168.10.53
+          ceph_drives:
+            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404382B
     worker:
       hosts:
         k3s04:
           ansible_host: 192.168.10.54
           ceph_drives:
-            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404474P
+            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404489F
         k3s05:
           ansible_host: 192.168.10.55
           ceph_drives:
-            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404474P
+            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404511V
         k3s06:
           ansible_host: 192.168.10.56
-          ceph_drives:
-            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404382B
-        k3s07:
-          ansible_host: 192.168.10.57
-          ceph_drives:
-            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404489F
-        k3s08:
-          ansible_host: 192.168.10.58
-          ceph_drives:
-            - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404511V
-        k3s09:
-          ansible_host: 192.168.10.59
           ceph_drives:
             - /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S59ANM0W523534K
