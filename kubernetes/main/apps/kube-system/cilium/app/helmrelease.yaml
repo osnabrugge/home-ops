@@ -116,3 +116,10 @@ spec:
     securityContext:
       privileged: true
     tunnel: disabled
+    # Add the following parameters to enable LoadBalancer & NodePort XDP Acceleration
+    routingMode: native
+    # The values below are required per documentation, but are not in the chart's values.yaml
+    # bpf-lb-acceleration: native
+    # bpf-lb-mode: dsr
+    # bpf-lb-dsr-dispatch: ipip
+    # ipv6.enabled: false

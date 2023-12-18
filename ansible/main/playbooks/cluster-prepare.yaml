@@ -22,16 +22,13 @@
             repo: deb http://deb.debian.org/debian/ stable main contrib non-free
             filename: non-free
             update_cache: true
-        - name: Packages | Install
+        - name: Packages | Install common packages
           ansible.builtin.apt:
-            name: apt-transport-https,ca-certificates,conntrack,curl,dirmngr,dnsutils,fish,gdisk,gnupg,hdparm,htop,iperf3,iptables,iputils-ping,ipvsadm,
-              libseccomp2,lm-sensors,neofetch,net-tools,parted,psmisc,python3,python3-apt,python3-openshift,python3-kubernetes,python3-yaml,
-              smartmontools,socat,software-properties-common,unzip,util-linux
-            install_recommends: false
-        - name: Packages | Additional worker packages
-          when: not k3s_control_node
-          ansible.builtin.apt:
-            name: i965-va-driver-shaders,intel-gpu-tools,intel-media-va-driver-non-free,nvme-cli,nfs-common,open-iscsi
+            name: i965-va-driver-shaders,apt-transport-https,ca-certificates,conntrack,curl,dirmngr,dnsutils,gdisk,
+              gnupg,hdparm,htop,intel-gpu-tools,intel-media-va-driver-non-free,iperf3,iptables,iputils-ping,ipvsadm,
+              libseccomp2,lm-sensors,neofetch,net-tools,nfs-common,nvme-cli,open-iscsi,parted,psmisc,python3,
+              python3-apt,python3-openshift,python3-kubernetes,python3-yaml,smartmontools,socat,software-properties-common,
+              unzip,util-linux
             install_recommends: false
 
     - name: User Configuration
@@ -118,53 +115,32 @@
               127.0.0.1 localhost
               127.0.1.1 {{ inventory_hostname }}
               # The following lines are desirable for IPv6 capable hosts
-              # ::1     localhost ip6-localhost ip6-loopback
-              # ff02::1 ip6-allnodes
-              # ff02::2 ip6-allrouters
+              ::1     localhost ip6-localhost ip6-loopback
+              ff02::1 ip6-allnodes
+              ff02::2 ip6-allrouters
             mode: preserve
-        # https://github.com/cilium/cilium/issues/18706
-        - name: Network Configuration | Cilium (1)
-          ansible.builtin.lineinfile:
-            dest: /etc/systemd/networkd.conf
-            regexp: ManageForeignRoutingPolicyRules
-            line: ManageForeignRoutingPolicyRules=no
-        - name: Network Configuration | Cilium (2)
-          ansible.builtin.lineinfile:
-            dest: /etc/systemd/networkd.conf
-            regexp: ManageForeignRoutes
-            line: ManageForeignRoutes=no
-        - name: Network Configuration | Master Interfaces
-          when: k3s_control_node
-          ansible.builtin.template:
-            src: network-config.j2
-            dest: /etc/systemd/network/{{ item.name }}.network
+        - name: Network Configuration | Set NIC MTU
+          ansible.builtin.copy:
+            dest: /etc/network/interfaces.d/enp1s0
+            content: |
+              auto enp1s0
+              allow-hotplug enp1s0
+              iface enp1s0 inet dhcp
+                  post-up ifconfig enp1s0 mtu 9000
+            owner: root
+            group: root
             mode: "0644"
-          loop:
-            - { name: "eth0", dhcp4: "yes", mtu: "1500" }
-        - name: Network Configuration | Worker Interfaces
-          when: not k3s_control_node
-          ansible.builtin.template:
-            src: network-config.j2
-            dest: /etc/systemd/network/{{ item.name }}.network
+        - name: Network Configuration | Set additional NIC MTU
+          ansible.builtin.copy:
+            dest: /etc/network/interfaces.d/eno1
+            content: |
+              auto eno1
+              allow-hotplug eno1
+              iface eno1 inet dhcp
+                  post-up ifconfig eno1 mtu 9000
+            owner: root
+            group: root
             mode: "0644"
-          loop:
-            - { name: "eno1", dhcp4: "yes", mtu: "9000" }
-            - { name: "enp1s0", dhcp4: "no", mtu: "9000" }
-        - name: "Check if the ifupdown package exists"
-          ansible.builtin.stat:
-            path: "/lib/systemd/system/networking.service"
-          register: networking_service
-        - name: "Disabling networking.service"
-          ansible.builtin.systemd:
-            name: "networking"
-            enabled: false
-          when: networking_service.stat.exists
-          notify: Enable networkd
-
-    - name: Network Configuration | Workers
-      when: not k3s_control_node
-      notify: Reboot
-      block:
         - name: Network Configuration | sriov
           ansible.builtin.lineinfile:
             path: /etc/modprobe.d/ixgbe.conf
@@ -194,56 +170,19 @@
             fstype: swap
             state: absent
           loop: ["none", "swap"]
-
-    - name: System Configuration | Raspberry PI Masters
-      when: k3s_control_node
-      notify: Reboot
-      block:
-        - name: System Configuration | Add cgroup_memory
-          ansible.builtin.lineinfile:
-            dest: /boot/cmdline.txt
-            regexp: '^(.*)$'
-            line: '\1 cgroup_memory=1 cgroup_enable=memory'
-            backrefs: true
-            state: present
-            insertafter: EOF
-        - name: System Configuration | Sysctl
-          ansible.posix.sysctl:
-            name: "{{ item.key }}"
-            value: "{{ item.value }}"
-            sysctl_file: /etc/sysctl.d/99-kubernetes.conf
-            reload: true
-          with_dict: "{{ sysctl_config }}"
-          vars:
-            sysctl_config:
-              net.ipv6.conf.all.disable_ipv6: 1
-              net.ipv6.conf.default.disable_ipv6: 1
-              net.ipv6.conf.lo.disable_ipv6: 1
-
-    - name: System Configuration | Workers
-      when: not k3s_control_node
-      notify: Reboot
-      block:
-        - name: System Configuration | NFS
-          ansible.builtin.copy:
-            src: files/nfsmount.conf
-            dest: /etc/nfsmount.conf
-            owner: root
-            group: root
-            mode: "0644"
-        - name: System Configuration | Kernel modules (1)
-          community.general.modprobe:
-            name: "{{ item }}"
-            state: present
-          loop: ["br_netfilter", "ceph", "ip_vs", "ip_vs_rr", "nbd", "overlay", "rbd", "tcp_bbr", "vfio", "vfio_iommu_type1", "vfio_pci", "vfio_virqfd"]
-          notify: Update initramfs
-        - name: System Configuration | Kernel modules (2)
+        - name: System Configuration | Create Kernel modules
           ansible.builtin.copy:
             dest: "/etc/modules-load.d/{{ item }}.conf"
             mode: "0644"
             content: "{{ item }}"
-          loop: ["br_netfilter", "ceph", "ip_vs", "ip_vs_rr", "nbd", " overlay", "rbd", "tcp_bbr", "vfio", "vfio_iommu_type1", "vfio_pci", "vfio_virqfd"]
+          loop: ["br_netfilter", "ceph", "ip_vs", "ip_vs_rr", "nbd", "overlay", "rbd", "tcp_bbr", "vfio", "vfio_iommu_type1", "vfio_pci", "vfio_virqfd"]
+          register: modules_status
           notify: Update initramfs
+        - name: System Configuration | Reload Kernel modules # noqa: no-changed-when no-handler
+          when: modules_status.changed
+          ansible.builtin.systemd:
+            name: systemd-modules-load
+            state: restarted
         - name: System Configuration | Sysctl
           ansible.posix.sysctl:
             name: "{{ item.key }}"
@@ -256,9 +195,6 @@
               fs.inotify.max_queued_events: 65536
               fs.inotify.max_user_watches: 524288
               fs.inotify.max_user_instances: 8192
-              net.ipv6.conf.all.disable_ipv6: 1
-              net.ipv6.conf.default.disable_ipv6: 1
-              net.ipv6.conf.lo.disable_ipv6: 1
         - name: System Configuration | Grub (1)
           ansible.builtin.replace:
             path: /etc/default/grub
@@ -277,10 +213,8 @@
         - name: System Configuration | Grub (2) # noqa: no-changed-when no-handler
           when: grub_status.changed
           ansible.builtin.command: update-grub
-          when: grub_status.changed
 
     - name: Install Services
-      when: not k3s_control_node
       block:
         - name: Check if sriov service file exists
           ansible.builtin.stat:
@@ -297,12 +231,8 @@
   handlers:
     - name: Update initramfs
       ansible.builtin.command: update-initramfs -u -k all
-      changed_when: "'changed' in ansible_run_tags"
-    - name: Enable networkd
-      ansible.builtin.service:
-        name: systemd-networkd
-        state: started
-        enabled: true
+      register: result
+      changed_when: result.rc == 0
     - name: Enable sriov
       ansible.builtin.systemd:
         daemon_reload: true
