@@ -6,7 +6,7 @@ metadata:
   name: postgres14
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:14.10-9
+  imageName: ghcr.io/cloudnative-pg/postgresql:14.10-10
   primaryUpdateStrategy: unsupervised
   storage:
     size: 20Gi
