@@ -32,7 +32,7 @@ spec:
           main:
             image:
               repository: ghcr.io/charlie-haley/omada_exporter
-              tag: 0.12.0
+              tag: 0.13.0
             env:
               insecure: true
               timeout: 60
