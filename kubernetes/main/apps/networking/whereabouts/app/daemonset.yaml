@@ -33,7 +33,7 @@ spec:
             - >
               SLEEP=false /install-cni.sh &&
               /ip-control-loop -log-level debug
-          image: ghcr.io/k8snetworkplumbingwg/whereabouts:v0.6.2
+          image: ghcr.io/k8snetworkplumbingwg/whereabouts:v0.6.3
           env:
             - name: NODENAME
               valueFrom:
