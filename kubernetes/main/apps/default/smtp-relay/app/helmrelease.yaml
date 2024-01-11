@@ -35,7 +35,7 @@ spec:
           main:
             image:
               repository: docker.io/boky/postfix
-              tag: v4.0.4
+              tag: v4.1.0
             env:
               TZ: Etc/UTC
               POSTFIX_smtp_tls_security_level: "encrypt"
