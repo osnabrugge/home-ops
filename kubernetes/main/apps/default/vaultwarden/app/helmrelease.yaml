@@ -37,7 +37,7 @@ spec:
               tag: 1.30.5@sha256:edb8e2bab9cbca22e555638294db9b3657ffbb6e5d149a29d7ccdb243e3c71e0
             initContainers:
               init-db:
-                image: ghcr.io/onedr0p/postgres-init:16.1
+                image: ghcr.io/onedr0p/postgres-init:16.2
                 envFrom:
                   - secretRef:
                       name: vaultwarden-secret
