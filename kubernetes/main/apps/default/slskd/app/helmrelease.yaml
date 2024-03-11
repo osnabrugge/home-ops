@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/slskd/slskd
-              tag: 0.19.5
+              tag: 0.20.0
             env:
               TZ: Etc/UTC
               SLSKD_APP_DIR: /config
