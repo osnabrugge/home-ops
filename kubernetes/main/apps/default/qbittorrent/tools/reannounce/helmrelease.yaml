@@ -34,7 +34,7 @@ spec:
           main:
             image:
               repository: ghcr.io/buroa/qbtools
-              tag: v0.13.0
+              tag: v0.15.0
             args: [
               "reannounce",
               "--process-seeding",
