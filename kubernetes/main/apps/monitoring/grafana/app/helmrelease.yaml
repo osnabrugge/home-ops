@@ -306,7 +306,7 @@ spec:
         pihole:
           # renovate: depName="Omada Exporter: Client Insights - Prometheus"
           gnetId: 10176
-          revision: 2
+          revision: 3
           datasource: Prometheus
       speedtest:
         speedtest:
