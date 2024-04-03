@@ -45,7 +45,7 @@ spec:
           main:
             image:
               repository: ghcr.io/letsblockit/server
-              tag: v0.53.1
+              tag: v0.54.0
             env:
               TZ: Etc/UTC
               LETSBLOCKIT_ADDRESS: :80
