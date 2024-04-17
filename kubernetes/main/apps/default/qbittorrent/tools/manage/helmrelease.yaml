@@ -39,7 +39,7 @@ spec:
             order: 1
             image: &image
               repository: ghcr.io/buroa/qbtools
-              tag: v0.15.1
+              tag: v0.15.2
             env: &env
               TZ: *timeZone
             args: [
