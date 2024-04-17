@@ -38,7 +38,7 @@ spec:
           main:
             image:
               repository: ghcr.io/buroa/qbtools
-              tag: v0.15.1
+              tag: v0.15.2
             env:
               TZ: *timeZone
             args: [
