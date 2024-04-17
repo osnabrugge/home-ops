@@ -24,8 +24,8 @@
             update_cache: true
         - name: Packages | Install common packages
           ansible.builtin.apt:
-            name: i965-va-driver-shaders,apt-transport-https,ca-certificates,conntrack,curl,dirmngr,dnsutils,gdisk,
-              gnupg,hdparm,htop,intel-gpu-tools,intel-media-va-driver-non-free,iperf3,iptables,iputils-ping,ipvsadm,
+            name: i965-va-driver-shaders,apt-transport-https,ca-certificates,conntrack,curl,dirmngr,dnsutils,ethtool,gdisk,
+              gnupg,hdparm,htop,ifenslave,intel-gpu-tools,intel-media-va-driver-non-free,iperf3,iptables,iputils-ping,ipvsadm,
               libseccomp2,lm-sensors,neofetch,net-tools,nfs-common,nvme-cli,open-iscsi,parted,psmisc,python3,
               python3-apt,python3-openshift,python3-kubernetes,python3-yaml,smartmontools,socat,software-properties-common,
               unzip,util-linux
@@ -114,30 +114,61 @@
             content: |
               127.0.0.1 localhost
               127.0.1.1 {{ inventory_hostname }}
-              # The following lines are desirable for IPv6 capable hosts
-              ::1     localhost ip6-localhost ip6-loopback
-              ff02::1 ip6-allnodes
-              ff02::2 ip6-allrouters
             mode: preserve
-        - name: Network Configuration | Set NIC MTU
+        - name: Network Configuration | Create bond0
           ansible.builtin.copy:
-            dest: /etc/network/interfaces.d/enp1s0
+            dest: /etc/network/interfaces.d/bond0
             content: |
-              auto enp1s0
-              allow-hotplug enp1s0
-              iface enp1s0 inet dhcp
-                  post-up ifconfig enp1s0 mtu 9000
+              auto bond0
+              iface bond0 inet dhcp
+                  bond-slaves enp1s0f0 enp1s0f1
+                  bond-mode 802.3ad
+                  bond-miimon 100
+                  bond-downdelay 200
+                  bond-updelay 200
+                  bond-lacp-rate 1
+                  bond-xmit-hash-policy layer3+4
+                  post-up ifconfig bond0 mtu 9000
             owner: root
             group: root
             mode: "0644"
-        - name: Network Configuration | Set additional NIC MTU
+        - name: Network Configuration | 10G NIC Port 0
+          ansible.builtin.copy:
+            dest: /etc/network/interfaces.d/enp1s0f0
+            content: |
+              auto enp1s0f0
+              iface enp1s0f0 inet manual
+                  post-up ifconfig enp1s0f0 mtu 9000
+            owner: root
+            group: root
+            mode: "0644"
+        - name: Network Configuration | 10G NIC Port 1
+          ansible.builtin.copy:
+            dest: /etc/network/interfaces.d/enp1s0f1
+            content: |
+              auto enp1s0f1
+              iface enp1s0f1 inet manual
+                  post-up ifconfig enp1s0f1 mtu 9000
+            owner: root
+            group: root
+            mode: "0644"
+        - name: Network Configuration | Loopback
+          ansible.builtin.copy:
+            dest: /etc/network/interfaces
+            content: |
+              source /etc/network/interfaces.d/*
+              auto lo
+              iface lo inet loopback
+            owner: root
+            group: root
+            mode: "0644"
+        - name: Network Configuration | Mgmt NIC
           ansible.builtin.copy:
             dest: /etc/network/interfaces.d/eno1
             content: |
               auto eno1
               allow-hotplug eno1
               iface eno1 inet dhcp
-                  post-up ifconfig eno1 mtu 9000
             owner: root
             group: root
             mode: "0644"
