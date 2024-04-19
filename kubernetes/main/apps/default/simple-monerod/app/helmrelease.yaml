@@ -1,0 +1,148 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: &app simple-monerod
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.1.0
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: volsync
+      namespace: volsync-system
+  values:
+    controllers:
+      simple-monerod:
+
+        annotations:
+          reloader.stakater.com/auto: "true"
+          k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
+        containers:
+          app:
+            image:
+              repository: ghcr.io/osnabrugge/simple-monerod
+              tag: v0.18.3.3
+            args:
+              - --rpc-bind-ip=127.0.0.1
+              - --rpc-bind-port=18081
+              - --rpc-restricted-bind-ip=0.0.0.0
+              - --rpc-restricted-bind-port=18089
+              - --no-igd
+              # - --zmq-pub=tcp://0.0.0.0:18083
+              - --no-zmq
+              - --enable-dns-blocklist
+              - --prune-blockchain
+              # - --sync-pruned-blocks
+              # - --db-sync-mode=safe:sync
+              - --out-peers=32
+              - --limit-rate-up=51200
+              - --limit-rate-down=204800
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 200m
+                memory: 600Mi
+                intel.com/sriov_netdevice: 1
+              limits:
+                memory: 1000Mi
+                intel.com/sriov_netdevice: 1
+      tor:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/osnabrugge/tor-hidden-service
+              tag: v0.4.7.8-57f8867
+            env:
+              MONEROD_TOR_SERVICE_HOSTS: 18089:monerod:18089
+              MONEROD_TOR_SERVICE_VERSION: 3
+            envFrom:
+              - secretRef:
+                  name: monero-secret
+      xmrblocks:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/moneroexamples/xmrblocks
+              tag: release-v0.18
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
+    service:
+      app:
+        controller: simple-monerod
+        type: LoadBalancer
+        annotations:
+          io.cilium/lb-ipam-ips: 192.168.10.77
+        ports:
+          http:
+            primary: true
+            port: 18089
+          p2p:
+            port: 18080
+          # zmq:
+          #   port: 18083
+    serviceMonitor:
+      app:
+        serviceName: simple-monerod
+        endpoints:
+          - port: http
+            scheme: http
+            path: /getinfo
+            interval: 1m
+            scrapeTimeout: 10s
+    persistence:
+      data:
+        type: nfs
+        server: nas02.in.homeops.ca
+        path: /volume1/apps/monero/monerod
+        advancedMounts:
+          simple-monerod:
+            app:
+              - path: /home/monerod
+                subPath: monerod
+                readOnly: false
+      secret:
+        type: secret
+        name: simple-monerod-secret
+        advancedMounts:
+          tor:
+            app:
+              - path: /var/lib/tor/hidden_service
+                subPath: hidden_service
+

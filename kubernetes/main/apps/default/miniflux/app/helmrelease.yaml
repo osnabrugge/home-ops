@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -14,20 +14,18 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 2
   install:
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
-  uninstall:
-    keepHistory: false
   values:
     controllers:
-      main:
-        replicas: 2
+      miniflux:
+        replicas: 3
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
@@ -36,27 +34,26 @@ spec:
             image:
               repository: ghcr.io/onedr0p/postgres-init
               tag: 16
-              pullPolicy: IfNotPresent
             envFrom: &envFrom
               - secretRef:
                   name: miniflux-secret
         containers:
-          main:
+          app:
             image:
               repository: ghcr.io/miniflux/miniflux
-              tag: 2.0.50
+              tag: 2.0.50-distroless@sha256:625f6decf8740020fabec273e0f694f218a50281e251e13514ac2be4d9147ca8
             env:
-              BASE_URL: https://miniflux.${SECRET_DOMAIN}
+              BASE_URL: https://miniflux.homeops.ca
               CREATE_ADMIN: "1"
-              DEBUG: "1"
+              # DEBUG: "1"
               LOG_DATE_TIME: "1"
-              METRICS_ALLOWED_NETWORKS: "10.32.0.0/16"
+              METRICS_ALLOWED_NETWORKS: 10.42.0.0/16
               METRICS_COLLECTOR: "1"
               OAUTH2_CLIENT_ID: miniflux
               OAUTH2_USER_CREATION: "1"
-              OAUTH2_OIDC_DISCOVERY_ENDPOINT: https://auth.${SECRET_DOMAIN}
+              OAUTH2_OIDC_DISCOVERY_ENDPOINT: https://auth.homeops.ca
               OAUTH2_PROVIDER: oidc
-              OAUTH2_REDIRECT_URL: https://miniflux.${SECRET_DOMAIN}/oauth2/oidc/callback
+              OAUTH2_REDIRECT_URL: https://miniflux.homeops.ca/oauth2/oidc/callback
               POLLING_SCHEDULER: entry_frequency
               POLLING_FREQUENCY: "15"
               PORT: &port 80
@@ -75,43 +72,52 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-              startup:
-                enabled: false
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
-                memory: 64Mi
               limits:
-                memory: 256Mi
-        pod:
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
+                memory: 512Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
     service:
-      main:
+      app:
+        controller: miniflux
         ports:
           http:
             port: *port
     serviceMonitor:
-      main:
-        enabled: true
+      app:
+        serviceName: miniflux
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 10s
     ingress:
-      main:
-        enabled: true
+      app:
         className: external
         annotations:
-          external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+          external-dns.alpha.kubernetes.io/target: external.homeops.ca
         hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host: "{{ .Release.Name }}.homeops.ca"
             paths:
               - path: /
                 service:
-                  name: main
+                  identifier: app
                   port: http
-        tls:
-          - hosts:
-              - *host

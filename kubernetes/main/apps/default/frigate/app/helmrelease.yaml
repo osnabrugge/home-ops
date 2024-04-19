@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -14,35 +14,32 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 2
   install:
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
-  uninstall:
-    keepHistory: false
   dependsOn:
     - name: intel-device-plugin-gpu
       namespace: kube-system
-    - name: mosquitto
-      namespace: default
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: volsync
-      namespace: volsync
+      namespace: volsync-system
   values:
     controllers:
-      main:
+      frigate:
         annotations:
           reloader.stakater.com/auto: "true"
+          k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
         containers:
-          main:
+          app:
             image:
               repository: ghcr.io/blakeblackshear/frigate
-              tag: 0.13.0-beta7@sha256:c94995428b22a8eda07f92d7e47df5b9405240afbd5754def32e807183d88359
+              tag: 0.13.2@sha256:2906991ccad85035b176941f9dedfd35088ff710c39d45ef1baa9a49f2b16734
             env:
               TZ: Etc/UTC
               LIBVA_DRIVER_NAME: i965
@@ -62,59 +59,49 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-              startup:
-                enabled: false
             securityContext:
               privileged: true
             resources:
               requests:
-                gpu.intel.com/i915: "1"
                 intel.com/sriov: 1
-                cpu: 1000m
-                memory: 2Gi
+                cpu: 100m
               limits:
                 gpu.intel.com/i915: "1"
                 intel.com/sriov: 1
                 memory: 8Gi
-        pod:
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app.kubernetes.io/name
-                        operator: In
-                        values: ["plex", "jellyfin"]
-                  topologyKey: kubernetes.io/hostname
-          podAnnotations:
-            k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
-          nodeSelector:
-            google.feature.node.kubernetes.io/coral: "true"
-            intel.feature.node.kubernetes.io/gpu: "true"
+    defaultPodOptions:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values: ["plex"]
+              topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        google.feature.node.kubernetes.io/coral: "true"
+        intel.feature.node.kubernetes.io/gpu: "true"
     service:
-      main:
+      app:
+        controller: frigate
         ports:
           http:
             port: *port
           rtsp:
             port: 8554
     ingress:
-      main:
-        enabled: true
+      app:
         className: internal
         hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host: "{{ .Release.Name }}.homeops.ca"
             paths:
               - path: /
                 service:
-                  name: main
+                  identifier: app
                   port: http
-        tls:
-          - hosts:
-              - *host
     persistence:
       config:
-        enabled: true
         existingClaim: frigate
         globalMounts:
           - path: /data
@@ -126,14 +113,12 @@ spec:
             subPath: config.yml
             readOnly: true
       cache:
-        enabled: true
         type: emptyDir
         medium: Memory
         sizeLimit: 4Gi
         globalMounts:
           - path: /dev/shm
       usb:
-        enabled: true
         type: hostPath
         hostPath: /dev/bus/usb
         hostPathType: Directory
@@ -141,7 +126,7 @@ spec:
           - path: /dev/bus/usb
       media:
         type: nfs
-        server: 192.168.80.11
+        server: nas02.in.homeops.ca
         path: /volume1/apps/frigate
         globalMounts:
           - path: /media
