@@ -62,7 +62,7 @@ spec:
       network:
         provider: multus
         selectors:
-          cluster: networking/storage-sriov-conf
+          cluster: network/storage-sriov-conf
         # addressRanges: # Temporary workaround to disable network-canary as it will not inherrit annotations (i.e. SR-IOV resource requests)
         #   cluster:
         #     - "192.168.80.0/24"

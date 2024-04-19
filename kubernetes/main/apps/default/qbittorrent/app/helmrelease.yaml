@@ -32,7 +32,7 @@ spec:
       qbittorrent:
         annotations:
           reloader.stakater.com/auto: "true"
-          k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
+          k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
         containers:
           app:
             image:
