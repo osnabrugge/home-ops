@@ -29,7 +29,7 @@ spec:
       - secretRef:
           name: pihole-password
     extraArgs:
-      - --pihole-server=http://pihole01.in.homeops.ca
+      - --pihole-server=http://192.168.10.203
     policy: upsert-only
     sources: ["ingress", "service"]
     registry: noop
