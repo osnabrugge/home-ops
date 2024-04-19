@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://camo.githubusercontent.com/5b298bf6b0596795602bd771c5bddbb963e83e0f/68747470733a2f2f692e696d6775722e636f6d2f7031527a586a512e706e67" align="center" width="144px" height="144px"/>
+<img src="https://raw.githubusercontent.com/onedr0p/home-ops/main/docs/src/assets/logo.png" align="center" width="144px" height="144px"/>
 
 ### My home operations repository
 
@@ -35,7 +35,7 @@ This repo is the sources of truth for a semi-hyperconverged [k3s](https://k3s.io
         - [sr-iov plugin](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin) attach pods to sr-iov capable interfaces & applicable VFs
         - [whereabouts](https://github.com/k8snetworkplumbingwg/whereabouts) to ensure consistent IP addressing across physical nodes
 - Storage
-  - [local-path-provisioner](https://github.com/rancher/local-path-provisioner) provides ephemeral storage for pods
+  - [openebs](https://github.com/openebs/openebs) provides ephemeral storage for pods
   - [rook-ceph](https://github.com/rook/rook) manages a ceph cluster that provides replicated persistent storage
   - [azure blob storage](https://azure.microsoft.com/en-us/products/storage/blobs) cold storage for backups and volume snapshots
 - Cluster Management
