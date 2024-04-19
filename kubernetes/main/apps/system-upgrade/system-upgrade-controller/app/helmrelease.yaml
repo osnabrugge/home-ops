@@ -75,7 +75,7 @@ spec:
           operator: Exists
           effect: NoSchedule
     serviceAccount:
-      create: true
+      create: false
       name: system-upgrade
     persistence:
       tmp:
