@@ -19,6 +19,6 @@ metadata:
 spec:
   allowFirstLastIPs: "Yes"
   blocks:
-    - # Controller VIP: 192.168.42.120
-      start: 192.168.42.121
-      stop: 192.168.42.149
+    - # Controller VIP: 192.168.10.50
+      start: 192.168.10.60
+      stop: 192.168.10.89
