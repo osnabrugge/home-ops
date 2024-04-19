@@ -68,10 +68,10 @@ spec:
               requests:
                 cpu: 200m
                 memory: 600Mi
-                intel.com/sriov_netdevice: 1
+                intel.com/sriov: 1
               limits:
                 memory: 1000Mi
-                intel.com/sriov_netdevice: 1
+                intel.com/sriov: 1
       tor:
         containers:
           app:
