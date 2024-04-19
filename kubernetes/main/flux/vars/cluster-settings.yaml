@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-settings
+  namespace: flux-system
+data:
+  CLUSTER_NAME: main
+  CLUSTER_CLOUDFLARE_TUNNEL_ID: 3a134673-bc05-49f4-a2ff-9f9a72205418

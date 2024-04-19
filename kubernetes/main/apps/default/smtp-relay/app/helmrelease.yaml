@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -14,81 +14,90 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 2
   install:
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
-  uninstall:
-    keepHistory: false
   values:
     controllers:
-      main:
-        replicas: 2
+      smtp-relay:
+        replicas: 3
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
-          main:
+          app:
             image:
-              repository: docker.io/boky/postfix
-              tag: v4.1.0
+              repository: ghcr.io/foxcpp/maddy
+              tag: 0.7.1@sha256:6ab538e2f28baf2324f7cb418c7f9476fd9c7e9fa9b14bc3aecf51a9f6962064
             env:
-              TZ: Etc/UTC
-              POSTFIX_smtp_tls_security_level: "encrypt"
-              XOAUTH2_SYSLOG_ON_FAILURE: "yes"
-              XOAUTH2_FULL_TRACE: "yes"
-              RELAYHOST: "smtp.office365.com:587"
-              HOSTNAME: "{{ .Release.Name }}.${SECRET_DOMAIN}"
-              ALLOWED_SENDER_DOMAINS: "${SECRET_DOMAIN}"
+              SMTP_RELAY_SMTP_PORT: &port 25
+              SMTP_RELAY_METRICS_PORT: &metricsPort 8080
+              SMTP_RELAY_SERVER_PORT: 587
             envFrom:
               - secretRef:
                   name: smtp-relay-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
-                memory: 10Mi
               limits:
-                memory: 50Mi
-          postfix-exporter:
-            image:
-              repostitory: ghcr.io/osnabrugge/postfix-exporter
-              tag: latest
-            command: ["/bin/postfix_exporter"]
-        pod:
-          securityContext:
-            runAsUser: 568
-            runAsGroup: 568
-            fsGroup: 568
-            fsGroupChangePolicy: OnRootMismatch
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: *app
+                memory: 128Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
     service:
-      main:
+      app:
+        controller: smtp-relay
         type: LoadBalancer
         annotations:
           io.cilium/lb-ipam-ips: 192.168.10.75
         ports:
           http:
-            port: 25
-            targetPort: 25
-            protocol: TCP
+            primary: true
+            port: *metricsPort
+          smtp:
+            port: *port
     serviceMonitor:
-      main:
-        enabled: true
+      app:
+        serviceName: smtp-relay
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 10s
     persistence:
       config:
-        enabled: true
-        existingClaim: smtp-relay
-        advancedMounts:
-          main:
-            main:
-              - path: /docker-init.db
+        type: configMap
+        name: smtp-relay-configmap
+        globalMounts:
+          - path: /data/maddy.conf
+            subPath: maddy.conf
+            readOnly: true
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /cache

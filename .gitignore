@@ -5,7 +5,6 @@ Thumbs.db
 .task/
 .terraform
 *.tfvars
-.cache_ggshield
 .decrypted~*
 *.secret.env
 *.secret.yaml
@@ -14,4 +13,5 @@ Thumbs.db
 *.key
 *.pem
 kubeconfig
+talosconfig
 config.xml
