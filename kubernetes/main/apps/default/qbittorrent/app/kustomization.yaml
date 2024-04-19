@@ -7,8 +7,11 @@ resources:
   - ../../../../templates/gatus/guarded
   - ../../../../templates/volsync
 configMapGenerator:
-  - name: qbittorrent-scripts
+  - name: qbittorrent-loki-rules
     files:
-      - completed.sh=./resources/completed.sh
+      - qbittorrent.yaml=./resources/lokirule.yaml
+    options:
+      labels:
+        loki_rule: "true"
 generatorOptions:
   disableNameSuffixHash: true

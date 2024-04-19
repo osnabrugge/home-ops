@@ -6,7 +6,7 @@ logger:
   #   frigate.record: debug
 
 mqtt:
-  host: mosquitto.default.svc.cluster.local
+  host: emqx-listeners.database.svc.cluster.local
   topic_prefix: frigate
   user: "{FRIGATE_MQTT_USERNAME}"
   password: "{FRIGATE_MQTT_PASSWORD}"
@@ -21,7 +21,7 @@ detectors:
 
 ffmpeg:
   global_args: ["-hide_banner", "-loglevel", "warning"]
-  hwaccel_args: ["-c:v", "h264_cuvid"]
+  hwaccel_args: ["-hwaccel", "vaapi", "-hwaccel_device", "/dev/dri/renderD128", "-hwaccel_output_format", "yuv420p"]
   output_args:
     record: preset-record-generic-audio-aac
 
@@ -30,16 +30,16 @@ snapshots:
   timestamp: false
   bounding_box: true
   retain:
-    default: 2
+    default: 1
 
 record:
   enabled: true
   retain:
-    days: 2
+    days: 1
     mode: all
   events:
     retain:
-      default: 2
+      default: 1
       mode: active_objects
 
 objects:
@@ -52,55 +52,32 @@ objects:
 
 go2rtc:
   streams:
-    frontview:
-      - rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.60/live
-    frontview_substream:
-      - rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.60/cam/realmonitor?channel=1&subtype=1
-    backyard:
-      - rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.61/live
-    backyard_substream:
-      - rtsp://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.61/cam/realmonitor?channel=1&subtype=1
+    frontview: rtspx://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.60/live
+    frontview_substream: rtspx://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.60/cam/realmonitor?channel=1&subtype=1
+    backyard: rtspx://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.61/live
+    backyard_substream: rtspx://{FRIGATE_RTSP_USERNAME}:{FRIGATE_RTSP_PASSWORD}@192.168.20.61/cam/realmonitor?channel=1&subtype=1
 
 cameras:
   frontview:
-    mqtt:
-      timestamp: False
-      bounding_box: False
-      crop: True
-      quality: 100
-      height: 500
     ffmpeg:
       inputs:
-        - path: rtsp://127.0.0.1:8554/frontview_substream
-          input_args: preset-rtsp-restream
-          roles:
-            - detect
-        - path: rtsp://127.0.0.1:8554/frontview
-          input_args: preset-rtsp-restream
-          roles:
-            - record
+        - path: rtsp://localhost:8554/frontview_substream
+          roles: ["detect"]
+        - path: rtsp://localhost:8554/frontview
+          roles: ["record"]
     detect:
       width: 1920
       height: 1080
-      fps: 5
+      fps: 10
 
   backyard:
-    mqtt:
-      timestamp: False
-      bounding_box: False
-      crop: True
-      quality: 100
-      height: 500
+    ffmpeg:
       inputs:
-        - path: rtsp://127.0.0.1:8554/backyard_substream
-          input_args: preset-rtsp-restream
-          roles:
-            - detect
-        - path: rtsp://127.0.0.1:8554/backyard
-          input_args: preset-rtsp-restream
-          roles:
-            - record
+        - path: rtsp://localhost:8554/backyard_substream
+          roles: ["detect"]
+        - path: rtsp://localhost:8554/backyard
+          roles: ["record"]
     detect:
       width: 1920
       height: 1080
-      fps: 5
+      fps: 10

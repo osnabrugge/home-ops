@@ -1,38 +1,34 @@
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 ---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  # Pre Flux-Kustomizations
   - ./namespace.yaml
-  # - ./authelia/ks.yaml
-  # - ./autobrr/ks.yaml
-  # - ./compreface/ks.yaml
-  # - ./double-take/ks.yaml
-  # - ./flood/ks.yaml
-  # - ./frigate/ks.yaml
-  - ./hajimari/ks.yaml
-  # - ./home-assistant/ks.yaml
-  # - ./jellyfin/ks.yaml
-  # - ./kubernetes-schemas/ks.yaml
-  # - ./letsblockit/ks.yaml
-  - ./lldap/ks.yaml
-  # - ./media-browser/ks.yaml
-  # - ./miniflux/ks.yaml
-  # - ./mosquitto/ks.yaml
-  # - ./overseerr/ks.yaml
-  # - ./p2g/ks.yaml
-  # - ./pgadmin/ks.yaml
-  # - ./plex/ks.yaml
-  # - ./prowlarr/ks.yaml
-  # - ./qbittorrent/ks.yaml
-  # - ./radarr/ks.yaml
-  # - ./recyclarr/ks.yaml
-  # - ./shlink/ks.yaml
-  # - ./simple-monero/ks.yaml
-  # - ./slskd/ks.yaml
-  # - ./smtp-relay/ks.yaml
-  # - ./sonarr/ks.yaml
-  # - ./tautulli/ks.yaml
-  # - ./unpackerr/ks.yaml
-  # - ./vaultwarden/ks.yaml
-  # - ./zigbee2mqtt/ks.yaml
+  # Flux-Kustomizations
+  - ./atuin/ks.yaml
+  - ./authelia/ks.yaml
+  - ./autobrr/ks.yaml
+  - ./compreface/ks.yaml
+  - ./cross-seed/ks.yaml
+  - ./double-take/ks.yaml
+  - ./frigate/ks.yaml
+  - ./glauth/ks.yaml
+  - ./home-assistant/ks.yaml
+  - ./miniflux/ks.yaml
+  - ./overseerr/ks.yaml
+  - ./pgadmin/ks.yaml
+  - ./plex/ks.yaml
+  - ./prowlarr/ks.yaml
+  - ./qbittorrent/ks.yaml
+  - ./radarr/ks.yaml
+  - ./recyclarr/ks.yaml
+  - ./rtlamr2mqtt/ks.yaml
+  - ./simple-monerod/ks.yaml
+  - ./smtp-relay/ks.yaml
+  - ./sonarr/ks.yaml
+  - ./tautulli/ks.yaml
+  - ./unpackerr/ks.yaml
+  - ./vaultwarden/ks.yaml
+  - ./zigbee2mqtt/ks.yaml
+  - ./zwave/ks.yaml

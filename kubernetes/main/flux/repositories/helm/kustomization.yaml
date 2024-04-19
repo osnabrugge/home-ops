@@ -13,18 +13,20 @@ resources:
   - ./cloudnative-pg.yaml
   - ./coredns.yaml
   - ./descheduler.yaml
+  - ./emqx.yaml
   - ./external-dns.yaml
   - ./external-secrets.yaml
   - ./grafana.yaml
-  - ./hajimari.yaml
   - ./ingress-nginx.yaml
   - ./intel.yaml
   - ./jetstack.yaml
   - ./metrics-server.yaml
   - ./node-feature-discovery.yaml
+  - ./openebs.yaml
   - ./piraeus.yaml
+  - ./postfinance.yaml
   - ./prometheus-community.yaml
   - ./rook-ceph.yaml
+  - ./spegel.yaml
   - ./stakater.yaml
-  - ./weaveworks.yaml
-  - ./xenitab.yaml
+  - ./stevehipwell.yaml

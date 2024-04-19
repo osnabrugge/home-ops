@@ -1,0 +1,48 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: external-secrets
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: external-secrets
+      version: 0.9.16
+      sourceRef:
+        kind: HelmRepository
+        name: external-secrets
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  values:
+    installCRDs: true
+    serviceAccount:
+      create: true
+      automount: true
+      annotations:
+        azure.workload.identity/client-id: "4ecb34ba-855e-4b2d-9eda-be048c1a2701"
+        azure.workload.identity/tenant-id: "b04f7d24-79dc-435e-85d4-bd2b2adccc06"
+      extraLabels:
+        azure.workload.identity/use: "true"
+      name: azure-sa
+    podLabels:
+      azure.workload.identity/use: "true"
+    serviceMonitor:
+      enabled: true
+      interval: 1m
+    webhook:
+      serviceMonitor:
+        enabled: true
+        interval: 1m
+    certController:
+      serviceMonitor:
+        enabled: true
+        interval: 1m

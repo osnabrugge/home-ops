@@ -1,0 +1,94 @@
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: storage-sriov-conf
+  namespace: network
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/sriov
+spec:
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "sriov",
+      "vlan": 100,
+      "spoofchk": "off",
+      "trust": "on",
+      "ipam": {
+        "type": "whereabouts",
+        "range": "192.168.10.0/24",
+        "range_start": "192.168.10.210",
+        "range_end": "192.168.10.254"
+      }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: iot-hass-sriov-conf
+  namespace: network
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/sriov
+spec:
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "sriov",
+      "vlan": 200,
+      "spoofchk": "off",
+      "trust": "on",
+      "ipam": {
+        "type": "static",
+        "addresses": [
+          {
+            "address": "192.168.20.52/24"
+          }
+        ]
+      }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: iot-eufy-sriov-conf
+  namespace: network
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/sriov
+spec:
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "sriov",
+      "vlan": 200,
+      "spoofchk": "off",
+      "trust": "on",
+      "ipam": {
+        "type": "static",
+        "addresses": [
+          {
+            "address": "192.168.20.54/24"
+          }
+        ]
+      }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: iot-frigate-sriov-conf
+  namespace: network
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: intel.com/sriov
+spec:
+  config: '{
+      "cniVersion": "0.3.1",
+      "type": "sriov",
+      "vlan": 200,
+      "spoofchk": "off",
+      "trust": "on",
+      "ipam": {
+        "type": "static",
+        "addresses": [
+          {
+            "address": "192.168.20.55/24"
+          }
+        ]
+      }
+    }'

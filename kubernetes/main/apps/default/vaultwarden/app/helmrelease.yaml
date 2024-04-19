@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -14,40 +14,42 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 2
   install:
-    createNamespace: true
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
-  uninstall:
-    keepHistory: false
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   values:
     controllers:
-      main:
+      vaultwarden:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          init-db:
+            image:
+              repository: ghcr.io/onedr0p/postgres-init
+              tag: 16
+            envFrom: &envFrom
+              - secretRef:
+                  name: vaultwarden-secret
         containers:
-          main:
+          app:
             image:
               repository: ghcr.io/dani-garcia/vaultwarden
               tag: 1.30.5@sha256:edb8e2bab9cbca22e555638294db9b3657ffbb6e5d149a29d7ccdb243e3c71e0
-            initContainers:
-              init-db:
-                image: ghcr.io/onedr0p/postgres-init:16.2
-                envFrom:
-                  - secretRef:
-                      name: vaultwarden-secret
             env:
               TZ: Etc/UTC
               DATA_FOLDER: config
-              DOMAIN: https://vault.${SECRET_DOMAIN}
+              DOMAIN: https://vault.homeops.ca
               SIGNUPS_ALLOWED: false
               SMTP_FROM_NAME: Vault
-              SMTP_FROM: info@${SECRET_DOMAIN}
+              SMTP_FROM: vault@homeops.ca
               SMTP_SSL: true
               WEBSOCKET_ADDRESS: 0.0.0.0
               WEBSOCKET_ENABLED: true
@@ -59,20 +61,28 @@ spec:
             envFrom:
               - secretRef:
                   name: vaultwarden-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
                 memory: 100Mi
               limits:
                 memory: 250Mi
-        pod:
-          securityContext:
-            runAsUser: 568
-            runAsGroup: 568
-            fsGroup: 568
-            fsGroupChangePolicy: 'OnRootMismatch'
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 568
+        runAsGroup: 568
+        fsGroup: 568
+        fsGroupChangePolicy: OnRootMismatch
+        supplementalGroups: [10000]
+        seccompProfile: { type: RuntimeDefault }
     service:
-      main:
+      app:
+        controller: vaultwarden
         ports:
           http:
             port: &port 80
@@ -80,40 +90,30 @@ spec:
             enabled: true
             port: &websocket-port 3012
     ingress:
-      main:
-        enabled: true
-        ClassName: external
+      app:
+        className: external
         annotations:
-          hajimari.io/icon: mdi:lock
-          external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+          external-dns.alpha.kubernetes.io/target: external.homeops.ca
         hosts:
-          - host: &host "vault.${SECRET_DOMAIN}"
+          - host: &host vault.homeops.ca
             paths:
               - path: /
                 pathType: Prefix
                 service:
+                  identifier: app
                   port: *port
               - path: /notifications/hub/negotiate
                 pathType: Prefix
                 service:
+                  identifier: app
                   port: *port
               - path: /notifications/hub
                 pathType: Prefix
                 service:
+                  identifier: app
                   port: *websocket-port
-        tls:
-          - hosts:
-              - *host
     persistence:
       config:
-        enabled: true
         existingClaim: vaultwarden
         globalMounts:
           - path: /config
-        accessMode: ReadWriteOnce
-
-    podSecurityContext:
-      runAsUser: 568
-      runAsGroup: 568
-      fsGroup: 568
-      fsGroupChangePolicy: 'OnRootMismatch'

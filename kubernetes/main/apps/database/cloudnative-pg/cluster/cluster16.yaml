@@ -1,19 +1,19 @@
 ---
-# yaml-language-server: schema=https://kubernetes-schemas.devbu.io/postgresql.cnpg.io/cluster_v1.json
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/postgresql.cnpg.io/cluster_v1.json
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgres16
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:16.1-4
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.2-13
   primaryUpdateStrategy: unsupervised
   storage:
     size: 20Gi
-    storageClass: local-path
+    storageClass: openebs-hostpath
   superuserSecret:
     name: cloudnative-pg-secret
-    enableSuperuserAccess: true
+  enableSuperuserAccess: true
   bootstrap:
     initdb:
       import:
@@ -24,8 +24,16 @@ spec:
           externalCluster: cnpg-6
   postgresql:
     parameters:
-      max_connections: "600"
-      shared_buffers: 512MB
+      max_connections: "400"
+      shared_buffers: 256MB
+  nodeMaintenanceWindow:
+    inProgress: false
+    reusePVC: true
+  resources:
+    requests:
+      cpu: 500m
+    limits:
+      memory: 4Gi
   monitoring:
     enablePodMonitor: true
   externalClusters:

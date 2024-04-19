@@ -1,9 +1,9 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
-  name: atuin
+  name: &app atuin
 spec:
   interval: 30m
   chart:
@@ -14,20 +14,18 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 2
   install:
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
-  uninstall:
-    keepHistory: false
   values:
     controllers:
-      main:
-        replicas: 2
+      atuin:
+        replicas: 3
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
@@ -36,60 +34,87 @@ spec:
             image:
               repository: ghcr.io/onedr0p/postgres-init
               tag: 16
-              pullPolicy: IfNotPresent
             envFrom: &envFrom
               - secretRef:
                   name: atuin-secret
         containers:
-          main:
+          app:
             image:
               repository: ghcr.io/atuinsh/atuin
-              tag: v18.2.0
+              tag: v18.2.0@sha256:b3fe3891ca5d08d0846aaba98b2bc0683cbc1e6f08d4952326d123b7da481b68
             env:
               ATUIN_HOST: 0.0.0.0
               ATUIN_PORT: &port 80
               ATUIN_OPEN_REGISTRATION: "true"
+              ATUIN_METRICS__ENABLE: "true"
+              ATUIN_METRICS__HOST: 0.0.0.0
+              ATUIN_METRICS__PORT: &metricsPort 8080
+              ATUIN_TLS__ENABLE: "false"
             envFrom: *envFrom
             args: ["server", "start"]
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                memory: 128Mi
                 cpu: 10m
               limits:
-                memory: 512Mi
-        pod:
-          securityContext:
-            runAsUser: 568
-            runAsGroup: 568
-            fsGroup: 568
-            fsGroupChangePolicy: OnRootMismatch
+                memory: 256Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *app
     service:
-      main:
+      app:
+        controller: atuin
         ports:
           http:
+            primary: true
             port: *port
+          metrics:
+            port: *metricsPort
+    serviceMonitor:
+      app:
+        serviceName: atuin
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 10s
     ingress:
-      main:
-        enabled: true
+      app:
         className: internal
         hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host: sh.homeops.ca
             paths:
               - path: /
                 service:
-                  name: main
+                  identifier: app
                   port: http
-          - host: &customHost "sh.${SECRET_DOMAIN}"
-            paths:
-              - path: /
-                service:
-                  name: main
-                  port: http
-        tls:
-          - hosts:
-              - *host
-              - *customHost
     persistence:
       config:
-        enabled: true
         type: emptyDir
