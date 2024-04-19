@@ -48,7 +48,6 @@ spec:
     cephClusterSpec:
       cephVersion:
         image: quay.io/ceph/ceph:v18.2.2
-
       crashCollector:
         disable: false
       dashboard:
@@ -68,7 +67,7 @@ spec:
         #   cluster:
         #     - "192.168.80.0/24"
         #   public:
-        #     - "10.32.0.0/16"
+        #     - "10.42.0.0/16"
         connections:
           requireMsgr2: true
       storage:
