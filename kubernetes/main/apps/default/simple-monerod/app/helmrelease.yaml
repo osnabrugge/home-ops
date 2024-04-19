@@ -38,8 +38,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/osnabrugge/simple-monerod
-              tag: v0.18.3.3
+              repository: ghcr.io/sethforprivacy/simple-monerod
+              tag: v0.18.3.3@sha256:64af801b7df6ccc56557dd161d564f8425ba4e3fe8d4dd46a891d6b776062ea3
             args:
               - --rpc-bind-ip=127.0.0.1
               - --rpc-bind-port=18081
@@ -76,8 +76,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/osnabrugge/tor-hidden-service
-              tag: v0.4.7.8-57f8867
+              repository: docker.io/goldy/tor-hidden-service
+              tag: v0.4.7.12-54c0e54@sha256:cc682a9036cc560712187413697b0c27fb63af133b5f237562b7317091a0ed1f
             env:
               MONEROD_TOR_SERVICE_HOSTS: 18089:monerod:18089
               MONEROD_TOR_SERVICE_VERSION: 3
