@@ -23,7 +23,6 @@ resources:
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
   - ./recyclarr/ks.yaml
-  - ./rtlamr2mqtt/ks.yaml
   - ./simple-monerod/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
