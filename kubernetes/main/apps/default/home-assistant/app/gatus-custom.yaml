@@ -16,7 +16,7 @@ data:
           hide-hostname: true
           hide-url: true
         dns:
-          query-name: hass-code.devbu.io
+          query-name: hass-code.homeops.ca
           query-type: A
         conditions:
           - "len([BODY]) == 0"
