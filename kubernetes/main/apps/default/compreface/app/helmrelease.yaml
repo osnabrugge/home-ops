@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -14,30 +14,32 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 2
   install:
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
-  uninstall:
-    keepHistory: false
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   values:
     controllers:
-      main:
+      compreface:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
           init-db:
-            image: ghcr.io/onedr0p/postgres-init:16.2
-            imagePullPolicy: IfNotPresent
-            envFrom:
+            image:
+              repository: ghcr.io/onedr0p/postgres-init
+              tag: 16
+            envFrom: &envFrom
               - secretRef:
                   name: compreface-secret
         containers:
-          main:
+          app:
             image:
               repository: docker.io/exadel/compreface
               tag: 1.2.0-arcface-r100
@@ -46,38 +48,50 @@ spec:
               POSTGRES_DB: compreface
               EXTERNAL_DB: true
               SAVE_IMAGES_TO_DB: true
-            envFrom:
-              - secretRef:
-                  name: compreface-secret
+            envFrom: *envFrom
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1
+                    port: &port 80
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
-                memory: 1000Mi
               limits:
                 memory: 6000Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
     service:
-      main:
-        type: LoadBalancer
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: compreface.${SECRET_DOMAIN}
-          io.cilium/lb-ipam-ips: 192.168.10.81
+      app:
+        controller: compreface
         ports:
           http:
-            port: 8000
-            targetPort: 80
-            protocol: TCP
+            port: *port
+          api:
+            port: 8080
     ingress:
-      main:
-        enabled: true
+      app:
         className: internal
-        annotations:
-          hajimari.io/icon: mdi:cctv
         hosts:
-          - host: &host compreface.${SECRET_DOMAIN}
+          - host: "{{ .Release.Name }}.homeops.ca"
             paths:
               - path: /
-                pathType: Prefix
-        tls:
-          - hosts:
-              - *host
-
+                service:
+                  identifier: app
+                  port: http

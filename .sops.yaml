@@ -1,11 +1,16 @@
 ---
 creation_rules:
-  - path_regex: kubernetes/.*\.secret(\.sops)?\.yaml
+  - path_regex: kubernetes/.+\.secret(\.sops)?\.ya?ml
+    input_type: yaml
     encrypted_regex: ^(data|stringData)$
     key_groups:
       - age:
           - age1y6m2q7zu5ed0205tvy7fxkdd3x0dur9jvx04j4jdn00etw6mn36s7v9dx2
-  - path_regex: kubernetes/.*\.secret(\.sops)?\.env
+  - path_regex: kubernetes/.+\.secret(\.sops)?\.env
+    input_type: env
     key_groups:
       - age:
           - age1y6m2q7zu5ed0205tvy7fxkdd3x0dur9jvx04j4jdn00etw6mn36s7v9dx2
+stores:
+  yaml:
+    indent: 2

@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.devbu.io/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2beta2
 kind: HelmRelease
 metadata:
@@ -14,35 +14,35 @@ spec:
         kind: HelmRepository
         name: bjw-s
         namespace: flux-system
-  maxHistory: 2
   install:
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
     remediation:
+      strategy: rollback
       retries: 3
-  uninstall:
-    keepHistory: false
   dependsOn:
     - name: intel-device-plugin-gpu
       namespace: kube-system
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: volsync
-      namespace: volsync
+      namespace: volsync-system
   values:
     controllers:
-      main:
+      plex:
         annotations:
           reloader.stakater.com/auto: "true"
+          k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
         containers:
-          main:
+          app:
             image:
               repository: ghcr.io/onedr0p/plex
               tag: 1.40.2.8395-c67dce28e@sha256:a2a3149c1326e7777bfe9def135c687d884652f78d34e92264b0dab765908215
             env:
               TZ: Etc/UTC
+              PLEX_ADVERTISE_URL: https://plex.homeops.ca:443,http://192.168.10.65:32400
             probes:
               liveness: &probes
                 enabled: true
@@ -56,45 +56,41 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-              startup:
-                enabled: false
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                gpu.intel.com/i915: 1
                 intel.com/sriov: 1
-                cpu: 200m
-                memory: 2Gi
+                cpu: 100m
               limits:
                 gpu.intel.com/i915: 1
                 intel.com/sriov: 1
-                memory: 12Gi
-        pod:
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app.kubernetes.io/name
-                        operator: In
-                        values: ["frigate", "jellyfin"]
-                  topologyKey: kubernetes.io/hostname
-          podAnnotations:
-            k8s.v1.cni.cncf.io/networks: networking/storage-sriov-conf
-          nodeSelector:
-            intel.feature.node.kubernetes.io/gpu: "true"
-          securityContext:
-            runAsUser: 568
-            runAsGroup: 568
-            runAsNonRoot: true
-            fsGroup: 568
-            fsGroupChangePolicy: OnRootMismatch
-            supplementalGroups: [44, 105, 10000]
+                memory: 16Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 568
+        runAsGroup: 568
+        fsGroup: 568
+        fsGroupChangePolicy: OnRootMismatch
+        supplementalGroups: [44, 10000]
+        seccompProfile: { type: RuntimeDefault }
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values: ["frigate"]
+              topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        intel.feature.node.kubernetes.io/gpu: "true"
     service:
-      main:
+      app:
+        controller: plex
         type: LoadBalancer
         annotations:
           io.cilium/lb-ipam-ips: 192.168.10.65
@@ -102,33 +98,40 @@ spec:
           http:
             port: 32400
     ingress:
-      main:
-        enabled: true
+      app:
         className: external
         annotations:
-          external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+          external-dns.alpha.kubernetes.io/target: external.homeops.ca
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
         hosts:
-          - host: &host "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - host: "{{ .Release.Name }}.homeops.ca"
             paths:
               - path: /
                 service:
-                  name: main
+                  identifier: app
                   port: http
-        tls:
-          - hosts:
-              - *host
     persistence:
       config:
-        enabled: true
         existingClaim: plex
+        # TODO: If setting up Plex for the first time, you'll want to add the globalMounts section
+        # globalMounts:
+        #   - path: /config/Library/Application Support/Plex Media Server
+      # Separate PVC for cache to avoid backing up cache files
+      cache:
+        existingClaim: plex-cache
+        globalMounts:
+          - path: /config/Library/Application Support/Plex Media Server/Cache
+      logs:
+        type: emptyDir
+        globalMounts:
+          - path: /config/Library/Application Support/Plex Media Server/Logs
       tmp:
         type: emptyDir
       transcode:
         type: emptyDir
       media:
         type: nfs
-        server: 192.168.80.11
+        server: nas02.in.homeops.ca
         path: /volume1/share/media
         globalMounts:
           - path: /media

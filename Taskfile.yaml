@@ -2,13 +2,9 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: "3"
 
-# TODO: Clean up `--context` usage
-# Ref: https://github.com/go-task/task/issues/1038
-
 vars:
   ANSIBLE_DIR: "{{.ROOT_DIR}}/ansible"
   KUBERNETES_DIR: "{{.ROOT_DIR}}/kubernetes"
-  TERRAFORM_DIR: "{{.ROOT_DIR}}/terraform"
 
 env:
   KUBECONFIG: "{{.KUBERNETES_DIR}}/kubernetes/main/kubeconfig:{{.KUBERNETES_DIR}}/kubernetes/storage/kubeconfig"
@@ -16,10 +12,12 @@ env:
 
 includes:
   ansible: .taskfiles/Ansible/Taskfile.yaml
+  bootstrap: .taskfiles/Bootstrap/Taskfile.yaml
   external-secrets: .taskfiles/ExternalSecrets/Taskfile.yaml
   flux: .taskfiles/Flux/Taskfile.yaml
   kubernetes: .taskfiles/Kubernetes/Taskfile.yaml
-  sops: .taskfiles/Sops/Taskfile.yaml
+  rook: .taskfiles/Rook/Taskfile.yaml
+  talos: .taskfiles/Talos/Taskfile.yaml
   volsync: .taskfiles/VolSync/Taskfile.yaml
 
 tasks:
