@@ -1,0 +1,76 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: miscellaneous-rules
+spec:
+  groups:
+    - name: dockerhub
+      rules:
+        - alert: BootstrapRateLimitRisk
+          annotations:
+            summary: Kubernetes cluster at risk of being rate limited by dockerhub on bootstrap
+          expr: count(time() - container_last_seen{image=~"(docker.io).*",container!=""} < 30) > 100
+          for: 15m
+          labels:
+            severity: critical
+    - name: oom
+      rules:
+        - alert: OOMKilled
+          annotations:
+            summary: Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has been OOMKilled {{ $value }} times in the last 10 minutes.
+          expr: (kube_pod_container_status_restarts_total - kube_pod_container_status_restarts_total offset 10m >= 1) and ignoring (reason) min_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[10m]) == 1
+          labels:
+            severity: critical
+    - name: speedtest
+      rules:
+        - alert: SpeedtestSlowInternetDownload
+          annotations:
+            description: Internet download speed is averaging {{ humanize $value }} Mbps.
+            summary: SpeedTest slow internet download.
+          expr: |
+            avg_over_time(speedtest_download_bits_per_second{job=~".*speedtest-exporter.*"}[4h])
+              < 400
+          for: 0m
+          labels:
+            severity: warning
+        - alert: SpeedtestSlowInternetUpload
+          annotations:
+            description: Internet upload speed is averaging {{ humanize $value }} Mbps.
+            summary: SpeedTest slow internet upload.
+          expr: |
+            avg_over_time(speedtest_upload_bits_per_second{job=~".*speedtest-exporter.*"}[4h])
+              < 400
+          for: 0m
+          labels:
+            severity: warning
+        - alert: SpeedtestHighPingLatency
+          annotations:
+            description: Internet ping latency is averaging {{ humanize $value }} ms.
+            summary: SpeedTest high ping latency.
+          expr: |
+            avg_over_time(speedtest_ping_latency_milliseconds{job=~".*speedtest-exporter.*"}[4h])
+              > 20
+          for: 0m
+          labels:
+            severity: warning
+        - alert: SpeedtestHighJitterLatency
+          annotations:
+            description: Internet jitter latency is averaging {{ humanize $value }} ms.
+            summary: SpeedTest high jitter latency.
+          expr: |
+            avg_over_time(speedtest_jitter_latency_milliseconds{job=~".*speedtest-exporter.*"}[4h])
+              > 30
+          for: 0m
+          labels:
+            severity: warning
+    - name: zfs
+      rules:
+        - alert: ZfsUnexpectedPoolState
+          annotations:
+            summary: ZFS pool {{$labels.zpool}} on {{$labels.instance}} is in a unexpected state {{$labels.state}}
+          expr: node_zfs_zpool_state{state!="online"} > 0
+          for: 15m
+          labels:
+            severity: critical
