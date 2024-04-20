@@ -79,9 +79,10 @@
         group: root
         mode: "0644"
 
-    - name: Azure Workload Identity
-      when: k3s_control_node
-      ansible.builtin.include_tasks: tasks/azwi.yaml
+    #   Requirements for azwi causes too many issues
+    # - name: Azure Workload Identity
+    #   when: k3s_control_node
+    #   ansible.builtin.include_tasks: tasks/azwi.yaml
 
   handlers:
     - name: Restart Kubernetes
