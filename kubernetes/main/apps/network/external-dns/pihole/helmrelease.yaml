@@ -31,7 +31,7 @@ spec:
       - name: &name pihole-password
         valueFrom:
           secretKeyRef:
-            name: *secret
+            name: &secret
             key: *name
     extraArgs:
       - --pihole-server=http://192.168.10.203
