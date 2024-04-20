@@ -4,10 +4,10 @@
   become: true
   gather_facts: true
   any_errors_fatal: true
-  vars_prompt:
-    - name: azure_connection_string
-      prompt: Enter your Azure Blob Storage Connection String
-      private: true
+  # vars_prompt:
+  #   - name: azure_connection_string
+  #     prompt: Enter your Azure Blob Storage Connection String
+  #     private: true
   tasks:
     - name: Check if cluster is installed
       check_mode: false
