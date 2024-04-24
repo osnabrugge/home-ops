@@ -39,7 +39,7 @@ spec:
         compression: bzip2
         maxParallel: 8
       destinationPath: https://backupkube.blob.core.windows.net/cnpg/
-      serverName: postgres14-v3 # change/increment when restoring as value cannot match existing cnpg cluster
+      serverName: postgres14-v4 # change/increment when restoring as value cannot match existing cnpg cluster
       azureCredentials:
         connectionString:
           name: cloudnative-pg-secret
