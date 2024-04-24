@@ -16,7 +16,7 @@ resources:
   # - ./omada-exporter/ks.yaml
   # - ./pihole-exporter/ks.yaml
   - ./smartctl-exporter/ks.yaml
-  - ./snmp-exporter/ks.yaml
+  # - ./snmp-exporter/ks.yaml
   - ./speedtest-exporter/ks.yaml
   - ./thanos/ks.yaml
   - ./vector/ks.yaml
