@@ -7,13 +7,13 @@ resources:
   - ./namespace.yaml
   # Flux-Kustomizations
   # - ./atuin/ks.yaml
-  # - ./authelia/ks.yaml
+  - ./authelia/ks.yaml
   # - ./autobrr/ks.yaml
   # - ./compreface/ks.yaml
   # - ./cross-seed/ks.yaml
   # - ./double-take/ks.yaml
   # - ./frigate/ks.yaml
-  # - ./glauth/ks.yaml
+  - ./glauth/ks.yaml
   # - ./home-assistant/ks.yaml
   # - ./miniflux/ks.yaml
   # - ./overseerr/ks.yaml
@@ -24,7 +24,7 @@ resources:
   # - ./radarr/ks.yaml
   # - ./recyclarr/ks.yaml
   # - ./simple-monerod/ks.yaml
-  # - ./smtp-relay/ks.yaml
+  - ./smtp-relay/ks.yaml
   # - ./sonarr/ks.yaml
   # - ./tautulli/ks.yaml
   # - ./unpackerr/ks.yaml
