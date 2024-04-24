@@ -7,13 +7,13 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@homeops.ca
+    email: "${SECRET_EMAIL}"
     privateKeySecretRef:
       name: letsencrypt-production
     solvers:
       - dns01:
           cloudflare:
-            email: admin@homeops.ca
+            email: "${SECRET_EMAIL}"
             apiKeySecretRef:
               name: cloudflare-secret
               key: CLOUDFLARE_API_KEY
@@ -28,13 +28,13 @@ metadata:
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: admin@homeops.ca
+    email: "${SECRET_EMAIL}"
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
       - dns01:
           cloudflare:
-            email: admin@homeops.ca
+            email: "${SECRET_EMAIL}"
             apiKeySecretRef:
               name: cloudflare-secret
               key: CLOUDFLARE_API_KEY
