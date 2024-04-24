@@ -1,5 +1,6 @@
 ---
 spegel:
+  containerdContentPath: /var/lib/rancher/k3s/agent/containerd/io.containerd.content.v1.content
   containerdSock: /run/k3s/containerd/containerd.sock
   containerdRegistryConfigPath: /var/lib/rancher/k3s/agent/etc/containerd/certs.d
 service:
