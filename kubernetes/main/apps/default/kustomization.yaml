@@ -8,26 +8,26 @@ resources:
   # Flux-Kustomizations
   # - ./atuin/ks.yaml
   - ./authelia/ks.yaml
-  - ./autobrr/ks.yaml
+  # - ./autobrr/ks.yaml
   # - ./compreface/ks.yaml
-  - ./cross-seed/ks.yaml
+  # - ./cross-seed/ks.yaml
   # - ./double-take/ks.yaml
   # - ./frigate/ks.yaml
   - ./glauth/ks.yaml
-  - ./home-assistant/ks.yaml
+  # - ./home-assistant/ks.yaml
   - ./miniflux/ks.yaml
-  - ./overseerr/ks.yaml
-  - ./pgadmin/ks.yaml
-  - ./plex/ks.yaml
-  - ./prowlarr/ks.yaml
-  - ./qbittorrent/ks.yaml
-  - ./radarr/ks.yaml
-  - ./recyclarr/ks.yaml
+  # - ./overseerr/ks.yaml
+  # - ./pgadmin/ks.yaml
+  # - ./plex/ks.yaml
+  # - ./prowlarr/ks.yaml
+  # - ./qbittorrent/ks.yaml
+  # - ./radarr/ks.yaml
+  # - ./recyclarr/ks.yaml
   # - ./simple-monerod/ks.yaml
   - ./smtp-relay/ks.yaml
-  - ./sonarr/ks.yaml
-  - ./tautulli/ks.yaml
-  - ./unpackerr/ks.yaml
+  # - ./sonarr/ks.yaml
+  # - ./tautulli/ks.yaml
+  # - ./unpackerr/ks.yaml
   # - ./vaultwarden/ks.yaml
   # - ./zigbee2mqtt/ks.yaml
   # - ./zwave/ks.yaml
