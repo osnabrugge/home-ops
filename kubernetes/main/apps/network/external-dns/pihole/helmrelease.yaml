@@ -15,28 +15,29 @@ spec:
         name: external-dns
         namespace: flux-system
   install:
-    crds: CreateReplace
     remediation:
       retries: 3
   upgrade:
     cleanupOnFail: true
-    crds: CreateReplace
     remediation:
       strategy: rollback
       retries: 3
   values:
     fullnameOverride: *app
     provider: pihole
-    envFrom:
-      - secretRef:
-          name: pihole-password
+    env:
+      - name: &name EXTERNAL_DNS_PIHOLE_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: &secret external-dns-pihole-secret
+            key: *name
     extraArgs:
       - --pihole-server=http://192.168.10.203
     policy: upsert-only
     sources: ["ingress", "service"]
     registry: noop
-    domainFilters: ["homeops.ca"]
+    domainFilters: [homeops.ca]
     serviceMonitor:
       enabled: true
     podAnnotations:
-      secret.reloader.stakater.com/reload: external-dns-pihole-secret
+      secret.reloader.stakater.com/reload: *secret
