@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: docker.io/dpage/pgadmin4
-              tag: "8.5"
+              tag: "8.6"
             env:
               TZ: Etc/UTC
             envFrom:
