@@ -124,9 +124,6 @@
                   bond-slaves enp1s0f0 enp1s0f1
                   bond-mode 802.3ad
                   bond-miimon 100
-                  bond-downdelay 200
-                  bond-updelay 200
-                  bond-lacp-rate 1
                   bond-xmit-hash-policy layer3+4
                   post-up ifconfig bond0 mtu 9000
             owner: root
@@ -138,7 +135,8 @@
             content: |
               auto enp1s0f0
               iface enp1s0f0 inet manual
-                  post-up ifconfig enp1s0f0 mtu 9000
+                  bond-master bond0
+                  pre-up ifconfig enp1s0f0 mtu 9000
             owner: root
             group: root
             mode: "0644"
@@ -148,7 +146,8 @@
             content: |
               auto enp1s0f1
               iface enp1s0f1 inet manual
-                  post-up ifconfig enp1s0f1 mtu 9000
+                  bond-master bond0
+                  pre-up ifconfig enp1s0f1 mtu 9000
             owner: root
             group: root
             mode: "0644"
