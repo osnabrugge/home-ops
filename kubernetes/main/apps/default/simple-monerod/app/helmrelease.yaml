@@ -39,7 +39,7 @@ spec:
           app:
             image:
               repository: ghcr.io/sethforprivacy/simple-monerod
-              tag: v0.18.3.3@sha256:55354f0522183a7fec02d0ab62dbc2737a6711afc94f05dcec21ed657f304f13
+              tag: v0.18.3.3@sha256:6d4ab73ec3f2703df480f7d61c96c5ee7b012dfff41a70ed02fec9df18726d70
             args:
               - --rpc-bind-ip=127.0.0.1
               - --rpc-bind-port=18081
