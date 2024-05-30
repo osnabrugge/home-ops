@@ -29,5 +29,5 @@ resources:
   # - ./tautulli/ks.yaml
   # - ./unpackerr/ks.yaml
   # - ./vaultwarden/ks.yaml
-  # - ./zigbee2mqtt/ks.yaml
-  # - ./zwave/ks.yaml
+  - ./zigbee2mqtt/ks.yaml
+  - ./zwave/ks.yaml
