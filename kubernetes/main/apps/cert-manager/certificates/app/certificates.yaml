@@ -5,7 +5,7 @@ kind: Certificate
 metadata:
   name: homeops-ca
 spec:
-  secretName: homeops-ca-tls
+  secretName: homeops-tls
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
