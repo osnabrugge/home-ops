@@ -11,5 +11,5 @@ spec:
     kind: ClusterIssuer
   commonName: homeops.ca
   dnsNames:
-    # - homeops.ca
+    - homeops.ca
     - "*.homeops.ca"
