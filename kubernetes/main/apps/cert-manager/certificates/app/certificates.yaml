@@ -13,3 +13,4 @@ spec:
   dnsNames:
     - homeops.ca
     - "*.homeops.ca"
+    - external.homeops.ca
