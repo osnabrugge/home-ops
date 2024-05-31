@@ -171,6 +171,12 @@
             owner: root
             group: root
             mode: "0644"
+        - name: Ensure we have the right default route
+          ansible.netcommon.network_cli:
+            command_string: "sudo ip route del default"
+        - name: Add new default route through bond0
+          ansible.netcommon.network_cli:
+            command_string: "sudo ip route add default via 192.168.10.1 dev bond0"
         - name: Network Configuration | sriov
           ansible.builtin.lineinfile:
             path: /etc/modprobe.d/ixgbe.conf
