@@ -3,6 +3,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: emqx-dashboard
+  annotations:
+    external-dns.alpha.kubernetes.io/target: internal.homeops.ca
 spec:
   ingressClassName: internal
   rules:

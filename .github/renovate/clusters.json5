@@ -9,6 +9,15 @@
         "**/terraform/main/**"
       ],
       "additionalBranchPrefix": "main-"
+    },
+    {
+      "description": ["Separate PRs for storage cluster"],
+      "matchFileNames": [
+        "**/kubernetes/storage/**",
+        "**/ansible/storage/**",
+        "**/terraform/storage/**"
+      ],
+      "additionalBranchPrefix": "storage-"
     }
   ]
 }

@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -28,9 +28,8 @@ spec:
   values:
     controllers:
       tagging:
-        annotations:
-          k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
-
+        # annotations:
+        #   k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
         type: cronjob
         cronjob: &cronJobSpec
           schedule: "@hourly"
@@ -62,10 +61,10 @@ spec:
             ]
             resources: &resources
               requests:
-                intel.com/sriov: 1
+                # intel.com/sriov: 1
                 cpu: 25m
               limits:
-                intel.com/sriov: 1
+                # intel.com/sriov: 1
                 memory: 256M
         containers:
           unregistered:
@@ -90,7 +89,6 @@ spec:
               "--exclude-category", "manual",
               "--exclude-category", "music",
               "--exclude-category", "music.import",
-              "--exclude-category", "overlord",
               "--include-tag", "expired", # defined in config.yaml
               "--include-tag", "added:7d",
               # "--dry-run",
@@ -112,7 +110,6 @@ spec:
             args: [
               "orphaned",
               "--exclude-pattern", "*_unpackerred*",
-              "--exclude-pattern", "*/cross-seed/*",
               "--exclude-pattern", "*/manual/*",
               "--exclude-pattern", "*/music.import/*",
               # "--dry-run",

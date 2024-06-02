@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -62,7 +62,7 @@ spec:
               TZ: Etc/UTC
               GATUS_CONFIG_PATH: /config
               GATUS_DELAY_START_SECONDS: 5
-              CUSTOM_WEB_PORT: &port 80
+              WEB_PORT: &port 80
             envFrom: *envFrom
             probes:
               liveness: &probes
@@ -110,9 +110,9 @@ spec:
             scrapeTimeout: 10s
     ingress:
       app:
-        className: external
         annotations:
           external-dns.alpha.kubernetes.io/target: external.homeops.ca
+        className: external
         hosts:
           - host: status.homeops.ca
             paths:

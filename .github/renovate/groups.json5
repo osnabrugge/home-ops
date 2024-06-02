@@ -4,10 +4,7 @@
     {
       "description": ["Actions Runner Controller Group"],
       "groupName": "Actions Runner Controller",
-      "matchPackagePatterns": [
-        "gha-runner-scale-set-controller",
-        "gha-runner-scale-set"
-      ],
+      "matchPackagePatterns": ["gha-runner-scale-set"],
       "matchDatasources": ["docker", "helm"],
       "group": {
         "commitMessageTopic": "{{{groupName}}} group"
@@ -34,6 +31,16 @@
         "commitMessageTopic": "{{{groupName}}} group"
       },
       "separateMinorPatch": true
+    },
+    {
+      description: ["Intel Device Plugins Group"],
+      groupName: "Intel-Device-Plugins",
+      matchPackagePatterns: ["intel-device-plugins"],
+      matchDatasources: ["helm"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      separateMinorPatch: true,
     },
     {
       "description": ["Rook-Ceph Group"],

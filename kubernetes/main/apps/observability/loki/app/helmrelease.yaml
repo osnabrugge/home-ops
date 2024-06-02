@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -113,26 +113,29 @@ spec:
         analytics:
           reporting_enabled: false
     backend:
-      replicas: 3
+      replicas: 2
       persistence:
         size: 20Gi
         storageClass: openebs-hostpath
     gateway:
-      replicas: 3
+      replicas: 2
       image:
         registry: ghcr.io
       ingress:
         enabled: true
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         ingressClassName: internal
         hosts:
           - host: loki.homeops.ca
             paths:
               - path: /
                 pathType: Prefix
+        tls: []
     read:
-      replicas: 3
+      replicas: 2
     write:
-      replicas: 3
+      replicas: 2
       persistence:
         size: 20Gi
         storageClass: openebs-hostpath

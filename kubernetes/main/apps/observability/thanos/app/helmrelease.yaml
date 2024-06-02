@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -73,12 +73,12 @@ spec:
         storageClass: openebs-hostpath
         size: 10Gi
     query:
-      replicas: 3
+      replicas: 2
       extraArgs: ["--alert.query-url=https://thanos.homeops.ca"]
       additionalStores: ["thanos.in.homeops.ca:10901"]
     queryFrontend:
       enabled: true
-      replicas: 3
+      replicas: 2
       extraEnv: &extraEnv
         - name: THANOS_CACHE_CONFIG
           valueFrom:
@@ -88,6 +88,8 @@ spec:
       extraArgs: ["--query-range.response-cache-config=$(THANOS_CACHE_CONFIG)"]
       ingress:
         enabled: true
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         ingressClassName: internal
         hosts:
           - thanos.homeops.ca
@@ -95,7 +97,7 @@ spec:
         configmap.reloader.stakater.com/reload: *configMap
     rule:
       enabled: true
-      replicas: 3
+      replicas: 2
       extraArgs: ["--web.prefix-header=X-Forwarded-Prefix"]
       alertmanagersConfig:
         value: |-
@@ -117,7 +119,7 @@ spec:
                     severity: critical
       persistence: *persistence
     storeGateway:
-      replicas: 3
+      replicas: 2
       extraEnv: *extraEnv
       extraArgs: ["--index-cache.config=$(THANOS_CACHE_CONFIG)"]
       persistence: *persistence

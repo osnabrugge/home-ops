@@ -34,7 +34,7 @@ spec:
       frigate:
         annotations:
           reloader.stakater.com/auto: "true"
-          k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
+          # k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
         containers:
           app:
             image:
@@ -63,11 +63,11 @@ spec:
               privileged: true
             resources:
               requests:
-                intel.com/sriov: 1
+                # intel.com/sriov: 1
                 cpu: 100m
               limits:
                 gpu.intel.com/i915: "1"
-                intel.com/sriov: 1
+                # intel.com/sriov: 1
                 memory: 8Gi
     defaultPodOptions:
       affinity:
@@ -92,6 +92,8 @@ spec:
             port: 8554
     ingress:
       app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         className: internal
         hosts:
           - host: "{{ .Release.Name }}.homeops.ca"

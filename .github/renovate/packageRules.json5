@@ -5,7 +5,7 @@
       "description": ["Loose versioning for non-semver packages"],
       "matchDatasources": ["docker"],
       "versioning": "loose",
-      "matchPackagePatterns": ["changedetection", "plex", "qbittorrent"]
+      "matchPackagePatterns": ["plex", "qbittorrent"]
     },
     {
       "description": ["Custom versioning for frigate"],
@@ -25,5 +25,11 @@
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>)$",
       "matchPackagePatterns": ["miniflux"]
     },
+    {
+      "description": ["Custom versioning for minio"],
+      "matchDatasources": ["docker"],
+      "versioning": "regex:^RELEASE\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)T.*Z$",
+      "matchPackagePatterns": ["minio"]
+    }
   ]
 }

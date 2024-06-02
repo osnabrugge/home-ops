@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -37,11 +37,13 @@ spec:
     alertmanager:
       ingress:
         enabled: true
-        pathType: Prefix
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         ingressClassName: internal
         hosts: ["alertmanager.homeops.ca"]
+        pathType: Prefix
       alertmanagerSpec:
-        replicas: 3
+        replicas: 2
         useExistingSecret: true
         configSecret: alertmanager-secret
         storage:
@@ -91,9 +93,11 @@ spec:
     prometheus:
       ingress:
         enabled: true
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         ingressClassName: internal
-        pathType: Prefix
         hosts: ["prometheus.homeops.ca"]
+        pathType: Prefix
       thanosService:
         enabled: true
       thanosServiceMonitor:
@@ -102,7 +106,7 @@ spec:
         podMetadata:
           annotations:
             secret.reloader.stakater.com/reload: &secret thanos-objstore-config
-        replicas: 3
+        replicas: 2
         replicaExternalLabelName: __replica__
         scrapeInterval: 1m # Must match interval in Grafana Helm chart
         ruleSelectorNilUsesHelmValues: false
@@ -116,10 +120,6 @@ spec:
           - auto-gomemlimit
           - memory-snapshot-on-shutdown
           - new-service-discovery-manager
-        image:
-          registry: quay.io
-          repository: prometheus/prometheus
-          tag: v2.51.0-dedupelabels
         thanos:
           image: quay.io/thanos/thanos:${THANOS_VERSION}
           version: "${THANOS_VERSION#v}"
