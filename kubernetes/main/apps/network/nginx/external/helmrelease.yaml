@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -30,7 +30,7 @@ spec:
   values:
     fullnameOverride: nginx-external
     controller:
-      replicaCount: 3
+      replicaCount: 2
       service:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: external.homeops.ca
@@ -54,6 +54,7 @@ spec:
         enable-brotli: "true"
         enable-ocsp: "true"
         enable-real-ip: "true"
+        force-ssl-redirect: "true"
         hide-headers: Server,X-Powered-By
         hsts-max-age: 31449600
         keep-alive-requests: 10000
@@ -78,7 +79,7 @@ spec:
           namespaceSelector:
             any: true
       extraArgs:
-        default-ssl-certificate: cert-manager/homeops-ca-tls
+        default-ssl-certificate: network/homeops-ca-tls
       terminationGracePeriodSeconds: 120
       topologySpreadConstraints:
         - maxSkew: 1

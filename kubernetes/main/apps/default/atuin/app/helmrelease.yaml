@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -25,7 +25,7 @@ spec:
   values:
     controllers:
       atuin:
-        replicas: 3
+        replicas: 2
         strategy: RollingUpdate
         annotations:
           reloader.stakater.com/auto: "true"
@@ -107,6 +107,8 @@ spec:
             scrapeTimeout: 10s
     ingress:
       app:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         className: internal
         hosts:
           - host: sh.homeops.ca

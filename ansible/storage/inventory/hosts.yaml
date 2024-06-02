@@ -1,0 +1,10 @@
+---
+kubernetes:
+  vars:
+    ansible_user: sean-admin
+    ansible_ssh_port: 22
+  children:
+    controllers:
+      hosts:
+        nas01:
+          ansible_host: 192.168.10.45

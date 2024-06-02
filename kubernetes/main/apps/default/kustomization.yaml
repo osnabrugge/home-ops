@@ -10,7 +10,6 @@ resources:
   - ./authelia/ks.yaml
   # - ./autobrr/ks.yaml
   # - ./compreface/ks.yaml
-  # - ./cross-seed/ks.yaml
   # - ./double-take/ks.yaml
   # - ./frigate/ks.yaml
   - ./glauth/ks.yaml
