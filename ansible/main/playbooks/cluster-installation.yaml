@@ -9,10 +9,6 @@
   #     prompt: Enter your Azure Blob Storage Connection String
   #     private: true
   tasks:
-    - name: Gather network facts
-      ansible.builtin.setup:
-        gather_subset: network
-
     - name: Check if cluster is installed
       check_mode: false
       ansible.builtin.stat:
