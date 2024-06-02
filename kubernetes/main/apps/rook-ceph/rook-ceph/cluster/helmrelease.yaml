@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2beta2.json
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -34,6 +34,8 @@ spec:
       createPrometheusRules: true
     ingress:
       dashboard:
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         ingressClassName: internal
         host:
           name: rook.homeops.ca
@@ -46,8 +48,6 @@ spec:
       bdev_async_discard = true
       osd_class_update_on_start = false
     cephClusterSpec:
-      cephVersion:
-        image: quay.io/ceph/ceph:v18.2.2
       crashCollector:
         disable: false
       dashboard:
@@ -205,6 +205,7 @@ spec:
               codingChunks: 1
           preservePoolsOnDelete: true
           gateway:
+            hostNetwork: false
             port: 80
             resources:
               requests:
@@ -226,6 +227,10 @@ spec:
             region: us-east-1
         ingress:
           enabled: true
+          annotations:
+            external-dns.alpha.kubernetes.io/target: internal.homeops.ca
+            nginx.ingress.kubernetes.io/proxy-body-size: "0"
+            nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
           ingressClassName: internal
           host:
             name: rgw.homeops.ca
