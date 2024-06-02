@@ -126,6 +126,7 @@
                   bond-miimon 100
                   bond-xmit-hash-policy layer3+4
                   post-up ifconfig bond0 mtu 9000
+                  metric 10
             owner: root
             group: root
             mode: "0644"
@@ -168,6 +169,7 @@
               auto eno1
               allow-hotplug eno1
               iface eno1 inet dhcp
+                  metric 20
             owner: root
             group: root
             mode: "0644"
