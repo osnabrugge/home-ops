@@ -16,7 +16,6 @@ k3s_server:
   kube-controller-manager-arg: ["bind-address=0.0.0.0"]
   kube-scheduler-arg: ["bind-address=0.0.0.0"]
   kubelet-arg: ["image-gc-low-threshold=50", "image-gc-high-threshold=55"]
-  node-ip: "{{ ansible_facts['interfaces']['bond0']['ipv4']['address'] }}"
   pause-image: registry.k8s.io/pause:3.9
   secrets-encryption: true
   service-cidr: 10.43.0.0/16
