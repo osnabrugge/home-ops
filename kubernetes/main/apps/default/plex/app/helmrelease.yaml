@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2beta2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -34,7 +34,7 @@ spec:
       plex:
         annotations:
           reloader.stakater.com/auto: "true"
-          k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
+          # k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
         containers:
           app:
             image:
@@ -43,6 +43,7 @@ spec:
             env:
               TZ: Etc/UTC
               PLEX_ADVERTISE_URL: https://plex.homeops.ca:443,http://192.168.10.65:32400
+              PLEX_NO_AUTH_NETWORKS: 192.168.0.0/16
             probes:
               liveness: &probes
                 enabled: true
@@ -56,17 +57,22 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                intel.com/sriov: 1
+                # intel.com/sriov: 1
                 cpu: 100m
               limits:
                 gpu.intel.com/i915: 1
-                intel.com/sriov: 1
+                # intel.com/sriov: 1
                 memory: 16Gi
     defaultPodOptions:
       securityContext:
@@ -99,10 +105,10 @@ spec:
             port: 32400
     ingress:
       app:
-        className: external
         annotations:
           external-dns.alpha.kubernetes.io/target: external.homeops.ca
           nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+        className: external
         hosts:
           - host: "{{ .Release.Name }}.homeops.ca"
             paths:
