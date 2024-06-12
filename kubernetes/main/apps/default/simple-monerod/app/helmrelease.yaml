@@ -83,7 +83,7 @@ spec:
               MONEROD_TOR_SERVICE_VERSION: 3
             envFrom:
               - secretRef:
-                  name: monero-secret
+                  name: simple-monerod-secret
       xmrblocks:
         containers:
           app:
