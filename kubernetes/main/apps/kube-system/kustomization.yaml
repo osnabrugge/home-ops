@@ -16,5 +16,6 @@ resources:
   - ./metrics-server/ks.yaml
   - ./network-resource-injector/ks.yaml
   - ./node-feature-discovery/ks.yaml
+  - ./reflector/ks.yaml
   - ./reloader/ks.yaml
   - ./spegel/ks.yaml
