@@ -21,7 +21,7 @@ spec:
         databases: ["*"]
         roles: ["*"]
         source:
-          externalCluster: cnpg-6
+          externalCluster: postgres14
   postgresql:
     parameters:
       max_connections: "400"
@@ -37,7 +37,7 @@ spec:
   monitoring:
     enablePodMonitor: true
   externalClusters:
-    - name: cnpg-6
+    - name: postgres14
       connectionParameters:
         host: postgres14-rw.database.svc.cluster.local
         user: postgres
