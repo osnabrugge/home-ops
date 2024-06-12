@@ -9,7 +9,7 @@ resources:
   # - ./atuin/ks.yaml
   - ./authelia/ks.yaml
   # - ./autobrr/ks.yaml
-  # - ./compreface/ks.yaml
+  - ./compreface/ks.yaml
   # - ./double-take/ks.yaml
   # - ./frigate/ks.yaml
   - ./glauth/ks.yaml
