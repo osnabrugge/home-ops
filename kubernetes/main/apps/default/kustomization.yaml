@@ -16,7 +16,7 @@ resources:
   # - ./home-assistant/ks.yaml
   - ./miniflux/ks.yaml
   # - ./overseerr/ks.yaml
-  # - ./pgadmin/ks.yaml
+  - ./pgadmin/ks.yaml
   # - ./plex/ks.yaml
   # - ./prowlarr/ks.yaml
   # - ./qbittorrent/ks.yaml
@@ -28,5 +28,5 @@ resources:
   # - ./tautulli/ks.yaml
   # - ./unpackerr/ks.yaml
   # - ./vaultwarden/ks.yaml
-  # - ./zigbee2mqtt/ks.yaml
-  # - ./zwave/ks.yaml
+  - ./zigbee2mqtt/ks.yaml
+  - ./zwave/ks.yaml
