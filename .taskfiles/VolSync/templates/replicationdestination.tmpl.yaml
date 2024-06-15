@@ -9,7 +9,7 @@ spec:
     manual: restore-once
   restic:
     repository: ${app}-volsync-r2-secret
-    destinationPVC: ${claim}
+    destinationPVC: ${claim}-dst
     copyMethod: Direct
     storageClassName: ceph-block
     # storageClassName: ceph-filesystem
