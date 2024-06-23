@@ -24,6 +24,11 @@ sources:
     version: "2"
     address: 0.0.0.0:6010
 
+  nas02_source:
+    type: syslog
+    address: 0.0.0.0:6030
+    mode: tcp
+
   firewall_source:
     type: syslog
     address: 0.0.0.0:6020
@@ -42,6 +47,13 @@ transforms:
       .custom_app_name = .pod_labels."app.kubernetes.io/name" || .pod_labels.app || .pod_labels."k8s-app" || "unknown"
       # Drop pod_labels
       del(.pod_labels)
+
+  nas02_route:
+    type: route
+    inputs: ["nas02_source"]
+    route:
+      nas02: |
+        .facility == "kern" && match!(.message, r'^\[(.*?)\].(.*)')
 
   # [63950.153039] [wan-local-default-D]IN=eth4 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=xxx.xxx.xxx.xxx DST=xxx.xxx.xxx.xxx LEN=40 TOS=0x00 PREC=0x00 TTL=240 ID=60610 PROTO=TCP SPT=53451 DPT=2002 WINDOW=1024 RES=0x00 SYN URGP=0
   firewall_route:
@@ -122,6 +134,17 @@ sinks:
 
   firewall:
     inputs: ["firewall_source", "firewall_geoip_remap"]
+    type: loki
+    endpoint: http://loki-gateway.observability.svc.cluster.local
+    encoding: { codec: json }
+    out_of_order_action: accept
+    remove_label_fields: true
+    remove_timestamp: true
+    labels:
+      hostname: '{{ host }}'
+
+  syslog:
+    inputs: ["nas02_route"]
     type: loki
     endpoint: http://loki-gateway.observability.svc.cluster.local
     encoding: { codec: json }
