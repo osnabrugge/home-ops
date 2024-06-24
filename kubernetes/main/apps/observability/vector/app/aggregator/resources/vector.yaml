@@ -144,7 +144,7 @@ sinks:
       hostname: '{{ host }}'
 
   syslog:
-    inputs: ["nas02_route"]
+    inputs: ["nas_route"]
     type: loki
     endpoint: http://loki-gateway.observability.svc.cluster.local
     encoding: { codec: json }
