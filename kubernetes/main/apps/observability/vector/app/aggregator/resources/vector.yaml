@@ -24,14 +24,14 @@ sources:
     version: "2"
     address: 0.0.0.0:6010
 
-  nas02_source:
-    type: syslog
-    address: 0.0.0.0:6030
-    mode: tcp
-
   firewall_source:
     type: syslog
     address: 0.0.0.0:6020
+    mode: tcp
+
+  nas_source:
+    type: syslog
+    address: 0.0.0.0:6030
     mode: tcp
 
 #
@@ -48,11 +48,11 @@ transforms:
       # Drop pod_labels
       del(.pod_labels)
 
-  nas02_route:
+  nas_route:
     type: route
-    inputs: ["nas02_source"]
+    inputs: ["nas*_source"]
     route:
-      nas02: |
+      nas: |
         .facility == "kern" && match!(.message, r'^\[(.*?)\].(.*)')
 
   # [63950.153039] [wan-local-default-D]IN=eth4 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=xxx.xxx.xxx.xxx DST=xxx.xxx.xxx.xxx LEN=40 TOS=0x00 PREC=0x00 TTL=240 ID=60610 PROTO=TCP SPT=53451 DPT=2002 WINDOW=1024 RES=0x00 SYN URGP=0
