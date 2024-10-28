@@ -18,9 +18,6 @@ spec:
     parameters:
       max_connections: "400"
       shared_buffers: 256MB
-  nodeMaintenanceWindow:
-    inProgress: false
-    reusePVC: true
   resources:
     requests:
       cpu: 500m
@@ -28,10 +25,6 @@ spec:
       memory: 4Gi
   monitoring:
     enablePodMonitor: true
-    # Ref: https://github.com/cloudnative-pg/cloudnative-pg/issues/2501
-    podMonitorMetricRelabelings:
-      - { sourceLabels: ["cluster"], targetLabel: cnpg_cluster, action: replace }
-      - { regex: cluster, action: labeldrop }
   backup:
     retentionPolicy: 30d
     barmanObjectStore: &barmanObjectStore
@@ -41,7 +34,7 @@ spec:
         compression: bzip2
         maxParallel: 8
       destinationPath: https://backupkube.blob.core.windows.net/cnpg/
-      # Note: serverName version needs to be inclemented
+      # Note: serverName version needs to be incremented
       # when recovering from an existing cnpg cluster
       serverName: &currentCluster postgres16-v1
       azureCredentials:

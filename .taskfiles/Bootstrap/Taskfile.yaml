@@ -1,33 +1,150 @@
 ---
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: "3"
+version: '3'
+
+vars:
+  BOOTSTRAP_RESOURCES_DIR: '{{.ROOT_DIR}}/.taskfiles/bootstrap/resources'
 
 tasks:
 
-  main:
+  kubernetes:
+    desc: Bootstrap a Kubernetes cluster [CLUSTER=main] [NODES=k8s-0,k8s-1,...] [ROOK_DISK=/dev/nvme0n1]
+    prompt: Bootstrap a Kubernetes cluster ... continue?
     vars: &vars
-      cluster: main
-      cephnodes: k8s-0 k8s-1 k8s-2 k8s-3 k8s-4 k8s-5
-      cephdisk: /dev/nvme0n1
+      CLUSTER: '{{.CLUSTER}}'
+      NODES: '{{.NODES | default "k8s-0,k8s-1,k8s-2,k8s-3,k8s-4,k8s-5"}}'
+      ROOK_DISK: '{{.ROOK_DISK | default "/dev/nvme0n1"}}'
     cmds:
-      - task: :talos:bootstrap
-        vars: *vars
-      - task: :rook:reset
-        vars: *vars
-      - task: :flux:bootstrap
-        vars: *vars
+      - { task: etcd, vars: *vars }
+      - { task: conf, vars: *vars }
+      - { task: apps, vars: *vars }
+      - { task: rook, vars: *vars }
+      - { task: flux, vars: *vars }
+    requires:
+      vars: [CLUSTER]
     preconditions:
-      - test -f {{.KUBERNETES_DIR}}/{{.cluster}}/talosconfig
-      - talosctl --context {{.cluster}} config info >/dev/null 2>&1
+      - talosctl config info &>/dev/null
+      - test -f {{.CLUSTER_DIR}}/talosconfig
 
-  storage:
-    vars: &vars
-      cluster: storage
-      playbook: cluster-installation
+  etcd:
+    internal: true
+    cmd: until talosctl --nodes {{.TALOS_CONTROLLER}} bootstrap; do sleep 5; done
+    vars:
+      TALOS_CONTROLLER:
+        sh: talosctl config info --output json | jq --raw-output '.endpoints[]' | shuf -n 1
+    preconditions:
+      - test -f {{.CLUSTER_DIR}}/talosconfig
+      - talosctl config info &>/dev/null
+
+  conf:
+    internal: true
+    cmd: talosctl kubeconfig --nodes {{.TALOS_CONTROLLER}} --force --force-context-name {{.CLUSTER}} {{.CLUSTER_DIR}}
+    vars:
+      TALOS_CONTROLLER:
+        sh: talosctl config info --output json | jq --raw-output '.endpoints[]' | shuf -n 1
+    preconditions:
+      - test -f {{.CLUSTER_DIR}}/talosconfig
+      - talosctl config info &>/dev/null
+
+  apps:
+    internal: true
     cmds:
-      - task: :ansible:venv
+      - until kubectl wait --for=condition=Ready=False nodes --all --timeout=10m; do sleep 5; done
+      - helmfile --quiet --file {{.CLUSTER_DIR}}/bootstrap/apps/helmfile.yaml apply --skip-diff-on-install --suppress-diff
+      - until kubectl wait --for=condition=Ready nodes --all --timeout=10m; do sleep 5; done
+    preconditions:
+      - test -f {{.CLUSTER_DIR}}/talosconfig
+      - test -f {{.CLUSTER_DIR}}/bootstrap/apps/helmfile.yaml
+      - talosctl config info &>/dev/null
+
+  rook:
+    internal: true
+    vars: &vars
+      CLUSTER: '{{.CLUSTER}}'
+      NODE: '{{.ITEM}}'
+      ROOK_DISK: '{{.ROOK_DISK}}'
+    cmds:
+      - for: { var: NODES }
+        task: rook-data
         vars: *vars
-      - task: :ansible:run
+      - for: { var: NODES }
+        task: rook-disk
         vars: *vars
-      - task: :flux:bootstrap
-        vars: *vars
+
+  rook-disk:
+    internal: true
+    cmds:
+      - minijinja-cli {{.BOOTSTRAP_RESOURCES_DIR}}/rook-disk-job.yaml.j2 | kubectl apply --server-side --filename -
+      - until kubectl --namespace {{.NS}} get job/{{.JOB}} &>/dev/null; do sleep 5; done
+      - kubectl --namespace {{.NS}} wait job/{{.JOB}} --for=condition=complete --timeout=5m
+      - kubectl --namespace {{.NS}} logs job/{{.JOB}}
+      - kubectl --namespace {{.NS}} delete job {{.JOB}}
+    vars:
+      JOB: wipe-disk-{{.NODE}}
+      NS: '{{.NS | default "default"}}'
+    env:
+      ROOK_DISK: '{{.ROOK_DISK}}'
+      JOB: '{{.JOB}}'
+      NODE: '{{.NODE}}'
+      NS: '{{.NS}}'
+    preconditions:
+      - test -f {{.BOOTSTRAP_RESOURCES_DIR}}/rook-disk-job.yaml.j2
+
+  rook-data:
+    internal: true
+    cmds:
+      - minijinja-cli {{.BOOTSTRAP_RESOURCES_DIR}}/rook-data-job.yaml.j2 | kubectl apply --server-side --filename -
+      - until kubectl --namespace {{.NS}} get job/{{.JOB}} &>/dev/null; do sleep 5; done
+      - kubectl --namespace {{.NS}} wait job/{{.JOB}} --for=condition=complete --timeout=5m
+      - kubectl --namespace {{.NS}} logs job/{{.JOB}}
+      - kubectl --namespace {{.NS}} delete job {{.JOB}}
+    vars:
+      JOB: wipe-data-{{.NODE}}
+      NS: '{{.NS | default "default"}}'
+    env:
+      ROOK_DISK: '{{.ROOK_DISK}}'
+      JOB: '{{.JOB}}'
+      NODE: '{{.NODE}}'
+      NS: '{{.NS}}'
+    preconditions:
+      - test -f {{.BOOTSTRAP_RESOURCES_DIR}}/rook-data-job.yaml.j2
+
+  flux:
+    internal: true
+    cmds:
+      - kubectl apply --server-side --kustomize {{.CLUSTER_DIR}}/bootstrap/apps
+      - for: { var: TEMPLATES }
+        cmd: op run --env-file {{.CLUSTER_DIR}}/bootstrap/bootstrap.env --no-masking -- minijinja-cli {{.ITEM}} | kubectl apply --server-side --filename -
+      - kubectl apply --server-side --filename {{.CLUSTER_DIR}}/flux/vars/cluster-settings.yaml
+      - kubectl apply --server-side --kustomize {{.CLUSTER_DIR}}/flux/config
+    vars:
+      TEMPLATES:
+        sh: ls {{.CLUSTER_DIR}}/bootstrap/apps/*.j2
+    env:
+      VAULT: '{{if eq .CLUSTER "main"}}kubernetes{{else}}{{.CLUSTER}}{{end}}' # ¯\_(ツ)_/¯
+    preconditions:
+      - test -f {{.CLUSTER_DIR}}/flux/vars/cluster-settings.yaml
+
+  # Ref: https://github.com/onedr0p/home-service
+  matchbox:
+    desc: Sync required Matchbox config to PXEBoot machine [CLUSTER=main]
+    dotenv: ['{{.CLUSTER_DIR}}/cluster.env']
+    cmds:
+      - for: { var: ASSETS }
+        cmd: sops exec-file --input-type yaml --output-type yaml {{.ITEM}} "minijinja-cli {} | curl -skT - -u "devin:" sftp://voyager.internal//var/opt/home-service/apps/matchbox/data/config/assets/{{base .ITEM | replace ".sops.yaml.j2" ".yaml"}}"
+      - for: { var: GROUPS }
+        cmd: minijinja-cli {{.ITEM}} | curl -skT - -u "devin:" sftp://voyager.internal//var/opt/home-service/apps/matchbox/data/config/groups/{{base .ITEM}}
+      - for: { var: PROFILES }
+        cmd: minijinja-cli {{.ITEM}} | curl -skT - -u "devin:" sftp://voyager.internal//var/opt/home-service/apps/matchbox/data/config/profiles/{{base .ITEM}}
+      - ssh -l devin voyager.internal "cd /var/opt/home-service ; go-task restart-matchbox"
+    vars:
+      ASSETS:
+        sh: ls {{.CLUSTER_DIR}}/talos/*.yaml.j2
+      GROUPS:
+        sh: ls {{.CLUSTER_DIR}}/bootstrap/matchbox/groups/*.json
+      PROFILES:
+        sh: ls {{.CLUSTER_DIR}}/bootstrap/matchbox/profiles/*.json
+    requires:
+      vars: [CLUSTER]
+    preconditions:
+      - ping -c1 voyager.internal

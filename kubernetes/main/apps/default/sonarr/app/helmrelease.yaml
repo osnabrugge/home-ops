@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.5.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -30,7 +30,6 @@ spec:
       sonarr:
         annotations:
           reloader.stakater.com/auto: "true"
-          # k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
         initContainers:
           init-db:
             image:
@@ -43,7 +42,7 @@ spec:
           app:
             image:
               repository: ghcr.io/onedr0p/sonarr-develop
-              tag: 4.0.9.2513@sha256:31c0f7881c18d496a45616bad4b02ab6588b95836615122042c8709d5edb0241
+              tag: 4.0.10.2579@sha256:6b4134faf8a7896a2cd9ec00bc1d98e2953959d12f8840d65bc11e087982aad9
             env:
               SONARR__APP__INSTANCENAME: Sonarr
               SONARR__APP__THEME: dark
@@ -53,7 +52,7 @@ spec:
               SONARR__LOG__LEVEL: info
               SONARR__SERVER__PORT: &port 80
               SONARR__UPDATE__BRANCH: develop
-              TZ: America/New_York
+              TZ: Etc/UTC
             envFrom: *envFrom
             probes:
               liveness: &probes
@@ -74,11 +73,9 @@ spec:
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                # intel.com/sriov: 1
-                cpu: 10m
+                cpu: 100m
               limits:
-                # intel.com/sriov: 1
-                memory: 1Gi
+                memory: 4Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -109,7 +106,7 @@ spec:
     persistence:
       config:
         existingClaim: sonarr
-      pushover-notify:
+      scripts:
         type: configMap
         name: sonarr-configmap
         defaultMode: 0775
@@ -117,11 +114,14 @@ spec:
           - path: /scripts/pushover-notify.sh
             subPath: pushover-notify.sh
             readOnly: true
+          - path: /scripts/refresh-series.sh
+            subPath: refresh-series.sh
+            readOnly: true
       tmp:
         type: emptyDir
       media:
         type: nfs
-        server: nas02.in.homeops.ca
-        path: /volume1/share/Media
+        server: expanse.internal
+        path: /eros/Media
         globalMounts:
           - path: /media

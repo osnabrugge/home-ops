@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.5.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -35,16 +35,11 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/tautulli/tautulli
-              tag: v2.14.6@sha256:f54d2d3a78780c765cd7a10b882474909f50247b5d2d118badaa9c035421effd
+              repository: ghcr.io/onedr0p/tautulli
+              tag: 2.14.6@sha256:267de8bb88e82d9814e9374b0cc847d771cb83a4c5296e4bc083ab6fbac60a22
             env:
               TZ: Etc/UTC
-            command: ["/usr/local/bin/python", "Tautulli.py"]
-            args: [
-              "--config", "/config/config.ini",
-              "--datadir", "/config",
-              "--port", "80"
-            ]
+              TAUTULLI__PORT: &port 80
             probes:
               liveness: &probes
                 enabled: true
@@ -52,13 +47,13 @@ spec:
                 spec:
                   httpGet:
                     path: /status
-                    port: &port 80
+                    port: *port
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-            securityContext: &securityContext
+            securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
@@ -67,21 +62,6 @@ spec:
                 cpu: 10m
               limits:
                 memory: 1Gi
-          jbops:
-            image:
-              repository: registry.k8s.io/git-sync/git-sync
-              tag: v4.3.0@sha256:5813a7da0ccd58f6dfb9d5e48480e2877355e6bb3d7d81c8908eb1adc3a23b6e
-            env:
-              GITSYNC_REPO: https://github.com/blacktwin/JBOPS
-              GITSYNC_REF: master
-              GITSYNC_PERIOD: 24h
-              GITSYNC_ROOT: /add-ons
-            securityContext: *securityContext
-            resources:
-              requests:
-                cpu: 10m
-              limits:
-                memory: 128Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -111,7 +91,13 @@ spec:
     persistence:
       config:
         existingClaim: tautulli
-      tmp:
+      cache:
+        existingClaim: tautulli-cache
+        globalMounts:
+          - path: /config/cache
+      logs:
         type: emptyDir
-      add-ons:
+        globalMounts:
+          - path: /config/logs
+      tmp:
         type: emptyDir

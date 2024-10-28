@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: app-template
-      version: 3.4.0
+      version: 3.5.1
       sourceRef:
         kind: HelmRepository
         name: bjw-s
@@ -32,52 +32,42 @@ spec:
       qbittorrent:
         annotations:
           reloader.stakater.com/auto: "true"
-          # k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
         containers:
           app:
             image:
-              repository: ghcr.io/onedr0p/qbittorrent-beta
-              tag: 5.0.0@sha256:042a856a25d130385bd57845646a75a2130dda4895c9be0306fcd7a62ed12801
+              repository: ghcr.io/onedr0p/qbittorrent
+              tag: 5.0.0@sha256:4ba2360b71b95afe7d2b4459c54e5146ed682f37a1c1703eba0f29684636de50
             env:
               TZ: Etc/UTC
-              QBITTORRENT__PORT: &port 80
-              QBITTORRENT__BT_PORT: &bittorrentPort 50413
-              QBT_Application__MemoryWorkingSetLimit: 10000
-              QBT_Preferences__WebUI__AlternativeUIEnabled: false
-              QBT_Preferences__WebUI__AuthSubnetWhitelistEnabled: true
-              QBT_Preferences__WebUI__AuthSubnetWhitelist: |-
-                10.42.0.0/16, 192.168.10.0/24
-              QBT_Preferences__WebUI__LocalHostAuth: false
-              QBT_BitTorrent__Session__Interface: eth0
-              QBT_BitTorrent__Session__InterfaceAddress:
-                valueFrom:
-                  fieldRef:
-                    fieldPath: status.podIP
-              QBT_BitTorrent__Session__InterfaceName: eth0
+              QBT_WEBUI_PORT: &port 80
+              QBT_TORRENTING_PORT: &torrentPort 50413
+              CROSS_SEED_ENABLED: false
+              CROSS_SEED_HOST: cross-seed.default.svc.cluster.local
+              CROSS_SEED_PORT: 80
+              CROSS_SEED_SLEEP_INTERVAL: 0
+              PUSHOVER_ENABLED: true
+            envFrom:
+              - secretRef:
+                  name: qbittorrent-secret
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
-                custom: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
                 spec:
-                  httpGet:
-                    path: /api/v2/app/version
-                    port: *port
-                  initialDelaySeconds: 0
+                  failureThreshold: 30
                   periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                # intel.com/sriov: 1
                 cpu: 100m
               limits:
-                # intel.com/sriov: 1
-                memory: 12Gi
+                memory: 8Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -87,18 +77,21 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [10000]
         seccompProfile: { type: RuntimeDefault }
+      nodeSelector:
+        topology.kubernetes.io/zone: w
+      terminationGracePeriodSeconds: 300
     service:
       app:
         controller: qbittorrent
         type: LoadBalancer
         annotations:
-          io.cilium/lb-ipam-ips: 192.168.10.68
+          lbipam.cilium.io/ips: 192.168.42.122
         ports:
           http:
             port: *port
           bittorrent:
             enabled: true
-            port: *bittorrentPort
+            port: *torrentPort
             protocol: TCP
     ingress:
       app:
@@ -115,10 +108,16 @@ spec:
     persistence:
       config:
         existingClaim: qbittorrent
+      scripts:
+        type: configMap
+        name: qbittorrent-scripts
+        defaultMode: 0775
+        globalMounts:
+          - readOnly: true
       media:
         type: nfs
-        server: nas02.in.homeops.ca
-        path: /volume1/share/media
+        server: expanse.internal
+        path: /eros/Media
         globalMounts:
           - path: /media/Downloads/qbittorrent
             subPath: Downloads/qbittorrent

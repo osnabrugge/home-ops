@@ -41,7 +41,7 @@ spec:
   values:
     nameOverride: gha-runner-scale-set
     runnerScaleSetName: gha-runner-scale-set
-    githubConfigUrl: https://github.com/osnabrugge/home-ops
+    githubConfigUrl: https://github.com/onedr0p/home-ops
     minRunners: 1
     maxRunners: 6
     containerMode:

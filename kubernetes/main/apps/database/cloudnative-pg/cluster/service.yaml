@@ -5,7 +5,7 @@ metadata:
   name: postgres-lb
   annotations:
     external-dns.alpha.kubernetes.io/hostname: postgres.homeops.ca
-    io.cilium/lb-ipam-ips: 192.168.10.71
+    lbipam.cilium.io/ips: 192.168.42.125
 spec:
   type: LoadBalancer
   ports:
@@ -14,5 +14,5 @@ spec:
       protocol: TCP
       targetPort: 5432
   selector:
-    cnpg.io/cluster: postgres14
-    role: primary
+    cnpg.io/cluster: postgres16
+    cnpg.io/instanceRole: primary

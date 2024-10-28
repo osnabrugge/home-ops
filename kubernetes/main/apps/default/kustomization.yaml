@@ -7,22 +7,28 @@ resources:
   - ./namespace.yaml
   # Flux-Kustomizations
   - ./atuin/ks.yaml
-  - ./authelia/ks.yaml
   - ./autobrr/ks.yaml
+  - ./bazarr/ks.yaml
+  - ./cross-seed/ks.yaml
   - ./compreface/ks.yaml
   - ./double-take/ks.yaml
+  - ./echo-server/ks.yaml
+  - ./filebrowser/ks.yaml
   - ./frigate/ks.yaml
-  - ./glauth/ks.yaml
   - ./home-assistant/ks.yaml
+  - ./kopia/ks.yaml
+  - ./minio/ks.yaml
   - ./miniflux/ks.yaml
+  - ./omegabrr/ks.yaml
   - ./overseerr/ks.yaml
-  - ./pgadmin/ks.yaml
+  - ./pinchflat/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
   - ./recyclarr/ks.yaml
   - ./simple-monerod/ks.yaml
+  - ./slskd/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml

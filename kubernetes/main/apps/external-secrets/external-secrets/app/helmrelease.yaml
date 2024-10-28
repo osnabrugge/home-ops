@@ -24,6 +24,8 @@ spec:
       retries: 3
   values:
     installCRDs: true
+    image:
+      repository: ghcr.io/external-secrets/external-secrets
     # serviceAccount:
     #   create: true
     #   automount: true
@@ -35,14 +37,18 @@ spec:
     #   name: azure-sa
     # podLabels:
     #   azure.workload.identity/use: "true"
-    serviceMonitor:
-      enabled: true
-      interval: 1m
     webhook:
+      image:
+        repository: ghcr.io/external-secrets/external-secrets
       serviceMonitor:
         enabled: true
         interval: 1m
     certController:
+      image:
+        repository: ghcr.io/external-secrets/external-secrets
       serviceMonitor:
         enabled: true
         interval: 1m
+    serviceMonitor:
+      enabled: true
+      interval: 1m
