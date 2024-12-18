@@ -10,7 +10,6 @@
     ":semanticCommits",
     ":skipStatusChecks",
     ":timezone(Etc/UTC)",
-    "github>osnabrugge/home-ops//.github/renovate/allowedVersions.json5",
     "github>osnabrugge/home-ops//.github/renovate/autoMerge.json5",
     "github>osnabrugge/home-ops//.github/renovate/clusters.json5",
     "github>osnabrugge/home-ops//.github/renovate/commitMessage.json5",
@@ -28,18 +27,18 @@
   "ignorePaths": ["**/*.sops.*", "**/.archive/**", "**/resources/**"],
   "flux": {
     "fileMatch": [
-      "(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$"
+      "(^|/)kubernetes/.+\\.ya?ml$"
     ]
   },
   "helm-values": {
     "fileMatch": [
-      "(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$"
+      "(^|/)kubernetes/.+\\.ya?ml$"
     ]
   },
   "kubernetes": {
     "fileMatch": [
-      "(^|/)\\.taskfiles/.+\\.ya?ml(?:\\.j2)?$",
-      "(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$"
+      "(^|/)\\.taskfiles/.+\\.ya?ml$",
+      "(^|/)kubernetes/.+\\.ya?ml$"
     ]
   }
 }

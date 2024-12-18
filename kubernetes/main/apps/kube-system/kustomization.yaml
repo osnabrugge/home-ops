@@ -6,16 +6,14 @@ resources:
   # Pre Flux-Kustomizations
   - ./namespace.yaml
   # Flux-Kustomizations
-  # - ./azure-workload-identity/ks.yaml
   - ./cilium/ks.yaml
   - ./coredns/ks.yaml
+  - ./csi-driver-nfs/ks.yaml
   - ./descheduler/ks.yaml
   - ./fstrim/ks.yaml
   - ./intel-device-plugin/ks.yaml
   - ./kubelet-csr-approver/ks.yaml
   - ./metrics-server/ks.yaml
-  - ./network-resource-injector/ks.yaml
   - ./node-feature-discovery/ks.yaml
-  - ./reflector/ks.yaml
   - ./reloader/ks.yaml
   - ./spegel/ks.yaml

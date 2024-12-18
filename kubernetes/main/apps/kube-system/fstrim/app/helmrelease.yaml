@@ -27,8 +27,8 @@ spec:
       fstrim:
         type: cronjob
         cronjob:
-          schedule: "@weekly"
-          parallelism: 6 # Set to my total number of nodes
+          schedule: 0 0 * * 0
+          parallelism: 3 # Set to total number of nodes
           successfulJobsHistory: 1
           failedJobsHistory: 1
         containers:

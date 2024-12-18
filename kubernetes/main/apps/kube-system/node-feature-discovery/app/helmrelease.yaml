@@ -25,9 +25,11 @@ spec:
       strategy: rollback
       retries: 3
   values:
+    master:
+      replicaCount: 2
     worker:
       config:
         core:
-          sources: ["network", "pci", "system", "usb"]
+          labelSources: ["pci", "system", "usb"]
     prometheus:
       enable: true

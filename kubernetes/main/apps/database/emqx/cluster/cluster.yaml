@@ -12,9 +12,11 @@ spec:
         backend = "built_in_database"
         mechanism = "password_based"
         password_hash_algorithm {
-            name = "bcrypt",
+            name = "bcrypt"
         }
         user_id_type = "username"
+        bootstrap_file = "/opt/init-user.json"
+        bootstrap_type = "plain"
       }
       authorization {
         sources = [
@@ -39,7 +41,7 @@ spec:
         reloader.stakater.com/auto: "true"
     spec:
       replicas: 3
-      envFrom: &envFrom
+      envFrom:
         - secretRef:
             name: emqx-secret
       extraContainers:
@@ -61,6 +63,6 @@ spec:
   listenersServiceTemplate:
     metadata:
       annotations:
-        io.cilium/lb-ipam-ips: 192.168.10.76
+        lbipam.cilium.io/ips: 192.168.10.76
     spec:
       type: LoadBalancer
