@@ -1,40 +1,60 @@
 ---
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: "3"
+version: '3'
 
 tasks:
 
-  browse-pvc:
-    desc: Browse PersistentVolumeClaims
-    summary: |
-      Args:
-        cluster: Cluster to run command against (required)
-        ns: Namespace to browse PersistentVolumeClaims in (default: default)
-        claim: PersistentVolumeClaim to browse (required)
-    interactive: true
-    cmd: kubectl browse-pvc --context {{.cluster}} --namespace {{.ns}} {{.claim}}
+  apply-ks:
+    desc: Apply a Flux KS for a cluster [CLUSTER=main] [PATH=required]
+    cmd: >
+      flux build --namespace flux-system ks {{base .PATH}}
+      --kustomization-file {{.CLUSTER_DIR}}/apps/{{.PATH}}/ks.yaml
+      --path {{.CLUSTER_DIR}}/apps/{{.PATH}}{{if contains .KUSTOMIZATION "not found"}} --dry-run{{end}}
+      | yq 'with(select(.apiVersion == "kustomize.toolkit.fluxcd.io/v1" and .kind == "Kustomization"); .metadata.namespace = "flux-system")' -
+      | kubectl apply --server-side --field-manager=kustomize-controller --filename -
+    requires:
+      vars: [CLUSTER, PATH]
     vars:
-      ns: '{{.ns | default "default"}}'
-    requires:
-      vars: ["cluster", "claim"]
+      KUSTOMIZATION:
+        sh: flux --namespace flux-system get kustomizations {{base .PATH}} 2>&1
+    preconditions:
+      - test -f {{.CLUSTER_DIR}}/apps/{{.PATH}}/ks.yaml
+      - which flux kubectl yq
 
-  drain:
-    desc: Drain a node
-    summary: |
-      Args:
-        cluster: Cluster to run command against (required)
-        node: Node to drain (required)
-    cmd: kubectl --context {{.cluster}} drain {{.node}} --ignore-daemonsets --delete-local-data --force
+  browse-pvc:
+    desc: Mount a PVC to an temp container [CLUSTER=main] [NS=default] [CLAIM=required]
+    interactive: true
+    cmd: kubectl browse-pvc --namespace {{.NS}} --image docker.io/library/alpine:latest {{.CLAIM}}
+    vars:
+      NS: '{{.NS | default "default"}}'
     requires:
-      vars: ["cluster", "node"]
+      vars: [CLUSTER, CLAIM]
+    preconditions:
+      - kubectl --namespace {{.NS}} get persistentvolumeclaims {{.CLAIM}}
+      - kubectl browse-pvc --version
+      - which kubectl
 
-  delete-failed-pods:
-    desc: Deletes pods with a fucked status
-    summary: |
-      Args:
-        cluster: Cluster to run command against (required)
+  sync-secrets:
+    desc: Sync all ExternalSecrets [CLUSTER=main]
     cmds:
-      - for: ["Evicted", "Failed", "Succeeded"]
-        cmd: kubectl --context {{.cluster}} delete pods --field-selector status.phase={{.ITEM}} -A --ignore-not-found=true
+      - for: { var: SECRETS, split: "\n" }
+        cmd: kubectl --namespace {{splitList "," .ITEM | first}} annotate externalsecret {{splitList "," .ITEM | last}} force-sync="{{now | unixEpoch}}" --overwrite
+    vars:
+      SECRETS:
+        sh: kubectl get externalsecret --all-namespaces --no-headers --output=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name}{"\n"}{end}'
     requires:
-      vars: ["cluster"]
+      vars: [CLUSTER]
+    preconditions:
+      - which kubectl
+
+  cleanse-pods:
+    desc: Cleanse pods with a Failed/Pending/Succeeded phase [CLUSTER=main]
+    cmds:
+      - for:
+          matrix:
+            PHASE: [Failed, Pending, Succeeded]
+        cmd: kubectl delete pods --all-namespaces --field-selector status.phase={{.ITEM.PHASE}} --ignore-not-found=true
+    requires:
+      vars: [CLUSTER]
+    preconditions:
+      - which kubectl

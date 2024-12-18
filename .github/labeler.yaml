@@ -1,8 +1,5 @@
 ---
 # Areas
-area/ansible:
-  - changed-files:
-      - any-glob-to-any-file: "ansible/**/*"
 area/docs:
   - changed-files:
       - any-glob-to-any-file:
@@ -23,6 +20,3 @@ area/taskfile:
 cluster/main:
   - changed-files:
       - any-glob-to-any-file: "kubernetes/main/**/*"
-cluster/storage:
-  - changed-files:
-      - any-glob-to-any-file: "kubernetes/storage/**/*"

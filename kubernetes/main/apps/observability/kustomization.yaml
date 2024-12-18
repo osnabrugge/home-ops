@@ -6,7 +6,7 @@ resources:
   # Pre Flux-Kustomizations
   - ./namespace.yaml
   # Flux-Kustomizations
-  - ./alertmanager-silencer/ks.yaml
+  - ./blackbox-exporter/ks.yaml
   - ./gatus/ks.yaml
   - ./grafana/ks.yaml
   - ./kromgo/ks.yaml
@@ -15,8 +15,8 @@ resources:
   # - ./monero-exporter/ks.yaml
   # - ./omada-exporter/ks.yaml
   # - ./pihole-exporter/ks.yaml
+  - ./prometheus-operator-crds/ks.yaml
+  - ./promtail/ks.yaml
   - ./smartctl-exporter/ks.yaml
-  # - ./snmp-exporter/ks.yaml
+  - ./snmp-exporter/ks.yaml
   - ./speedtest-exporter/ks.yaml
-  - ./thanos/ks.yaml
-  - ./vector/ks.yaml

@@ -1,11 +1,4 @@
 {
-    "ansible.ansible.path": ".venv/bin/ansible",
-    "ansible.python.activationScript": ".venv/bin/activate",
-    "ansible.python.interpreterPath": ".venv/bin/python3",
-    "ansible.validation.enabled": true,
-    "ansible.validation.lint.arguments": "-c ansible/.ansible-lint",
-    "ansible.validation.lint.enabled": true,
-    "ansible.validation.lint.path": ".venv/bin/ansible-lint",
     "editor.bracketPairColorization.enabled": true,
     "editor.fontFamily": "FiraCode Nerd Font",
     "editor.fontLigatures": true,
@@ -19,16 +12,13 @@
     "editor.stickyScroll.enabled": false,
     "explorer.autoReveal": false,
     "files.associations": {
-        "*.json5": "jsonc",
-        "./ansible/**/*.yaml": "ansible",
-        "./ansible/**/inventory/**/*.yaml": "yaml",
-        "./terraform/**/*.tf": "terraform"
+        "**/*.json5": "jsonc"
     },
     "files.trimTrailingWhitespace": true,
     "material-icon-theme.files.associations": {
       // TODO: https://github.com/PKief/vscode-material-icon-theme/issues/330
-      "*.secret.sops.env": "lock",
-      "*.secret.sops.yaml": "lock"
+      "*.sops.env": "lock",
+      "*.sops.yaml": "lock"
     },
     "material-icon-theme.folders.associations": {
         // top level
@@ -62,7 +52,6 @@
     },
     "yaml.schemaStore.enable": true,
     "yaml.schemas": {
-      "ansible": "./ansible/**/*.yaml",
       "kubernetes": "./kubernetes/**/*.yaml"
     }
 }

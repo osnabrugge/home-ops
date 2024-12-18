@@ -2,34 +2,23 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "packageRules": [
     {
-      "description": ["Loose versioning for non-semver packages"],
+      "description": ["Allowed postgresql major release"],
       "matchDatasources": ["docker"],
-      "versioning": "loose",
-      "matchPackagePatterns": ["plex", "qbittorrent"]
+      "matchPackagePatterns": ["postgresql"],
+      "allowedVersions": "<17"
     },
     {
-      "description": ["Custom versioning for frigate"],
-      "matchDatasources": ["docker"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(-(?<compatibility>beta)(?<build>\\d+))?$",
-      "matchPackagePatterns": ["frigate"]
+      "description": ["Custom schedule for frequently updated container digests"],
+      "matchDataSources": ["docker"],
+      "matchPackagePatterns": ["postgresql"],
+      "matchUpdateTypes": ["digest"],
+      "schedule": ["every 3 months on the first day of the month"]
     },
     {
-      "description": ["Custom versioning for k3s"],
-      "matchDatasources": ["github-releases"],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<compatibility>\\+k3s)(?<build>\\d+)$",
-      "matchPackagePatterns": ["k3s"]
-    },
-    {
-      "description": ["Custom versioning for miniflux"],
+      "description": ["Loose versioning for non-semver containers"],
       "matchDatasources": ["docker"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>)$",
-      "matchPackagePatterns": ["miniflux"]
-    },
-    {
-      "description": ["Custom versioning for minio"],
-      "matchDatasources": ["docker"],
-      "versioning": "regex:^RELEASE\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)T.*Z$",
-      "matchPackagePatterns": ["minio"]
+      "matchPackagePatterns": ["plex"],
+      "versioning": "loose"
     }
   ]
 }

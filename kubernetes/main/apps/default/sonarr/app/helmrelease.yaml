@@ -75,18 +75,17 @@ spec:
             resources:
               requests:
                 # intel.com/sriov: 1
-                cpu: 10m
+                cpu: 100m
               limits:
                 # intel.com/sriov: 1
-                memory: 1Gi
+                memory: 4Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 568
-        runAsGroup: 568
-        fsGroup: 568
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
-        supplementalGroups: [10000]
         seccompProfile: { type: RuntimeDefault }
     service:
       app:
@@ -96,8 +95,6 @@ spec:
             port: *port
     ingress:
       app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.homeops.ca
         className: internal
         hosts:
           - host: "{{ .Release.Name }}.homeops.ca"
@@ -109,13 +106,16 @@ spec:
     persistence:
       config:
         existingClaim: sonarr
-      pushover-notify:
+      scripts:
         type: configMap
         name: sonarr-configmap
         defaultMode: 0775
         globalMounts:
           - path: /scripts/pushover-notify.sh
             subPath: pushover-notify.sh
+            readOnly: true
+          - path: /scripts/refresh-series.sh
+            subPath: refresh-series.sh
             readOnly: true
       tmp:
         type: emptyDir
