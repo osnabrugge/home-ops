@@ -41,7 +41,7 @@ spec:
           app:
             image:
               repository: ghcr.io/miniflux/miniflux
-              tag: 2.0.50-distroless@sha256:625f6decf8740020fabec273e0f694f218a50281e251e13514ac2be4d9147ca8
+              tag: 2.2.4-distroless@sha256:c09492e6c353ab15c8aae824dd2c0c4247dc84d1ef0ac795226155365465343d
             env:
               BASE_URL: https://miniflux.homeops.ca
               CREATE_ADMIN: "1"
