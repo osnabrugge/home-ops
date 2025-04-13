@@ -1,0 +1,9 @@
+machine:
+  network:
+    hostname: k8s-0
+  disks:
+    - device: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_S6S1NS0T404489F
+      partitions:
+        - mountpoint: /var/mnt/extra
+  install:
+    image: factory.talos.dev/installer/de3b865124c5616da8084826167f8c0b0fbc9b905b146290db797024e84097fc:{{ ENV.TALOS_VERSION }}
