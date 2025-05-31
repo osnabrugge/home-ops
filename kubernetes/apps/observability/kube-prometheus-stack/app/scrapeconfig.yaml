@@ -7,8 +7,9 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-        - kvm01.in.homeops.ca:9100
-        - fw01.in.homeops.ca:9100
+        - nas02.homeops.ca:9100
+        - kvm01.homeops.ca:9100
+        - fw01.homeops.ca:9100
   metricsPath: /metrics
   relabelings:
     - action: replace
@@ -19,10 +20,27 @@ spec:
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: &name kvm
+  name: &name smartctl-exporter
 spec:
   staticConfigs:
-    - targets: ["kvm01.in.homeops.ca"]
+    - targets:
+        - nas02.homeops.ca:9633
+        - fw01.homeops.ca:9633
+  metricsPath: /metrics
+  relabelings:
+    - action: replace
+      targetLabel: job
+      replacement: *name
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: &name kvm01
+spec:
+  staticConfigs:
+    - targets:
+        - kvm01.homeops.ca
   metricsPath: /api/export/prometheus/metrics
   relabelings:
     - action: replace
@@ -33,10 +51,12 @@ spec:
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: &name gatus
+  name: &name zigbee-controller
 spec:
   staticConfigs:
-    - targets: ["status.homeops.ca"]
+    - targets:
+        - zig01.homeops.ca
+        - zig02.homeops.ca
   metricsPath: /metrics
   relabelings:
     - action: replace
@@ -50,23 +70,9 @@ metadata:
   name: &name fw01-vnstat
 spec:
   staticConfigs:
-    - targets: ["fw01.in.homeops.ca:8685"]
+    - targets: ["fw01.homeops.ca:8685"]
   metricsPath: /metrics
   relabelings:
     - action: replace
       targetLabel: job
       replacement: *name
-# ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
-# apiVersion: monitoring.coreos.com/v1alpha1
-# kind: ScrapeConfig
-# metadata:
-#   name: &name zigbee-controller
-# spec:
-#   staticConfigs:
-#     - targets: ["zigbee-controller.in.homeops.ca"]
-#   metricsPath: /metrics
-#   relabelings:
-#     - action: replace
-#       targetLabel: job
-#       replacement: *name

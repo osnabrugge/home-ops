@@ -2,31 +2,30 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: default
+components:
+  - ../../components/common
 resources:
-  # Pre Flux-Kustomizations
-  - ./namespace.yaml
-  # Flux-Kustomizations
-  - ./atuin/ks.yaml
-  - ./authelia/ks.yaml
+  # - ./atuin/ks.yaml
   - ./autobrr/ks.yaml
-  - ./compreface/ks.yaml
-  - ./double-take/ks.yaml
-  - ./frigate/ks.yaml
-  - ./glauth/ks.yaml
+  - ./bazarr/ks.yaml
+  - ./beets/ks.yaml
+  - ./cross-seed/ks.yaml
+  - ./fusion/ks.yaml
+  - ./go2rtc/ks.yaml
   - ./home-assistant/ks.yaml
-  - ./miniflux/ks.yaml
-  - ./overseerr/ks.yaml
-  - ./pgadmin/ks.yaml
+  - ./jellyfin/ks.yaml
+  - ./jellyseerr/ks.yaml
+  - ./mosquitto/ks.yaml
+  - ./pinchflat/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./radarr/ks.yaml
   - ./recyclarr/ks.yaml
-  - ./simple-monerod/ks.yaml
-  - ./smtp-relay/ks.yaml
+  - ./slskd/ks.yaml
   - ./sonarr/ks.yaml
   - ./tautulli/ks.yaml
-  - ./unpackerr/ks.yaml
-  - ./vaultwarden/ks.yaml
-  - ./zigbee2mqtt/ks.yaml
-  # - ./zwave/ks.yaml
+  - ./webhook/ks.yaml
+  - ./zigbee/ks.yaml
+  - ./zwave/ks.yaml

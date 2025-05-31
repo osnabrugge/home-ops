@@ -10,35 +10,35 @@ Before you start contributing, please make sure you have read and understood our
 
 First, fork the [repository](https://github.com/osnabrugge/home-ops) to your own GitHub account. This will create a copy of the project under your account.
 
-1. Clone the Repository
+2. Clone the Repository
 
     ```sh
     git clone https://github.com/osnabrugge/home-ops
     ```
 
-2. Navigate to the project directory 📁
+3. Navigate to the project directory 📁
 
     ```sh
     cd home-ops
     ```
 
-3. Create a new branch for your feature or bug fix:
+4. Create a new branch for your feature or bug fix:
 
     ```sh
     git checkout -b feature-branch
     ```
 
-4. Make your changes and commit them:
+5. Make your changes and commit them:
 
     ```sh
     git add .
     git commit -m "Description of your changes"
     ```
 
-5. Push your changes to your fork:
+6. Push your changes to your fork:
 
     ```sh
     git push origin feature-branch
     ```
 
-6. Finally Click on Create Pull request to contribute on this repository.
+7. Finally Click on Create Pull request to contribute on this repository.

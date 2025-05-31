@@ -1,12 +1,12 @@
+---
 version: v1alpha1
 debug: false
 persist: true
 machine:
-  type: controlplane
-  token: "{{ env 'AZURE_TALOS_MACHINE_TOKEN' }}"
+  token: op://kubernetes/talos/MACHINE_TOKEN
   ca:
-    crt: "{{ env 'AZURE_TALOS_MACHINE_CA_CRT' }}"
-    key: "{{ env 'AZURE_TALOS_MACHINE_CA_KEY' }}"
+    crt: op://kubernetes/talos/MACHINE_CA_CRT
+    key: op://kubernetes/talos/MACHINE_CA_KEY
   certSANs: ["127.0.0.1", "192.168.42.120"]
   kubelet:
     image: ghcr.io/siderolabs/kubelet:{{ ENV.KUBERNETES_VERSION }}
@@ -34,8 +34,11 @@ machine:
     diskSelector:
       model: Samsung SSD 980
     extraKernelArgs:
-      - i915.enable_guc=3                   # Meteor Lake CPU / iGPU
+      - -init_on_alloc                      # Less security, faster puter
+      - -init_on_free                       # Less security, faster puter
+      - -selinux                            # Less security, faster puter
       - apparmor=0                          # Less security, faster puter
+      - i915.enable_guc=3                   # Meteor Lake CPU / iGPU
       - init_on_alloc=0                     # Less security, faster puter
       - init_on_free=0                      # Less security, faster puter
       - intel_iommu=on                      # PCI Passthrough
@@ -74,9 +77,8 @@ machine:
     net.ipv4.tcp_rmem: 4096 87380 33554432 # 10Gb/s
     net.ipv4.tcp_wmem: 4096 65536 33554432 # 10Gb/s
     net.ipv4.tcp_window_scaling: 1         # 10Gb/s
+    user.max_user_namespaces: 11255        # User Namespaces
     vm.nr_hugepages: 1024                  # PostgreSQL
-  sysfs:
-    devices.system.cpu.intel_pstate.hwp_dynamic_boost: 1
   features:
     rbac: true
     stableHostname: true

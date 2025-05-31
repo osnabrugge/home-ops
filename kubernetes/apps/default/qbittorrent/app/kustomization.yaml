@@ -4,14 +4,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./helmrelease.yaml
-  - ../../../../templates/gatus/guarded
-  - ../../../../templates/volsync
 configMapGenerator:
   - name: qbittorrent-loki-rules
     files:
-      - qbittorrent.yaml=./resources/lokirule.yaml
+      - qbittorrent.yaml=./lokirule.yaml
     options:
       labels:
         loki_rule: "true"
 generatorOptions:
   disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled

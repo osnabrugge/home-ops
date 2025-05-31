@@ -1,51 +1,42 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: autobrr
 spec:
-  interval: 30m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        kind: HelmRepository
-        name: bjw-s
-        namespace: flux-system
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
   install:
     remediation:
-      retries: 3
+      retries: -1
   upgrade:
     cleanupOnFail: true
     remediation:
-      strategy: rollback
       retries: 3
   values:
     controllers:
       autobrr:
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          init-db:
-            image:
-              repository: ghcr.io/onedr0p/postgres-init
-              tag: 16
-            envFrom: &envFrom
-              - secretRef:
-                  name: autobrr-secret
         containers:
           app:
             image:
               repository: ghcr.io/autobrr/autobrr
-              tag: v1.60.0@sha256:5f95def0aa664e653c5de820f27661357a5c77a8eef0dd7fa204efedfb7d0e45
+              tag: v1.62.0@sha256:e9bf07f15c36555f4c7d28df44f137d420d6188bab0a53eb7dfbdcb62238caa4
             env:
-              AUTOBRR__CHECK_FOR_UPDATES: "false"
               AUTOBRR__HOST: 0.0.0.0
               AUTOBRR__PORT: &port 80
+              AUTOBRR__METRICS_ENABLED: true
+              AUTOBRR__METRICS_HOST: 0.0.0.0
+              AUTOBRR__METRICS_PORT: &metricsPort 9094
+              AUTOBRR__CHECK_FOR_UPDATES: false
               AUTOBRR__LOG_LEVEL: INFO
-            envFrom: *envFrom
+            envFrom:
+              - secretRef:
+                  name: autobrr-secret
             probes:
               liveness: &probes
                 enabled: true
@@ -73,23 +64,41 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
-        seccompProfile: { type: RuntimeDefault }
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         controller: autobrr
         ports:
           http:
             port: *port
-    ingress:
+          metrics:
+            port: *metricsPort
+    serviceMonitor:
       app:
-        className: internal
-        hosts:
-          - host: "{{ .Release.Name }}.homeops.ca"
-            paths:
-              - path: /
-                service:
-                  identifier: app
-                  port: http
+        serviceName: autobrr
+        endpoints:
+          - port: metrics
+    route:
+      app:
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
     persistence:
-      tmp:
+      config:
+        existingClaim: autobrr
+      tmpfs:
         type: emptyDir
+        advancedMounts:
+          autobrr:
+            app:
+              - path: /config/log
+                subPath: log
+              - path: /tmp
+                subPath: tmp
