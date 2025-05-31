@@ -12,7 +12,7 @@ vars:
   TALOS_DIR: '{{.ROOT_DIR}}/talos'
 
 dotenv:
-  - '{{.ROOT_DIR}}/onepassword.env'
+  - '{{.ROOT_DIR}}/azurekv.env'
   - '{{.KUBERNETES_DIR}}/apps/system-upgrade/versions.env'
 
 env:

@@ -6,11 +6,13 @@ resources:
   - ./externalsecret.yaml
   - ./pvc.yaml
   - ./helmrelease.yaml
-  - ../../../../templates/gatus/guarded
 configMapGenerator:
-  - name: radarr-configmap
+  - name: radarr-loki-rules
     files:
-      - pushover-notify.sh=./resources/pushover-notify.sh
+      - radarr.yaml=./lokirule.yaml
+    options:
+      labels:
+        loki_rule: "true"
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
