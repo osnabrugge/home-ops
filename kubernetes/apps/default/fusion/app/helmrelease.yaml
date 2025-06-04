@@ -26,7 +26,7 @@ spec:
               tag: 0.9.8@sha256:2d98a5bf0cabd6998d07fa26c63f1b742a1c33a4c926f2da1dfd7ee49e88e3e0
             env:
               PORT: &port 80
-              TZ: America/New_York
+              TZ: Etc/UTC
             probes:
               liveness: &probes
                 enabled: true
@@ -65,8 +65,8 @@ spec:
     route:
       app:
         hostnames:
-          - "{{ .Release.Name }}.devbu.io"
-          - feeds.devbu.io
+          - "{{ .Release.Name }}.homeops.ca"
+          - feeds.homeops.ca
         parentRefs:
           - name: internal
             namespace: kube-system

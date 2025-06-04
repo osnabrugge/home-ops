@@ -1,10 +1,10 @@
 ---
 originRequest:
-  originServerName: external.devbu.io
+  originServerName: external.homeops.ca
 
 ingress:
-  - hostname: devbu.io
+  - hostname: homeops.ca
     service: &svc https://cilium-gateway-external.kube-system.svc.cluster.local
-  - hostname: "*.devbu.io"
+  - hostname: "*.homeops.ca"
     service: *svc
   - service: http_status:404

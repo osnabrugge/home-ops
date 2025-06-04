@@ -59,7 +59,7 @@ spec:
       app:
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
-          - hass.devbu.io
+          - hass.homeops.ca
         parentRefs:
           - name: external
             namespace: kube-system
