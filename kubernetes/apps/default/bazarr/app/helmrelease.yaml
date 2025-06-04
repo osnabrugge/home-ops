@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/home-operations/bazarr
               tag: 1.5.2@sha256:dbc87e5ce9e199709188e152e82b3ff5d33e6521a1b3d61e465aa75b4b739e7f
             env:
-              TZ: America/New_York
+              TZ: Etc/UTC
             probes:
               liveness: &probes
                 enabled: true
@@ -65,7 +65,7 @@ spec:
             port: *port
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.devbu.io"]
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
         parentRefs:
           - name: internal
             namespace: kube-system
@@ -79,8 +79,8 @@ spec:
         existingClaim: bazarr
       media:
         type: nfs
-        server: expanse.internal
-        path: /mnt/eros/Media
+        server: nas02.homeops.ca
+        path: /volume1/share/media
         globalMounts:
           - path: /media
       tmpfs:

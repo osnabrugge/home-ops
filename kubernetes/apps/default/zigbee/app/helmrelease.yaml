@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/koenkk/zigbee2mqtt
               tag: 2.4.0@sha256:dd7479e5416c4b95725333d0a69ff504bcbda9a7a3431e5d5dd1e27c16465cdd
             env:
-              TZ: America/New_York
+              TZ: Etc/UTC
               ZIGBEE2MQTT_DATA: /config
               ZIGBEE2MQTT_CONFIG_ADVANCED_LAST_SEEN: ISO_8601
               ZIGBEE2MQTT_CONFIG_ADVANCED_LOG_LEVEL: info # debug
@@ -36,7 +36,7 @@ spec:
               ZIGBEE2MQTT_CONFIG_AVAILABILITY_PASSIVE_TIMEOUT: 2000
               ZIGBEE2MQTT_CONFIG_DEVICE_OPTIONS_RETAIN: "true"
               ZIGBEE2MQTT_CONFIG_FRONTEND_PORT: &port 80
-              ZIGBEE2MQTT_CONFIG_FRONTEND_URL: https://zigbee.devbu.io
+              ZIGBEE2MQTT_CONFIG_FRONTEND_URL: https://zig01.homesop.ca
               ZIGBEE2MQTT_CONFIG_HOMEASSISTANT_ENABLED: true
               ZIGBEE2MQTT_CONFIG_HOMEASSISTANT_DISCOVERY_TOPIC: homeassistant
               ZIGBEE2MQTT_CONFIG_HOMEASSISTANT_STATUS_TOPIC: homeassistant/status
@@ -48,7 +48,7 @@ spec:
               ZIGBEE2MQTT_CONFIG_PERMIT_JOIN: "false"
               ZIGBEE2MQTT_CONFIG_SERIAL_BAUDRATE: 115200
               ZIGBEE2MQTT_CONFIG_SERIAL_DISABLE_LED: "false"
-              ZIGBEE2MQTT_CONFIG_SERIAL_PORT: tcp://192.168.1.90:6638
+              ZIGBEE2MQTT_CONFIG_SERIAL_PORT: tcp://192.168.70.35:6638
               ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER: zstack
               # DEBUG: "zigbee-herdsman*"
             envFrom:
@@ -88,7 +88,7 @@ spec:
             port: *port
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.devbu.io"]
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
         parentRefs:
           - name: internal
             namespace: kube-system

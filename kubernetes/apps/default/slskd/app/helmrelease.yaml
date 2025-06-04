@@ -28,7 +28,7 @@ spec:
               tag: 0.22.5@sha256:f5150c39758353c31788e8e3d6aa9f9c2910f2a46591d810fc2f4d0bac81a96a
             env:
               DOTNET_BUNDLE_EXTRACT_BASE_DIR: /tmp/.net
-              TZ: America/New_York
+              TZ: Etc/UTC
               SLSKD_APP_DIR: /config
               SLSKD_HTTP_PORT: &port 80
               SLSKD_NO_AUTH: true
@@ -72,7 +72,7 @@ spec:
         controller: slskd
         type: LoadBalancer
         annotations:
-          lbipam.cilium.io/ips: 192.168.42.127, ::ffff:192.168.42.127
+          lbipam.cilium.io/ips: 192.168.42.127
         ports:
           http:
             primary: true
@@ -83,7 +83,7 @@ spec:
             protocol: TCP
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.devbu.io"]
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
         parentRefs:
           - name: internal
             namespace: kube-system
@@ -108,8 +108,8 @@ spec:
             readOnly: true
       media:
         type: nfs
-        server: expanse.internal
-        path: /mnt/eros/Media
+        server: nas02.homeops.ca
+        path: /volume1/share/media
         globalMounts:
           - path: /media/Downloads/soulseek
             subPath: Downloads/soulseek

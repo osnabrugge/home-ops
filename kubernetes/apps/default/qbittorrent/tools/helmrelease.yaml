@@ -1,26 +1,20 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: qbtools
 spec:
-  interval: 30m
-  chart:
-    spec:
-      chart: app-template
-      version: 3.7.3
-      sourceRef:
-        kind: HelmRepository
-        name: bjw-s
-        namespace: flux-system
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: app-template
   install:
     remediation:
-      retries: 3
+      retries: -1
   upgrade:
     cleanupOnFail: true
     remediation:
-      strategy: rollback
       retries: 3
   dependsOn:
     - name: qbittorrent
@@ -28,18 +22,17 @@ spec:
   values:
     controllers:
       tagging:
-        # annotations:
-        #   k8s.v1.cni.cncf.io/networks: network/storage-sriov-conf
         type: cronjob
         cronjob: &cronJobSpec
-          schedule: "@hourly"
-          timeZone: &timeZone Etc/UTC
+          schedule: 0 * * * *
+          backoffLimit: 0
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
+          ttlSecondsAfterFinished: 3600
         initContainers:
-          tagging:
-            image: &image
+          tag: &container
+            image:
               repository: ghcr.io/buroa/qbtools
               tag: v0.21.0@sha256:3a60f001c3f5fd068ff38960fbf9db726fa59edf135b18cd50294230366c284e
             env: &env
@@ -55,102 +48,94 @@ spec:
               "--last-activity",
               "--sites",
               "--unregistered",
-              "--server", "qbittorrent.$(POD_NAMESPACE).svc.cluster.local",
-              "--port", "80",
-              "--config", "/config/config.yaml"
+              "--not-linked"
             ]
-            resources: &resources
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
               requests:
-                # intel.com/sriov: 1
                 cpu: 25m
               limits:
-                # intel.com/sriov: 1
                 memory: 256M
         containers:
           unregistered:
-            image: *image
-            env: *env
+            <<: *container
             args: [
               "prune",
               "--exclude-category", "manual",
               "--exclude-category", "music",
-              "--exclude-category", "music.import",
+              "--exclude-tag", "added:1d",
               "--include-tag", "unregistered",
-              # "--dry-run",
-              "--server", "qbittorrent.$(POD_NAMESPACE).svc.cluster.local",
-              "--port", "80"
+              "--with-data"
+              # "--dry-run"
             ]
-            resources: *resources
           expired:
-            image: *image
-            env: *env
+            <<: *container
             args: [
               "prune",
               "--exclude-category", "manual",
               "--exclude-category", "music",
-              "--exclude-category", "music.import",
-              "--include-tag", "expired", # defined in config.yaml
-              "--include-tag", "added:7d",
-              # "--dry-run",
-              "--server", "qbittorrent.$(POD_NAMESPACE).svc.cluster.local",
-              "--port", "80"
+              "--exclude-tag", "added:1d",
+              "--include-tag", "expired",
+              "--with-data"
+              # "--dry-run"
             ]
-            resources: *resources
         pod:
-          restartPolicy: OnFailure
+          restartPolicy: Never
       orphaned:
         type: cronjob
         cronjob:
           <<: *cronJobSpec
-          schedule: "@daily"
+          schedule: 0 0 * * 0
+          suspend: true
         containers:
           app:
-            image: *image
-            env: *env
+            <<: *container
             args: [
               "orphaned",
               "--exclude-pattern", "*_unpackerred*",
-              "--exclude-pattern", "*/manual/*",
-              "--exclude-pattern", "*/music.import/*",
-              # "--dry-run",
-              "--server", "qbittorrent.$(POD_NAMESPACE).svc.cluster.local",
-              "--port", "80"
+              # "--dry-run"
             ]
-            resources: *resources
         pod:
-          restartPolicy: OnFailure
+          restartPolicy: Never
       reannounce:
         containers:
           app:
-            image: *image
-            env: *env
+            <<: *container
             args: [
               "reannounce",
-              "--process-seeding",
-              "--server", "qbittorrent.$(POD_NAMESPACE).svc.cluster.local",
-              "--port", "80"
+              "--process-seeding"
             ]
-            resources: *resources
+      limiter:
+        containers:
+          app:
+            <<: *container
+            args: [
+              "limiter",
+              "--max-line-speed-mbps", "100",
+              "--max-percent", "0.9",
+              "--limit-percent", "0.45",
+              "--interval", "5"
+            ]
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 568
-        runAsGroup: 568
-        seccompProfile: { type: RuntimeDefault }
+        runAsUser: 1000
+        runAsGroup: 1000
     persistence:
       secret-file:
         type: secret
-        name: qbtools-secret
+        name: qbtools-config-secret
         globalMounts:
           - path: /config/config.yaml
             subPath: config.yaml
             readOnly: true
       media:
         type: nfs
-        server: nas02.in.homeops.ca
+        server: nas02.homeops.ca
         path: /volume1/share/media
-        advancedMounts:
-          orphaned:
-            app:
-              - path: /media/Downloads/qbittorrent
-                subPath: Downloads/qbittorrent
+        globalMounts:
+          - path: /media/Downloads/qbittorrent
+            subPath: Downloads/qbittorrent

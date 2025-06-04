@@ -21,15 +21,8 @@ spec:
             - name: repository
               mountPath: /repository
           resources: {}
-        - name: r2
-          image: docker.io/restic/restic:latest
-          args: ["unlock", "--remove-all"]
-          envFrom:
-            - secretRef:
-                name: {{ ENV.APP }}-volsync-r2-secret
-          resources: {}
       volumes:
         - name: repository
           nfs:
-            server: expanse.internal
-            path: /mnt/eros/Volsync
+            server: nas02.homeops.ca
+            path: /volume1/share/Volsync

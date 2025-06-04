@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/jellyfin/jellyfin
               tag: 10.10.7@sha256:e4d1dc5374344446a3a78e43dd211247f22afba84ea2e5a13cbe1a94e1ff2141
             env:
-              TZ: America/New_York
+              TZ: Etc/UTC
             probes:
               liveness: &probes
                 enabled: true
@@ -72,7 +72,7 @@ spec:
             port: *port
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.devbu.io"]
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
         parentRefs:
           - name: internal
             namespace: kube-system
@@ -92,8 +92,8 @@ spec:
           - path: /config/metadata
       media:
         type: nfs
-        server: expanse.internal
-        path: /mnt/eros/Media
+        server: nas02.homeops.ca
+        path: /volume1/share/media
         globalMounts:
           - path: /media
             readOnly: true
