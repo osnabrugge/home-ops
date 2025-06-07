@@ -5,6 +5,7 @@
 *.key
 .decrypted~*
 .DS_Store
+azurekv.env
 Brewfile.lock.json
 Thumbs.db
 kubeconfig

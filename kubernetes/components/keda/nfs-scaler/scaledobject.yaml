@@ -3,7 +3,7 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: ${APP}-nfs-scaler
+  name: ${APP}
 spec:
   advanced:
     restoreToOriginalReplicaCount: true

@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: mosquitto
+  name: thelounge
 spec:
   interval: 1h
   chartRef:
@@ -18,23 +18,30 @@ spec:
       retries: 3
   values:
     controllers:
-      mosquitto:
+      thelounge:
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
-              repository: public.ecr.aws/docker/library/eclipse-mosquitto
-              tag: 2.0.21
+              repository: ghcr.io/thelounge/thelounge
+              tag: 4.4.3@sha256:c2aa0916203b298ffaf3a36c4eb60ef73c1006448d430e218d37840472e84e50
             env:
-              TZ: Etc/UTC
+              THELOUNGE_HOME: /config/thelounge
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
             resources:
               requests:
                 cpu: 10m
               limits:
-                memory: 100Mi
+                memory: 512Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -44,33 +51,21 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: mosquitto
-        type: LoadBalancer
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: mosquitto.homeops.ca
-          lbipam.cilium.io/ips: 192.168.42.129, ::ffff:192.168.42.129
+        controller: thelounge
         ports:
           http:
-            port: 1883
-    configMaps:
-      config:
-        data:
-          mosquitto.conf: |
-            allow_anonymous true
-            autosave_interval 60
-            connection_messages false
-            listener 1883
-            per_listener_settings false
-            persistence true
-            persistence_location /data
+            port: 9000
+    route:
+      app:
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 9000
     persistence:
-      data:
-        existingClaim: mosquitto-cache
-      config-file:
-        type: configMap
-        name: mosquitto
-        advancedMounts:
-          mosquitto:
-            app:
-              - path: /mosquitto/config/mosquitto.conf
-                subPath: mosquitto.conf
+      config:
+        existingClaim: thelounge
