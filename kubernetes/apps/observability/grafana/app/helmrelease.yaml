@@ -95,6 +95,11 @@ spec:
               path: /var/lib/grafana/dashboards/default
     dashboards:
       default:
+        ups:
+          # renovate: depName="UPS (SNMP)"
+          gnetId: 21605
+          revision: 2
+          datasource: Prometheus
         ceph-cluster:
           # renovate: depName="Ceph Cluster"
           gnetId: 2842
@@ -184,6 +189,11 @@ spec:
           revision: 2
           datasource:
             - { name: DS_PROMETHEUS, value: Prometheus }
+        pdu:
+          # renovate: depName="PDU (SNMP)"
+          gnetId: null
+          revision: 1
+          datasource: Prometheus
         volsync:
           # renovate: depName="VolSync Dashboard"
           gnetId: 21356

@@ -35,11 +35,15 @@ spec:
     serviceMonitor:
       enabled: true
       params:
-        - name: ups
+        - name: ups01
           module: ["ups01"]
           target: 192.168.70.10
           auth: ["public_v2"]
-        - name: pdu
+        - name: ups02
+          module: ["ups02"]
+          target: 192.168.70.11
+          auth: ["public_v2"]
+        - name: pdu01
           module: ["pdu01"]
           target: 192.168.70.15
           auth: ["public_v2"]

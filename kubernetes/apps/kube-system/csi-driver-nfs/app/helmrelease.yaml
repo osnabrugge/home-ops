@@ -38,7 +38,7 @@ spec:
       name: nfs-slow
       parameters:
         server: nas02.homeops.ca
-        path: /volume1/share/Media
+        path: /volume1/share/Kubernetes
       mountOptions:
         - nfsvers=4.2
         - nconnect=16
