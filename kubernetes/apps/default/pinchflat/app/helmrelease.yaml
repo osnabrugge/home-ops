@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/kieraneglin/pinchflat
               tag: v2025.6.6@sha256:4e975edf58f0861a5cbfe8fc6aac4851ff5a02dfc3f05ffeea4982e3084a5a4a
             env:
-              TZ: Etc/UTC
+              TZ: America/New_York
               TZ_DATA_DIR: /tmp/elixir_tz_data
               PORT: &port 80
             probes:
@@ -63,7 +63,6 @@ spec:
         supplementalGroups: [44]
     service:
       app:
-        controller: pinchflat
         ports:
           http:
             port: *port
@@ -74,10 +73,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         existingClaim: pinchflat

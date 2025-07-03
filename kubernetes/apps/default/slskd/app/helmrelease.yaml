@@ -3,7 +3,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: slskd
+  name: &app slskd
 spec:
   interval: 1h
   chartRef:
@@ -28,7 +28,7 @@ spec:
               tag: 0.22.5@sha256:f5150c39758353c31788e8e3d6aa9f9c2910f2a46591d810fc2f4d0bac81a96a
             env:
               DOTNET_BUNDLE_EXTRACT_BASE_DIR: /tmp/.net
-              TZ: Etc/UTC
+              TZ: America/New_York
               SLSKD_APP_DIR: /config
               SLSKD_HTTP_PORT: &port 80
               SLSKD_NO_AUTH: true
@@ -69,16 +69,17 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: slskd
-        type: LoadBalancer
-        annotations:
-          lbipam.cilium.io/ips: 192.168.42.127
+        forceRename: *app
+        primary: true
         ports:
           http:
-            primary: true
             port: *port
-          soulseek:
-            enabled: true
+      soulseek:
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: 192.168.42.127, ::ffff:192.168.42.127
+        ports:
+          soulseek-tcp:
             port: *soulseekPort
             protocol: TCP
     route:

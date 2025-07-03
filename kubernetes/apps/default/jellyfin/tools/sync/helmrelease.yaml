@@ -45,7 +45,7 @@ spec:
               MARK_FILE: /tmp/mark.log
               PLEX_BASEURL: http://plex.default.svc.cluster.local:32400
               RUN_ONLY_ONCE: true
-              TZ: Etc/UTC
+              TZ: America/New_York
               USER_MAPPING: '{"osnabrugge": "sean"}'
               WHITELIST_LIBRARY: Movies,Shows
             resources:
