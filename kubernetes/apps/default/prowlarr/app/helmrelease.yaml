@@ -35,7 +35,7 @@ spec:
               PROWLARR__LOG__LEVEL: info
               PROWLARR__SERVER__PORT: &port 80
               PROWLARR__UPDATE__BRANCH: develop
-              TZ: Etc/UTC
+              TZ: America/New_York
             envFrom:
               - secretRef:
                   name: prowlarr-secret
@@ -70,7 +70,6 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: prowlarr
         ports:
           http:
             port: *port
@@ -81,10 +80,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         existingClaim: prowlarr

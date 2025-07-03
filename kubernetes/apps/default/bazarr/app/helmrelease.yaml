@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/home-operations/bazarr
               tag: 1.5.2@sha256:dbc87e5ce9e199709188e152e82b3ff5d33e6521a1b3d61e465aa75b4b739e7f
             env:
-              TZ: Etc/UTC
+              TZ: America/New_York
             probes:
               liveness: &probes
                 enabled: true
@@ -59,7 +59,6 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: bazarr
         ports:
           http:
             port: *port
@@ -70,10 +69,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         existingClaim: bazarr

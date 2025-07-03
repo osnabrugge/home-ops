@@ -29,7 +29,7 @@ spec:
             env:
               BETANIN_HOST: 0.0.0.0
               BETANIN_PORT: &port 80
-              TZ: Etc/UTC
+              TZ: America/New_York
             probes:
               liveness:
                 enabled: true
@@ -58,7 +58,6 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: beets
         ports:
           http:
             port: *port
@@ -69,10 +68,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         type: emptyDir

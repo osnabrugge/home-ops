@@ -51,7 +51,6 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: thelounge
         ports:
           http:
             port: 9000
@@ -62,10 +61,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: 9000
     persistence:
       config:
         existingClaim: thelounge

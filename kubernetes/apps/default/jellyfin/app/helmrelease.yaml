@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/jellyfin/jellyfin
               tag: 10.10.7@sha256:e4d1dc5374344446a3a78e43dd211247f22afba84ea2e5a13cbe1a94e1ff2141
             env:
-              TZ: Etc/UTC
+              TZ: America/New_York
             probes:
               liveness: &probes
                 enabled: true
@@ -66,7 +66,6 @@ spec:
         supplementalGroups: [44]
     service:
       app:
-        controller: jellyfin
         ports:
           http:
             port: *port
@@ -77,10 +76,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         existingClaim: jellyfin

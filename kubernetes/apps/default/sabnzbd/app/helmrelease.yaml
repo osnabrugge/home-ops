@@ -37,7 +37,7 @@ spec:
                 sabnzbd.default.svc.cluster.local,
                 sab.homeops.ca,
                 sabnzbd.homeops.ca
-              TZ: Etc/UTC
+              TZ: America/New_York
             envFrom:
               - secretRef:
                   name: sabnzbd-secret
@@ -72,7 +72,6 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: sabnzbd
         ports:
           http:
             port: *port
@@ -85,10 +84,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         existingClaim: sabnzbd

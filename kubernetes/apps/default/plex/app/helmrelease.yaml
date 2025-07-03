@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/home-operations/plex
               tag: 1.41.8.9834@sha256:40e620ffcdc65331a0c2a7ed9a95700da7d527244f33c21bd35fc30aa25f19ea
             env:
-              TZ: Etc/UTC
+              TZ: America/New_York
               PLEX_ADVERTISE_URL: https://plex.homeops.ca:443,http://192.168.42.128:32400
               PLEX_NO_AUTH_NETWORKS: 192.168.10.0/24
             probes:
@@ -68,13 +68,12 @@ spec:
         supplementalGroups: [44]
     service:
       app:
-        controller: plex
         type: LoadBalancer
         annotations:
           lbipam.cilium.io/ips: 192.168.42.128, ::ffff:192.168.42.128
         ports:
           http:
-            port: 32400
+            port: *port
     route:
       app:
         hostnames: ["{{ .Release.Name }}.homeops.ca"]

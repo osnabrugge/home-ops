@@ -30,7 +30,7 @@ spec:
               tag: 2.8.2@sha256:22bcdc2e1bfa62901616008e97d5d3150a29d721c1e2907297aa1e70b93e1cb7
             env:
               WEBHOOK__PORT: &port 80
-              TZ: Etc/UTC
+              TZ: America/New_York
             envFrom:
               - secretRef:
                   name: webhook-secret
@@ -52,7 +52,6 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
-        controller: webhook
         ports:
           http:
             port: *port
@@ -63,10 +62,6 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         type: configMap
