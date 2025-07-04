@@ -25,7 +25,7 @@ spec:
               repository: ghcr.io/jorenn92/maintainerr
               tag: 2.18.1@sha256:da4b3b5b5e0a4aae6b4e294abdad2510a3be9bd138af8f4ca5a6e7cd6d94b1a2
             env:
-              TZ: America/New_York
+              TZ: America/Toronto
               UI_PORT: &port 80
             probes:
               liveness:
