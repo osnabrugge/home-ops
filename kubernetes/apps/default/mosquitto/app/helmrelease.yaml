@@ -25,7 +25,7 @@ spec:
               repository: public.ecr.aws/docker/library/eclipse-mosquitto
               tag: 2.0.21
             env:
-              TZ: America/New_York
+              TZ: America/Toronto
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true

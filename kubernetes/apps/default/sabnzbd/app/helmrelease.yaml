@@ -37,7 +37,7 @@ spec:
                 sabnzbd.default.svc.cluster.local,
                 sab.homeops.ca,
                 sabnzbd.homeops.ca
-              TZ: America/New_York
+              TZ: America/Toronto
             envFrom:
               - secretRef:
                   name: sabnzbd-secret

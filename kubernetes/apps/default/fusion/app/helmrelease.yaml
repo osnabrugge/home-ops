@@ -26,7 +26,7 @@ spec:
               tag: 0.9.8@sha256:2d98a5bf0cabd6998d07fa26c63f1b742a1c33a4c926f2da1dfd7ee49e88e3e0
             env:
               PORT: &port 80
-              TZ: America/New_York
+              TZ: America/Toronto
             probes:
               liveness: &probes
                 enabled: true
