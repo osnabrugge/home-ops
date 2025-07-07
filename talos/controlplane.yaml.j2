@@ -44,10 +44,11 @@ machine:
       - intel_iommu=on                      # PCI Passthrough
       - iommu=pt                            # PCI Passthrough
       - mitigations=off                     # Less security, faster puter
-      - module_blacklist=igc                # Disable onboard NIC
+      - module_blacklist=eno                # Disable onboard NIC
       - security=none                       # Less security, faster puter
-      - sysctl.kernel.kexec_load_disabled=1 # Meteor Lake CPU / iGPU
+      - sysctl.kernel.kexec_load_disabled=1 # Coffee Lake CPU / iGPU
       - talos.auditd.disabled=1             # Less security, faster puter
+      - bond=bond1:eth3,eth4:mode=802.3ad,xmit_hash_policy=layer2+3:9000
     wipe: false
   files:
     - # Spegel
