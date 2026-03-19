@@ -28,34 +28,35 @@ This repo is the sources of truth for a semi-hyperconverged [k3s](https://k3s.io
         - [azure keyvault](https://azure.microsoft.com/en-us/products/key-vault/) is the storage backend for secrets
 - Networking
   - [cilium](https://cilium.io/) CNI providing networking between pods, services and provides L2 loadbalancing
-    - [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) for reverse proxy ingress and loadbalancing
-    - [multus](https://github.com/k8snetworkplumbingwg/multus-cni) enables pods to access seperate VLANs & physical networks using:
-      - [sr-iov plugin](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin) attach pods to sr-iov capable interfaces & applicable VFs
-        - [whereabouts](https://github.com/k8snetworkplumbingwg/whereabouts) to ensure consistent IP addressing across physical nodes
+  - [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) for reverse proxy ingress and loadbalancing
+  - [multus](https://github.com/k8snetworkplumbingwg/multus-cni) enables pods to access seperate VLANs & physical networks using:
+  - [sr-iov plugin](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin) attach pods to sr-iov capable interfaces & applicable VFs
+  - [whereabouts](https://github.com/k8snetworkplumbingwg/whereabouts) to ensure consistent IP addressing across physical nodes
 - Storage
   - [openebs](https://github.com/openebs/openebs) provides ephemeral storage for pods
   - [rook-ceph](https://github.com/rook/rook) manages a ceph cluster that provides replicated persistent storage
   - [azure blob storage](https://azure.microsoft.com/en-us/products/storage/blobs) cold storage for backups and volume snapshots
 - Cluster Management
   - [actions-runner-controller](https://github.com/actions/actions-runner-controller) runs GitHub Actions as self-hosted runners on this cluster
-    - [flux](https://toolkit.fluxcd.io/) GitOps operator that keeps this cluster in sync with this repository
+  - [flux](https://toolkit.fluxcd.io/) GitOps operator that keeps this cluster in sync with this repository
 - DNS Management
   - [external-dns](https://github.com/kubernetes-sigs/external-dns) publishes DNS records and automates split-horizon DNS between:
-        - [cloudflare](https://www.cloudflare.com/) for explicitly annotated ingress objects
-        - [pi-hole](https://pi-hole.net/) for all servies and ingress objects
+  - [cloudflare](https://www.cloudflare.com/) for explicitly annotated ingress objects
+  - [unbound](https://unbound.net/) & [dns-crypt-proxy](https://github.com/DNSCrypt/dnscrypt-proxy) for all servies and ingress objects
 - Backup
   - [volsync](https://github.com/backube/volsync) and [snapscheduler](https://github.com/backube/snapscheduler) enable restic backup and recovery of persistent volume claims to
 
 ## Network topology
 
 | Name | Subnet | DHCP range | ARP reserved |
-|------|--------|------------|--------------|
+| ------ | -------- | ------------ | -------------- |
 | LAN | 192.168.1.0/24 | 150-254 | 120-149 |
-| TRUSTED | 192.168.10.0/24 | 150-254 | - |
+| TRUSTED | 192.168.10.0/24 | 150-254 | 120-149 |
 | SERVERS | 192.168.42.0/24 | 150-254 | 120-149 |
 | GUESTS | 192.168.50.0/24 | 150-254 | - |
 | IOT | 192.168.70.0/24 | 150-254 | - |
 | WIREGUARD | 192.168.80.0/28 | - | - |
+| MANAGEMENT | 192.168.99.0/24 | 150-254 | 120-149 |
 
 ## 🤝 Thanks
 
