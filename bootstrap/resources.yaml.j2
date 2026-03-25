@@ -5,9 +5,9 @@ metadata:
   name: azurekv-secret
   namespace: external-secrets
 stringData:
-  clientId: "AZURE_CLIENT_ID"
-  clientSecret: "AZURE_CLIENT_SECRET"
-  tenantId: "AZURE_TENANT_ID"
+  clientId: azkv://keyvault-kube/azurekv#AZURE_CLIENT_ID
+  clientSecret: azkv://keyvault-kube/azurekv#AZURE_CLIENT_SECRET
+  tenantId: azkv://keyvault-kube/azurekv#AZURE_TENANT_ID
 ---
 apiVersion: v1
 kind: Secret
