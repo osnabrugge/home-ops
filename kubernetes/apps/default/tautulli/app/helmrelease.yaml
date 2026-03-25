@@ -5,17 +5,10 @@ kind: HelmRelease
 metadata:
   name: tautulli
 spec:
-  interval: 1h
   chartRef:
     kind: OCIRepository
-    name: app-template
-  install:
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
+    name: tautulli
+  interval: 1h
   values:
     controllers:
       tautulli:
@@ -25,27 +18,40 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/tautulli
-              tag: 2.16.0@sha256:772e1af814159bd7e774273d4f9170b1a0f7129f2ad39be5619a458b7b0fd4b0
+              tag: 2.16.1@sha256:492b201778383bc58ef061dbd2584d9c0e5cfbd5090a1d48340b65589e26b144
             env:
               TZ: America/Toronto
-              TAUTULLI__PORT: &port 80
+              TAUTULLI_HTTP_BASE_URL: https://tautulli.homeops.ca
+              TAUTULLI_HTTP_PORT: &port 80
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
             probes:
-              liveness: &probes
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /status
                     port: *port
-                  initialDelaySeconds: 0
                   periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
@@ -65,24 +71,13 @@ spec:
             port: *port
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
-          - name: internal
-            namespace: kube-system
-            sectionName: https
+          - name: envoy-internal
+            namespace: network
     persistence:
       config:
-        existingClaim: tautulli
-      config-cache:
-        existingClaim: tautulli-cache
-        globalMounts:
-          - path: /config/cache
-      tmpfs:
+        existingClaim: "{{ .Release.Name }}"
+      tmp:
         type: emptyDir
-        advancedMounts:
-          tautulli:
-            app:
-              - path: /config/logs
-                subPath: logs
-              - path: /tmp
-                subPath: tmp

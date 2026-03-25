@@ -5,17 +5,10 @@ kind: HelmRelease
 metadata:
   name: zigbee
 spec:
-  interval: 1h
   chartRef:
     kind: OCIRepository
-    name: app-template
-  install:
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
+    name: zigbee
+  interval: 1h
   values:
     controllers:
       zigbee:
@@ -25,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/koenkk/zigbee2mqtt
-              tag: 2.7.2@sha256:60a295b40f4e7fb7ab4d995932369e50f2529837272fa4979e986ec1ffdb7fce
+              tag: 2.9.1@sha256:574b2bd0dcbb59fae6edbbb81a35b5563291d3825da0225f0078aa5575dac37f
             env:
               TZ: America/Toronto
               ZIGBEE2MQTT_DATA: /config
@@ -49,11 +42,11 @@ spec:
               ZIGBEE2MQTT_CONFIG_SERIAL_BAUDRATE: 115200
               ZIGBEE2MQTT_CONFIG_SERIAL_DISABLE_LED: "false"
               ZIGBEE2MQTT_CONFIG_SERIAL_PORT: tcp://192.168.70.35:6638
-              ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER: zstack
+              ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER: ember
               # DEBUG: "zigbee-herdsman*"
             envFrom:
               - secretRef:
-                  name: zigbee-secret
+                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
                 enabled: true
@@ -67,7 +60,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
@@ -89,9 +82,8 @@ spec:
       app:
         hostnames: ["{{ .Release.Name }}.homeops.ca"]
         parentRefs:
-          - name: internal
-            namespace: kube-system
-            sectionName: https
+          - name: envoy-internal
+            namespace: network
     persistence:
       config:
-        existingClaim: zigbee
+        existingClaim: "{{ .Release.Name }}"

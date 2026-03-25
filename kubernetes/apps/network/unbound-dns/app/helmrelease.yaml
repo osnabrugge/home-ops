@@ -1,0 +1,62 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app unbound-dns
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: unbound-dns
+  interval: 1h
+  values:
+    fullnameOverride: *app
+    provider:
+      name: webhook
+      webhook:
+        image:
+          repository: ghcr.io/guillomep/external-dns-unbound-webhook
+          tag: v0.1.4@sha256:bc1960ab0f29182d5dd5dafb10fe2ee07744f1df49563d43a734b4234f7167ce
+        env:
+          - name: UNBOUND_HOST
+            value: https://unbound.in.homeops.ca
+          - name: UNBOUND_CA_PEM_PATH
+            valueFrom:
+              secretKeyRef:
+                name: &secret unbound-dns-secret
+                key: UNBOUND_CA_PEM_PATH
+          - name: UNBOUND_CERT_PEM_PATH
+            valueFrom:
+              secretKeyRef:
+                name: &secret unbound-dns-secret
+                key: UNBOUND_CERT_PEM_PATH
+          - name: UNBOUND_KEY_PEM_PATH
+            valueFrom:
+              secretKeyRef:
+                name: &secret unbound-dns-secret
+                key: UNBOUND_KEY_PEM_PATH
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http-webhook
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http-webhook
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+    triggerLoopOnEvent: true
+    policy: sync
+    sources:
+      - gateway-httproute
+      - service
+    txtOwnerId: main
+    txtPrefix: k8s.main.
+    domainFilters:
+      - homeops.ca
+    serviceMonitor:
+      enabled: true
+    podAnnotations:
+      secret.reloader.stakater.com/reload: *secret
