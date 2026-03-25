@@ -3,76 +3,46 @@
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: &name node-exporter
+  name: node-exporter
 spec:
   staticConfigs:
     - targets:
-        - nas02.homeops.ca:9100
-        - kvm01.homeops.ca:9100
-        - fw01.homeops.ca:9100
+        - nas02.in.homeops.ca:9100
+        - kvm01.in.homeops.ca:9100
+        - fw01.in.homeops.ca:9100
   metricsPath: /metrics
   relabelings:
     - action: replace
       targetLabel: job
-      replacement: *name
+      replacement: node-exporter
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: &name smartctl-exporter
+  name: smartctl-exporter
 spec:
   staticConfigs:
     - targets:
-        - nas02.homeops.ca:9633
-        - fw01.homeops.ca:9633
+        - nas02.in.homeops.ca:9633
+        - fw01.in.homeops.ca:9633
   metricsPath: /metrics
   relabelings:
     - action: replace
       targetLabel: job
-      replacement: *name
+      replacement: smartctl-exporter
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: &name kvm01
+  name: kvm
 spec:
   staticConfigs:
     - targets:
-        - kvm01.homeops.ca
-  metricsPath: /api/export/prometheus/metrics
-  relabelings:
-    - action: replace
-      targetLabel: job
-      replacement: *name
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: &name zigbee-controller
-spec:
-  staticConfigs:
-    - targets:
-        - zig01.homeops.ca
-        - zig02.homeops.ca
+        - kvm01.in.homeops.ca
   metricsPath: /metrics
   relabelings:
     - action: replace
       targetLabel: job
-      replacement: *name
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/scrapeconfig_v1alpha1.json
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
-metadata:
-  name: &name fw01-vnstat
-spec:
-  staticConfigs:
-    - targets: ["fw01.homeops.ca:8685"]
-  metricsPath: /metrics
-  relabelings:
-    - action: replace
-      targetLabel: job
-      replacement: *name
+      replacement: kvm

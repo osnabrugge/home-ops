@@ -5,17 +5,10 @@ kind: HelmRelease
 metadata:
   name: autobrr
 spec:
-  interval: 1h
   chartRef:
     kind: OCIRepository
-    name: app-template
-  install:
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
+    name: autobrr
+  interval: 1h
   values:
     controllers:
       autobrr:
@@ -25,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/autobrr/autobrr
-              tag: v1.72.1@sha256:89e5e266ae415b4979ddc303cfa80c9bd90fd5be26290ebd8b4757fdc47d7523
+              tag: v1.74.0@sha256:6f37217bbc0496fff0c7ffb4264545036bf735775e484188b80b31f21daa06e2
             env:
               AUTOBRR__HOST: 0.0.0.0
               AUTOBRR__PORT: &port 80
@@ -36,24 +29,33 @@ spec:
               AUTOBRR__LOG_LEVEL: INFO
             envFrom:
               - secretRef:
-                  name: autobrr-secret
+                  name: "{{ .Release.Name }}-secret"
             probes:
-              liveness: &probes
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/healthz/liveness
+                    path: /api/healthz/readiness
                     port: *port
-                  initialDelaySeconds: 0
                   periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
@@ -79,20 +81,13 @@ spec:
           - port: metrics
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
-          - name: internal
-            namespace: kube-system
-            sectionName: https
+          - name: envoy-internal
+            namespace: network
     persistence:
       config:
-        existingClaim: autobrr
-      tmpfs:
+        existingClaim: "{{ .Release.Name }}"
+      tmp:
         type: emptyDir
-        advancedMounts:
-          autobrr:
-            app:
-              - path: /config/log
-                subPath: log
-              - path: /tmp
-                subPath: tmp

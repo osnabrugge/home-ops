@@ -3,48 +3,35 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app go2rtc
+  name: go2rtc
 spec:
-  interval: 1h
   chartRef:
     kind: OCIRepository
-    name: app-template
-  install:
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
+    name: go2rtc
+  interval: 1h
   values:
     controllers:
       go2rtc:
-        replicas: 2
         strategy: RollingUpdate
-        annotations:
-          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
               repository: ghcr.io/alexxit/go2rtc
               tag: 1.9.14@sha256:675c318b23c06fd862a61d262240c9a63436b4050d177ffc68a32710d9e05bae
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
-                custom: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
                 spec:
-                  httpGet:
-                    path: /
-                    port: &port 80
-                  initialDelaySeconds: 0
+                  failureThreshold: 30
                   periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
@@ -57,15 +44,16 @@ spec:
         runAsGroup: 1000
     service:
       app:
-        forceRename: *app
+        forceRename: "{{ .Release.Name }}"
         primary: true
         ports:
           http:
-            port: *port
+            port: 80
       streams:
         type: LoadBalancer
         annotations:
-          lbipam.cilium.io/ips: 192.168.42.124, ::ffff:192.168.42.124
+          lbipam.cilium.io/ips: 192.168.69.124
+        externalTrafficPolicy: Local
         ports:
           streams-rtsp:
             port: 554
@@ -77,20 +65,47 @@ spec:
             protocol: UDP
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        hostnames:
+          - "{{ .Release.Name }}.turbo.ac"
         parentRefs:
-          - name: internal
-            namespace: kube-system
-            sectionName: https
+          - name: envoy-internal
+            namespace: network
         rules:
           - backendRefs:
               - identifier: app
-                port: *port
+                port: 80
+    configMaps:
+      config:
+        data:
+          go2rtc.yaml: |-
+            log:
+              streams: error # Prevent log spam from IP Cams
+            api:
+              listen: :80
+              origin: "*"
+            rtsp:
+              listen: :554
+            webrtc:
+              listen: :8555
+              candidates:
+                - 192.168.69.124:8555
+                - stun:8555
+              ice_servers:
+                - urls:
+                    - stun:stun.cloudflare.com:3478
+            streams:
+              server_room:
+                - rtspx://192.168.70.71:7441/yG6tZL2woC5znq9w
+              nozzle_cam:
+                - rtspx://192.168.70.72:7441/wLR9o6BqYtP69mjh
+              front:
+                - rtspx://192.168.70.73:7441/9rVZXyr6Kxx7nDyf
+              rear:
+                - rtspx://192.168.70.74:7441/wHrbhFYHASyZm3EM
     persistence:
       config-file:
         type: configMap
-        name: go2rtc-configmap
+        identifier: config
         globalMounts:
           - path: /config/go2rtc.yaml
             subPath: go2rtc.yaml
-            readOnly: true

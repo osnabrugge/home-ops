@@ -3,6 +3,7 @@
 set quiet := true
 set shell := ['bash', '-euo', 'pipefail', '-c']
 
+mod akv "akv"
 mod bootstrap "bootstrap"
 mod kube "kubernetes"
 mod talos "talos"
@@ -17,4 +18,4 @@ log lvl msg *args:
 
 [private]
 template file *args:
-    minijinja-cli "{{ file }}" {{ args }} | op inject
+    minijinja-cli "{{ file }}" {{ args }} | just akv inject

@@ -1,21 +1,5 @@
 ---
 machine:
-  type: controlplane
-  nodeLabels:
-    topology.kubernetes.io/zone: m
----
-apiVersion: v1alpha1
-kind: HostnameConfig
-hostname: k8s01
----
-apiVersion: v1alpha1
-kind: LinkAliasConfig
-name: net0
-selector:
-  match: link.driver == "ixgbe" && mac(link.permanent_addr).startsWith("88:ae:dd:72:")
-
----
-machine:
   network:
     hostname: k8s01
     interfaces:
@@ -24,14 +8,14 @@ machine:
         bond:
           mode: 802.3ad
           lacpRate: fast
-          xmitHashPolicy: layer2
+          xmitHashPolicy: layer3+4
           miimon: 100
           updelay: 200
           downdelay: 200
-          interfaces:
-            - enp1s0f0
-            - enp1s0f1
-          mtu: 1500
+          deviceSelectors:
+            - hardwareAddr: "38:ea:a7:91:e3:9c"
+            - hardwareAddr: "38:ea:a7:91:e3:9d"
+        mtu: 1500
   nodeLabels:
     topology.kubernetes.io/zone: m
   type: controlplane

@@ -8,14 +8,14 @@ machine:
         bond:
           mode: 802.3ad
           lacpRate: fast
-          xmitHashPolicy: layer2
+          xmitHashPolicy: layer3+4
           miimon: 100
           updelay: 200
           downdelay: 200
-          interfaces:
-            - enp1s0f0
-            - enp1s0f1
-          mtu: 1500
+          deviceSelectors:
+            - hardwareAddr: "38:ea:a7:8e:8b:6c"
+            - hardwareAddr: "38:ea:a7:8e:8b:6d"
+        mtu: 1500
   nodeLabels:
-    topology.kubernetes.io/zone: m
-  type: controlplane
+    topology.kubernetes.io/zone: w
+  type: worker

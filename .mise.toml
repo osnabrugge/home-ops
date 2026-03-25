@@ -12,3 +12,7 @@ _.file = [
 [tools]
 "uv" = "latest"
 "pipx:flux-local" = "latest"
+"azure" = { version = "latest", uvx_args = "--prerelease=allow" }
+"yamlfmt" = "latest"
+"just" = "latest"
+"gum" = "latest"

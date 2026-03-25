@@ -5,59 +5,50 @@ kind: HelmRelease
 metadata:
   name: zwave
 spec:
-  interval: 1h
   chartRef:
     kind: OCIRepository
-    name: app-template
-  install:
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
+    name: zwave
+  interval: 1h
   values:
     controllers:
       zwave:
-        annotations:
-          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
               repository: ghcr.io/zwave-js/zwave-js-ui
-              tag: 11.10.1@sha256:d38bee896a9d99dd6d558c258c9935656ea73e58b7ebf1cae5479a73f6e0553e
+              tag: 11.15.1@sha256:871702551262c1021d2ae68785f81f88f3ce1bcda817e425570e5db35ef3fb1e
             env:
               TZ: America/Toronto
               PORT: &port 80
             probes:
-              liveness: &probes
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /health
                     port: *port
-                  initialDelaySeconds: 0
                   periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
-              readiness: *probes
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
             resources:
               requests:
                 cpu: 10m
               limits:
                 memory: 512Mi
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
+        pod:
+          hostUsers: false
     service:
       app:
         ports:
@@ -67,19 +58,15 @@ spec:
             port: 3000
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
-          - name: internal
-            namespace: kube-system
-            sectionName: https
+          - name: envoy-internal
+            namespace: network
     persistence:
       config:
-        existingClaim: zwave
+        existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /usr/src/app/store
-      config-cache:
-        existingClaim: zwave-cache
-        globalMounts:
-          - path: /usr/src/app/store/.config-db
       tmp:
         type: emptyDir

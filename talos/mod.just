@@ -3,7 +3,9 @@ set shell := ['bash', '-euo', 'pipefail', '-c']
 
 scripts_dir := justfile_dir() + '/scripts'
 talos_dir := justfile_dir() + '/talos'
-controller := `talosctl config info -o yaml | yq -e '.endpoints[0]'`
+
+# First configured endpoint from talosctl (or empty if talosctl not configured yet)
+controller := `talosctl config info -o yaml 2>/dev/null | yq -r '.endpoints[0] // ""' 2>/dev/null || true`
 
 [private]
 default:
@@ -32,7 +34,7 @@ reboot-node node:
 
 [doc('Render Talos config for a node')]
 render-config node:
-    export IS_CONTROLLER="$(just talos machine-controller {{ node }})"; \
+    export IS_CONTROLLER="$(just talos machine-controller {{ node }} | tr -d '\n')"; \
     talosctl machineconfig patch <(just template "{{ talos_dir }}/machineconfig.yaml.j2") \
         -p @<(just template "{{ talos_dir }}/nodes/{{ node }}.yaml.j2")
 
@@ -56,8 +58,10 @@ upgrade-node node *args:
 
 [private]
 machine-controller node:
-    just template "{{ talos_dir }}/nodes/{{ node }}.yaml.j2" | yq -e 'select(.machine) | (.machine.type == "controlplane") // ""'
+    just template "{{ talos_dir }}/nodes/{{ node }}.yaml.j2" \
+      | yq -r 'select(.machine) | .machine.type // ""' \
+      | grep -qx 'controlplane' && echo true || true
 
 [private]
 machine-image:
-    just template "{{ talos_dir }}/machineconfig.yaml.j2" | yq -e 'select(.machine) | .machine.install.image'
+    just template "{{ talos_dir }}/machineconfig.yaml.j2" | yq -r 'select(.machine) | .machine.install.image // ""'
