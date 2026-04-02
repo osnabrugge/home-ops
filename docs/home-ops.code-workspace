@@ -1,0 +1,50 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"explorer.autoReveal": true,
+		"files.associations": {
+			"**/*.json5": "json5"
+		},
+		"material-icon-theme.files.associations": {
+			"*.gotmpl": "smarty",
+			"helmfile.yaml": "helm",
+			"kubeconfig": "kubernetes",
+			"talosconfig": "kubernetes"
+		},
+		"material-icon-theme.folders.associations": {
+			".github/workflows": "ci",
+			".private": "archive",
+			".renovate": "robot",
+			"bootstrap": "seeders",
+			"bootstrap/helmfile.d": "helm",
+			"flux": "pipe",
+			"talos": "linux",
+			"actions-runner-system": "github",
+			"cert-manager": "guard",
+			"default": "home",
+			"external-secrets": "secure",
+			"flux-system": "pipe",
+			"kube-system": "kubernetes",
+			"network": "connection",
+			"observability": "event",
+			"openebs-system": "base",
+			"rook-ceph": "dump",
+			"system-upgrade": "update",
+			"volsync-system": "aws"
+		},
+		"terminal.integrated.fontSize": 14,
+		"window.zoomLevel": 0,
+		"yaml.schemaStore.enable": true,
+		"yaml.schemas": {
+			"kubernetes": "./kubernetes/**/*.yaml"
+		},
+		"mcp": {
+			"inputs": [],
+			"servers": {}
+		}
+	}
+}

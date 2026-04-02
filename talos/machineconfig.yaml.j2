@@ -186,20 +186,6 @@ name: bond0
 clientIdentifier: mac
 ---
 apiVersion: v1alpha1
-kind: VLANConfig
-name: bond0.70
-vlanID: 70
-parent: bond0
-mtu: 1500
----
-apiVersion: v1alpha1
-kind: VLANConfig
-name: bond0.99
-vlanID: 99
-parent: bond0
-mtu: 1500
----
-apiVersion: v1alpha1
 kind: EthernetConfig
 name: bond0
 features:
@@ -233,8 +219,3 @@ provisioning:
   diskSelector:
     match: disk.model == "Samsung SSD 970 EVO Plus 1TB" && !system_disk
   minSize: 1TB
----
-apiVersion: v1alpha1
-kind: WatchdogTimerConfig
-device: /dev/watchdog0
-timeout: 15m

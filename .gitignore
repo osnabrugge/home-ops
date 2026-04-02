@@ -14,3 +14,5 @@ Brewfile.lock.json
 Thumbs.db
 kubeconfig
 talosconfig
+# Rendered Talos machineconfigs contain secrets — never commit
+talos/rendered/
