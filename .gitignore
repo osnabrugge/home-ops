@@ -1,7 +1,11 @@
-/.private/
-/.task/
-/.venv/
+.private/
+.pytest_cache/
+.task/
+.venv/
+.vs/
 *.crt
+*.env
+*.iso
 *.key
 .decrypted~*
 .DS_Store
@@ -9,5 +13,6 @@ azurekv.env
 Brewfile.lock.json
 Thumbs.db
 kubeconfig
-onepassword.env
 talosconfig
+# Rendered Talos machineconfigs contain secrets — never commit
+talos/rendered/

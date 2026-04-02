@@ -6,9 +6,10 @@ metadata:
   name: letsencrypt-production
 spec:
   acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
+    profile: shortlived
     privateKeySecretRef:
       name: letsencrypt-production
+    server: https://acme-v02.api.letsencrypt.org/directory
     solvers:
       - dns01:
           cloudflare:
@@ -16,4 +17,5 @@ spec:
               name: cloudflare-issuer-secret
               key: CLOUDFLARE_DNS_TOKEN
         selector:
-          dnsZones: ["homeops.ca"]
+          dnsZones:
+            - homeops.ca

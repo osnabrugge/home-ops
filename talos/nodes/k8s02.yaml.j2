@@ -1,0 +1,21 @@
+---
+machine:
+  network:
+    hostname: k8s02
+    interfaces:
+      - interface: bond0
+        dhcp: true
+        bond:
+          mode: 802.3ad
+          lacpRate: fast
+          xmitHashPolicy: layer3+4
+          miimon: 100
+          updelay: 200
+          downdelay: 200
+          deviceSelectors:
+            - hardwareAddr: "8c:dc:d4:ac:7a:e8"
+            - hardwareAddr: "8c:dc:d4:ac:7a:e9"
+        mtu: 1500
+  nodeLabels:
+    topology.kubernetes.io/zone: m
+  type: controlplane

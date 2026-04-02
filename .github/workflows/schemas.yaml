@@ -5,10 +5,12 @@ name: Schemas
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: 0 0 * * *
   push:
-    branches: ["main"]
-    paths: [".github/workflows/schemas.yaml"]
+    branches:
+      - main
+    paths:
+      - .github/workflows/schemas.yaml
 
 env:
   UV_SYSTEM_PYTHON: "1"
@@ -30,10 +32,12 @@ jobs:
           persist-credentials: false
 
       - name: Install kubectl
-        uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4.0.1
+        uses: azure/setup-kubectl@15650b3ad78fff148532a140b8a4c821796b2d7b # v5.0.0
 
       - name: Install uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          enable-cache: false
 
       - name: Setup Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -54,7 +58,7 @@ jobs:
       - name: Publish Schemas
         uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
         with:
-          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: /home/runner/.datree/crdSchemas
           command: pages deploy --project-name=kubernetes-schemas --branch main .
