@@ -65,7 +65,18 @@ namespaces:
 [doc('Apply Kubernetes resources')]
 resources:
     just log info "Running stage..." "stage" "$0"
-    if ! just template "{{ bootstrap_dir }}/resources.yaml.j2" | kubectl apply --server-side --field-manager bootstrap --force-conflicts -f -; then \
+    rendered=$(just template "{{ bootstrap_dir }}/resources.yaml.j2")
+    # Post-render guardrails
+    if printf '%s' "$rendered" | grep -qF 'azkv://'; then \
+        just log fatal "Rendered resources contain unresolved azkv:// placeholders" "stage" "$0"; \
+    fi
+    for field in clientId clientSecret tenantId; do \
+        val=$(printf '%s' "$rendered" | yq ea "select(.metadata.name == \"azurekv-secret\") | .stringData.$field" 2>/dev/null | head -1); \
+        if [[ -z "$val" || "$val" == "null" ]]; then \
+            just log fatal "azurekv-secret.$field is empty/null after rendering" "stage" "$0"; \
+        fi; \
+    done
+    if ! printf '%s' "$rendered" | kubectl apply --server-side --field-manager bootstrap --force-conflicts -f -; then \
         just log fatal "Failed to apply resources" "stage" "$0"; \
     fi;
 

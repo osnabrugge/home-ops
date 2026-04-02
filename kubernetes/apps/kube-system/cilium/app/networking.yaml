@@ -52,9 +52,9 @@ spec:
     - name: cilium
       localASN: 64514
       peers:
-        - name: opnsense
+        - name: core01
           peerASN: 64513
-          peerAddress: 192.168.0.1
+          peerAddress: 192.168.42.4
           peerConfigRef:
             name: l3-bgp-peer-config
 ---
