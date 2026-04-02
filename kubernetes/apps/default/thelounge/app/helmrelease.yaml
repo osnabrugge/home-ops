@@ -5,17 +5,10 @@ kind: HelmRelease
 metadata:
   name: thelounge
 spec:
-  interval: 1h
   chartRef:
     kind: OCIRepository
-    name: app-template
-  install:
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
+    name: thelounge
+  interval: 1h
   values:
     controllers:
       thelounge:
@@ -31,12 +24,17 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             probes:
               liveness:
                 enabled: true
               readiness:
                 enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
             resources:
               requests:
                 cpu: 10m
@@ -56,11 +54,11 @@ spec:
             port: 9000
     route:
       app:
-        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
-          - name: internal
-            namespace: kube-system
-            sectionName: https
+          - name: envoy-internal
+            namespace: network
     persistence:
       config:
-        existingClaim: thelounge
+        existingClaim: "{{ .Release.Name }}"

@@ -1,73 +1,158 @@
-# My home operations repository
+<div align="center">
 
-![Logo](https://raw.githubusercontent.com/onedr0p/home-ops/main/docs/src/assets/logo.png)
+### My Home Operations Repository
 
-_... managed with Flux, Renovate and GitHub Actions_ 🤖
+_... managed with Flux, Renovate, and GitHub Actions_ 🤖
 
-[![Kubernetes](https://img.shields.io/badge/v1.29.3-blue?style=for-the-badge&logo=kubernetes&logoColor=white)](https://k3s.io/)
+[![Talos](https://img.shields.io/badge/v1.12.6-blue?style=for-the-badge&logo=talos&logoColor=white&label=%20)](https://talos.dev)&nbsp;&nbsp;
+[![Kubernetes](https://img.shields.io/badge/v1.35.3-blue?style=for-the-badge&logo=kubernetes&logoColor=white&label=%20)](https://kubernetes.io)&nbsp;&nbsp;
+[![Flux](https://img.shields.io/badge/v0.45.1-blue?style=for-the-badge&logo=flux&logoColor=white&label=%20)](https://fluxcd.io)&nbsp;&nbsp;
 [![Renovate](https://img.shields.io/github/actions/workflow/status/osnabrugge/home-ops/renovate.yaml?branch=main&label=&logo=renovatebot&style=for-the-badge&color=blue)](https://github.com/osnabrugge/home-ops/actions/workflows/renovate.yaml)
-
-[![Discord](https://img.shields.io/discord/673534664354430999?color=blue&style=for-the-badge&logo=discord)](https://discord.gg/M9xtHc9A "k8s at home Discord Community")
-[![Home-Internet](https://img.shields.io/uptimerobot/status/m792892408-a2f5ebd5a54fff87945cd162?color=brightgreeen&label=Home%20Internet&style=for-the-badge&logo=opnSense&logoColor=white)](https://stats.uptimerobot.com/wvKDmHvrpQ)
 
 </div>
 
 ---
 
-## 📗Overview
+## 📖 Overview
 
-This repo is the sources of truth for a semi-hyperconverged [k3s](https://k3s.io/) cluster that I maintain at home.  To best of my ability, I've tried to document the cluster's configuration and the tools I use to manage it.  I hope that it can serve as a reference for others who are interested in building their own cluster.
+This is a mono repository for my home infrastructure and Kubernetes cluster. I try to adhere to Infrastructure as Code (IaC) and GitOps practices using tools like [Talos](https://talos.dev), [Kubernetes](https://kubernetes.io/), [Flux](https://github.com/fluxcd/flux2), [Renovate](https://github.com/renovatebot/renovate), and [GitHub Actions](https://github.com/features/actions).
 
-## Cluster Components
+---
 
-- Authentication
-  - [authelia](https://www.authelia.com/) provides single-sign-on and multifactor authentication
-    - [cert-manager](https://cert-manager.io/) requests and manages SSL certificates, both self-signed and from [let's encrypt](https://letsencrypt.org/)
-    - [external-secrets](https://external-secrets.io/) provides secret management using:
-      - [azure workload identity](https://azure.github.io/azure-workload-identity/docs/) delegates token issuance to this cluster
-        - [azure keyvault](https://azure.microsoft.com/en-us/products/key-vault/) is the storage backend for secrets
-- Networking
-  - [cilium](https://cilium.io/) CNI providing networking between pods, services and provides L2 loadbalancing
-    - [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) for reverse proxy ingress and loadbalancing
-    - [multus](https://github.com/k8snetworkplumbingwg/multus-cni) enables pods to access seperate VLANs & physical networks using:
-      - [sr-iov plugin](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin) attach pods to sr-iov capable interfaces & applicable VFs
-        - [whereabouts](https://github.com/k8snetworkplumbingwg/whereabouts) to ensure consistent IP addressing across physical nodes
-- Storage
-  - [openebs](https://github.com/openebs/openebs) provides ephemeral storage for pods
-  - [rook-ceph](https://github.com/rook/rook) manages a ceph cluster that provides replicated persistent storage
-  - [azure blob storage](https://azure.microsoft.com/en-us/products/storage/blobs) cold storage for backups and volume snapshots
-- Cluster Management
-  - [actions-runner-controller](https://github.com/actions/actions-runner-controller) runs GitHub Actions as self-hosted runners on this cluster
-    - [flux](https://toolkit.fluxcd.io/) GitOps operator that keeps this cluster in sync with this repository
-- DNS Management
-  - [external-dns](https://github.com/kubernetes-sigs/external-dns) publishes DNS records and automates split-horizon DNS between:
-        - [cloudflare](https://www.cloudflare.com/) for explicitly annotated ingress objects
-        - [pi-hole](https://pi-hole.net/) for all servies and ingress objects
-- Backup
-  - [volsync](https://github.com/backube/volsync) and [snapscheduler](https://github.com/backube/snapscheduler) enable restic backup and recovery of persistent volume claims to
+## ⛵ Kubernetes
 
-## Network topology
+My cluster runs [Talos Linux](https://talos.dev) on 6 Lenovo ThinkCentre M920q nodes — a semi-hyper-converged setup where workloads and block storage share the same hardware, with a Synology NAS providing NFS shares and backups.
 
-| Name | Subnet | DHCP range | ARP reserved |
-|------|--------|------------|--------------|
-| LAN | 192.168.1.0/24 | 150-254 | 120-149 |
-| TRUSTED | 192.168.10.0/24 | 150-254 | - |
-| SERVERS | 192.168.42.0/24 | 150-254 | 120-149 |
-| GUESTS | 192.168.50.0/24 | 150-254 | - |
-| IOT | 192.168.70.0/24 | 150-254 | - |
-| WIREGUARD | 192.168.80.0/28 | - | - |
+### Core Components
+
+| Component | Tool | Purpose |
+|-----------|------|---------|
+| **CNI** | [Cilium](https://cilium.io/) | eBPF networking, BGP LoadBalancer, kube-proxy replacement |
+| **Ingress** | [Envoy Gateway](https://gateway.envoyproxy.io/) | L7 ingress (internal + external gateways) |
+| **DNS** | [CoreDNS](https://coredns.io/) + [Unbound](https://unbound.net/) | Cluster DNS + recursive resolver |
+| **Certificates** | [cert-manager](https://cert-manager.io/) | Automated TLS from Let's Encrypt |
+| **Secrets** | [External Secrets](https://external-secrets.io/) + [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault/) | Secret management via ClusterSecretStore |
+| **Storage** | [Rook-Ceph](https://rook.io/) + [OpenEBS](https://openebs.io/) | Distributed block (Ceph) + local hostpath (OpenEBS) |
+| **Backups** | [VolSync](https://github.com/backube/volsync) + [Kopia](https://kopia.io/) | PVC backup/restore to NFS |
+| **GitOps** | [Flux](https://fluxcd.io/) via [Flux Operator](https://github.com/controlplaneio-fluxcd/flux-operator) | Cluster reconciliation from this repo |
+| **Registry** | [Spegel](https://github.com/spegel-org/spegel) | Stateless cluster-local OCI mirror |
+| **External Access** | [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) | `*.homeops.ca` via Argo Tunnel |
+| **Monitoring** | [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts) + [Grafana](https://grafana.com/) | Metrics, alerts, dashboards |
+| **CI Runners** | [Actions Runner Controller](https://github.com/actions/actions-runner-controller) | Self-hosted GitHub Actions |
+
+### GitOps
+
+[Flux](https://github.com/fluxcd/flux2) watches the `kubernetes/apps` directory and reconciles the cluster state to match this repository. [Renovate](https://github.com/renovatebot/renovate) creates PRs for dependency updates automatically.
+
+```
+📁 kubernetes
+├── 📁 apps           # Application manifests (HelmReleases, Kustomizations)
+├── 📁 components     # Reusable kustomize components (alerts, volsync, nfs-scaler)
+└── 📁 flux           # Flux system configuration
+```
+
+### Bootstrap Chain
+
+The [bootstrap helmfile](bootstrap/helmfile.d/01-apps.yaml) installs the critical-path dependencies in order:
+
+```
+Cilium → CoreDNS → Spegel → Cert-Manager → External-Secrets + AzureKV → Flux Operator → Flux Instance
+```
+
+After Flux starts, it reconciles all remaining apps from this repo automatically.
+
+---
+
+## 🌐 Network
+
+### Routing Architecture
+
+Inter-VLAN routing for trusted VLANs is handled by the **Brocade ICX 6610-48P** core switch stack (Core01) for high-performance L3 forwarding without packet inspection. **OPNsense** (fw01) handles restricted VLANs (IoT, Guest) and internet NAT/firewall.
+
+| VLAN | Name | Subnet | Gateway | Router | Purpose |
+|------|------|--------|---------|--------|---------|
+| 1 | Default | 192.168.0.0/24 | 192.168.0.10 | OPNsense | Factory-reset device catchall |
+| 10 | Workstation | 192.168.10.0/24 | 192.168.10.4 | Brocade Core01 | Trusted — desktops, laptops |
+| 42 | Server | 192.168.42.0/24 | 192.168.42.4 | Brocade Core01 | Kubernetes + infrastructure |
+| 50 | Guest | 192.168.50.0/24 | — | OPNsense | Internet-only guest access |
+| 69 | LoadBalancer | 192.168.69.0/24 | — | Cilium (BGP) | Kubernetes Service LB IPs |
+| 70 | IoT | 192.168.70.0/24 | 192.168.70.1 | OPNsense | Restricted — smart home devices |
+| 99 | Management | 192.168.99.0/24 | 192.168.99.4 | Brocade Core01 | IPMI, KVM, PDU, switches |
+
+### BGP
+
+Cilium advertises LoadBalancer IPs (192.168.69.0/24) via BGP to the Brocade core switch:
+
+| | Cilium (K8s nodes) | Brocade Core01 |
+|-|-------|---------|
+| **ASN** | 64514 | 64513 |
+| **Peer** | 192.168.42.4 | 192.168.42.51–56 |
+
+### DNS
+
+| Scope | Resolver | Purpose |
+|-------|----------|---------|
+| Cluster | CoreDNS (10.43.0.10) | `*.svc.cluster.local` |
+| Internal | Unbound + dnscrypt-proxy | Recursive + encrypted upstream |
+| External | Cloudflare | `*.homeops.ca` via tunnel |
+
+---
+
+## ⚙️ Hardware
+
+| Device | Count | Role | IP(s) | OS |
+|--------|-------|------|-------|-----|
+| Lenovo ThinkCentre M920q | 6 | Kubernetes (3 CP + 3 worker) | 192.168.42.51–56 | Talos v1.12.6 |
+| Synology DS1821+ | 1 | NAS + temporary app host | 192.168.42.10 | DSM |
+| Brocade ICX 6610-48P (stacked) | 2 | Core L3 switch | VIP: .4/vlan | FastIron |
+| Protectli FW6C | 1 | Firewall (OPNsense) | 192.168.0.10 | OPNsense |
+| PiKVM V4 Plus | 1 | KVM-over-IP | 192.168.99.51 | PiKVM OS |
+| TESmart HKS1601-E23-USBK | 1 | 16-port HDMI KVM switch | 192.168.99.92 | — |
+| CyberPower PDU41001-V | 2 | Switched PDU (SNMP) | 192.168.99.15–16 | — |
+| Raspberry Pi 4B | 4 | ConsolePi, misc | 192.168.42.21–24 | Raspbian |
+| CyberPower UPS | 4 | Battery backup | — | — |
+
+### Out-of-Band Management
+
+| Tool | Access | Purpose |
+|------|--------|---------|
+| PiKVM + TESmart | `just infra kvm-switch <node>` | Remote KVM console for any node |
+| PDU (SNMP) | `just infra pdu-reboot <node>` | Hard power cycle any node |
+| ConsolePi (pi02→Core01-U1, pi03→Core01-U2) | SSH serial | Core switch serial console |
+
+---
+
+## ☁️ Cloud Dependencies
+
+| Service | Use | Cost |
+|---------|-----|------|
+| [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault/) | Secrets backend for External Secrets | ~$1/mo |
+| [Cloudflare](https://www.cloudflare.com/) | Domain, DNS, Tunnel | Free |
+| [GitHub](https://github.com/) | Repository, CI/CD, Renovate | Free |
+
+---
+
+## 🔧 Operations
+
+| Command | Purpose |
+|---------|---------|
+| `just talos rebuild` | Full CP rebuild: preflight → render → apply → bootstrap → verify |
+| `just talos preflight` | Check tools, AKV, node reachability |
+| `just talos render` | Render configs with secrets + guardrails |
+| `just talos export-secrets` | Export AKV secrets for offline/local bootstrap |
+| `just infra kvm-switch k8s01` | Switch KVM HDMI to a node |
+| `just infra pdu-reboot k8s01` | Hard power cycle a node via PDU |
+| `just infra console k8s01` | Switch KVM + take screenshot |
+| `just kube sync-hr` | Force reconcile all HelmReleases |
+
+See [REBUILD-RUNBOOK.md](docs/REBUILD-RUNBOOK.md) for the full step-by-step rebuild procedure.
+
+---
 
 ## 🤝 Thanks
 
-A lot of inspiration for my cluster came from the members of the [Home Operations Discord](https://discord.gg/home-operations) community.  They are responsible for these great resources:
+Huge thanks to the [Home Operations](https://discord.gg/home-operations) Discord community and these projects/people:
 
-- [Flux Cluster Template](https://github.com/onedr0p/flux-cluster-template) is a community driven template that provides a great starting point for anyone who has limited knowledge of Kubernetes and GitOps
-- [Kubsearch.dev](https://kubesearch.dev//) is a search engine for apps deployed across the community's clusters. It's a great way to find inspiration or solve challenges for your own cluster
-
-Specifc thanks to the following members for their contributions and where I drew inspiration from:
-
-- [angelnu/k8s-gitops](https://github.com/angelnu/k8s-gitops)
-- [billimek/k8s-gitops](https://github.com/billimek/k8s-gitops)
-- [bjw-s/k8s-gitops](https://github.com/bjw-s/k8s-gitops)
-- [carpenike/k8s-gitops](https://github.com/carpenike/k8s-gitops)
-- [onedr0p/home-ops](https://github.com/onedr0p/home-ops)
+- [onedr0p/home-ops](https://github.com/onedr0p/home-ops) — the OG home-ops repo and endless inspiration
+- [Flux Cluster Template](https://github.com/onedr0p/flux-cluster-template) — community-driven starting point
+- [kubesearch.dev](https://kubesearch.dev/) — search engine for community cluster deployments

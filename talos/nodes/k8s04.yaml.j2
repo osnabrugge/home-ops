@@ -1,0 +1,21 @@
+---
+machine:
+  network:
+    hostname: k8s04
+    interfaces:
+      - interface: bond0
+        dhcp: true
+        bond:
+          mode: 802.3ad
+          lacpRate: fast
+          xmitHashPolicy: layer3+4
+          miimon: 100
+          updelay: 200
+          downdelay: 200
+          deviceSelectors:
+            - hardwareAddr: "38:ea:a7:90:4b:0c"
+            - hardwareAddr: "38:ea:a7:90:4b:0d"
+        mtu: 1500
+  nodeLabels:
+    topology.kubernetes.io/zone: w
+  type: worker
