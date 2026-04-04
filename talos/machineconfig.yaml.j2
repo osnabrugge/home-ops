@@ -40,7 +40,9 @@ machine:
       permissions: 0o644
       content: |
         [ NFSMount_Global_Options ]
-        nfsvers=4.2
+        # TODO: Change to nfsvers=4.2 after migrating from Synology DS1821+ to Supermicro NAS
+        # Synology explicitly blocks NFS v4.2 connections
+        nfsvers=4.1
         hard=True
         nconnect=8
         noatime=True
