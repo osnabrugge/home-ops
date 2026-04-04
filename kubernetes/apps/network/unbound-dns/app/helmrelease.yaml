@@ -19,10 +19,10 @@ spec:
           tag: v0.1.4@sha256:bc1960ab0f29182d5dd5dafb10fe2ee07744f1df49563d43a734b4234f7167ce
         env:
           - name: UNBOUND_HOST
-            value: https://unbound.in.homeops.ca
+            value: tcp://fw01.in.homeops.ca:8953
           - name: UNBOUND_CA_PEM_PATH
             value: /certs/unbound_server.pem
-          - name: UNBOUND_CERT_PEM_PATH
+          - name: UNBOUND_CLIENT_PEM_PATH
             value: /certs/unbound_control.pem
           - name: UNBOUND_KEY_PEM_PATH
             value: /certs/unbound_control.key
