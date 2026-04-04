@@ -22,7 +22,7 @@ spec:
               repository: ghcr.io/foxcpp/maddy
               tag: 0.9.2@sha256:a4b839985b9b8ec0a9738e303841c43957b0b7a9c9f8e7f74eb664e1cafbc608
             env:
-              SMTP_RELAY_SMTP_PORT: &port 25
+              SMTP_RELAY_SMTP_PORT: &port 587
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"

@@ -29,8 +29,8 @@ spec:
       - mountPath: repository
         volumeSource:
           nfs:
-            path: /mnt/eros/Kopia
-            server: expanse.internal
+            path: //volume1/data/kopia
+            server: nas02.in.homeops.ca
     repository: ${APP}-volsync-secret
     sourceIdentity:
       sourceName: ${APP}
