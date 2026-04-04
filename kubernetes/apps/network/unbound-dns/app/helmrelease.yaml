@@ -21,20 +21,15 @@ spec:
           - name: UNBOUND_HOST
             value: https://unbound.in.homeops.ca
           - name: UNBOUND_CA_PEM_PATH
-            valueFrom:
-              secretKeyRef:
-                name: &secret unbound-dns-secret
-                key: UNBOUND_CA_PEM_PATH
+            value: /certs/unbound_server.pem
           - name: UNBOUND_CERT_PEM_PATH
-            valueFrom:
-              secretKeyRef:
-                name: &secret unbound-dns-secret
-                key: UNBOUND_CERT_PEM_PATH
+            value: /certs/unbound_control.pem
           - name: UNBOUND_KEY_PEM_PATH
-            valueFrom:
-              secretKeyRef:
-                name: &secret unbound-dns-secret
-                key: UNBOUND_KEY_PEM_PATH
+            value: /certs/unbound_control.key
+        extraVolumeMounts:
+          - name: unbound-certs
+            mountPath: /certs
+            readOnly: true
         livenessProbe:
           httpGet:
             path: /healthz
@@ -47,6 +42,10 @@ spec:
             port: http-webhook
           initialDelaySeconds: 10
           timeoutSeconds: 5
+    extraVolumes:
+      - name: unbound-certs
+        secret:
+          secretName: unbound-dns-certs-secret
     triggerLoopOnEvent: true
     policy: sync
     sources:
@@ -59,4 +58,4 @@ spec:
     serviceMonitor:
       enabled: true
     podAnnotations:
-      secret.reloader.stakater.com/reload: *secret
+      secret.reloader.stakater.com/reload: unbound-dns-certs-secret
