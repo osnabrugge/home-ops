@@ -90,7 +90,8 @@ cmd_switch() {
     exit 1
   fi
   echo "Switching KVM to $node (channel=$channel)..."
-  _pikvm POST "/gpio/switch?channel=${channel}&state=1&wait=1"
+  # TESmart channels are pulse-mode (switch: false in PiKVM config), not toggle
+  _pikvm POST "/gpio/pulse?channel=${channel}&delay=0&wait=1"
   echo ""
   echo "  KVM switched to $node"
 }
