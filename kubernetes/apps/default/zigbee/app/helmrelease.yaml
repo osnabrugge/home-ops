@@ -67,6 +67,13 @@ spec:
               limits:
                 memory: 1Gi
     defaultPodOptions:
+      annotations:
+        k8s.v1.cni.cncf.io/networks: |-
+          [{
+            "name": "iot",
+            "namespace": "kube-system",
+            "ips": ["192.168.70.100/24"]
+          }]
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
