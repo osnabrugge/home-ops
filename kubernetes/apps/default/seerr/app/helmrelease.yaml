@@ -22,7 +22,7 @@ spec:
             env:
               TZ: America/Toronto
               LOG_LEVEL: "info"
-              PORT: &port 80
+              PORT: &port 9000
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
