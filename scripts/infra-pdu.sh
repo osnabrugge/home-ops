@@ -27,6 +27,13 @@ set -euo pipefail
 #   - Network access to management VLAN (192.168.99.0/24)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Load credentials from .private/cyberpower.env if available
+if [[ -f "$ROOT_DIR/.private/cyberpower.env" ]]; then
+  _comm="$(grep -oP 'Community String: \K.*' "$ROOT_DIR/.private/cyberpower.env" 2>/dev/null || true)"
+  [[ -n "$_comm" ]] && PDU_COMMUNITY="$_comm"
+fi
 PDU_COMMUNITY="${PDU_COMMUNITY:-private}"
 SNMP_OID_BASE=".1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4"
 
@@ -59,13 +66,13 @@ declare -A NODE_PDU_NAME=(
 
 _snmp_set() {
   local ip="$1" outlet="$2" value="$3"
-  snmpset -v 1 -c "$PDU_COMMUNITY" -r 2 -t 3 \
+  snmpset -v 2c -c "$PDU_COMMUNITY" -r 2 -t 3 \
     "$ip" "${SNMP_OID_BASE}.${outlet}" integer "$value" >/dev/null 2>&1
 }
 
 _snmp_get() {
   local ip="$1" outlet="$2"
-  snmpget -v 1 -c "$PDU_COMMUNITY" -r 2 -t 3 \
+  snmpget -v 2c -c "$PDU_COMMUNITY" -r 2 -t 3 \
     "$ip" "${SNMP_OID_BASE}.${outlet}" -Ov 2>/dev/null | grep -oP 'INTEGER: \K\d+' || echo "?"
 }
 
