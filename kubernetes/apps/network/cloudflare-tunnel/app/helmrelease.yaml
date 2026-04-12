@@ -77,7 +77,7 @@ spec:
                   keepAliveTimeout: 3600s
                   originServerName: external.homeops.ca
                   tcpKeepAlive: 7200s
-                service: https://envoy-external.{{ .Release.Namespace }}.svc.cluster.local:443
+                service: https://envoy-network-envoy-external-27f017ad.{{ .Release.Namespace }}.svc.cluster.local:443
               - service: http_status:404
     persistence:
       config-file:
