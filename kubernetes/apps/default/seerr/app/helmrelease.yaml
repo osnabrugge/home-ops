@@ -80,6 +80,17 @@ spec:
         parentRefs:
           - name: envoy-external
             namespace: network
+      internal:
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+          - requests.homeops.ca
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
