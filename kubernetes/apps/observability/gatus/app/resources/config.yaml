@@ -42,10 +42,7 @@ endpoints:
       headers:
         Host: plex.homeops.ca
     conditions:
-      - "[STATUS] == 200"
-      - "[STATUS] == 401"
-      - "[STATUS] == 301"
-      - "[STATUS] == 302"
+      - "[STATUS] == 200 || [STATUS] == 401 || [STATUS] == 301 || [STATUS] == 302"
 
 metrics: true
 
