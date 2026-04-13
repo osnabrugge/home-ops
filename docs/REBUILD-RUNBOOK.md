@@ -357,6 +357,50 @@ just talos bootstrap
 ```
 The `just talos wipe-cp` recipe automatically removes the marker.
 
+### Zigbee / Multus IoT network attached but unreachable
+Symptom pattern:
+- Zigbee pod has `kube-system/iot` on `net1` with expected static IP/MAC
+- Zigbee logs show `connect ETIMEDOUT 192.168.70.37:6638`
+- `ip addr show net1` in test pod shows `NO-CARRIER`
+
+Quick checks:
+```bash
+# 1) Confirm multus attachment + MAC pinning
+kubectl describe pod -n default -l app.kubernetes.io/name=zigbee | grep -A 35 "k8s.v1.cni.cncf.io/network-status"
+
+# 2) Confirm host VLAN link exists on each CP node
+talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 get links | grep -E 'bond0(\\.70)?'
+talosctl --nodes 192.168.42.52 --endpoints 192.168.42.52 get links | grep -E 'bond0(\\.70)?'
+talosctl --nodes 192.168.42.53 --endpoints 192.168.42.53 get links | grep -E 'bond0(\\.70)?'
+
+# 3) Confirm VLAN addresses are present
+talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 get addresses | grep -E 'bond0\\.70|192\\.168\\.70\\.'
+
+# 4) Check Talos network-controller errors
+talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 logs controller-runtime --tail 200 | grep -iE 'bond0\\.70|device or resource busy|network is unreachable'
+```
+
+Interpretation:
+- If `bond0.70` exists but stays `down` and pods on `net1` show `NO-CARRIER`, this is usually an upstream L2/VLAN path issue (switch trunk / VLAN allow-list / native-tag mismatch) rather than multus annotation syntax.
+- If `bond0.70` does not exist on some nodes, re-render and re-apply Talos configs for all CP nodes.
+
+### Cluster resource policy audit
+Use this to find containers missing CPU/memory requests/limits:
+```bash
+# Count missing by namespace
+kubectl get pods -A -o json \
+  | jq -r '.items[] as $p | ($p.spec.containers // [])[] as $c |
+      select(($c.resources.requests.cpu // "")=="" or ($c.resources.requests.memory // "")=="" or ($c.resources.limits.cpu // "")=="" or ($c.resources.limits.memory // "")=="") |
+      $p.metadata.namespace' \
+  | sort | uniq -c | sort -nr
+
+# Sample offenders
+kubectl get pods -A -o json \
+  | jq -r '.items[] as $p | ($p.spec.containers // [])[] as $c |
+      select(($c.resources.requests.cpu // "")=="" or ($c.resources.requests.memory // "")=="" or ($c.resources.limits.cpu // "")=="" or ($c.resources.limits.memory // "")=="") |
+      [$p.metadata.namespace, $p.metadata.name, $c.name] | @tsv' | head -80
+```
+
 ---
 
 ## Post-bootstrap: GitOps restoration
