@@ -74,6 +74,7 @@ spec:
         annotations:
           gatus.home-operations.com/endpoint: |-
             conditions: ["[STATUS] == 200"]
+          external-dns.alpha.kubernetes.io/target: external.homeops.ca
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
           - requests.homeops.ca
@@ -81,6 +82,8 @@ spec:
           - name: envoy-external
             namespace: network
       internal:
+        annotations:
+          external-dns.alpha.kubernetes.io/controller: none
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
           - requests.homeops.ca
