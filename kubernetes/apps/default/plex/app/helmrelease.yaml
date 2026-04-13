@@ -83,7 +83,7 @@ spec:
             interval: 1m
             client:
               dns-resolver: tcp://1.1.1.1:53
-            conditions: ["[STATUS] == 200", "[STATUS] == 401", "[STATUS] == 301", "[STATUS] == 302"]
+            conditions: ["[STATUS] == 200 || [STATUS] == 401 || [STATUS] == 301 || [STATUS] == 302"]
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
