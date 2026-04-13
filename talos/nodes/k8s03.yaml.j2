@@ -16,6 +16,8 @@ machine:
             - hardwareAddr: "00:11:0a:68:bd:70"
             - hardwareAddr: "00:11:0a:68:bd:71"
         mtu: 1500
-  nodeLabels:
-    topology.kubernetes.io/zone: m
-  type: controlplane
+       - interface: bond0.70
+         vlan:
+           vlanId: 70
+         dhcp: true
+         mtu: 1500

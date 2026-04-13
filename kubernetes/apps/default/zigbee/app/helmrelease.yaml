@@ -14,15 +14,15 @@ spec:
       zigbee:
         annotations:
           reloader.stakater.com/auto: "true"
-        # TODO: Add multus IoT network once bond0.70 VLAN is configured in Talos machineconfig
-        # pod:
-        #   annotations:
-        #     k8s.v1.cni.cncf.io/networks: |-
-        #       [{
-        #         "name": "iot",
-        #         "namespace": "kube-system",
-        #         "ips": ["192.168.70.100/24"]
-        #       }]
+        pod:
+          annotations:
+            k8s.v1.cni.cncf.io/networks: |-
+              [{
+                "name": "iot",
+                "namespace": "kube-system",
+                "ips": ["192.168.70.100/24"],
+                "mac": "02:42:c0:a8:46:64"
+              }]
         containers:
           app:
             image:
