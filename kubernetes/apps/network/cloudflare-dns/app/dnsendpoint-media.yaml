@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/externaldns.k8s.io/dnsendpoint_v1alpha1.json
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: media-public-hosts
+spec:
+  endpoints:
+    - dnsName: plex.homeops.ca
+      recordType: CNAME
+      targets:
+        - external.homeops.ca
+    - dnsName: seerr.homeops.ca
+      recordType: CNAME
+      targets:
+        - external.homeops.ca
+    - dnsName: requests.homeops.ca
+      recordType: CNAME
+      targets:
+        - external.homeops.ca
