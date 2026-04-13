@@ -33,16 +33,12 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
 
-  - name: Plex Routed Identity
-    group: external
-    url: http://envoy-network-envoy-external-27f017ad.network.svc.cluster.local/identity
+  - name: Plex Backend Identity
+    group: services
+    url: http://plex.default.svc.cluster.local:32400/identity
     interval: 1m
-    client:
-      timeout: 10s
-      headers:
-        Host: plex.homeops.ca
     conditions:
-      - "[STATUS] == 200 || [STATUS] == 401 || [STATUS] == 301 || [STATUS] == 302"
+      - "[STATUS] == 200"
 
 metrics: true
 
