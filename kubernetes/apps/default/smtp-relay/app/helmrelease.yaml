@@ -78,7 +78,7 @@ spec:
             }
             target.smtp remote_smtp {
                 starttls yes
-                auth plain {env:SMTP_RELAY_USERNAME} {env:SMTP_RELAY_PASSWORD}
+              auth login {env:SMTP_RELAY_USERNAME} {env:SMTP_RELAY_PASSWORD}
                 targets tcp://{env:SMTP_RELAY_SERVER}:587
             }
     persistence:
