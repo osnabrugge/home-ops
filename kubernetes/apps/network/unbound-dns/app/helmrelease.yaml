@@ -48,6 +48,9 @@ spec:
           secretName: unbound-dns-certs-secret
     triggerLoopOnEvent: true
     policy: sync
+    extraArgs:
+      - --webhook-provider-read-timeout=30s
+      - --webhook-provider-write-timeout=60s
     sources:
       - gateway-httproute
       - service
