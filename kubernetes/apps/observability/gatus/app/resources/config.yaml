@@ -26,6 +26,28 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
 
+  - name: Cloudflare Tunnel Ready
+    group: services
+    url: http://cloudflare-tunnel.network.svc.cluster.local:8080/ready
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: Plex Routed Identity
+    group: external
+    url: https://envoy-network-envoy-external-27f017ad.network.svc.cluster.local/identity
+    interval: 1m
+    client:
+      insecure: true
+      timeout: 10s
+      headers:
+        Host: plex.homeops.ca
+    conditions:
+      - "[STATUS] == 200"
+      - "[STATUS] == 401"
+      - "[STATUS] == 301"
+      - "[STATUS] == 302"
+
 metrics: true
 
 storage:
