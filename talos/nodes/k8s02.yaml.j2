@@ -18,5 +18,10 @@ machine:
         mtu: 1500
         vlans:
           - vlanId: 70
-            dhcp: true
+            dhcp: false
+            addresses:
+              - 192.168.70.12/24
+            routes:
+              - network: 0.0.0.0/0
+                gateway: 192.168.70.1
             mtu: 1500
