@@ -35,10 +35,9 @@ endpoints:
 
   - name: Plex Routed Identity
     group: external
-    url: https://envoy-network-envoy-external-27f017ad.network.svc.cluster.local/identity
+    url: http://envoy-network-envoy-external-27f017ad.network.svc.cluster.local/identity
     interval: 1m
     client:
-      insecure: true
       timeout: 10s
       headers:
         Host: plex.homeops.ca
