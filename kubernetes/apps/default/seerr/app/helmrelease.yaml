@@ -99,5 +99,9 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /app/config
+      next-cache:
+        type: emptyDir
+        globalMounts:
+          - path: /app/.next/cache
       tmp:
         type: emptyDir
