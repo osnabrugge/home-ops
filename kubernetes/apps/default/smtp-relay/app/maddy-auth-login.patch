@@ -30,7 +30,7 @@ index a105484..c28ec7e 100644
 @@ -101,6 +101,23 @@ func TestSASL_Plain_AuthFail(t *testing.T) {
  	}
  }
- 
+
 +func TestSASL_Login_Directive(t *testing.T) {
 +	factory := testSaslFactory(t, "login", "test", "testpass")
 +	client, err := factory(nil)
