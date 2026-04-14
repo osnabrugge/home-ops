@@ -1,0 +1,161 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autobrr-config
+  namespace: default
+data:
+  config.toml: |
+    [server]
+    host = "0.0.0.0"
+    port = 80
+    metrics-port = 9094
+    check-for-updates = false
+    log-level = "info"
+
+    [database]
+    type = "sqlite"
+    # Path: /config/autobrr/autobrr.db (will be in PVC)
+
+    [notifications]
+    enabled = false
+
+    [[notifiers]]
+    name = "Discord"
+    enabled = false
+    type = "discord"
+    webhook = ""
+
+    # qBittorrent download client integration
+    [[clients]]
+    type = "qbittorrent"
+    name = "qBittorrent"
+    enabled = true
+    host = "qbittorrent.default.svc.cluster.local"
+    port = 80
+    username = "admin"
+    # Password will be injected from ExternalSecret
+    use_ssl = false
+    tls_skip_verify = false
+    tags = ["autobrr", "ratio=safe"]
+    category = "monitored"
+    add_paused = false
+    skip_hash_check = false
+    content_layout = "original"
+    root_folder = "/data"
+
+    # Critical: Seeding rules for ratio recovery
+    ratio_limit = 3.0
+    seeding_time_limit = 259200        # 72 hours = focus on upload
+    upload_limit = 0                    # No limit, let bandwidth cap it
+
+    # Blutopia - Ratio Safe Configuration
+    [[filters]]
+    name = "Blutopia - Ratio Safe"
+    enabled = true
+    min_torrent_size = 0
+    max_torrent_size = 0
+    delay = 0
+    priority = 0
+
+    [[filters.indexers]]
+    name = "blutopia"
+
+    # Quality filters
+    [[filters.rules]]
+    name = "Years - Recent content only"
+    type = "years"
+    operator = ">="
+    value = "2020"
+    except = false
+
+    [[filters.rules]]
+    name = "Codec - h.264 preferred"
+    type = "codec"
+    operator = "="
+    value = "h.264"
+    except = false
+
+    [[filters.rules]]
+    name = "Source - BluRay"
+    type = "source"
+    operator = "="
+    value = "bluray"
+    except = false
+
+    # Ratio protection - NEGATIVE rules (skip if true)
+    [[filters.rules]]
+    name = "Skip if too few seeders"
+    type = "seeders"
+    operator = "<"
+    value = "10"
+    except = true                      # NEGATIVE: skip if <10 seeders
+
+    [[filters.rules]]
+    name = "Skip if too crowded (many leechers)"
+    type = "leechers"
+    operator = ">"
+    value = "50"
+    except = true                      # NEGATIVE: skip if >50 leechers
+
+    [[filters.actions]]
+    name = "qBittorrent - Monitored"
+    type = "client"
+    enabled = true
+    client = "qBittorrent"
+    action = "add"
+
+    # fearnopeer - Minimum peers requirement
+    [[filters]]
+    name = "fearnopeer - Minimum Peers"
+    enabled = true
+
+    [[filters.indexers]]
+    name = "fearnopeer"
+
+    [[filters.rules]]
+    name = "Minimum seeders"
+    type = "seeders"
+    operator = "<"
+    value = "3"
+    except = true                      # NEGATIVE: skip if <3 seeders
+
+    [[filters.actions]]
+    name = "qBittorrent - Monitored"
+    type = "client"
+    enabled = true
+    client = "qBittorrent"
+    action = "add"
+
+    # upload.cx - Manual approval only (critical tracker status)
+    [[filters]]
+    name = "upload.cx - Manual Approval"
+    enabled = true
+    invert_match = true                # Default: skip everything unless manually approved
+
+    [[filters.indexers]]
+    name = "upload.cx"
+
+    # Notification filter for critical tracker
+    [[filters.actions]]
+    name = "Log to file"
+    type = "exec"
+    enabled = true
+    exec_cmd = "echo 'CRITICAL TRACKER: {{.ReleaseName}}' >> /config/autobrr/critical.log"
+
+    # IRC monitoring (for real-time release capture)
+    [irc]
+    enabled = true
+    nick = "autobrr_bot"
+    # Password will be set via environment or manual config
+    # Network: Blutopia, fearnopeer, upload.cx IRC servers
+
+    # Example announce channel (configure via Web UI for security)
+    # [[irc.networks]]
+    # name = "Blutopia"
+    # server = "irc.blutopia.xyz"
+    # port = 6697
+    # tls = true
+    # channels = ["#announce", "#general"]
+    # nick = "your_nick"
+    # password = ""  # Set manually or via ExternalSecret

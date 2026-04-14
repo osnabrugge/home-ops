@@ -21,6 +21,13 @@ spec:
               TZ: America/Toronto
               QBT_WEBUI_PORT: &port 80
               QBT_TORRENTING_PORT: &torrentPort 31288
+              # Ratio optimization - Critical for H&R prevention
+              QBT_SEED_RATIO_LIMIT: "3.0"
+              QBT_SEED_TIME_LIMIT: "9999999"
+              QBT_MAX_SEEDING_TIME: "9999999"
+              QBT_MAX_ACTIVE_DOWNLOADS: "5"
+              QBT_MAX_UPLOADS_PER_SECOND: "0"
+              QBT_UPLOAD_SLOTS: "20"
             probes:
               liveness:
                 enabled: true
@@ -90,6 +97,14 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
+      configmap:
+        type: configMap
+        name: qbittorrent-config
+        defaultMode: 0644
+        globalMounts:
+          - path: /config/qBittorrent/qBittorrent.conf
+            subPath: qbittorrent.conf
+            readOnly: true
       media:
         type: nfs
         server: nas02.in.homeops.ca
@@ -98,3 +113,7 @@ spec:
           - path: /data
       tmp:
         type: emptyDir
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /cache
