@@ -27,6 +27,10 @@ spec:
               AUTOBRR__METRICS_PORT: &metricsPort 9094
               AUTOBRR__CHECK_FOR_UPDATES: false
               AUTOBRR__LOG_LEVEL: INFO
+              # Ratio protection settings
+              AUTOBRR__DISABLE_FILTER_ON_STARTUP: "false"
+              AUTOBRR__PACING_ENABLED: "true"
+              AUTOBRR__PACING_INTERVAL: "300"
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
@@ -89,5 +93,13 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
+      configmap:
+        type: configMap
+        name: autobrr-config
+        defaultMode: 0644
+        globalMounts:
+          - path: /config/autobrr/config.toml
+            subPath: config.toml
+            readOnly: true
       tmp:
         type: emptyDir
