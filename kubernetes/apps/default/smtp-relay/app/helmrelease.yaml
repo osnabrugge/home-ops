@@ -20,7 +20,11 @@ spec:
           app:
             image:
               repository: ghcr.io/osnabrugge/maddy-login
-              tag: 0.9.3-login1
+              tag: 0.9.3-login2
+            args:
+              - -config
+              - /data/maddy.conf
+              - run
             env:
               SMTP_RELAY_SMTP_PORT: &port 587
             envFrom:
@@ -46,6 +50,8 @@ spec:
               limits:
                 memory: 64Mi
     defaultPodOptions:
+      imagePullSecrets:
+        - name: ghcr-pull
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
