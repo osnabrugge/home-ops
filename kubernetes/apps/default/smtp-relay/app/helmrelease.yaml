@@ -19,8 +19,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/foxcpp/maddy
-              tag: 0.9.3@sha256:2ce7ce6343816c8c96056776dd06660987d97ada96d31163cdd968d62e496a12
+              repository: ghcr.io/osnabrugge/maddy-login
+              tag: 0.9.3-login1
             env:
               SMTP_RELAY_SMTP_PORT: &port 587
             envFrom:
@@ -78,7 +78,7 @@ spec:
             }
             target.smtp remote_smtp {
                 starttls yes
-              auth plain {env:SMTP_RELAY_USERNAME} {env:SMTP_RELAY_PASSWORD}
+                auth login {env:SMTP_RELAY_USERNAME} {env:SMTP_RELAY_PASSWORD}
                 targets tcp://{env:SMTP_RELAY_SERVER}:587
             }
     persistence:
