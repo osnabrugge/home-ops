@@ -1,0 +1,116 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autobrr-bootstrap
+  namespace: default
+data:
+  bootstrap.sh: |
+    #!/usr/bin/env sh
+    set -eu
+
+    AUTOBRR_URL="http://127.0.0.1:80"
+    COOKIE_FILE="$(mktemp)"
+
+    log() {
+      printf '[autobrr-bootstrap] %s\n' "$1"
+    }
+
+    require_env() {
+      key="$1"
+      eval "val=\${$key:-}"
+      if [ -z "$val" ]; then
+        log "missing required env: $key"
+        exit 1
+      fi
+    }
+
+    require_env AUTOBRR_BOOTSTRAP_USERNAME
+    require_env AUTOBRR_BOOTSTRAP_PASSWORD
+    require_env AUTOBRR_QBITTORRENT_USERNAME
+    require_env AUTOBRR_QBITTORRENT_PASSWORD
+
+    # Wait for API readiness.
+    i=0
+    until curl -fsS "${AUTOBRR_URL}/api/healthz/readiness" >/dev/null 2>&1; do
+      i=$((i + 1))
+      if [ "$i" -gt 90 ]; then
+        log "timed out waiting for autobrr readiness"
+        exit 1
+      fi
+      sleep 2
+    done
+
+    login() {
+      code="$(curl -sS -o /dev/null -w "%{http_code}" -c "$COOKIE_FILE" -X POST "${AUTOBRR_URL}/api/auth/login" -H "content-type: application/json" -d "{\"username\":\"${AUTOBRR_BOOTSTRAP_USERNAME}\",\"password\":\"${AUTOBRR_BOOTSTRAP_PASSWORD}\"}")"
+      [ "$code" = "204" ]
+    }
+
+    if ! login; then
+      log "login failed; trying to align bootstrap account password"
+      printf '%s\n%s\n' "${AUTOBRR_BOOTSTRAP_PASSWORD}" "${AUTOBRR_BOOTSTRAP_PASSWORD}" | autobrrctl --config /config change-password "${AUTOBRR_BOOTSTRAP_USERNAME}" >/dev/null 2>&1 || true
+    fi
+
+    if ! login; then
+      log "bootstrap user not present, creating with autobrrctl"
+      printf '%s\n%s\n' "${AUTOBRR_BOOTSTRAP_PASSWORD}" "${AUTOBRR_BOOTSTRAP_PASSWORD}" | autobrrctl --config /config create-user "${AUTOBRR_BOOTSTRAP_USERNAME}" >/dev/null 2>&1 || true
+    fi
+
+    if ! login; then
+      log "failed to login as bootstrap user"
+      exit 1
+    fi
+
+    qbit_payload="$(jq -nc --arg u "${AUTOBRR_QBITTORRENT_USERNAME}" --arg p "${AUTOBRR_QBITTORRENT_PASSWORD}" '{name:"qBittorrent",type:"QBITTORRENT",enabled:true,host:"http://qbittorrent.default.svc.cluster.local",port:80,tls:false,tls_skip_verify:false,username:$u,password:$p,settings:{basic:{auth:true,username:$u,password:$p},rules:{enabled:true,max_active_downloads:5,ignore_slow_torrents:true,ignore_slow_torrents_condition:"MAX_DOWNLOADS_REACHED",download_speed_threshold:0,upload_speed_threshold:0}}}')"
+
+    qbit_id="$(curl -sS -b "$COOKIE_FILE" "${AUTOBRR_URL}/api/download_clients" | jq -r '.[] | select(.name=="qBittorrent") | .id' | head -n1)"
+    if [ -n "$qbit_id" ]; then
+      log "updating qBittorrent download client"
+      curl -sS -b "$COOKIE_FILE" -H 'content-type: application/json' -X PUT "${AUTOBRR_URL}/api/download_clients" -d "$(echo "$qbit_payload" | jq --argjson id "$qbit_id" '. + {id:$id}')" >/dev/null
+    else
+      log "creating qBittorrent download client"
+      qbit_id="$(curl -sS -b "$COOKIE_FILE" -H 'content-type: application/json' -X POST "${AUTOBRR_URL}/api/download_clients" -d "$qbit_payload" | jq -r '.id')"
+    fi
+
+    action_payload="$(jq -nc --argjson cid "$qbit_id" '{name:"qBittorrent Monitored",type:"QBITTORRENT",enabled:true,client_id:$cid,category:"monitored"}')"
+    action_id="$(curl -sS -b "$COOKIE_FILE" "${AUTOBRR_URL}/api/actions" | jq -r '.[] | select(.name=="qBittorrent Monitored") | .id' | head -n1)"
+    if [ -n "$action_id" ]; then
+      log "updating qBittorrent action"
+      curl -sS -b "$COOKIE_FILE" -H 'content-type: application/json' -X PUT "${AUTOBRR_URL}/api/actions" -d "$(echo "$action_payload" | jq --argjson id "$action_id" '. + {id:$id}')" >/dev/null
+    else
+      log "creating qBittorrent action"
+      action_id="$(curl -sS -b "$COOKIE_FILE" -H 'content-type: application/json' -X POST "${AUTOBRR_URL}/api/actions" -d "$action_payload" | jq -r '.id')"
+    fi
+
+    ensure_filter() {
+      filter_name="$1"
+      enabled="$2"
+      matcher="$3"
+
+      indexer_json="$(curl -sS -b "$COOKIE_FILE" "${AUTOBRR_URL}/api/indexer" | jq -c --arg m "$matcher" '[.[] | select(((.identifier // "") | ascii_downcase | test($m)) or ((.name // "") | ascii_downcase | test($m))) | {id,name,identifier}]')"
+      indexer_count="$(echo "$indexer_json" | jq 'length')"
+      if [ "$indexer_count" -eq 0 ]; then
+        log "skipping filter '$filter_name' - no matching indexer for regex '$matcher'"
+        return 0
+      fi
+
+      existing_id="$(curl -sS -b "$COOKIE_FILE" "${AUTOBRR_URL}/api/filters" | jq -r --arg n "$filter_name" '.[] | select(.name==$n) | .id' | head -n1)"
+      if [ -z "$existing_id" ]; then
+        existing_id="$(curl -sS -b "$COOKIE_FILE" -H 'content-type: application/json' -X POST "${AUTOBRR_URL}/api/filters" -d "{\"name\":\"${filter_name}\",\"enabled\":false,\"resolutions\":[],\"codecs\":[],\"sources\":[],\"containers\":[],\"origins\":[]}" | jq -r '.id')"
+      fi
+
+      patch_payload="$(jq -nc --argjson id "$existing_id" --arg name "$filter_name" --argjson en "$enabled" --argjson idx "$indexer_json" --argjson aid "$action_id" '{id:$id,name:$name,enabled:$en,priority:0,use_regex:false,indexers:$idx,resolutions:[],sources:[],codecs:[],containers:[],match_hdr:[],except_hdr:[],match_other:[],except_other:[],smart_episode:false,actions:[{id:$aid,name:"qBittorrent Monitored",type:"QBITTORRENT",enabled:true,category:"monitored",client_id:null}] }')"
+
+      # Fill client_id in nested action with the resolved download client id.
+      patch_payload="$(echo "$patch_payload" | jq --argjson cid "$qbit_id" '.actions[0].client_id = $cid')"
+      curl -sS -b "$COOKIE_FILE" -H 'content-type: application/json' -X PATCH "${AUTOBRR_URL}/api/filters/${existing_id}" -d "$patch_payload" >/dev/null
+      log "upserted filter '$filter_name'"
+    }
+
+    # fearnopeer can run fully automatic once indexer exists.
+    ensure_filter "FNP - Auto Grab" true "fearnopeer|fnp"
+    # upload.cx remains disabled by default to protect ratio until explicitly enabled.
+    ensure_filter "UPLOADCX - Manual Review" false "upload\\.cx|uploadcx"
+
+    rm -f "$COOKIE_FILE"
+    log "bootstrap completed"

@@ -31,9 +31,17 @@ spec:
               AUTOBRR__DISABLE_FILTER_ON_STARTUP: "false"
               AUTOBRR__PACING_ENABLED: "true"
               AUTOBRR__PACING_INTERVAL: "300"
+              AUTOBRR_BOOTSTRAP_ENABLED: "true"
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
+            lifecycle:
+              postStart:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - if [ "${AUTOBRR_BOOTSTRAP_ENABLED}" = "true" ]; then nohup /bootstrap/bootstrap.sh >/tmp/autobrr-bootstrap.log 2>&1 & fi
             probes:
               liveness:
                 enabled: true
@@ -100,6 +108,14 @@ spec:
         globalMounts:
           - path: /config/autobrr/config.toml
             subPath: config.toml
+            readOnly: true
+      bootstrap:
+        type: configMap
+        name: autobrr-bootstrap
+        defaultMode: 0755
+        globalMounts:
+          - path: /bootstrap/bootstrap.sh
+            subPath: bootstrap.sh
             readOnly: true
       tmp:
         type: emptyDir
