@@ -6,6 +6,7 @@ bootstrap_dir := justfile_dir() + '/bootstrap'
 kubernetes_dir := justfile_dir() + '/kubernetes'
 controller := `talosctl config info -o yaml 2>/dev/null | yq -e '.endpoints[0] // ""' 2>/dev/null || true`
 nodes := `talosctl config info -o yaml 2>/dev/null | yq -e '.nodes // [] | join(" ")' 2>/dev/null || true`
+bootstrap_marker := justfile_dir() + '/.private/bootstrap.done'
 
 [private]
 default: talos kube (kubeconfig "node") wait namespaces resources crds apps kubeconfig
@@ -26,15 +27,37 @@ talos:
 [doc('Install Kubernetes')]
 kube:
     just log info "Running stage..." "stage" "$0"
-    until op=$(talosctl -n "{{ controller }}" bootstrap 2>&1 || true) && [[ "$op" == *"AlreadyExists"* ]]; do \
-        just log info "Kubernetes bootstrap in progress. Retrying in 5 seconds..." "stage" "$0"; \
+    if [[ -f "{{ bootstrap_marker }}" ]]; then \
+        just log info "Bootstrap marker exists, skipping bootstrap" "stage" "$0" "marker" "{{ bootstrap_marker }}"; \
+        exit 0; \
+    fi
+    retries=0; \
+    max_retries=24; \
+    while true; do \
+        op=""; \
+        if op=$(talosctl -n "{{ controller }}" --endpoints "{{ controller }}" bootstrap --insecure 2>&1); then \
+            just log info "Bootstrap command accepted" "stage" "$0"; \
+            break; \
+        fi; \
+        if [[ "$op" == *"AlreadyExists"* ]]; then \
+            just log info "Cluster already bootstrapped" "stage" "$0"; \
+            break; \
+        fi; \
+        retries=$((retries + 1)); \
+        if [[ "$retries" -ge "$max_retries" ]]; then \
+            just log fatal "Kubernetes bootstrap failed after retries" "stage" "$0" "output" "$op"; \
+        fi; \
+        just log info "Kubernetes bootstrap not ready, retrying in 5 seconds..." "stage" "$0" "attempt" "$retries/$max_retries"; \
         sleep 5; \
     done
+    mkdir -p "$(dirname "{{ bootstrap_marker }}")"
+    date -Iseconds > "{{ bootstrap_marker }}"
+    just log info "Bootstrap marker written" "stage" "$0" "marker" "{{ bootstrap_marker }}"
 
 [doc('Fetch kubeconfig')]
 kubeconfig lb="cilium":
     just log info "Running stage..." "stage" "$0"
-    if ! talosctl kubeconfig -n "{{ controller }}" -f --force-context-name main {{ justfile_dir() }}; then \
+    if ! talosctl kubeconfig -n "{{ controller }}" --endpoints "{{ controller }}" --insecure -f --force-context-name main {{ justfile_dir() }}; then \
         just log fatal "Failed to fetch kubeconfig" "stage" "$0"; \
     fi
     if [[ "{{ lb }}" != "cilium" ]]; then \
