@@ -250,35 +250,50 @@ apply:
       echo "Applying config to $node ($ip) ..."
       talosctl apply-config --nodes "$ip" --endpoints "$ip" --insecure --file "$config"
       echo "  Config applied to $node"
-      # ── Deterministic wait: detect reboot then confirm apid comes back ──
-      # Phase 1: Wait for node to start rebooting (port 50000 drops)
-      echo "  Waiting for $node to begin reboot..."
+      # ── Deterministic wait: reboot starts -> maintenance returns -> apid responds ──
+      echo "  Waiting for $node to begin reboot (port 50000 closes)..."
       sleep 5
       reboot_detected=false
-      for attempt in $(seq 1 30); do
+      for attempt in $(seq 1 60); do
         if ! timeout 2 bash -c "echo >/dev/tcp/$ip/50000" 2>/dev/null; then
           reboot_detected=true
-          echo "  $node is rebooting (port 50000 closed)"
+          echo "  $node reboot detected (port 50000 closed)"
           break
         fi
         sleep 2
       done
-      if [[ "$reboot_detected" == false ]]; then
-        echo "  WARN: $node port 50000 never closed — node may not have rebooted"
-        echo "  Proceeding to check apid anyway..."
+      if [[ "$reboot_detected" != true ]]; then
+        echo "FAIL: $node did not begin rebooting after apply-config"
+        exit 1
       fi
-      # Phase 2: Wait for apid to come back (port 50000 reopens with new TLS)
+      echo "  Waiting for $node maintenance endpoint to return (port 50000 opens)..."
+      port_back=false
+      for attempt in $(seq 1 90); do
+        if timeout 2 bash -c "echo >/dev/tcp/$ip/50000" 2>/dev/null; then
+          port_back=true
+          echo "  $node maintenance endpoint is reachable again"
+          break
+        fi
+        if (( attempt % 15 == 0 )); then
+          echo "  Still waiting for maintenance endpoint... (${attempt}/90)"
+        fi
+        sleep 2
+      done
+      if [[ "$port_back" != true ]]; then
+        echo "FAIL: $node maintenance endpoint did not return after reboot"
+        exit 1
+      fi
       # Use --insecure since we don't have a talosconfig matching these new secrets yet
       echo "  Waiting for $node apid to respond..."
       retries=0
-      max_retries=60
+      max_retries=72
       while [[ $retries -lt $max_retries ]]; do
         if talosctl version --nodes "$ip" --endpoints "$ip" --insecure 2>/dev/null | grep -q "Tag:"; then
           echo "  OK: $node ($ip) is running and apid is responding"
           break
         fi
         retries=$((retries + 1))
-        if (( retries % 10 == 0 )); then
+        if (( retries % 12 == 0 )); then
           echo "  Still waiting for $node apid... (${retries}/${max_retries})"
         fi
         sleep 5
@@ -316,6 +331,26 @@ bootstrap:
       echo "╚══════════════════════════════════════════════════════════╝"
       gum confirm "Bootstrap has already run. Proceed anyway?" --default="No" || exit 0
     fi
+    # Guardrails: require rendered configs for all CP nodes before bootstrap.
+    IFS=' ' read -ra nodes <<< "{{ cp_nodes }}"
+    for node in "${nodes[@]}"; do
+      cfg="{{ rendered_dir }}/${node}.yaml"
+      if [[ ! -f "$cfg" ]]; then
+        echo "FAIL: Missing rendered config: $cfg"
+        echo "Run: just talos render"
+        exit 1
+      fi
+      if grep -qF 'azkv://' "$cfg"; then
+        echo "FAIL: Rendered config contains unresolved azkv:// placeholders: $cfg"
+        exit 1
+      fi
+      endpoint=$(yq ea 'select(has("cluster")) | .cluster.controlPlane.endpoint' "$cfg" 2>/dev/null | head -1)
+      if [[ "$endpoint" != "https://$bootstrap_ip:6443" ]]; then
+        echo "FAIL: $cfg endpoint mismatch: expected https://$bootstrap_ip:6443, got ${endpoint:-<empty>}"
+        exit 1
+      fi
+    done
+    echo "  Render guardrails passed for all control-plane configs"
     echo "Bootstrapping Kubernetes on $bootstrap_ip..."
     # Wait for etcd to be ready for bootstrap
     retries=0
