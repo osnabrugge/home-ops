@@ -218,7 +218,7 @@ data:
     AuthSubnetWhitelistEnabled: true
     AuthSubnetWhitelist: 127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
     BanDuration: 3600
-    BansEnabled: true
+    BansEnabled: false
     ClickjackingProtectionEnabled: true
     CSRFProtectionEnabled: true
     CustomHTTPHeadersEnabled: false
@@ -237,7 +237,7 @@ data:
     HostHeaderValidationEnabled: true
     IsUPnPEnabled: false
     LocalBoundAddress: ''
-    MaxAuthenticationFailCount: 5
+    MaxAuthenticationFailCount: 50
     Password_PBKDF2: "@ByteArray(w9FEEED1efg3X7f+t5sFzg==:EuFkAiubA4MB1yt+/CORXzxt2dXZCqd8NdghnE8NKc14jJjvJP8mOHjgv1EG5fRbTO80xfcpg/4hG1zfutG6CQ==)"
     Port: 80
     ReverseProxyEnabled: false
