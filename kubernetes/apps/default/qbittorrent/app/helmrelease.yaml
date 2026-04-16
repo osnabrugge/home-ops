@@ -28,6 +28,10 @@ spec:
               QBT_MAX_ACTIVE_DOWNLOADS: "5"
               QBT_MAX_UPLOADS_PER_SECOND: "0"
               QBT_UPLOAD_SLOTS: "20"
+            envFrom:
+              - secretRef:
+                  name: qbittorrent-secret
+                  optional: true
             probes:
               liveness:
                 enabled: true
