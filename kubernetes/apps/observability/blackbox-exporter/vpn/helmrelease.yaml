@@ -9,6 +9,7 @@ spec:
     kind: OCIRepository
     name: blackbox-exporter-vpn
   interval: 1h
+  suspend: true
   values:
     fullnameOverride: blackbox-exporter-vpn
     strategy:
