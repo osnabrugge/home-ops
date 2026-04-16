@@ -41,7 +41,7 @@ spec:
                   command:
                     - /bin/sh
                     - -c
-                    - if [ "${AUTOBRR_BOOTSTRAP_ENABLED}" = "true" ]; then nohup /bootstrap/bootstrap.sh >/tmp/autobrr-bootstrap.log 2>&1 & fi
+                    - if [ "$(printenv AUTOBRR_BOOTSTRAP_ENABLED)" = "true" ]; then nohup /bootstrap/bootstrap.sh >/tmp/autobrr-bootstrap.log 2>&1 & fi
             probes:
               liveness:
                 enabled: true

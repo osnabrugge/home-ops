@@ -22,6 +22,9 @@ spec:
           http_listen 0.0.0.0
           http_port {{ .Values.metricsPort }}
           health_check on
+          HC_Errors_Count 10
+          HC_Retry_Failure_Count 10
+          HC_Period 30
 
       inputs: |-
         [INPUT]
@@ -82,6 +85,7 @@ spec:
           uri /insert/jsonline?_stream_fields=stream,k_namespace_name,k_pod_name,app&_msg_field=log&_time_field=date
           format json_lines
           json_date_format iso8601
+          Buffer_Size 128k
           compress gzip
           log_response_payload false
     dashboards:
