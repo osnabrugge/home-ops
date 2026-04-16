@@ -33,3 +33,4 @@ spec:
     namespace: flux-system
   targetNamespace: observability
   wait: false
+  suspend: true
