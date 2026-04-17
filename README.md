@@ -149,6 +149,26 @@ See [REBUILD-RUNBOOK.md](docs/REBUILD-RUNBOOK.md) for the full step-by-step rebu
 
 ---
 
+## 🔧 Active Sprint
+
+Work in progress — updated each session with Copilot.
+
+| Status | Item |
+|--------|------|
+| ✅ | Replace `sed` with bash string replacement in `akv-inject.sh` (longest-first sort, no escaping bugs) |
+| ✅ | Add post-render guardrails to render recipe (unresolved placeholders, empty secrets, `talosctl validate`) |
+| ✅ | Add guardrails to bootstrap recipe (missing rendered configs, azkv:// check, endpoint mismatch) |
+| ✅ | Add bootstrap marker file (`.private/bootstrap.done`) with double-bootstrap protection |
+| ✅ | Add local-mode to `akv-inject.sh` (`AKV_LOCAL_DIR` for offline/air-gapped use) |
+| ✅ | Add `export-secrets` recipe (dump AKV secrets to `.private/` for local-mode use) |
+| ⏳ | Rewrite apply-wait logic (remove `--insecure` polling; use event-driven readiness) |
+| ⏳ | Fix bootstrap double-call bug (idempotent bootstrap gate) |
+| ⏳ | Update `REBUILD-RUNBOOK.md` to reflect all new automation |
+| ⏳ | Fix Zigbee2MQTT CrashLoop (serial-over-TCP adapter at `192.168.70.37:6638` unreachable) |
+| ⏳ | Migrate TheLounge IRC nicks from NAS02 to configmap |
+
+---
+
 ## 🏆 Recent Achievements
 
 This cluster is actively maintained with a reliability-first and security-focused operating model.
