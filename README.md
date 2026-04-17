@@ -160,6 +160,25 @@ This cluster is actively maintained with a reliability-first and security-focuse
 - Improved ingress/service troubleshooting around Envoy Gateway + Cloudflare Tunnel routing paths
 - Added and maintained practical operations runbooks for rebuilds, remote media access, tracker credentials, and optimization
 
+### 🤝 Collaboration Scorecard
+
+This is the shared operating lane: detect, respond, harden, and upstream improvements.
+
+| Area | What We Track | Current Focus |
+|------|----------------|---------------|
+| **Uptime & Reliability** | API readiness, node health, app availability, failed reconciliations | Reduce noisy failures, tighten MTTR, improve rollout safety |
+| **Threats & Mitigations** | Crash loops, ingress failures, auth errors, risky config drift | Faster incident triage, stricter guardrails, preventive hardening |
+| **Upstream Contributions** | Issues opened, PRs merged, docs fixes contributed back | Convert local fixes into upstream improvements where possible |
+| **Features & Enhancements** | New apps, automation, runbooks, quality-of-life tooling | Keep raising reliability and operator ergonomics each sprint |
+
+### Ongoing Guardian Priorities
+
+- Keep Flux reconciliation clean and predictable
+- Improve service-level visibility and alert quality
+- Harden default security posture without breaking usability
+- Continuously optimize media/torrent automation for health and seeding performance
+- Document every major change as an operational playbook
+
 ### Operations Playbooks
 
 - [Cluster Rebuild Runbook](docs/REBUILD-RUNBOOK.md)
