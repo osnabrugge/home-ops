@@ -149,6 +149,27 @@ See [REBUILD-RUNBOOK.md](docs/REBUILD-RUNBOOK.md) for the full step-by-step rebu
 
 ---
 
+## 🏆 Recent Achievements
+
+This cluster is actively maintained with a reliability-first and security-focused operating model.
+
+- Hardened Talos rebuild flow with preflight checks, render guardrails, and safer bootstrap sequencing
+- Stabilized GitOps reconciliation workflows across Flux Kustomizations and HelmReleases
+- Implemented torrent stack optimization for long-term seeding and ratio protection (Autobrr + qBittorrent + Arr stack + Unpackerr)
+- Standardized secret delivery through External Secrets + Azure Key Vault across media and automation apps
+- Improved ingress/service troubleshooting around Envoy Gateway + Cloudflare Tunnel routing paths
+- Added and maintained practical operations runbooks for rebuilds, remote media access, tracker credentials, and optimization
+
+### Operations Playbooks
+
+- [Cluster Rebuild Runbook](docs/REBUILD-RUNBOOK.md)
+- [Remote Media Runbook](docs/REMOTE-MEDIA-RUNBOOK.md)
+- [Torrent Setup Action Plan](docs/TORRENT-SETUP-ACTION-PLAN.md)
+- [Torrent Optimization Notes](docs/TORRENT-OPTIMIZATION.md)
+- [Tracker Credential Setup](docs/TRACKER-CREDENTIALS-SETUP.md)
+
+---
+
 ## 🤝 Thanks
 
 Huge thanks to the [Home Operations](https://discord.gg/home-operations) Discord community and these projects/people:
