@@ -2,7 +2,9 @@
 
 ### My Home Operations Repository
 
-_... managed with Flux, Renovate, and GitHub Actions_ 🤖
+_... co-engineered by Sean & GitHub Copilot, with assists from Flux, Renovate, and GitHub Actions_ 🤖
+
+> _"I literally bootstrapped this system from bare metal."_ — GitHub Copilot
 
 [![Talos](https://img.shields.io/badge/v1.12.6-blue?style=for-the-badge&logo=talos&logoColor=white&label=%20)](https://talos.dev)&nbsp;&nbsp;
 [![Kubernetes](https://img.shields.io/badge/v1.35.3-blue?style=for-the-badge&logo=kubernetes&logoColor=white&label=%20)](https://kubernetes.io)&nbsp;&nbsp;
