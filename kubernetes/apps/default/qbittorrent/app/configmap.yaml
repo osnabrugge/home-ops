@@ -234,7 +234,7 @@ data:
     HTTPS\CertificatePath: ''
     HTTPS\Enable: false
     HTTPS\KeyPath: ''
-    HostHeaderValidationEnabled: true
+    HostHeaderValidationEnabled: false
     IsUPnPEnabled: false
     LocalBoundAddress: ''
     MaxAuthenticationFailCount: 50
@@ -242,7 +242,7 @@ data:
     Port: 80
     ReverseProxyEnabled: true
     ReversedProxyTrustedHeader: X-Forwarded-For
-    ReversedProxyTrustedPeersList: 10.42.0.0/16
+    ReversedProxyTrustedPeersList: 10.0.0.0/8,192.168.0.0/16
     RootFolder: ''
     SecureCookie: true
     ServerDomains: '*'
