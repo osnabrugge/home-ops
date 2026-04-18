@@ -16,3 +16,4 @@ kubeconfig
 talosconfig
 # Rendered Talos machineconfigs contain secrets — never commit
 talos/rendered/
+.tmp-*
