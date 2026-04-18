@@ -1,0 +1,55 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres16
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.6-18
+  bootstrap:
+    initdb:
+      database: netbox
+      owner: netbox
+      secret:
+        name: netbox-db-user
+  primaryUpdateStrategy: unsupervised
+  storage:
+    size: 20Gi
+    storageClass: openebs-hostpath
+  superuserSecret:
+    name: cloudnative-pg-secret
+  enableSuperuserAccess: true
+  postgresql:
+    parameters:
+      max_connections: "400"
+      shared_buffers: 256MB
+  nodeMaintenanceWindow:
+    inProgress: false
+    reusePVC: true
+  resources:
+    requests:
+      cpu: 500m
+    limits:
+      memory: 4Gi
+  monitoring:
+    enablePodMonitor: true
+    podMonitorMetricRelabelings:
+      - sourceLabels: ["cluster"]
+        targetLabel: cnpg_cluster
+        action: replace
+      - regex: cluster
+        action: labeldrop
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      data:
+        compression: bzip2
+      wal:
+        compression: bzip2
+        maxParallel: 8
+      destinationPath: https://backupkube.blob.core.windows.net/cnpg/
+      serverName: postgres16-v1
+      azureCredentials:
+        connectionString:
+          name: cloudnative-pg-secret
+          key: azure-connection-string
