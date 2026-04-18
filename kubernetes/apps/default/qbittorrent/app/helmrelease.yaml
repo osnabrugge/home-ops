@@ -12,6 +12,22 @@ spec:
   values:
     controllers:
       qbittorrent:
+        initContainers:
+          copy-config:
+            image:
+              repository: public.ecr.aws/docker/library/busybox
+              tag: latest
+            command:
+              - sh
+              - -c
+              - |
+                if [ ! -f /config/qBittorrent/qBittorrent.conf ]; then
+                  mkdir -p /config/qBittorrent
+                  cp /tmp/qbt-config/qbittorrent.conf /config/qBittorrent/qBittorrent.conf
+                  echo "Copied initial config"
+                else
+                  echo "Config already exists, skipping"
+                fi
         containers:
           app:
             image:
@@ -105,7 +121,7 @@ spec:
         name: qbittorrent-config
         defaultMode: 0644
         globalMounts:
-          - path: /config/qBittorrent/qBittorrent.conf
+          - path: /tmp/qbt-config/qbittorrent.conf
             subPath: qbittorrent.conf
             readOnly: true
       media:

@@ -7,250 +7,58 @@ metadata:
 data:
   qbittorrent.conf: |
     [AutoRun]
-    enabled: false
-    program: ''
+    enabled=false
+    program=
 
     [BitTorrent]
-    DHT: true
-    GZIP: true
-    LSD: true
-    PEX: true
-    Encryption: 2
-    AlternativeGlobalMgmtPort: false
-    AlternativeWebUIEnabled: false
-    AnnounceToAllTiers: true
-    AnnounceToAllTrackers: true
-    AsyncIOThreads: 4
-    BanBTPlayerForExcessiveThrottling: false
-    BanClientForExcessiveThrottling: false
-    BanPeerForExcessiveThrottling: false
-    BrokenWorstRatioLimit: 10
-    CurrentNetworkInterface: ''
-    CurrentNetworkInterfaceAddress: ''
-    DisableAutoSpeedForSlowTorrents: false
-    DisableAutoTempDirWarning: false
-    DisableTrackerRequotaCmd: false
-    EmbeddedTrackerPort: 6969
-    EmbeddedTrackerPortForwarding: false
-    EnableUploadsDuringChecking: false
-    FilePoolSize: 32
-    GlobalMaxSeedingMinutes: 0
-    GlobalMaxSeedingRatio: 3.0
-    HaltWhenNoActivity: false
-    HaltWhenNoActivityInterval: 15
-    IncompleteFilesExt: .!qB
-    ListeningPort: 31288
-    LtMmapCacheSize: 32
-    MaxGlobalConnections: 500
-    MaxGlobalDHTNodes: 2000
-    MaxGlobalPeerConnections: 500
-    MaxGlobalUploadSlots: 20
-    MaxHalfOpenConnections: 20
-    MaxConnectionsPerTorrent: 100
-    MaxPeerlistSize: 20000
-    MaxRatioAction: 0
-    MaxSeedingTime: 9999999
-    MaxUploadsPerSecond: 0
-    MultiConnectionsPerIp: false
-    OutgoingPortsMax: 0
-    OutgoingPortsMin: 0
-    PeerTurnover: 4
-    PeerTurnoverCutoff: 90
-    PeerTurnoverInterval: 300
-    ProxyAuthEnabled: false
-    ProxyHostname: ''
-    ProxyPassword: ''
-    ProxyPeerConnections: false
-    ProxyPort: 8080
-    ProxyTorrentsOnly: false
-    ProxyType: -1
-    ProxyUsername: ''
-    SuggestMode: false
-    UploadSlotsBehavior: 0
-    UploadSlotsPerTorrent: 4
-    UpnpEnabled: true
-    UTPEnabled: true
-    UTPRateLimited: true
-    UseAlternativeGlobalSpeedLimit: false
-    UseAlternativeWebUI: false
-    UseIPv6: false
+    Session\AddExtensionToIncompleteFiles=true
+    Session\AnonymousModeEnabled=false
+    Session\DefaultSavePath=/data/downloads
+    Session\TempPath=/data/downloads/.incomplete
+    Session\TempPathEnabled=true
+    Session\GlobalMaxSeedingMinutes=0
+    Session\GlobalMaxRatio=3
+    Session\MaxActiveDownloads=5
+    Session\MaxActiveTorrents=10
+    Session\MaxActiveUploads=20
+    Session\MaxConnections=500
+    Session\MaxConnectionsPerTorrent=100
+    Session\MaxHalfOpenConnections=20
+    Session\MaxUploads=20
+    Session\MaxUploadsPerTorrent=4
+    Session\Port=31288
+    Session\Preallocation=false
+    Session\QueueingSystemEnabled=true
+    Session\uTP\RateLimited=true
+    Session\Encryption=2
+    Session\DHTEnabled=true
+    Session\LSDEnabled=true
+    Session\PeXEnabled=true
 
-    [Connection]
-    ConnectionsLimit: 500
-    ConnectionsLimitPerIp: 20
-    DhtPortForwardingEnabled: false
-    ListeningPort: 31288
-    ProxyHostname: ''
-    ProxyPassword: ''
-    ProxyPort: 8080
-    ProxyType: -1
-    ProxyUsername: ''
-    ProxyAuthEnabled: false
-    ProxyPeerConnections: false
-    ProxyTorrentsOnly: false
-    UPnPEnabled: true
-    UPnPLeaseDuration: 0
-    RandomPort: false
+    [Core]
+    AutoDeleteAddedTorrentFile=Never
 
-    [Downloads]
-    DiskIOReadSize: 64
-    DiskIOWriteSize: 64
-    DiskIOType: 0
-    FilePoolSize: 32
-    OutgoingPortsMax: 0
-    OutgoingPortsMin: 0
-    PreAllocationEnabled: false
-    ResumeDataStorageType: 0
-    SavePath: /data/downloads
-    TempPath: /data/downloads/.incomplete
-    TempPathEnabled: true
-    TorrentExportDir: ''
-    TorrentFilesChecking: true
-    UseIncompleteExtension: true
-    UseFileLocking: true
-    UseSubcategories: true
-    ExportDir: ''
-    ExportDirFinished: ''
-    FinishedTorrentExportDir: ''
-    KeepIncompleteFiles: true
-    SaveResumeDataInterval: 60
-    ScanDirsInterval: 5000
+    [Meta]
+    MigrationVersion=6
 
-    [DynDNS]
-    DNSUpdaterEnabled: false
-    DNSUpdaterChoice: 0
-    DNSUpdaterDomain: ''
-    DNSUpdaterKey: ''
-    DNSUpdaterLogin: ''
-    DNSUpdaterPassword: ''
-
-    [General]
-    AutoDeleteAddedFeedsFromOldestDays: 1
-    AutoDeleteAddedFeedsCacheExpiration: 0
-    AutoDeleteAddedFeedsReturnsNothing: false
-    BypassProxyOnPrivateAddresses: false
-    BypassSecureProxyCheck: false
-    CustomHTTPHeaders: ''
-    CustomUIThemePath: ''
-    DefaultSavePath: /data/downloads
-    DefaultSubcategories: true
-    DiskSpaceCheckEnabled: true
-    DiskSpaceCheckPath: /data
-    EnhancedSubcategoriesEnabled: false
-    FilesChecking: true
-    GeoIPEnabled: false
-    GeoIPCountries: ''
-    Locale: ''
-    MaxLogSize: 65536
-    PreventSuspend: false
-    ReannounceWhenAddressChangedEnabled: true
-    RestrictedFileNames: true
-    StartMinimized: false
-    SystrayEnabled: true
-    TicketNumber: 0
-    Torrent7ZipContentsPriority: 32
-    TorrentFileSize: 0
-    TorrentStopCondition: NoAction
-    UpdateCheck: false
-    UpdateCheckInterval: 24
-
-    [Queueing]
-    AutoTorrentMgmtEnabled: true
-    DownloadLimit: 0
-    IgnoreSlowTorrents: false
-    MaxActiveDownloads: 5
-    MaxActiveTorrents: 10
-    MaxInactiveTorrents: 9999
-    MaxRatioAction: 0
-    UploadLimit: 0
-
-    [RSS]
-    RSSEnabled: false
-    RSSDownloadRepackPropers: true
-    RSSMaxArticlesPerFeed: 0
-    RSSProcessingEnabled: false
-    RSSRefreshInterval: 30
-
-    [Scheduler]
-    SchedulerEnabled: false
-
-    [Search]
-    SearchEnabled: false
-    SearchPluginEnabled: true
-
-    [Speed]
-    AlternativeGlobalDownloadLimit: 0
-    AlternativeGlobalUploadLimit: 0
-    BandwidthAuxTasksWeight: 1
-    DownloadLimit: 0
-    DownloadRateIp: ''
-    GlobalDLLimit: 0
-    GlobalULLimit: 0
-    RateLimitAuxPeers: true
-    RateLimitUPnPPorts: true
-    SchedulerEnabled: false
-    UploadLimit: 0
-    IgnoreSlowTorrents: false
-    SlowTorrentDlRateThreshold: 2
-    SlowTorrentUlRateThreshold: 2
-    SlowTorrentInactiveTimer: 60
-    TransferListRefreshInterval: 1500
-    RefreshInterval: 2000
-    AltGlobalDownloadLimit: 0
-    AltGlobalUploadLimit: 0
-
-    [StaticAssets]
-    CachePeriod: 86400
-    ETag: ''
-
-    [Tracker]
-    AnnounceToAllTrackers: true
-    AnnounceToAllTiers: true
-    BdecodeMaxDictSize: 209715200
-    BdecodeMaxIntSize: 9223372036854775807
-    BdecodeMaxListSize: 209715200
-    BdecodeMaxStrSize: 209715200
+    [Network]
+    Proxy\Type=None
 
     [WebUI]
-    Address: '*'
-    AlternativeUIEnabled: false
-    AlternativeUIPath: ''
-    AuthSubnetWhitelistEnabled: true
-    AuthSubnetWhitelist: 127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,10.42.0.0/16
-    BanDuration: 3600
-    BansEnabled: false
-    ClickjackingProtectionEnabled: true
-    CSRFProtectionEnabled: true
-    CustomHTTPHeadersEnabled: false
-    CustomHTTPHeaders: ''
-    DynDNSEnabled: false
-    DynDNSService: 0
-    DynDNSUsername: ''
-    DynDNSPassword: ''
-    DynDNSDomain: ''
-    EmbeddedTrackerPort: 6969
-    EmbeddedTrackerPortForwarding: false
-    Enabled: true
-    HTTPS\CertificatePath: ''
-    HTTPS\Enable: false
-    HTTPS\KeyPath: ''
-    HostHeaderValidationEnabled: false
-    IsUPnPEnabled: false
-    LocalBoundAddress: ''
-    MaxAuthenticationFailCount: 50
-    Password_PBKDF2: "@ByteArray(w9FEEED1efg3X7f+t5sFzg==:EuFkAiubA4MB1yt+/CORXzxt2dXZCqd8NdghnE8NKc14jJjvJP8mOHjgv1EG5fRbTO80xfcpg/4hG1zfutG6CQ==)"
-    Port: 80
-    ReverseProxyEnabled: true
-    ReversedProxyTrustedHeader: X-Forwarded-For
-    ReversedProxyTrustedPeersList: 10.0.0.0/8,192.168.0.0/16
-    RootFolder: ''
-    SecureCookie: true
-    ServerDomains: '*'
-    SessionTimeout: 3600
-    ShowVersion: false
-    SSLKey: ''
-    SSLCert: ''
-    TorrentMetadataMaxSize: 402400
-    UpnpLeaseRefreshInterval: 0
-    UseAlternativeWebUI: false
-    Username: admin
+    Address=*
+    AuthSubnetWhitelistEnabled=true
+    AuthSubnetWhitelist=127.0.0.1/32, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+    BanDuration=0
+    CSRFProtection=false
+    ClickjackingProtection=false
+    CustomHTTPHeadersEnabled=false
+    HostHeaderValidation=false
+    LocalHostAuth=false
+    MaxAuthenticationFailCount=9999
+    Port=80
+    ReverseProxySupportEnabled=true
+    ReverseProxyTrustedAddresses=10.0.0.0/8, 192.168.0.0/16
+    SecureCookie=false
+    ServerDomains=*
+    SessionTimeout=3600
+    Username=admin
