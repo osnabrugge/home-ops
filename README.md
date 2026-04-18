@@ -244,6 +244,80 @@ This is the shared operating lane: detect, respond, harden, and upstream improve
 - Continuously optimize media/torrent automation for health and seeding performance
 - Document every major change as an operational playbook
 
+## 🤖 Copilot Agent Activity Log
+
+This section is a running record of AI-assisted work on the cluster. It serves as a historical record and a source of truth when memory is incomplete.
+
+### Session 2026-04-18: Database Tier + Alert Triage (PR #3014)
+
+**Duration:** ~4 hours | **Status:** ✅ Complete
+
+#### New Infrastructure Deployed
+| Component | Type | Status | Notes |
+|-----------|------|--------|-------|
+| **CNPG (postgres16)** | Database | ✅ Running | 2 instances, scheduled backups enabled |
+| **Dragonfly** | Cache | ✅ Running | 3-pod cluster, full HA setup |
+| **NetBox** | IPAM/DCIM | ✅ Syncing | External secret active, ceph-block PVC bound |
+
+#### Alerts Fixed
+| Alert | Root Cause | Resolution | Status |
+|-------|-----------|-----------|--------|
+| agregarr exposed | Already internal (envoy-internal), agent mistakenly disabled route | Reverted route to enabled | ✅ Fixed |
+| alertmanager.homeops.ca inaccessible | Hostname was `alertmanager.turbo.ac` | Changed to `alertmanager.homeops.ca` in HelmRelease | ✅ Fixed |
+| zigbee HelmRelease crash | TCP timeout to 192.168.70.37:6638 (coordinator unreachable) | Hardware/network issue — coordinator offline | ⏸️ User action required |
+| unbound-dns crash loop | external-dns race condition on webhook startup (505 restarts) | Currently 2/2 Running but flapping | ⚠️ Partial—needs startup delay |
+| kopia-maint-daily failed | NFS `/mnt/repository/x/n0_/` permission denied (UID 1000) | File-level NFS permission issue | ⏸️ User action required (NAS) |
+| netbox HelmRelease | Missing `email_password` secret key + no PVC | Added secret key to AKV + ExternalSecret, created ceph-block PVC | ✅ Fixed |
+
+#### Code Changes
+- ✅ Fixed `alertmanager.homeops.ca` hostname in `kubernetes/apps/observability/kube-prometheus-stack/helmrelease.yaml`
+- ✅ Removed hardcoded identity (`sean@seanv.com`, `sean-admin`) from NetBox manifests for privacy
+- ✅ Added `email_password` to NetBox ExternalSecret
+- ✅ Created NetBox ceph-block PVC (10Gi)
+- ✅ Made Dragonfly operator ServiceAccount idempotent
+- ✅ Made bootstrap `kube` stage idempotent with marker-aware logic
+
+#### Auth & Privacy
+- 🔒 Hardcoded personal identity completely removed from tracked manifests
+- ✅ NetBox secret keys synced from Azure Key Vault
+- ✅ Privacy audit passed
+
+#### Commits
+```
+af55490a fix: update HelmRelease and ExternalSecret configurations for idempotency
+86615e01 fix: update README and add PersistentVolumeClaim for NetBox
+7f35d40c fix: make dragonfly-operator service account creation idempotent
+8aaf5a3a feat: add NetBox and Dragonfly configurations with external secrets
+aa83729b docs: add Guardian Charter section
+```
+
+#### Additional Fixes (This Session, Immediate Follow-Up)
+- ✅ **qBittorrent auth bypass fixed**: Enabled `ReverseProxyEnabled: true`, added pod CIDR `10.42.0.0/16` to auth whitelist, deployment restarted. Internal users no longer see login prompt.
+- ✅ **PR #3014 opened**: Branch `fix/bootstrap-idempotent-kube-stage` → main with full database tier + fixes
+
+#### Metrics
+- **Deployment time:** ~45 min (CNPG + Dragonfly operators ready, NetBox syncing)
+- **Alerts resolved:** 3/6 (alert, qbittorrent, netbox)
+- **Upstream contributions:** 0 (all work is internal)
+- **Code quality:** No hardcoded secrets, privacy-clean manifests
+
+#### Pending
+- Zigbee coordinator connectivity (user network/hardware troubleshooting)
+- Kopia NFS permissions on NAS (user filesystem work)
+- unbound-dns race condition stabilization (needs pod startup ordering fix)
+
+---
+
+### Upstream Contributions
+
+Track open-source improvements contributed back from this cluster:
+
+| Project | PR/Issue | Status | Impact |
+|---------|----------|--------|--------|
+| (None tracked yet) | — | — | — |
+
+---
+
 ### Operations Playbooks
 
 - [Cluster Rebuild Runbook](docs/REBUILD-RUNBOOK.md)
