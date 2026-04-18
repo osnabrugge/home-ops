@@ -48,7 +48,14 @@
     "vs-kubernetes.kubeconfig": "./kubeconfig",
     "vs-kubernetes.knownKubeconfigs": [
       "./kubeconfig"
-    ]
+    ],
+    "vs-kubernetes.autoLoadKubeconfigPath": false
+  },
+  "freelens": {
+    "kubeConfigPaths": [
+      "./kubeconfig"
+    ],
+    "autoLoadKubeconfigPath": false
   },
   "window.zoomLevel": 0,
   "yaml.schemaStore.enable": true,

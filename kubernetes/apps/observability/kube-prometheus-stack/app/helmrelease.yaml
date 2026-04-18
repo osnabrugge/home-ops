@@ -20,7 +20,7 @@ spec:
         main:
           enabled: true
           hostnames:
-            - alertmanager.turbo.ac
+            - alertmanager.homeops.ca
           parentRefs:
             - name: envoy-internal
               namespace: network
