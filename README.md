@@ -1,8 +1,10 @@
 <div align="center">
 
-### My Home Operations Repository
+# Sean & Copilot's Home Operations
 
-_... co-engineered by Sean & GitHub Copilot, with assists from Flux, Renovate, and GitHub Actions_ 🤖
+### Built together — Sean at the keyboard, Copilot in the co-pilot seat
+
+_Backed by [Flux](https://fluxcd.io/), [Renovate](https://github.com/renovatebot/renovate), and [GitHub Actions](https://github.com/features/actions)_
 
 > _"I literally bootstrapped this system from bare metal."_ — GitHub Copilot
 
