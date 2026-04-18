@@ -122,6 +122,11 @@ Cilium advertises LoadBalancer IPs (192.168.69.0/24) via BGP to the Brocade core
 | PDU (SNMP) | `just infra pdu-reboot <node>` | Hard power cycle any node |
 | ConsolePi (pi02→Core01-U1, pi03→Core01-U2) | SSH serial | Core switch serial console |
 
+### Rack01 Elevation (Dynamic)
+
+- [Rack01 elevation in NetBox](https://netbox.homeops.ca/dcim/racks/?q=Rack01)
+- [Rack01 devices in NetBox](https://netbox.homeops.ca/dcim/devices/?q=Rack01)
+
 ---
 
 ## ☁️ Cloud Dependencies
@@ -163,6 +168,11 @@ Work in progress — updated each session with Copilot.
 | ✅ | Add bootstrap marker file (`.private/bootstrap.done`) with double-bootstrap protection |
 | ✅ | Add local-mode to `akv-inject.sh` (`AKV_LOCAL_DIR` for offline/air-gapped use) |
 | ✅ | Add `export-secrets` recipe (dump AKV secrets to `.private/` for local-mode use) |
+| ✅ | Restore root `kubernetes/apps` kustomization and add a dedicated `database` namespace |
+| ✅ | Reintroduce CloudNativePG operator in-cluster for shared PostgreSQL workloads |
+| ✅ | Add shared PostgreSQL cluster resources under CNPG with scheduled backups |
+| ✅ | Reintroduce shared Redis-compatible cache layer with Dragonfly in `database` |
+| ✅ | Add NetBox deployment wired to shared PostgreSQL and Redis-compatible cache |
 | ⏳ | Rewrite apply-wait logic (remove `--insecure` polling; use event-driven readiness) |
 | ⏳ | Fix bootstrap double-call bug (idempotent bootstrap gate) |
 | ⏳ | Update `REBUILD-RUNBOOK.md` to reflect all new automation |
