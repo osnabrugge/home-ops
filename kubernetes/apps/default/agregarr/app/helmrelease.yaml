@@ -67,7 +67,11 @@ spec:
             port: *port
     route:
       app:
-        enabled: false
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
