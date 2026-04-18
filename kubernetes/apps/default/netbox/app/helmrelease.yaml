@@ -15,8 +15,6 @@ spec:
     timeZone: America/Toronto
     existingSecret: netbox-secret
     superuser:
-      name: sean-admin
-      email: sean@seanv.com
       existingSecret: netbox-secret
     postgresql:
       enabled: false
