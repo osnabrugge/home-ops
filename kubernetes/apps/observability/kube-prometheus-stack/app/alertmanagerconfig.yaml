@@ -6,7 +6,7 @@ metadata:
   name: alertmanager
 spec:
   route:
-    receiver: pushover
+    receiver: blackhole
     repeatInterval: 12h
     routes:
       - receiver: blackhole
@@ -23,10 +23,14 @@ spec:
             value: Watchdog
             matchType: =
       - receiver: pushover
+        repeatInterval: 4h
         matchers:
           - name: severity
             value: critical
             matchType: =
+          - name: alertname
+            value: KubePodCrashLooping|KubePodNotReady|TargetDown|KubeDeploymentReplicasMismatch|KubeDaemonSetRolloutStuck|KubeStatefulSetReplicasMismatch|PrometheusRuleFailures|PrometheusOperatorWatchErrors|PrometheusOperatorListErrors|PrometheusOperatorSyncFailed|CephNodeNetworkBondDegraded|FluxHelmReleaseValueserror|HelmReleaseReconciliationFailure
+            matchType: "!~"
     groupBy:
       - alertname
       - cluster
