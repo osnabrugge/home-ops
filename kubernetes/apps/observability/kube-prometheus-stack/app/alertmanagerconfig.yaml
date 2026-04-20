@@ -6,7 +6,7 @@ metadata:
   name: alertmanager
 spec:
   route:
-    receiver: blackhole
+    receiver: pushover
     repeatInterval: 12h
     routes:
       - receiver: blackhole

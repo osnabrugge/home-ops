@@ -22,7 +22,7 @@ spec:
             env:
               TZ: America/Toronto
               LOG_LEVEL: "info"
-              PORT: &port 9000
+              PORT: &port 80
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
@@ -74,26 +74,12 @@ spec:
         annotations:
           gatus.home-operations.com/endpoint: |-
             conditions: ["[STATUS] == 200"]
-          external-dns.alpha.kubernetes.io/controller: none
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
           - requests.homeops.ca
         parentRefs:
           - name: envoy-external
             namespace: network
-      internal:
-        annotations:
-          external-dns.alpha.kubernetes.io/controller: none
-        hostnames:
-          - "{{ .Release.Name }}.homeops.ca"
-          - requests.homeops.ca
-        parentRefs:
-          - name: envoy-internal
-            namespace: network
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: *port
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
