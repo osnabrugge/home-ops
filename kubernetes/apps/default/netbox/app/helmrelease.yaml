@@ -10,6 +10,11 @@ spec:
     name: netbox
   interval: 1h
   values:
+    updateStrategy:
+      type: Recreate
+    worker:
+      updateStrategy:
+        type: Recreate
     allowedHosts:
       - netbox.homeops.ca
     timeZone: America/Toronto
