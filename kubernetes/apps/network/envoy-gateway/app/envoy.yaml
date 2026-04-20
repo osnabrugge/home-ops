@@ -89,6 +89,8 @@ metadata:
     gatus.home-operations.com/endpoint: |-
       group: internal
       guarded: true
+      client:
+        insecure: true
       conditions:
         - "[STATUS] == 200"
       ui:
