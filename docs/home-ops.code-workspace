@@ -45,6 +45,26 @@
 		"mcp": {
 			"inputs": [],
 			"servers": {}
-		}
+		},
+		"workbench.colorCustomizations": {
+			"activityBar.activeBackground": "#7c86fa",
+			"activityBar.background": "#7c86fa",
+			"activityBar.foreground": "#15202b",
+			"activityBar.inactiveForeground": "#15202b99",
+			"activityBarBadge.background": "#fdc2c6",
+			"activityBarBadge.foreground": "#15202b",
+			"commandCenter.border": "#e7e7e799",
+			"sash.hoverBorder": "#7c86fa",
+			"statusBar.background": "#4b59f8",
+			"statusBar.foreground": "#e7e7e7",
+			"statusBarItem.hoverBackground": "#7c86fa",
+			"statusBarItem.remoteBackground": "#4b59f8",
+			"statusBarItem.remoteForeground": "#e7e7e7",
+			"titleBar.activeBackground": "#4b59f8",
+			"titleBar.activeForeground": "#e7e7e7",
+			"titleBar.inactiveBackground": "#4b59f899",
+			"titleBar.inactiveForeground": "#e7e7e799"
+		},
+		"peacock.remoteColor": "#4b59f8"
 	}
 }
