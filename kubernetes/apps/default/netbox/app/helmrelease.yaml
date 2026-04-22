@@ -15,6 +15,20 @@ spec:
     worker:
       updateStrategy:
         type: Recreate
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - netbox
+                  - key: app.kubernetes.io/component
+                    operator: NotIn
+                    values:
+                      - worker
+              topologyKey: kubernetes.io/hostname
     allowedHosts:
       - netbox.homeops.ca
     timeZone: America/Toronto
