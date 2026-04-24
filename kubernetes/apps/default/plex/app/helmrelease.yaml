@@ -112,6 +112,8 @@ spec:
                 port: *port
       internal:
         annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 200 || [STATUS] == 401 || [STATUS] == 301 || [STATUS] == 302"]
           external-dns.alpha.kubernetes.io/controller: none
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
