@@ -56,7 +56,7 @@ ui:
     - name: Github
       link: https://github.com/osnabrugge
     - name: Homelab
-      link: https://github.com/osnabrugg/home-ops
+      link: https://github.com/osnabrugge/home-ops
 
 web:
   port: ${GATUS_WEB_PORT}
