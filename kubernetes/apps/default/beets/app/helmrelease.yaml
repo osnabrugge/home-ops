@@ -78,7 +78,7 @@ spec:
         existingClaim: "{{ .Release.Name }}"
       beets-config:
         type: configMap
-        name: beets-config
+        name: beets
         globalMounts:
           - path: /config/config.yaml
             subPath: config.yaml
