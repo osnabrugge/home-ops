@@ -18,6 +18,7 @@ spec:
           daemon off
           flush 5
           log_level warn
+          parsers_file /fluent-bit/etc/parsers.conf
           http_server on
           http_listen 0.0.0.0
           http_port 2020
@@ -29,15 +30,13 @@ spec:
           mode tcp
           listen 0.0.0.0
           port 5140
-          raw_message_key log
 
         [INPUT]
           name syslog
-          tag syslog.*
+          tag syslog_udp.*
           mode udp
           listen 0.0.0.0
           port 5140
-          raw_message_key log
 
       filters: |-
         [FILTER]
