@@ -17,3 +17,5 @@ talosconfig
 # Rendered Talos machineconfigs contain secrets — never commit
 talos/rendered/
 .tmp-*
+# Sensitive credential files
+youtube-cookies.txt

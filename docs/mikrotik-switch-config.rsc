@@ -1,22 +1,23 @@
 # ============================================================================
-# MikroTik CRS3xx Switch Configuration — home-ops
+# MikroTik CRS305-1G-4S+IN Switch Configuration — home-ops (sw01)
 # ============================================================================
+# Hardware: CRS305-1G-4S+IN — 1× GbE (ether1) + 4× SFP+ ports
+# Role:     WAN-side switch — bridges ISP XPS-PON to firewall
+#
 # Port Assignments:
 #   ether1           → VLAN99 (Management) — untagged access port
-#   ether2-ether8    → Available for access/trunk ports (adjust as needed)
-#   sfp-sfpplus1     → 10G SFP+ trunk to pve01 (all VLANs tagged)
-#   sfp-sfpplus2     → 1G SFP trunk to fw01 (all VLANs tagged + WAN transit)
-#   sfp-sfpplus3     → Unused (cooling gap)
-#   sfp-sfpplus4     → XPS-PON module (ISP WAN uplink)
+#   sfp-sfpplus1     → 10G SFP+ to pve01 (VLAN99 tagged — management only)
+#   sfp-sfpplus2     → 1G SFP to fw01 (VLAN99 + VLAN4000 tagged)
+#   sfp-sfpplus3     → Unused (cooling gap — leave empty)
+#   sfp-sfpplus4     → XPS-PON module (ISP WAN uplink, VLAN4000 untagged)
 #
-# VLAN Layout (matches fw01 OPNsense):
-#   VLAN 1   — 192.168.0.0/24   — Default/Guest
-#   VLAN 10  — 192.168.10.0/24  — User Devices
-#   VLAN 42  — 192.168.42.0/24  — Servers/Cluster
-#   VLAN 50  — 192.168.50.0/24  — Home LAN
-#   VLAN 70  — 192.168.70.0/24  — IoT
-#   VLAN 99  — 192.168.99.0/24  — Management
-#   VLAN 4000 — WAN Transit      — XPS-PON ↔ fw01 PPPoE
+# VLAN Layout (WAN-side only — NO internal VLANs on this switch):
+#   VLAN 99   — 192.168.99.0/24  — Management (switch + pve01 OOB access)
+#   VLAN 4000 — WAN Transit       — XPS-PON ↔ fw01 PPPoE
+#
+# SECURITY: Internal VLANs (1, 10, 42, 50, 70) are NOT configured here.
+#           This switch sits between ISP and firewall — only management and
+#           WAN transit VLANs are permitted.
 #
 # Usage: Paste into MikroTik terminal (System > Terminal) or import via file.
 # ============================================================================
@@ -48,52 +49,25 @@ add name=bridge1 vlan-filtering=no protocol-mode=none
 # and VLAN config, then enable filtering at the end. Enabling filtering
 # before config is complete will lock you out!
 
-# --- Bridge ports — add all physical interfaces ---
+# --- Bridge ports — only ports in use ---
+# NOTE: sfp-sfpplus3 intentionally left out (cooling gap)
 /interface bridge port
 add bridge=bridge1 interface=ether1 pvid=99
-add bridge=bridge1 interface=ether2 pvid=50
-add bridge=bridge1 interface=ether3 pvid=50
-add bridge=bridge1 interface=ether4 pvid=50
-add bridge=bridge1 interface=ether5 pvid=42
-add bridge=bridge1 interface=ether6 pvid=42
-add bridge=bridge1 interface=ether7 pvid=42
-add bridge=bridge1 interface=ether8 pvid=42
 add bridge=bridge1 interface=sfp-sfpplus1
 add bridge=bridge1 interface=sfp-sfpplus2
 add bridge=bridge1 interface=sfp-sfpplus4 pvid=4000
 
 # --- VLAN definitions on the bridge ---
-# Each VLAN lists its tagged (trunk) and untagged (access) ports.
+# SECURITY: Only management and WAN transit VLANs are configured.
+# No internal VLANs (1, 10, 42, 50, 70) exist on this WAN-side switch.
 /interface bridge vlan
 
-# VLAN 1 — Default/Guest
-add bridge=bridge1 vlan-ids=1 \
-    tagged=sfp-sfpplus1,sfp-sfpplus2
-
-# VLAN 10 — User Devices
-add bridge=bridge1 vlan-ids=10 \
-    tagged=sfp-sfpplus1,sfp-sfpplus2
-
-# VLAN 42 — Servers/Cluster
-add bridge=bridge1 vlan-ids=42 \
-    tagged=sfp-sfpplus1,sfp-sfpplus2 \
-    untagged=ether5,ether6,ether7,ether8
-
-# VLAN 50 — Home LAN
-add bridge=bridge1 vlan-ids=50 \
-    tagged=sfp-sfpplus1,sfp-sfpplus2 \
-    untagged=ether2,ether3,ether4
-
-# VLAN 70 — IoT
-add bridge=bridge1 vlan-ids=70 \
-    tagged=sfp-sfpplus1,sfp-sfpplus2
-
-# VLAN 99 — Management (switch management access)
+# VLAN 99 — Management (switch mgmt + pve01 OOB)
 add bridge=bridge1 vlan-ids=99 \
-    tagged=sfp-sfpplus1,sfp-sfpplus2,bridge1 \
+    tagged=bridge1,sfp-sfpplus1,sfp-sfpplus2 \
     untagged=ether1
 
-# VLAN 4000 — WAN Transit (XPS-PON ↔ fw01)
+# VLAN 4000 — WAN Transit (XPS-PON ↔ fw01 PPPoE)
 add bridge=bridge1 vlan-ids=4000 \
     tagged=sfp-sfpplus2 \
     untagged=sfp-sfpplus4
@@ -103,7 +77,7 @@ add bridge=bridge1 vlan-ids=4000 \
 add interface=bridge1 name=vlan99-mgmt vlan-id=99
 
 /ip address
-add address=192.168.99.2/24 interface=vlan99-mgmt
+add address=192.168.99.24/24 interface=vlan99-mgmt
 
 # --- Default gateway (fw01) ---
 /ip route
