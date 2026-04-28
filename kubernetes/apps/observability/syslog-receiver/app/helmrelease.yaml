@@ -29,7 +29,7 @@ spec:
           mode tcp
           listen 0.0.0.0
           port 5140
-          syslog_message_key log
+          raw_message_key log
 
         [INPUT]
           name syslog
@@ -37,7 +37,7 @@ spec:
           mode udp
           listen 0.0.0.0
           port 5140
-          syslog_message_key log
+          raw_message_key log
 
       filters: |-
         [FILTER]
