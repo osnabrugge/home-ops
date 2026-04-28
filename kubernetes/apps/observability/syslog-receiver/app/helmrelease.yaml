@@ -1,0 +1,77 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: syslog-receiver
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: syslog-receiver
+  interval: 1h
+  values:
+    kind: Deployment
+    replicaCount: 1
+    config:
+      service: |-
+        [SERVICE]
+          daemon off
+          flush 5
+          log_level warn
+          http_server on
+          http_listen 0.0.0.0
+          http_port 2020
+
+      inputs: |-
+        [INPUT]
+          name syslog
+          tag syslog.*
+          mode tcp
+          listen 0.0.0.0
+          port 5140
+
+        [INPUT]
+          name syslog
+          tag syslog.*
+          mode udp
+          listen 0.0.0.0
+          port 5140
+
+      filters: |-
+        [FILTER]
+          name modify
+          match syslog.*
+          rename message log
+          add _stream syslog
+
+      outputs: |-
+        [OUTPUT]
+          name http
+          match syslog.*
+          host victoria-logs-server.observability.svc.cluster.local
+          port 9428
+          uri /insert/jsonline?_stream_fields=_stream,host,ident&_msg_field=log&_time_field=date
+          format json_lines
+          json_date_format iso8601
+          compress gzip
+          log_response_payload false
+
+      customParsers: ""
+
+    service:
+      type: LoadBalancer
+      annotations:
+        lbipam.cilium.io/ips: 192.168.69.125
+        external-dns.alpha.kubernetes.io/hostname: syslog.homeops.ca
+      ports:
+        - port: 514
+          targetPort: 5140
+          protocol: TCP
+          name: syslog-tcp
+        - port: 514
+          targetPort: 5140
+          protocol: UDP
+          name: syslog-udp
+    serviceMonitor:
+      enabled: true
+    logLevel: warn

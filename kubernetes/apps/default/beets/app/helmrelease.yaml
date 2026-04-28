@@ -1,0 +1,177 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: beets
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: beets
+  interval: 1h
+  values:
+    controllers:
+      beets:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: lscr.io/linuxserver/beets
+              tag: latest
+            env:
+              PUID: "1000"
+              PGID: "1000"
+              TZ: America/Toronto
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: &port 8337
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 1Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+      beets-config:
+        type: configMap
+        name: beets-config
+        globalMounts:
+          - path: /config/config.yaml
+            subPath: config.yaml
+            readOnly: true
+      music:
+        type: nfs
+        server: nas02.in.homeops.ca
+        path: /volume1/data/media/music
+        globalMounts:
+          - path: /music
+      downloads:
+        type: nfs
+        server: nas02.in.homeops.ca
+        path: /volume1/data/downloads
+        globalMounts:
+          - path: /downloads
+    configMaps:
+      config:
+        data:
+          config.yaml: |-
+            directory: /music
+            library: /config/beets.db
+            import:
+              move: yes
+              write: yes
+              log: /config/import.log
+            # --- Path formats: separate DJ sets from tracks ---
+            paths:
+              # DJ sets/mixes: detected by albumtype or length >20min
+              albumtype:dj-mix: DJ Sets/$artist/$album%aunique{}/$track $title
+              albumtype:mix: DJ Sets/$artist/$album%aunique{}/$track $title
+              # Compilations
+              comp: Compilations/$album%aunique{}/$track $title
+              # Standard albums: Genre/Artist/Album/Track
+              default: $genre/$artist/$album%aunique{}/$track $title
+              # Singletons (individual tracks not part of albums)
+              singleton: $genre/$artist/Singles/$title
+            # --- Genre handling: collapse to major genres with one sub-level ---
+            plugins: chroma fetchart lastgenre scrub web edit
+            lastgenre:
+              auto: yes
+              count: 1
+              # Only keep broad top-level + one sub-genre
+              # This maps niche genres to their parent
+              canonical: yes
+              # Whitelist of allowed genres (major + one sub-level)
+              whitelist:
+                - Electronic
+                - House
+                - Tech House
+                - Deep House
+                - Progressive House
+                - Minimal House
+                - Techno
+                - Minimal Techno
+                - Acid Techno
+                - Trance
+                - Progressive Trance
+                - Psytrance
+                - Drum and Bass
+                - Liquid DnB
+                - Dubstep
+                - Ambient
+                - Downtempo
+                - Breakbeat
+                - Breaks
+                - Garage
+                - UK Garage
+                - Disco
+                - Nu Disco
+                - Funk
+                - Soul
+                - Jazz
+                - Hip Hop
+                - R&B
+                - Pop
+                - Rock
+                - Indie
+                - Metal
+                - Classical
+                - Reggae
+                - Dancehall
+                - Latin
+                - Afrobeats
+                - World
+                - Soundtrack
+                - Experimental
+              # Fallback genre if nothing matches
+              fallback: Other
+            fetchart:
+              auto: yes
+            scrub:
+              auto: yes
+            web:
+              host: 0.0.0.0
+              port: 8337

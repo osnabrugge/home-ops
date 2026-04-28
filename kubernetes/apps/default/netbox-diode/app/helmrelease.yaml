@@ -1,0 +1,82 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: netbox-diode
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: netbox-diode
+  interval: 1h
+  values:
+    controllers:
+      netbox-diode:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          diode-server:
+            image:
+              repository: netboxcommunity/netbox-diode
+              tag: 0.5.0
+            env:
+              DIODE_NETBOX_API_URL: http://netbox.default.svc.cluster.local:80
+              DIODE_TO_NETBOX_API_URL: http://netbox.default.svc.cluster.local:80
+              DIODE_GRPC_PORT: &grpc 8081
+              DIODE_HTTP_PORT: &http 8080
+              TZ: America/Toronto
+            envFrom:
+              - secretRef:
+                  name: netbox-diode-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: *http
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: *http
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: *http
+          grpc:
+            port: *grpc
+    persistence:
+      tmp:
+        type: emptyDir

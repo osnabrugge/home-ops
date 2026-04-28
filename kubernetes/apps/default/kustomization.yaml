@@ -13,13 +13,17 @@ resources:
   - ./atuin/ks.yaml
   - ./autobrr/ks.yaml
   - ./bazarr/ks.yaml
+  - ./beets/ks.yaml
   - ./brrpolice/ks.yaml
   - ./deduparr/ks.yaml
   - ./go2rtc/ks.yaml
   - ./home-assistant/ks.yaml
+  - ./lidarr/ks.yaml
   - ./mosquitto/ks.yaml
   - ./netbox/ks.yaml
+  - ./netbox-diode/ks.yaml
   - ./notifier/ks.yaml
+  - ./omada-controller/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
@@ -32,8 +36,10 @@ resources:
   - ./slskd/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
+  - ./stash/ks.yaml
   - ./tautulli/ks.yaml
   - ./thelounge/ks.yaml
   - ./unpackerr/ks.yaml
+  - ./whisparr/ks.yaml
   - ./zigbee/ks.yaml
   - ./zwave/ks.yaml
