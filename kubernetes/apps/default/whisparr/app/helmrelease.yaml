@@ -28,9 +28,6 @@ spec:
               WHISPARR__LOG__LEVEL: info
               WHISPARR__SERVER__PORT: &port 80
               TZ: America/Toronto
-            envFrom:
-              - secretRef:
-                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
                 enabled: true
