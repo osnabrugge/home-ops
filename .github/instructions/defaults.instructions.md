@@ -1,4 +1,5 @@
 ---
+applyTo: "**"
 description: >-
   Default route instructions for all agents operating on this repository.
   These instructions apply when no task-specific or user-provided instructions
