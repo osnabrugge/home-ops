@@ -62,6 +62,8 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: Unconfined
     service:
       app:
         ports:
