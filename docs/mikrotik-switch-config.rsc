@@ -26,7 +26,7 @@
 # /system reset-configuration no-defaults=yes skip-backup=yes
 
 # --- System Identity ---
-/system identity set name="sw01"
+/system identity set name="ext01"
 
 # --- Disable unused services for security ---
 /ip service
@@ -64,7 +64,7 @@ add bridge=bridge1 interface=sfp-sfpplus4 pvid=4000
 
 # VLAN 99 — Management (switch mgmt + pve01 OOB)
 add bridge=bridge1 vlan-ids=99 \
-    tagged=bridge1,sfp-sfpplus1,sfp-sfpplus2 \
+    tagged=bridge1 \
     untagged=ether1
 
 # VLAN 4000 — WAN Transit (XPS-PON ↔ fw01 PPPoE)
@@ -81,18 +81,18 @@ add address=192.168.99.24/24 interface=vlan99-mgmt
 
 # --- Default gateway (fw01) ---
 /ip route
-add dst-address=0.0.0.0/0 gateway=192.168.99.1
+add dst-address=0.0.0.0/0 gateway=192.168.99.4
 
 # --- DNS ---
 /ip dns
-set servers=192.168.42.1
+set servers=192.168.99.1
 
 # --- NTP ---
 /system ntp client
 set enabled=yes
 
 /system ntp client servers
-add address=time.cloudflare.com
+add address=ntp.in.homeops.ca
 
 # --- Disable discovery on non-management ports ---
 /ip neighbor discovery-settings
@@ -113,4 +113,4 @@ add topics=error action=memory
 # --- Verify ---
 # /interface bridge vlan print
 # /interface bridge port print
-# /ping 192.168.99.1
+# /ping 192.168.99.4
