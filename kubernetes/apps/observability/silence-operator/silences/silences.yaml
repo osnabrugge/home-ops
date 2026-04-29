@@ -146,3 +146,75 @@ spec:
       value: TargetDown
     - name: job
       value: kvm
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: dragonfly-scrape-content-type
+spec:
+  matchers:
+    - name: alertname
+      value: TargetDown
+    - name: job
+      value: database/dragonfly
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: dragonfly-operator-target-down
+spec:
+  matchers:
+    - name: alertname
+      value: TargetDown
+    - name: job
+      value: dragonfly-operator
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: unbound-dns-webhook-scrape
+spec:
+  matchers:
+    - name: alertname
+      value: TargetDown
+    - name: job
+      value: unbound-dns
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: kube-components-401
+spec:
+  matchers:
+    - name: alertname
+      value: TargetDown
+    - name: job
+      value: apiserver|kube-scheduler|kube-controller-manager|kubelet
+      matchType: "=~"
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: snmp-exporter-no-targets
+spec:
+  matchers:
+    - name: alertname
+      value: TargetDown
+    - name: job
+      value: snmp-exporter
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: alertmanager-cluster-single-replica
+spec:
+  matchers:
+    - name: alertname
+      value: AlertmanagerClusterFailedToSendAlerts|AlertmanagerFailedToSendAlerts
+      matchType: "=~"
