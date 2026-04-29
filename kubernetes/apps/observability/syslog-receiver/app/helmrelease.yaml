@@ -64,15 +64,15 @@ spec:
       annotations:
         lbipam.cilium.io/ips: 192.168.69.125
         external-dns.alpha.kubernetes.io/hostname: syslog.homeops.ca
-      ports:
-        - port: 514
-          targetPort: 5140
-          protocol: TCP
-          name: syslog-tcp
-        - port: 514
-          targetPort: 5140
-          protocol: UDP
-          name: syslog-udp
+    extraPorts:
+      - port: 514
+        containerPort: 5140
+        protocol: TCP
+        name: syslog-tcp
+      - port: 514
+        containerPort: 5140
+        protocol: UDP
+        name: syslog-udp
     serviceMonitor:
       enabled: true
     logLevel: warn
