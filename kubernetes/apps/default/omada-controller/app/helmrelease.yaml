@@ -93,6 +93,8 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
+            client:
+              follow-redirects: false
             conditions:
               - "[STATUS] == any(200, 302)"
         hostnames:
