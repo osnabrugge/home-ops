@@ -22,7 +22,7 @@ spec:
             value: tcp://192.168.42.1:953
           - name: UNBOUND_CA_PEM_PATH
             value: /certs/unbound_server.pem
-          - name: UNBOUND_CLIENT_PEM_PATH
+          - name: UNBOUND_CERT_PEM_PATH
             value: /certs/unbound_control.pem
           - name: UNBOUND_KEY_PEM_PATH
             value: /certs/unbound_control.key
