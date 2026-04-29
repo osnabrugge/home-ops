@@ -33,7 +33,7 @@ spec:
 
         [INPUT]
           name syslog
-          tag syslog_udp.*
+          tag syslog.*
           mode udp
           listen 0.0.0.0
           port 5140
@@ -41,14 +41,14 @@ spec:
       filters: |-
         [FILTER]
           name modify
-          match syslog.*
+          match syslog*
           rename message log
           add _stream syslog
 
       outputs: |-
         [OUTPUT]
           name http
-          match syslog.*
+          match syslog*
           host victoria-logs-server.observability.svc.cluster.local
           port 9428
           uri /insert/jsonline?_stream_fields=_stream,host,ident&_msg_field=log&_time_field=date
