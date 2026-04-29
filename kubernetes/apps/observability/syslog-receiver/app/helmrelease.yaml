@@ -26,6 +26,7 @@ spec:
       inputs: |-
         [INPUT]
           name syslog
+          parser syslog-rfc3164
           tag syslog.*
           mode tcp
           listen 0.0.0.0
@@ -33,6 +34,7 @@ spec:
 
         [INPUT]
           name syslog
+          parser syslog-rfc3164
           tag syslog.*
           mode udp
           listen 0.0.0.0
