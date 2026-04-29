@@ -12,3 +12,4 @@ spec:
     - app
   podMetricsEndpoints:
     - port: admin
+      fallbackScrapeProtocol: PrometheusText0.0.4
