@@ -35,10 +35,30 @@ spec:
               resources:
                 requests:
                   storage: 1Gi
+    kubeApiServer:
+      serviceMonitor:
+        metricRelabelings:
+          - action: drop
+            regex: (apiserver|etcd)_request(|_sli|_slo)_duration_seconds_bucket
+            sourceLabels: ["__name__"]
     kubeEtcd:
       service:
         selector:
           component: kube-apiserver # etcd runs on control plane nodes
+    kubeControllerManager:
+      service:
+        selector:
+          component: kube-controller-manager
+      serviceMonitor:
+        https: true
+        insecureSkipVerify: true
+    kubeScheduler:
+      service:
+        selector:
+          component: kube-scheduler
+      serviceMonitor:
+        https: true
+        insecureSkipVerify: true
     kubeProxy:
       enabled: false
     prometheus:
@@ -52,6 +72,12 @@ spec:
               namespace: network
       prometheusSpec:
         externalUrl: https://prometheus.homeops.ca
+        scrapeProtocols:
+          - PrometheusProto
+          - OpenMetricsText1.0.0
+          - OpenMetricsText0.0.1
+          - PrometheusText1.0.0
+          - PrometheusText0.0.4
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false

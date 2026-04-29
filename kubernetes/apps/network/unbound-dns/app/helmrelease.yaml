@@ -62,3 +62,15 @@ spec:
       enabled: true
     podAnnotations:
       secret.reloader.stakater.com/reload: unbound-dns-certs-secret
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: ServiceMonitor
+              name: unbound-dns
+            patch: |-
+              - op: replace
+                path: /spec/endpoints
+                value:
+                  - port: http
+                    path: /metrics
