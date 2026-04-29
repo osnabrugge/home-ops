@@ -91,6 +91,10 @@ spec:
             port: 29814
     route:
       app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions:
+              - "[STATUS] == any(200, 302)"
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
