@@ -1,7 +1,7 @@
 # Talos Control-Plane Rebuild Runbook
 
 > **Scope:** Rebuild a 3-node Talos control plane from scratch.
-> **Talos:** v1.12.6 · **Kubernetes:** v1.35.3 · **Secrets:** Azure Key Vault (`keyvault-kube/talos`)
+> **Talos:** v1.13.0 · **Kubernetes:** v1.36.0 · **Secrets:** Azure Key Vault (`keyvault-kube/talos`)
 
 ---
 
@@ -30,13 +30,13 @@ just talos verify       # Health checks
 
 | Tool | Required version |
 |------|-----------------|
-| `talosctl` | v1.12.x |
+| `talosctl` | v1.13.x |
 | `minijinja-cli` | any |
 | `yq` | v4.x (mikefarah) |
 | `jq` | 1.6+ |
 | `az` | 2.x (logged in) |
 | `gum` | any |
-| `kubectl` | v1.35.x |
+| `kubectl` | v1.36.x |
 
 ### Node inventory
 
@@ -194,9 +194,9 @@ just talos verify
 
 Nodes:
 NAME    STATUS   ROLES           AGE   VERSION   INTERNAL-IP      ...
-k8s01   Ready    control-plane   ...   v1.35.3   192.168.42.51    ...
-k8s02   Ready    control-plane   ...   v1.35.3   192.168.42.52    ...
-k8s03   Ready    control-plane   ...   v1.35.3   192.168.42.53    ...
+k8s01   Ready    control-plane   ...   v1.36.0   192.168.42.51    ...
+k8s02   Ready    control-plane   ...   v1.36.0   192.168.42.52    ...
+k8s03   Ready    control-plane   ...   v1.36.0   192.168.42.53    ...
 
 Etcd members:
 (3 members listed)
