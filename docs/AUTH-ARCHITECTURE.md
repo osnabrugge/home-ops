@@ -332,7 +332,7 @@ All secrets are stored in the `keyvault-kube` AKV under two secret objects:
   "LLDAP_LDAP_USER_PASS":    "<lldap admin password — 32+ char>",
   "LLDAP_JWT_SECRET":        "<random hex, 32+ bytes>",
   "LLDAP_KEY_SEED":          "<random hex, 32+ bytes>",
-  "LLDAP_SMTP_PASSWORD":     "<smtp-relay password if required>"
+  "LLDAP_SMTP_OPTIONS__PASSWORD":  "<smtp-relay password if required>"
 }
 ```
 
@@ -358,9 +358,10 @@ All secrets are stored in the `keyvault-kube` AKV under two secret objects:
 
 ```json
 {
-  "FREERADIUS_LDAP_PASSWORD":      "<freeradius LLDAP service account password>",
+  "FREERADIUS_LDAP_PASSWORD":       "<freeradius LLDAP service account password>",
   "FREERADIUS_NAS_SECRET_OPNSENSE": "<shared secret for OPNsense, 16+ chars>",
-  "FREERADIUS_NAS_SECRET_OMADA":    "<shared secret for Omada, 16+ chars>"
+  "FREERADIUS_NAS_SECRET_OMADA":    "<shared secret for Omada, 16+ chars>",
+  "FREERADIUS_NAS_SECRET_LOCALHOST": "<shared secret for localhost health probes, 16+ chars>"
 }
 ```
 
@@ -390,7 +391,15 @@ az keyvault secret set \
    ```bash
    kubectl exec -n database \
      $(kubectl get pod -n database -l cnpg.io/cluster=postgres16,cnpg.io/instanceRole=primary -o name) \
-     -- psql -U postgres -c "CREATE DATABASE authelia; CREATE USER authelia WITH PASSWORD '<AUTHELIA_DB_PASSWORD>'; GRANT ALL ON DATABASE authelia TO authelia;"
+     -- psql -U postgres -c "
+       CREATE DATABASE authelia;
+       CREATE USER authelia WITH PASSWORD '<AUTHELIA_DB_PASSWORD>';
+       GRANT CONNECT ON DATABASE authelia TO authelia;
+       \c authelia
+       GRANT CREATE ON SCHEMA public TO authelia;
+       GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authelia;
+       ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authelia;
+     "
    ```
 3. **Deploy LLDAP** first (authelia + freeradius depend on it).
 4. **Create LLDAP service accounts** via the LLDAP web UI:
@@ -402,7 +411,7 @@ az keyvault secret set \
 7. **Deploy FreeRADIUS** — test with:
    ```bash
    kubectl exec -n auth deploy/freeradius -- \
-     radtest <lldap-username> <password> 127.0.0.1 0 <NAS_SECRET_OPNSENSE>
+     radtest <lldap-username> <password> 127.0.0.1 0 "$NAS_SECRET_LOCALHOST"
    ```
 8. **Configure OPNsense** RADIUS server (see above).
 9. **Configure Omada** WPA-Enterprise SSID (see above).

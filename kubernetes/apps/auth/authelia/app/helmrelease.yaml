@@ -107,5 +107,11 @@ spec:
           - path: /config/configuration.yaml
             subPath: configuration.yaml
             readOnly: true
+      # emptyDir for any runtime writes Authelia performs under /config
+      config-rw:
+        type: emptyDir
+        globalMounts:
+          - path: /config/db.sqlite3
+            subPath: db.sqlite3
       tmp:
         type: emptyDir
