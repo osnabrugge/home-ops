@@ -1,0 +1,135 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: freeradius-config
+data:
+  # ── clients.conf ──────────────────────────────────────────────────────────
+  # RADIUS NAS clients (network devices allowed to send auth requests)
+  # Shared secrets are injected at runtime from freeradius-secret via entrypoint
+  clients.conf: |
+    # OPNsense firewall — admin authentication
+    client opnsense {
+      ipaddr    = 192.168.42.1
+      secret    = ${NAS_SECRET_OPNSENSE}
+      shortname = opnsense
+      nastype   = other
+    }
+
+    # Omada controller — WiFi 802.1X / WPA-Enterprise
+    client omada {
+      ipaddr    = 192.168.69.130
+      secret    = ${NAS_SECRET_OMADA}
+      shortname = omada
+      nastype   = other
+    }
+
+  # ── ldap.conf ─────────────────────────────────────────────────────────────
+  # LDAP module configuration pointing to LLDAP
+  ldap.conf: |
+    ldap {
+      server     = "lldap.auth.svc.cluster.local"
+      port       = 3890
+      identity   = "uid=freeradius,ou=people,dc=homeops,dc=ca"
+      password   = ${LDAP_BIND_PASSWORD}
+      base_dn    = "dc=homeops,dc=ca"
+      sasl {
+      }
+      update {
+        control:Password-With-Header += 'userPassword'
+        control:                      += 'radiusControlAttribute'
+        request:                      += 'radiusRequestAttribute'
+        reply:                        += 'radiusReplyAttribute'
+      }
+      user {
+        base_dn        = "ou=people,${base_dn}"
+        filter         = "(&(objectClass=person)(uid=%{%{Stripped-User-Name}:-%{User-Name}}))"
+        scope          = 'sub'
+        sort_by        = '-uid'
+      }
+      group {
+        base_dn        = "ou=groups,${base_dn}"
+        filter         = "(objectClass=groupOfUniqueNames)"
+        membership_attribute = "member"
+      }
+      profile {
+      }
+      options {
+        chase_referrals = yes
+        rebind          = yes
+        res_timeout     = 10
+        srv_timelimit   = 3
+        net_timeout     = 1
+        idle            = 60
+        probes          = 3
+        interval        = 3
+        ldap_debug      = 0x0028
+      }
+      tls {
+        # TLS disabled — relying on cluster network isolation
+        # Enable if LLDAP is exposed outside cluster
+      }
+    }
+
+  # ── default site ──────────────────────────────────────────────────────────
+  # Main virtual server: authenticate users via LDAP
+  default: |
+    server default {
+      listen {
+        type      = auth
+        ipaddr    = *
+        port      = 1812
+      }
+      listen {
+        type      = acct
+        ipaddr    = *
+        port      = 1813
+      }
+      authorize {
+        filter_username
+        preprocess
+        chap
+        mschap
+        suffix
+        eap {
+          ok = return
+        }
+        files
+        ldap
+        expiration
+        logintime
+        pap
+      }
+      authenticate {
+        Auth-Type PAP {
+          pap
+        }
+        Auth-Type CHAP {
+          chap
+        }
+        Auth-Type MS-CHAP {
+          mschap
+        }
+        eap
+        Auth-Type LDAP {
+          ldap
+        }
+      }
+      post-auth {
+        update reply {
+          User-Name !* ANY
+        }
+        Post-Auth-Type REJECT {
+          attr_filter.access_reject
+          eap
+          remove_reply_message_if_eap
+        }
+      }
+      session {
+      }
+      pre-proxy {
+      }
+      post-proxy {
+        eap
+      }
+    }

@@ -1,0 +1,111 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authelia
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: authelia
+  interval: 1h
+  values:
+    controllers:
+      authelia:
+        replicas: 2
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/authelia/authelia
+              tag: 4.38.19
+            env:
+              TZ: America/Toronto
+              AUTHELIA_SERVER_ADDRESS: tcp://0.0.0.0:9091
+              AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "false"
+              X_AUTHELIA_CONFIG: /config/configuration.yaml
+              X_AUTHELIA_CONFIG_FILTERS: template
+            envFrom:
+              - secretRef:
+                  name: authelia-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: &port 9091
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: *port
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: authelia
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 200"]
+            url: https://auth.homeops.ca/api/health
+        hostnames:
+          - auth.homeops.ca
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+          - name: envoy-external
+            namespace: network
+        rules:
+          - backendRefs:
+              - port: *port
+    persistence:
+      config:
+        type: configMap
+        name: authelia-config
+        globalMounts:
+          - path: /config/configuration.yaml
+            subPath: configuration.yaml
+            readOnly: true
+      tmp:
+        type: emptyDir
