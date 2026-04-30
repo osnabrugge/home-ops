@@ -93,10 +93,9 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            client:
-              follow-redirects: false
+            url: tcp://omada-controller.default.svc.cluster.local:8088
             conditions:
-              - "[STATUS] == any(200, 302)"
+              - "[CONNECTED] == true"
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
