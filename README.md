@@ -8,10 +8,15 @@ _Backed by [Flux](https://fluxcd.io/), [Renovate](https://github.com/renovatebot
 
 > _"I literally bootstrapped this system from bare metal."_ — GitHub Copilot
 
-[![Talos](https://img.shields.io/badge/v1.12.6-blue?style=for-the-badge&logo=talos&logoColor=white&label=%20)](https://talos.dev)&nbsp;&nbsp;
-[![Kubernetes](https://img.shields.io/badge/v1.35.3-blue?style=for-the-badge&logo=kubernetes&logoColor=white&label=%20)](https://kubernetes.io)&nbsp;&nbsp;
-[![Flux](https://img.shields.io/badge/v0.45.1-blue?style=for-the-badge&logo=flux&logoColor=white&label=%20)](https://fluxcd.io)&nbsp;&nbsp;
+[![Talos](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.homeops.ca%2Ftalos_version%3Fformat%3Dendpoint&style=for-the-badge&logo=talos&logoColor=white)](https://talos.dev)&nbsp;&nbsp;
+[![Kubernetes](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.homeops.ca%2Fkubernetes_version%3Fformat%3Dendpoint&style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io)&nbsp;&nbsp;
+[![Flux](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.homeops.ca%2Fflux_version%3Fformat%3Dendpoint&style=for-the-badge&logo=flux&logoColor=white)](https://fluxcd.io)&nbsp;&nbsp;
 [![Renovate](https://img.shields.io/github/actions/workflow/status/osnabrugge/home-ops/renovate.yaml?branch=main&label=&logo=renovatebot&style=for-the-badge&color=blue)](https://github.com/osnabrugge/home-ops/actions/workflows/renovate.yaml)
+
+---
+
+[![Nodes](https://kromgo.homeops.ca/cluster_node_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![Pods](https://kromgo.homeops.ca/cluster_pod_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![CPU](https://kromgo.homeops.ca/cluster_cpu_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Memory](https://kromgo.homeops.ca/cluster_memory_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Power](https://kromgo.homeops.ca/cluster_power_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Uptime](https://kromgo.homeops.ca/cluster_uptime_days?format=badge)](https://grafana.homeops.ca)
+[![Alerts](https://kromgo.homeops.ca/cluster_alert_count?format=badge)](https://alertmanager.homeops.ca)&nbsp;[![HR Degraded](https://kromgo.homeops.ca/flux_hr_not_ready?format=badge)](https://grafana.homeops.ca)&nbsp;[![KS Degraded](https://kromgo.homeops.ca/flux_ks_not_ready?format=badge)](https://grafana.homeops.ca)&nbsp;[![Pods Degraded](https://kromgo.homeops.ca/pods_not_ready?format=badge)](https://grafana.homeops.ca)&nbsp;[![Ceph](https://kromgo.homeops.ca/ceph_health?format=badge)](https://grafana.homeops.ca)&nbsp;[![Seeding](https://kromgo.homeops.ca/torrent_seeding_count?format=badge)](https://qbittorrent.homeops.ca)&nbsp;[![Upload](https://kromgo.homeops.ca/torrent_upload_speed?format=badge)](https://qbittorrent.homeops.ca)
 
 </div>
 

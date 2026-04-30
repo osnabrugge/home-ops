@@ -83,3 +83,46 @@ metrics:
       - {color: "green", min: 0, max: 0}
       - {color: "red", min: 1, max: 9999}
     title: Alerts
+
+  - name: flux_hr_not_ready
+    query: count(gotk_resource_info{customresource_kind="HelmRelease",ready!="True"}) OR on() vector(0)
+    colors:
+      - {color: "green", min: 0, max: 0}
+      - {color: "red", min: 1, max: 9999}
+    title: HR Degraded
+
+  - name: flux_ks_not_ready
+    query: count(gotk_resource_info{customresource_kind="Kustomization",ready!="True"}) OR on() vector(0)
+    colors:
+      - {color: "green", min: 0, max: 0}
+      - {color: "red", min: 1, max: 9999}
+    title: KS Degraded
+
+  - name: pods_not_ready
+    query: count(kube_pod_status_ready{condition="false"}) OR on() vector(0)
+    colors:
+      - {color: "green", min: 0, max: 0}
+      - {color: "orange", min: 1, max: 5}
+      - {color: "red", min: 6, max: 9999}
+    title: Pods Degraded
+
+  - name: ceph_health
+    query: ceph_health_status
+    colors:
+      - {color: "green", min: 0, max: 0}
+      - {color: "orange", min: 1, max: 1}
+      - {color: "red", min: 2, max: 9999}
+    title: Ceph
+
+  - name: torrent_seeding_count
+    query: qbittorrent_torrents_count{filter="seeding"}
+    colors:
+      - {color: "green", min: 0, max: 9999}
+    title: Seeding
+
+  - name: torrent_upload_speed
+    query: round(qbittorrent_global_upload_speed_bytes / 1048576, 0.1) # Convert bytes/s to MiB/s (1 MiB = 1024^2 bytes)
+    suffix: " MB/s"
+    colors:
+      - {color: "green", min: 0, max: 9999}
+    title: Upload
