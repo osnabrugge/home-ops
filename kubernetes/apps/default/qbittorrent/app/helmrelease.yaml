@@ -76,6 +76,42 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 16Gi
+          metrics:
+            image:
+              repository: ghcr.io/esanchezm/prometheus-qbittorrent-exporter
+              tag: sha-3e55078@sha256:22bfda2c06fb4a65215de95e25288df97199424f44298b78dbfdfd82d34349b8
+            env:
+              QBITTORRENT_HOST: localhost
+              QBITTORRENT_PORT: *port
+              EXPORTER_PORT: &metricsPort 8000
+              VERIFY_WEBUI_CERTIFICATE: "False"
+            envFrom:
+              - secretRef:
+                  name: qbittorrent-secret
+                  optional: true
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /metrics
+                    port: *metricsPort
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness:
+                enabled: false
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 5m
+              limits:
+                memory: 64Mi
     defaultPodOptions:
       terminationGracePeriodSeconds: 300
       securityContext:
@@ -91,6 +127,8 @@ spec:
         ports:
           http:
             port: *port
+          metrics:
+            port: *metricsPort
       bittorrent:
         type: LoadBalancer
         annotations:
