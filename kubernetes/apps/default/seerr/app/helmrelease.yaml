@@ -73,6 +73,10 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
+            group: external
+            interval: 1m
+            client:
+              dns-resolver: tcp://1.1.1.1:53
             conditions: ["[STATUS] == 200"]
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
@@ -80,6 +84,16 @@ spec:
         parentRefs:
           - name: envoy-external
             namespace: network
+      internal:
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+          - requests.homeops.ca
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - port: *port
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
