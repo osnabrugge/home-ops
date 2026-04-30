@@ -123,11 +123,16 @@ Cilium advertises LoadBalancer IPs (192.168.69.0/24) via BGP to the Brocade core
 
 ### Out-of-Band Management
 
+Comprehensive OOB infrastructure for remote access, power control, and monitoring:
+
 | Tool | Access | Purpose |
 |------|--------|---------|
 | PiKVM + TESmart | `just infra kvm-switch <node>` | Remote KVM console for any node |
 | PDU (SNMP) | `just infra pdu-reboot <node>` | Hard power cycle any node |
+| UPS (SNMP) | Prometheus/Grafana | Battery backup monitoring |
 | ConsolePi (pi02→Core01-U1, pi03→Core01-U2) | SSH serial | Core switch serial console |
+
+**📘 See [OOB Management Guide](docs/OOB-MANAGEMENT.md) for detailed documentation and workflows.**
 
 ### Rack01 Elevation (Dynamic)
 

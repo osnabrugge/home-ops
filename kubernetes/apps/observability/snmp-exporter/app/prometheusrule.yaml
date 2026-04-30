@@ -25,3 +25,50 @@ spec:
           for: 5m
           labels:
             severity: critical
+
+        - alert: PDUUnreachable
+          expr: up{job="snmp-exporter", instance=~"pdu.*"} == 0
+          annotations:
+            summary: >-
+              PDU {{ $labels.instance }} is unreachable via SNMP
+            description: >-
+              PDU {{ $labels.instance }} has been unreachable for 5 minutes.
+              Power control and monitoring unavailable.
+          for: 5m
+          labels:
+            severity: warning
+
+        - alert: UPSUnreachable
+          expr: up{job="snmp-exporter", instance=~"ups.*"} == 0
+          annotations:
+            summary: >-
+              UPS {{ $labels.instance }} is unreachable via SNMP
+            description: >-
+              UPS {{ $labels.instance }} has been unreachable for 5 minutes.
+              Power monitoring unavailable.
+          for: 5m
+          labels:
+            severity: warning
+
+        - alert: UPSLowBattery
+          expr: upsAdvBatteryCapacity < 50
+          annotations:
+            summary: >-
+              UPS {{ $labels.instance }} battery capacity is low ({{ $value }}%)
+            description: >-
+              UPS battery capacity is below 50%. Consider reducing load or
+              preparing for potential power loss.
+          for: 10m
+          labels:
+            severity: warning
+
+        - alert: UPSHighLoad
+          expr: (upsAdvOutputActivePower / upsAdvConfigRatedOutputPower) * 100 > 80
+          annotations:
+            summary: >-
+              UPS {{ $labels.instance }} load is high ({{ $value | humanize }}%)
+            description: >-
+              UPS is running at over 80% capacity. Consider load balancing.
+          for: 15m
+          labels:
+            severity: warning
