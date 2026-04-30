@@ -121,7 +121,7 @@ metrics:
     title: Seeding
 
   - name: torrent_upload_speed
-    query: round(qbittorrent_global_upload_speed_bytes / 1048576, 0.1) # Convert bytes/s to MB/s (1 MiB = 1024^2 bytes)
+    query: round(qbittorrent_global_upload_speed_bytes / 1048576, 0.1) # Convert bytes/s to MiB/s (1 MiB = 1024^2 bytes)
     suffix: " MB/s"
     colors:
       - {color: "green", min: 0, max: 9999}
