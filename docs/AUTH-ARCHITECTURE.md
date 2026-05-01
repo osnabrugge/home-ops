@@ -7,6 +7,120 @@ the homeops.ca infrastructure.  It replaces per-device local accounts with a
 single source of truth (LLDAP) fronted by a modern SSO/MFA layer (Authelia)
 and a RADIUS backend (FreeRADIUS) for network-level authentication.
 
+---
+
+## Solution Comparison
+
+Multiple solutions were evaluated before settling on the LLDAP + Authelia +
+FreeRADIUS stack.  The tables and notes below capture the full comparison so
+the trade-offs are clear and the stack can be revisited if requirements change.
+
+### Identity Directory (user store)
+
+| Solution | Type | LDAP | OIDC IdP | RADIUS | Resource use | Complexity | Notes |
+|---|---|---|---|---|---|---|---|
+| **LLDAP** ✅ | Lightweight LDAP | ✅ native | ❌ (needs Authelia) | ❌ (needs FreeRADIUS) | Very low (~30 MB) | Low | Purpose-built for homelabs; clean web UI; SQLite; no Kerberos overhead |
+| **FreeIPA** | Full enterprise IdM | ✅ native | ✅ (Keycloak bundled) | ✅ (via FreeRADIUS) | Very high (needs dedicated VM) | Very high | Red Hat's full stack: Kerberos, DNS, CA, sudo policies — massive overkill; requires its own DNS zone and Kerberos realm |
+| **Authentik** | Modern IdP | ✅ LDAP outpost | ✅ native OIDC + SAML | ❌ | Medium (~300 MB) | Medium | All-in-one IdP with polished UI; replaces both LLDAP + Authelia; no built-in RADIUS; see note below |
+| **Keycloak** | Enterprise IdP | ✅ LDAP federation | ✅ native OIDC + SAML | ❌ | High (JVM, ~512 MB+) | High | Industry-standard; excellent Entra ID federation; heavy JVM footprint — overkill for single-tenant homelab |
+| **Kanidm** | Modern Rust IdP | ✅ native | ✅ native OIDC | ❌ (planned) | Low (~100 MB) | Medium | Rust-based, opinionated security-first design; RADIUS not yet production-ready; promising for the future |
+
+### MFA / SSO Layer
+
+| Solution | Forward-Auth | OIDC IdP | TOTP | WebAuthn | Duo Push | Notes |
+|---|---|---|---|---|---|---|
+| **Authelia** ✅ | ✅ native | ✅ native | ✅ | ✅ | ✅ | Lightweight Go binary; pairs perfectly with any LDAP backend |
+| **Authentik** | ✅ native | ✅ native | ✅ | ✅ | ✅ | Can replace both LLDAP + Authelia; heavier but fewer moving parts |
+| **Keycloak** | ✅ (via adapter) | ✅ native | ✅ | ✅ | ✅ (plugin) | Complex realm/client model |
+| **Kanidm** | ❌ (not yet) | ✅ native | ✅ | ✅ | ❌ | No forward-auth yet — cannot protect arbitrary web apps today |
+
+### RADIUS Backend
+
+| Solution | LDAP backend | EAP/802.1X | VLAN assignment | Web UI | Notes |
+|---|---|---|---|---|---|
+| **FreeRADIUS** ✅ | ✅ native | ✅ full EAP-TLS/TTLS/PEAP | ✅ via attributes | ❌ config files | Industry standard; excellent LDAP module; highly flexible |
+| **OpenWISP RADIUS** | ✅ (wraps FreeRADIUS) | ✅ | ✅ | ✅ Django web UI | Self-service guest registration, SMS/email verification, accounting — best fit if replacing Omada vouchers; see dedicated section below |
+| **Radsecproxy** | ❌ (proxy only) | ✅ (proxy) | ❌ | ❌ | RADIUS-to-RadSec forwarding proxy only; not an auth server |
+
+---
+
+### OpenWISP / openwisp-radius — Detailed Analysis
+
+[OpenWISP](https://openwisp.org/) is an open-source WiFi network management
+platform originally built for community / public WiFi deployments.
+[openwisp-radius](https://openwisp-radius.readthedocs.io/) is its RADIUS
+management module that wraps FreeRADIUS with a Django web UI and REST API.
+
+**What it provides:**
+
+| Feature | Detail |
+|---|---|
+| **Web UI** | Django-based admin: RADIUS users, groups, NAS clients, accounting records |
+| **Captive portal / self-registration** | Built-in guest registration page with email/SMS/social-login verification — directly replaces Omada vouchers |
+| **Voucher system** | Generate time-limited access tokens identical in concept to Omada's captive portal but unified with the identity system |
+| **FreeRADIUS integration** | openwisp-radius generates `freeradius.conf` and syncs users to FreeRADIUS automatically |
+| **REST API** | Full REST API for programmatic account management |
+| **Accounting** | Per-user session time, data usage, online-time limits |
+| **Social login** | OAuth2/OIDC social login for guest self-registration |
+| **VLAN assignment** | Supported via RADIUS attributes |
+
+**Why it was not chosen as the primary stack:**
+
+1. **Identity scope** — openwisp-radius manages RADIUS users only; it does not
+   provide LDAP, OIDC, or SSH key management.  Non-RADIUS services (Proxmox,
+   Grafana, Linux SSH logins) would still need LLDAP/Authelia, duplicating the
+   user store.
+
+2. **Complexity** — Requires PostgreSQL, Redis, Celery workers, and a Django
+   web server in addition to FreeRADIUS.  More runtime overhead than
+   LLDAP + Authelia + FreeRADIUS combined.
+
+3. **Scope creep** — Full OpenWISP also bundles network topology management,
+   device firmware upgrades, and a network controller — overlapping with Omada,
+   NetBox, and Gatus already in the stack.
+
+**Recommendation for guest WiFi specifically:** If retiring the Omada voucher
+portal in favour of a branded, self-service guest registration page with
+SMS/email verification and per-user accounting is the goal,
+openwisp-radius is the best fit.  It can co-exist with the LLDAP + Authelia
+stack (openwisp-radius handles guest RADIUS accounts; LLDAP handles all
+staff/admin accounts).  The FreeRADIUS instance in this PR can be replaced
+with openwisp-radius's managed FreeRADIUS, or openwisp-radius can be pointed
+at the same FreeRADIUS server as a second NAS client.
+
+---
+
+### Why LLDAP + Authelia + FreeRADIUS was chosen
+
+| Requirement | Met by |
+|---|---|
+| Single user store for all platforms | LLDAP |
+| SSH key management | LLDAP `sshPublicKey` + SSSD |
+| OIDC/SSO for web apps (Proxmox, Grafana, NetBox) | Authelia |
+| TOTP + WebAuthn MFA | Authelia |
+| Forward-auth for arbitrary web apps | Authelia |
+| RADIUS for OPNsense admin auth | FreeRADIUS → LLDAP |
+| 802.1X WPA-Enterprise WiFi (Omada) | FreeRADIUS → LLDAP |
+| VLAN assignment via RADIUS | FreeRADIUS attributes |
+| Cluster-native / GitOps | All three deploy as Kubernetes workloads via Flux |
+| Low resource footprint | ~200 MB total across all three |
+| No cloud dependency for auth | Fully self-hosted |
+
+**Authentik as a single-app alternative:** Authentik could replace both LLDAP
+and Authelia (built-in LDAP outpost + full OIDC IdP), reducing from three
+services to two (Authentik + FreeRADIUS).  The trade-off is higher memory
+(~300 MB vs. ~30 MB for LLDAP) and more complex configuration.  If managing
+two separate services (LLDAP + Authelia) becomes a maintenance burden, Authentik
+is the recommended migration target.
+
+**Kanidm as a future option:** Once Kanidm's RADIUS support reaches production
+quality it could replace all three services with a single Rust binary.
+Worth re-evaluating in 12–18 months.
+
+---
+
+## Architecture Diagram
+
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │                          Cluster (auth namespace)                    │
