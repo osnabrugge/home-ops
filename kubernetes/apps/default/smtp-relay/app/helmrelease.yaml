@@ -81,7 +81,7 @@ spec:
             }
             msgpipeline sender_rewrite {
                 modify {
-                    replace_sender smtp@homeops.ca
+                    replace_sender regexp ".*" "smtp@homeops.ca"
                 }
                 deliver_to &remote_queue
             }
