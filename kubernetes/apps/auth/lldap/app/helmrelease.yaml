@@ -1,0 +1,101 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: lldap
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: lldap
+  interval: 1h
+  values:
+    controllers:
+      lldap:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/lldap/lldap
+              tag: v0.6.1
+            env:
+              TZ: America/Toronto
+              LLDAP_HTTP_PORT: &httpPort 17170
+              LLDAP_LDAP_PORT: &ldapPort 3890
+              LLDAP_HTTP_URL: https://lldap.homeops.ca
+              LLDAP_LDAP_BASE_DN: dc=homeops,dc=ca
+              LLDAP_LDAP_USER_DN: admin
+              LLDAP_DATABASE_URL: sqlite:///data/users.db
+              LLDAP_SMTP_OPTIONS__FROM: "LLDAP <noreply@homeops.ca>"
+              LLDAP_SMTP_OPTIONS__REPLY_TO: "No Reply <noreply@homeops.ca>"
+              LLDAP_SMTP_OPTIONS__SERVER: smtp-relay.default.svc.cluster.local
+              LLDAP_SMTP_OPTIONS__PORT: "25"
+              LLDAP_SMTP_OPTIONS__SMTP_ENCRYPTION: NONE
+              LLDAP_SMTP_OPTIONS__ENABLE_PASSWORD_RESET: "true"
+            envFrom:
+              - secretRef:
+                  name: lldap-secret
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *httpPort
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: *httpPort
+          ldap:
+            port: *ldapPort
+    route:
+      app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 200"]
+        hostnames:
+          - lldap.homeops.ca
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - port: *httpPort
+    persistence:
+      data:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /data
