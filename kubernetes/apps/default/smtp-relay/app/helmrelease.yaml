@@ -76,6 +76,19 @@ spec:
             hostname {env:SMTP_RELAY_HOSTNAME}
             smtp tcp://0.0.0.0:{env:SMTP_RELAY_SMTP_PORT} {
                 default_source {
+                    deliver_to &sender_rewrite
+                }
+            }
+            msgpipeline sender_rewrite {
+                source smtp@homeops.ca {
+                    deliver_to &remote_queue
+                }
+                default_source {
+                    modify {
+                        replace_sender static {
+                            entry catchall smtp@homeops.ca
+                        }
+                    }
                     deliver_to &remote_queue
                 }
             }
@@ -83,7 +96,6 @@ spec:
                 target &remote_smtp
             }
             target.smtp remote_smtp {
-                mail_from smtp@homeops.ca
                 starttls yes
                 auth login {env:SMTP_RELAY_USERNAME} {env:SMTP_RELAY_PASSWORD}
                 targets tcp://{env:SMTP_RELAY_SERVER}:587
