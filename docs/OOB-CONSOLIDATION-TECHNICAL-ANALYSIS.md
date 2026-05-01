@@ -69,16 +69,17 @@ Consolidate into PiKVM with unified WebUI showing per-host:
 
 3. **Configure ser2net:**
    ```yaml
-   # /etc/ser2net.yaml
+   # /etc/ser2net/ser2net/core01.yaml
+
    connection: &console-u1
      accepter: telnet(rfc2217),tcp,3001
-     connector: serialdev,/dev/ttyUSB0,115200n81,local
+     connector: serialdev,/dev/ttyUSB0,9600n81,local
      options:
        kickolduser: true
 
    connection: &console-u2
      accepter: telnet(rfc2217),tcp,3002
-     connector: serialdev,/dev/ttyUSB1,115200n81,local
+     connector: serialdev,/dev/ttyUSB1,9600n81,local
      options:
        kickolduser: true
    ```

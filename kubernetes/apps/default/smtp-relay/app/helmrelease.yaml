@@ -79,9 +79,6 @@ spec:
                     deliver_to &sender_rewrite
                 }
             }
-            modify {
-                replace_sender smtp@homeops.ca
-            }
             msgpipeline sender_rewrite {
                 modify {
                     replace_sender smtp@homeops.ca

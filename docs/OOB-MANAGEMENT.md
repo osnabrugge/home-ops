@@ -231,8 +231,8 @@ Key Metrics:
 - **UPSHighLoad** (warning): Load > 80% of rated capacity
 
 ##### Grafana Dashboard
-- **Dashboard ID:** 13524 (APC UPS)
-- **URL:** https://grafana.homeops.ca/d/apc-ups
+- **Dashboard ID:** 13524 (CyberPower UPS)
+- **URL:** https://grafana.com/api/dashboards/21605/revisions/2/download
 - **Data:** Live metrics from Prometheus
 
 ##### Power Usage Badge
