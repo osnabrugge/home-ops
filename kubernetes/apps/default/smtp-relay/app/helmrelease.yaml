@@ -85,9 +85,7 @@ spec:
                 }
                 default_source {
                     modify {
-                        replace_sender static {
-                            entry catchall smtp@homeops.ca
-                        }
+                        replace_sender regexp "(.+)" "smtp@homeops.ca"
                     }
                     deliver_to &remote_queue
                 }
