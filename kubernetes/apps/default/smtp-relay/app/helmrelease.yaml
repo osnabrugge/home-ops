@@ -76,8 +76,17 @@ spec:
             hostname {env:SMTP_RELAY_HOSTNAME}
             smtp tcp://0.0.0.0:{env:SMTP_RELAY_SMTP_PORT} {
                 default_source {
-                    deliver_to &remote_queue
+                    deliver_to &sender_rewrite
                 }
+            }
+            modify {
+                replace_sender smtp@homeops.ca
+            }
+            msgpipeline sender_rewrite {
+                modify {
+                    replace_sender smtp@homeops.ca
+                }
+                deliver_to &remote_queue
             }
             target.queue remote_queue {
                 target &remote_smtp
