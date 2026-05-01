@@ -3,7 +3,7 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: apc-ups
+  name: cybperpower-ups
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:
@@ -12,4 +12,5 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_THINKY
-  url: https://grafana.com/api/dashboards/13524/revisions/1/download
+  url: https://grafana.com/api/dashboards/21605/revisions/2/download
+
