@@ -124,51 +124,9 @@ spec:
             lastgenre:
               auto: yes
               count: 1
-              # Only keep broad top-level + one sub-genre
-              # This maps niche genres to their parent
               canonical: yes
-              # Whitelist of allowed genres (major + one sub-level)
-              whitelist:
-                - Electronic
-                - House
-                - Tech House
-                - Deep House
-                - Progressive House
-                - Minimal House
-                - Techno
-                - Minimal Techno
-                - Acid Techno
-                - Trance
-                - Progressive Trance
-                - Psytrance
-                - Drum and Bass
-                - Liquid DnB
-                - Dubstep
-                - Ambient
-                - Downtempo
-                - Breakbeat
-                - Breaks
-                - Garage
-                - UK Garage
-                - Disco
-                - Nu Disco
-                - Funk
-                - Soul
-                - Jazz
-                - Hip Hop
-                - R&B
-                - Pop
-                - Rock
-                - Indie
-                - Metal
-                - Classical
-                - Reggae
-                - Dancehall
-                - Latin
-                - Afrobeats
-                - World
-                - Soundtrack
-                - Experimental
+              # Use built-in whitelist (lastgenre ships with a default genre list)
+              whitelist: yes
               # Fallback genre if nothing matches
               fallback: Other
             fetchart:
