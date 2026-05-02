@@ -19,6 +19,8 @@ spec:
             image:
               repository: ghcr.io/autobrr/dashbrr
               tag: v0.3.0
+            command:
+              - /usr/local/bin/dashbrr
             args:
               - serve
               - --config
