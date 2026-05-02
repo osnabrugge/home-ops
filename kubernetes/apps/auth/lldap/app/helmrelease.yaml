@@ -73,9 +73,9 @@ spec:
       securityContext:
         runAsNonRoot: false
         runAsUser: 0
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: Always
         seccompProfile:
           type: Unconfined
     service:
