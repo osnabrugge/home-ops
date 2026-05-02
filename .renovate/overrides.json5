@@ -13,5 +13,17 @@
       matchPackageNames: ["/factory\\.talos\\.dev/"],
       overridePackageName: "ghcr.io/siderolabs/installer",
     },
+    {
+      description: "Disable lookup for custom maddy-login fork",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/osnabrugge/maddy-login"],
+      enabled: false,
+    },
+    {
+      description: "Disable lookup for netbox-diode (not on Docker Hub)",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["netboxcommunity/netbox-diode"],
+      enabled: false,
+    },
   ],
 }
