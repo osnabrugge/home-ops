@@ -11,30 +11,35 @@ spec:
   interval: 1h
   values:
     fullnameOverride: *app
+    extraConfigmapMounts:
+      - name: snmp-config
+        configMap: snmp-exporter-config
+        mountPath: /etc/snmp_exporter/snmp.yml
+        subPath: snmp.yml
     serviceMonitor:
       enabled: true
       params:
         - name: ups01
           module:
-            - ups
+            - if_mib
           target: 192.168.99.11
           auth:
             - public_v2
         - name: ups02
           module:
-            - ups
+            - if_mib
           target: 192.168.99.12
           auth:
             - public_v2
         - name: pdu01
           module:
-            - pdu
+            - if_mib
           target: 192.168.99.15
           auth:
             - public_v2
         - name: pdu02
           module:
-            - pdu
+            - if_mib
           target: 192.168.99.16
           auth:
             - public_v2
