@@ -46,9 +46,9 @@ spec:
               answer "{{ .Name }} 60 IN A 192.168.69.121"
               fallthrough
           - name: template
-            parameters: IN A turbo.ac
+            parameters: IN A homeops.ca
             configBlock: |-
-              match ^[^.]+\.turbo\.ac\.$
+              match ^[^.]+\.homeops\.ca\.$
               answer "{{ .Name }} 60 IN A 192.168.69.121"
               fallthrough
           - name: forward
