@@ -26,7 +26,7 @@ spec:
               LLDAP_HTTP_URL: https://lldap.homeops.ca
               LLDAP_LDAP_BASE_DN: dc=homeops,dc=ca
               LLDAP_LDAP_USER_DN: admin
-              LLDAP_DATABASE_URL: sqlite:///data/users.db
+              LLDAP_DATABASE_URL: sqlite:///data/users.db?mode=rwc
               LLDAP_SMTP_OPTIONS__FROM: "LLDAP <noreply@homeops.ca>"
               LLDAP_SMTP_OPTIONS__REPLY_TO: "No Reply <noreply@homeops.ca>"
               LLDAP_SMTP_OPTIONS__SERVER: smtp-relay.default.svc.cluster.local
