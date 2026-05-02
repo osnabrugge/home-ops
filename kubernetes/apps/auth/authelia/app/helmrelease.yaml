@@ -19,7 +19,7 @@ spec:
           app:
             image:
               repository: ghcr.io/authelia/authelia
-              tag: 4.38.19
+              tag: 4.39.19
             env:
               TZ: America/Toronto
               AUTHELIA_SERVER_ADDRESS: tcp://0.0.0.0:9091
