@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: docker.io/freeradius/freeradius-server
-              tag: 3.2.7
+              tag: 3.2.8
             env:
               TZ: America/Toronto
             envFrom:
