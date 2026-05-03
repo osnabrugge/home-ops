@@ -58,7 +58,7 @@ data:
 
     # Email notifications (via smtp-relay)
     notifier:
-      disable_startup_check: false
+      disable_startup_check: true
       smtp:
         host: smtp-relay.default.svc.cluster.local
         port: 587
