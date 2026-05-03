@@ -14,9 +14,7 @@ data:
       level: info
 
     server:
-      host: 0.0.0.0
-      port: 9091
-      path: ""
+      address: tcp://0.0.0.0:9091
 
     # Use LLDAP as the authentication backend
     authentication_backend:
@@ -125,7 +123,7 @@ data:
             description: Proxmox VE
             # secret injected at runtime via X_AUTHELIA_CONFIG_FILTERS=template
             # and the AUTHELIA_OIDC_CLIENT_PROXMOX_SECRET env var from authelia-secret
-            secret: "{{ env `AUTHELIA_OIDC_CLIENT_PROXMOX_SECRET` }}"
+            secret: "$plaintext${{ env `AUTHELIA_OIDC_CLIENT_PROXMOX_SECRET` }}"
             public: false
             authorization_policy: two_factor
             redirect_uris:
@@ -141,7 +139,7 @@ data:
           - id: grafana
             description: Grafana
             # secret injected at runtime via X_AUTHELIA_CONFIG_FILTERS=template
-            secret: "{{ env `AUTHELIA_OIDC_CLIENT_GRAFANA_SECRET` }}"
+            secret: "$plaintext${{ env `AUTHELIA_OIDC_CLIENT_GRAFANA_SECRET` }}"
             public: false
             authorization_policy: one_factor
             redirect_uris:
@@ -157,7 +155,7 @@ data:
           - id: netbox
             description: NetBox IPAM
             # secret injected at runtime via X_AUTHELIA_CONFIG_FILTERS=template
-            secret: "{{ env `AUTHELIA_OIDC_CLIENT_NETBOX_SECRET` }}"
+            secret: "$plaintext${{ env `AUTHELIA_OIDC_CLIENT_NETBOX_SECRET` }}"
             public: false
             authorization_policy: one_factor
             redirect_uris:

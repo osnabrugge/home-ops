@@ -22,7 +22,6 @@ spec:
               tag: 4.39.19
             env:
               TZ: America/Toronto
-              AUTHELIA_SERVER_ADDRESS: tcp://0.0.0.0:9091
               AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "false"
               X_AUTHELIA_CONFIG: /config/configuration.yaml
               X_AUTHELIA_CONFIG_FILTERS: template
