@@ -123,7 +123,7 @@ data:
             description: Proxmox VE
             # secret injected at runtime via X_AUTHELIA_CONFIG_FILTERS=template
             # and the AUTHELIA_OIDC_CLIENT_PROXMOX_SECRET env var from authelia-secret
-            secret: "$plaintext${{ env `AUTHELIA_OIDC_CLIENT_PROXMOX_SECRET` }}"
+            client_secret: '$plaintext${{ env "OIDC_CLIENT_PROXMOX_SECRET" }}'
             public: false
             authorization_policy: two_factor
             redirect_uris:
@@ -139,7 +139,7 @@ data:
           - id: grafana
             description: Grafana
             # secret injected at runtime via X_AUTHELIA_CONFIG_FILTERS=template
-            secret: "$plaintext${{ env `AUTHELIA_OIDC_CLIENT_GRAFANA_SECRET` }}"
+            client_secret: '$plaintext${{ env "OIDC_CLIENT_GRAFANA_SECRET" }}'
             public: false
             authorization_policy: one_factor
             redirect_uris:
@@ -155,7 +155,7 @@ data:
           - id: netbox
             description: NetBox IPAM
             # secret injected at runtime via X_AUTHELIA_CONFIG_FILTERS=template
-            secret: "$plaintext${{ env `AUTHELIA_OIDC_CLIENT_NETBOX_SECRET` }}"
+            client_secret: '$plaintext${{ env "OIDC_CLIENT_NETBOX_SECRET" }}'
             public: false
             authorization_policy: one_factor
             redirect_uris:
