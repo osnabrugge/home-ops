@@ -19,8 +19,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/osnabrugge/maddy-login
-              tag: 0.9.3-login2
+              repository: ghcr.io/foxcpp/maddy
+              tag: 0.9.4
             args:
               - -config
               - /data/maddy.conf
@@ -50,8 +50,6 @@ spec:
               limits:
                 memory: 64Mi
     defaultPodOptions:
-      imagePullSecrets:
-        - name: ghcr-pull
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

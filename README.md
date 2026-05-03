@@ -324,7 +324,7 @@ Track open-source improvements contributed back from this cluster:
 
 | Project | PR/Issue | Status | Impact |
 |---------|----------|--------|--------|
-| (None tracked yet) | — | — | — |
+| [foxcpp/maddy](https://github.com/foxcpp/maddy) | [PR #839](https://github.com/foxcpp/maddy/pull/839) | ✅ Merged | Added `LOGIN` SASL auth directive to SMTP target — enables Maddy as relay to servers that only support LOGIN (e.g., Azure Communication Services). Discovered bug during cluster SMTP relay deployment, built fix, validated in production, submitted upstream. |
 
 ---
 
