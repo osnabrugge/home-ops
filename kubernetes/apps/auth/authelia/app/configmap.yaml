@@ -44,10 +44,6 @@ data:
       expiration: 12h
       inactivity: 45m
       remember_me_duration: 7d
-      redis:
-        host: dragonfly.database.svc.cluster.local
-        port: 6379
-        database_index: 3
 
     # Persistent storage (PostgreSQL via CloudNative-PG)
     storage:
