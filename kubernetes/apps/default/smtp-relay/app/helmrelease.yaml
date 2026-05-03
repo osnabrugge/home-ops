@@ -19,12 +19,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/foxcpp/maddy
+              repository: docker.io/foxcpp/maddy
               tag: 0.9.4
-            args:
-              - -config
-              - /data/maddy.conf
-              - run
             env:
               SMTP_RELAY_SMTP_PORT: &port 587
             envFrom:
