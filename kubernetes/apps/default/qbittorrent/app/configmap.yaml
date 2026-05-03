@@ -19,13 +19,13 @@ data:
     Session\GlobalMaxSeedingMinutes=0
     Session\GlobalMaxRatio=3
     Session\MaxActiveDownloads=5
-    Session\MaxActiveTorrents=10
-    Session\MaxActiveUploads=20
-    Session\MaxConnections=500
-    Session\MaxConnectionsPerTorrent=100
-    Session\MaxHalfOpenConnections=20
-    Session\MaxUploads=20
-    Session\MaxUploadsPerTorrent=4
+    Session\MaxActiveTorrents=500
+    Session\MaxActiveUploads=500
+    Session\MaxConnections=2000
+    Session\MaxConnectionsPerTorrent=200
+    Session\MaxHalfOpenConnections=50
+    Session\MaxUploads=50
+    Session\MaxUploadsPerTorrent=16
     Session\Port=31288
     Session\Preallocation=false
     Session\QueueingSystemEnabled=true
@@ -34,6 +34,8 @@ data:
     Session\DHTEnabled=true
     Session\LSDEnabled=true
     Session\PeXEnabled=true
+    Session\AnnounceToAllTrackers=true
+    Session\AnnounceToAllTiers=true
 
     [Core]
     AutoDeleteAddedTorrentFile=Never
