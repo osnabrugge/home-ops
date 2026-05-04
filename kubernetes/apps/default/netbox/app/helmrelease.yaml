@@ -50,13 +50,13 @@ spec:
     valkey:
       enabled: false
     tasksDatabase:
-      host: dragonfly.database.svc.cluster.local
+      host: dragonfly-netbox.database.svc.cluster.local
       port: 6379
       database: 0
       existingSecretName: netbox-secret
       existingSecretKey: tasks-password
     cachingDatabase:
-      host: dragonfly.database.svc.cluster.local
+      host: dragonfly-netbox.database.svc.cluster.local
       port: 6379
       database: 1
       existingSecretName: netbox-secret

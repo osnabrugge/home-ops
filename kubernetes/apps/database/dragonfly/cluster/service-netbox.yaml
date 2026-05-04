@@ -1,0 +1,15 @@
+---
+# Stable Redis endpoint for clients that cannot rely on the operator's role-based Service selector.
+apiVersion: v1
+kind: Service
+metadata:
+  name: dragonfly-netbox
+spec:
+  selector:
+    app: dragonfly
+    app.kubernetes.io/name: dragonfly
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP

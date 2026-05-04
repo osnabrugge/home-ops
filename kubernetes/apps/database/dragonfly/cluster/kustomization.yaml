@@ -6,3 +6,4 @@ namespace: database
 resources:
   - ./dragonfly.yaml
   - ./podmonitor.yaml
+  - ./service-netbox.yaml
