@@ -21,13 +21,13 @@ spec:
               tag: 0.15.2@sha256:89e13608521ece21dd300c39229fd595a55fbf4b8152771af5670a7455b5c747
             env:
               TZ: America/Toronto
-              # Sonarr
-              UN_SONARR_0_URL: http://sonarr.default.svc.cluster.local
-              UN_SONARR_0_PATHS_0: /data/downloads/torrents/complete
-              UN_SONARR_0_PROTOCOLS: torrent
-              UN_SONARR_0_TIMEOUT: 10s
-              UN_SONARR_0_DELETE_DELAY: 5m
-              UN_SONARR_0_DELETE_ORIG: false
+              # Lidarr
+              UN_LIDARR_0_URL: http://lidarr.default.svc.cluster.local
+              UN_LIDARR_0_PATHS_0: /data/downloads/torrents/complete
+              UN_LIDARR_0_PROTOCOLS: torrent
+              UN_LIDARR_0_TIMEOUT: 10s
+              UN_LIDARR_0_DELETE_DELAY: 5m
+              UN_LIDARR_0_DELETE_ORIG: false
               # Radarr
               UN_RADARR_0_URL: http://radarr.default.svc.cluster.local
               UN_RADARR_0_PATHS_0: /data/downloads/torrents/complete
@@ -35,6 +35,20 @@ spec:
               UN_RADARR_0_TIMEOUT: 10s
               UN_RADARR_0_DELETE_DELAY: 5m
               UN_RADARR_0_DELETE_ORIG: false
+              # Sonarr
+              UN_SONARR_0_URL: http://sonarr.default.svc.cluster.local
+              UN_SONARR_0_PATHS_0: /data/downloads/torrents/complete
+              UN_SONARR_0_PROTOCOLS: torrent
+              UN_SONARR_0_TIMEOUT: 10s
+              UN_SONARR_0_DELETE_DELAY: 5m
+              UN_SONARR_0_DELETE_ORIG: false
+              # Whisparr
+              UN_WHISPARR_0_URL: http://whisparr.default.svc.cluster.local
+              UN_WHISPARR_0_PATHS_0: /data/downloads/torrents/complete
+              UN_WHISPARR_0_PROTOCOLS: torrent
+              UN_WHISPARR_0_TIMEOUT: 10s
+              UN_WHISPARR_0_DELETE_DELAY: 5m
+              UN_WHISPARR_0_DELETE_ORIG: false
             envFrom:
               - secretRef:
                   name: unpackerr-secret
