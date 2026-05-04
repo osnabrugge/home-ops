@@ -45,7 +45,7 @@ data:
       server     = "lldap.auth.svc.cluster.local"
       port       = 3890
       identity   = "uid=freeradius,ou=people,dc=homeops,dc=ca"
-      password   = "%{env:LDAP_BIND_PASSWORD}"
+      password   = %{env:LDAP_BIND_PASSWORD}
       base_dn    = "dc=homeops,dc=ca"
       sasl {
       }
