@@ -46,7 +46,13 @@ spec:
                   failureThreshold: 3
               startup:
                 enabled: true
+                custom: true
                 spec:
+                  exec:
+                    command:
+                      - /bin/sh
+                      - -c
+                      - "pgrep freeradius || exit 1"
                   failureThreshold: 30
                   periodSeconds: 10
             securityContext:
