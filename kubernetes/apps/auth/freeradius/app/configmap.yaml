@@ -59,7 +59,6 @@ data:
         base_dn        = "ou=people,dc=homeops,dc=ca"
         filter         = "(&(objectClass=person)(uid=%{%{Stripped-User-Name}:-%{User-Name}}))"
         scope          = 'sub'
-        sort_by        = '-uid'
       }
       group {
         base_dn        = "ou=groups,dc=homeops,dc=ca"
