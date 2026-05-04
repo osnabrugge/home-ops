@@ -75,7 +75,8 @@ data:
     webauthn:
       display_name: homeops.ca
       attestation_conveyance_preference: indirect
-      user_verification: preferred
+      selection_criteria:
+        user_verification: preferred
 
     # Access control policies
     # Default: deny; explicitly allow per-domain/group
