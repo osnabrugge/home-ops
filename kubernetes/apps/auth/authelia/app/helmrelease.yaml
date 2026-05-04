@@ -22,7 +22,7 @@ spec:
               tag: 4.39.19
             env:
               TZ: America/Toronto
-              AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "false"
+                AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "true"
               X_AUTHELIA_CONFIG: /config/configuration.yaml
               X_AUTHELIA_CONFIG_FILTERS: template
             envFrom:
