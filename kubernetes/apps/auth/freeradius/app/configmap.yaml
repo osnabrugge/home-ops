@@ -1,6 +1,6 @@
 ---
 # FreeRADIUS configuration files.
-# Secret values use FreeRADIUS 3.x environment variable expansion: %{env:VAR_NAME}
+# Secret values use FreeRADIUS 3.x environment variable expansion: $ENV{VAR_NAME}
 # The corresponding env vars are injected via freeradius-secret (envFrom in HelmRelease).
 apiVersion: v1
 kind: ConfigMap
@@ -9,12 +9,12 @@ metadata:
 data:
   # ── clients.conf ──────────────────────────────────────────────────────────
   # RADIUS NAS clients allowed to send auth requests.
-  # Shared secrets use FreeRADIUS env-var expansion (%{env:...}).
+  # Shared secrets use FreeRADIUS env-var expansion ($ENV{...}).
   clients.conf: |
     # OPNsense firewall — admin authentication
     client opnsense {
       ipaddr    = 192.168.42.1
-      secret    = "%{env:NAS_SECRET_OPNSENSE}"
+      secret    = "$ENV{NAS_SECRET_OPNSENSE}"
       shortname = opnsense
       nastype   = other
     }
@@ -22,7 +22,7 @@ data:
     # Omada controller — WiFi 802.1X / WPA-Enterprise
     client omada {
       ipaddr    = 192.168.69.130
-      secret    = "%{env:NAS_SECRET_OMADA}"
+      secret    = "$ENV{NAS_SECRET_OMADA}"
       shortname = omada
       nastype   = other
     }
@@ -30,14 +30,14 @@ data:
     # localhost — for internal health / test probes only
     client localhost {
       ipaddr    = 127.0.0.1
-      secret    = "%{env:NAS_SECRET_LOCALHOST}"
+      secret    = "$ENV{NAS_SECRET_LOCALHOST}"
       shortname = localhost
       nastype   = other
     }
 
   # ── ldap.conf ─────────────────────────────────────────────────────────────
   # LDAP module — queries LLDAP for user/group lookups.
-  # Bind password uses FreeRADIUS env-var expansion (%{env:...}).
+  # Bind password uses FreeRADIUS env-var expansion ($ENV{...}).
   # TLS is disabled; relying on Kubernetes cluster network isolation.
   # Enable tls{} block if LLDAP is accessed across untrusted networks.
   ldap.conf: |
@@ -45,7 +45,7 @@ data:
       server     = "lldap.auth.svc.cluster.local"
       port       = 3890
       identity   = "uid=freeradius,ou=people,dc=homeops,dc=ca"
-      password   = %{env:LDAP_BIND_PASSWORD}
+      password   = "$ENV{LDAP_BIND_PASSWORD}"
       base_dn    = "dc=homeops,dc=ca"
       sasl {
       }
