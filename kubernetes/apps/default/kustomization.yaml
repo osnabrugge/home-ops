@@ -36,6 +36,7 @@ resources:
   - ./slskd/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
+  - ./spoolman/ks.yaml
   - ./stash/ks.yaml
   - ./tautulli/ks.yaml
   - ./thelounge/ks.yaml
