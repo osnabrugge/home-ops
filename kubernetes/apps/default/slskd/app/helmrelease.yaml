@@ -22,13 +22,13 @@ spec:
               tag: 0.25.1@sha256:ab9ed50e028b524cefdb7c1dd8ebca368a076e18441ee8ac2326473eb850b4c3
             env:
               DOTNET_BUNDLE_EXTRACT_BASE_DIR: /tmp/.net
-              TZ: America/Toronto
               SLSKD_APP_DIR: /config
               SLSKD_HTTP_PORT: &port 80
               SLSKD_NO_AUTH: true
               SLSKD_NO_HTTPS: true
               SLSKD_NO_VERSION_CHECK: true
               SLSKD_SLSK_LISTEN_PORT: &soulseekPort 50429
+              TZ: America/Toronto
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
