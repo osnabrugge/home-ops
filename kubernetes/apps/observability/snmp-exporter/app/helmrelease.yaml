@@ -21,25 +21,25 @@ spec:
       params:
         - name: ups01
           module:
-            - if_mib
+            - cyberpower
           target: 192.168.99.11
           auth:
             - public_v2
         - name: ups02
           module:
-            - if_mib
+            - cyberpower
           target: 192.168.99.12
           auth:
             - public_v2
         - name: pdu01
           module:
-            - if_mib
+            - cyberpower_pdu
           target: 192.168.99.15
           auth:
             - public_v2
         - name: pdu02
           module:
-            - if_mib
+            - cyberpower_pdu
           target: 192.168.99.16
           auth:
             - public_v2

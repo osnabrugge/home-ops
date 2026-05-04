@@ -19,27 +19,121 @@ data:
         priv_protocol: DES
         version: 2
     modules:
-      if_mib:
+      # CyberPower UPS module — enterprise OID 1.3.6.1.4.1.3808
+      # Covers CyberPower OR series and compatible models
+      cyberpower:
         walk:
-          - sysUpTime
-          - interfaces
-          - ifXTable
+          - 1.3.6.1.4.1.3808.1.1.1  # CYBERPOWER-MIB ups subtree
         get:
           - sysDescr.0
           - sysName.0
           - sysLocation.0
-          - sysContact.0
+          - sysUpTime.0
         metrics:
           - name: sysUpTime
             oid: 1.3.6.1.2.1.1.3.0
             type: gauge
-            help: The time since the network management portion of the system was re-initialized - 1.3.6.1.2.1.1.3
+            help: System uptime in hundredths of a second
           - name: sysDescr
             oid: 1.3.6.1.2.1.1.1.0
             type: DisplayString
           - name: sysName
             oid: 1.3.6.1.2.1.1.5.0
             type: DisplayString
-          - name: ifNumber
-            oid: 1.3.6.1.2.1.2.1.0
+          # --- Basic UPS status ---
+          - name: upsBasicBatteryStatus
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.1.1.0
             type: gauge
+            help: Battery status (1=unknown 2=batteryNormal 3=batteryLow)
+          - name: upsBasicBatteryTimeOnBattery_seconds
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.1.2.0
+            type: gauge
+            help: Elapsed time on battery in seconds (converted from TimeTicks /100)
+          - name: upsBasicOutputStatus
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.1.1.0
+            type: gauge
+            help: >-
+              Output status (1=unknown 2=onLine 3=onBattery 4=onBoost
+              5=sleeping 6=onBypass 7=off 8=rebooting 9=onTrim)
+          # --- Advanced battery metrics ---
+          - name: upsAdvBatteryCapacity
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.1.0
+            type: gauge
+            help: Battery capacity remaining (%)
+          - name: upsAdvBatteryTemperature
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.2.0
+            type: gauge
+            help: Battery temperature (Celsius)
+          - name: upsAdvBatteryRunTimeRemaining
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.4.0
+            type: gauge
+            help: Estimated runtime remaining (TimeTicks)
+          - name: upsAdvBattery_needsreplacing
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.6.0
+            type: gauge
+            help: Battery replacement indicator (1=noReplacement 2=needsReplacement)
+          # --- Input metrics ---
+          - name: upsAdvInputLineVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.1.3.2.1.0
+            type: gauge
+            help: Input line voltage (V)
+          - name: upsAdvInputFrequency
+            oid: 1.3.6.1.4.1.3808.1.1.1.3.2.4.0
+            type: gauge
+            help: Input line frequency (Hz)
+          # --- Output / load metrics ---
+          - name: upsAdvOutputVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.1.0
+            type: gauge
+            help: Output voltage (V)
+          - name: upsAdvOutputFrequency
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.2.0
+            type: gauge
+            help: Output frequency (Hz)
+          - name: upsAdvOutputLoad
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.3.0
+            type: gauge
+            help: Output load percentage (%)
+          - name: upsAdvOutputActivePower
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.6.0
+            type: gauge
+            help: Active output power (Watts)
+          - name: upsAdvConfigRatedOutputPower
+            oid: 1.3.6.1.4.1.3808.1.1.1.5.2.1.0
+            type: gauge
+            help: Rated output power (Watts)
+      # CyberPower PDU module — enterprise OID 1.3.6.1.4.1.3808.1.1.6
+      # Covers PDU41001-V and similar switched PDUs
+      cyberpower_pdu:
+        walk:
+          - 1.3.6.1.4.1.3808.1.1.6.3  # ePDU input group
+        get:
+          - sysDescr.0
+          - sysName.0
+          - sysUpTime.0
+        metrics:
+          - name: sysUpTime
+            oid: 1.3.6.1.2.1.1.3.0
+            type: gauge
+          - name: sysDescr
+            oid: 1.3.6.1.2.1.1.1.0
+            type: DisplayString
+          - name: sysName
+            oid: 1.3.6.1.2.1.1.5.0
+            type: DisplayString
+          - name: ePDUInputVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.3.1.0
+            type: gauge
+            help: PDU input voltage (V)
+          - name: ePDUInputTotalActivePower
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.1.0
+            type: gauge
+            help: Total active power consumed by PDU (Watts)
+          - name: ePDUInputTotalApparentPower
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.2.0
+            type: gauge
+            help: Total apparent power (VA)
+          - name: ePDUInputTotalCurrent
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.3.0
+            type: gauge
+            help: Total input current (tenths of Amps)
