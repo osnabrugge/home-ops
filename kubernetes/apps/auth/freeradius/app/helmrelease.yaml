@@ -93,7 +93,7 @@ spec:
         type: configMap
         name: freeradius-config
         globalMounts:
-          - path: /etc/freeradius/mods-available/ldap
+          - path: /etc/freeradius/mods-enabled/ldap
             subPath: ldap.conf
             readOnly: true
       config-default:
