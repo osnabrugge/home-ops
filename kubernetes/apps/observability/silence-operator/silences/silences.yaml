@@ -50,159 +50,21 @@ spec:
 apiVersion: observability.giantswarm.io/v1alpha2
 kind: Silence
 metadata:
-  name: keda-hpa-maxed-out
+  name: hpa-maxed-out
 spec:
   matchers:
     - name: alertname
       value: KubeHpaMaxedOut
-    - name: horizontalpodautoscaler
-      value: keda-hpa-.*
-      matchType: "=~"
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
 apiVersion: observability.giantswarm.io/v1alpha2
 kind: Silence
 metadata:
-  name: bond-degraded-physical-nic
+  name: victoria-metrics-kube-scheduler
 spec:
   matchers:
     - name: alertname
-      value: NodeBondingDegraded|CephNodeNetworkBondDegraded
-      matchType: "=~"
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: kvm01-clock-not-syncing
-spec:
-  matchers:
-    - name: alertname
-      value: NodeClockNotSynchronising
-    - name: instance
-      value: kvm01.in.homeops.ca:9100
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: dragonfly-operator-known-issue
-spec:
-  matchers:
-    - name: alertname
-      value: KubePodCrashLooping
-    - name: pod
-      value: dragonfly-operator-.*
-      matchType: "=~"
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: nas02-exporters-not-installed
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: instance
-      value: nas02.in.homeops.ca.*
-      matchType: "=~"
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: fw01-smartctl-not-installed
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: job
-      value: smartctl-exporter
-    - name: instance
-      value: fw01.*
-      matchType: "=~"
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: kvm01-metrics-not-prometheus
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: job
-      value: kvm
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: dragonfly-scrape-content-type
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: job
-      value: database/dragonfly
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: dragonfly-operator-target-down
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: job
-      value: dragonfly-operator
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: unbound-dns-webhook-scrape
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: job
-      value: unbound-dns
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: kube-components-401
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: job
-      value: apiserver|kube-scheduler|kube-controller-manager|kubelet
-      matchType: "=~"
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: snmp-exporter-no-targets
-spec:
-  matchers:
-    - name: alertname
-      value: TargetDown
-    - name: job
-      value: snmp-exporter
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: alertmanager-cluster-single-replica
-spec:
-  matchers:
-    - name: alertname
-      value: AlertmanagerClusterFailedToSendAlerts|AlertmanagerFailedToSendAlerts
+      value: RecordingRulesNoData
+    - name: recording
+      value: cluster_quantile:scheduler_.*
       matchType: "=~"

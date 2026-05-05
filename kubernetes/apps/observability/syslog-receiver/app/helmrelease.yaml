@@ -51,7 +51,7 @@ spec:
         [OUTPUT]
           name http
           match syslog*
-          host victoria-logs-server.observability.svc.cluster.local
+          host victoria-logs.observability.svc.cluster.local
           port 9428
           uri /insert/jsonline?_stream_fields=_stream,host,ident&_msg_field=log&_time_field=date
           format json_lines

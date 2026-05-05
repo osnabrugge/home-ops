@@ -16,7 +16,6 @@ spec:
       bbr: true
     bpf:
       datapathMode: netkit
-      lbExternalClusterIP: true
       masquerade: true
       preallocateMaps: true
     bpfClockProbe: true

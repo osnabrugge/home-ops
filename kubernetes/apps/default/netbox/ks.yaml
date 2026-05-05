@@ -6,7 +6,8 @@ metadata:
   name: netbox
 spec:
   components:
-    - ../../../../components/nfs-scaler
+    - ../../../../components/volsync
+    - ../../../../components/zeroscaler
   dependsOn:
     - name: cloudnative-pg-cluster
       namespace: database

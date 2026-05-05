@@ -11,4 +11,3 @@ resources:
   - ./namespace.yaml
   - ./azurekv/ks.yaml
   - ./external-secrets/ks.yaml
-

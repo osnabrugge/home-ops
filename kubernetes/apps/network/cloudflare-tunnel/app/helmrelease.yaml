@@ -53,23 +53,10 @@ spec:
               limits:
                 memory: 256Mi
     defaultPodOptions:
-      dnsPolicy: None
-      dnsConfig:
-        nameservers:
-          - 10.43.0.10
-          - 1.1.1.1
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: cloudflare-tunnel
-              app.kubernetes.io/instance: cloudflare-tunnel
     service:
       app:
         ports:

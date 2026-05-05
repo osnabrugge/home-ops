@@ -62,14 +62,3 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-      configmap:
-        type: configMap
-        name: thelounge-config
-        defaultMode: 0644
-        globalMounts:
-          - path: /config/thelounge/config.js
-            subPath: config.js
-            readOnly: true
-          - path: /config/thelounge/networks.json
-            subPath: networks.json
-            readOnly: true

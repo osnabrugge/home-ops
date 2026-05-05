@@ -54,7 +54,6 @@ spec:
                 - name: gpu
               requests:
                 cpu: 100m
-                memory: 1Gi
               limits:
                 memory: 16Gi
     defaultPodOptions:
@@ -72,8 +71,6 @@ spec:
         type: LoadBalancer
         annotations:
           lbipam.cilium.io/ips: 192.168.69.128
-          external-dns.alpha.kubernetes.io/hostname: plex.homeops.ca
-          external-dns.alpha.kubernetes.io/target: 192.168.69.121
         externalTrafficPolicy: Local
         ports:
           http:
@@ -82,13 +79,7 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            group: external
-            interval: 1m
-            client:
-              dns-resolver: tcp://1.1.1.1:53
-            conditions:
-              - "[STATUS] == any(200, 401, 301, 302)"
-          external-dns.alpha.kubernetes.io/controller: none
+            conditions: ["[STATUS] == 401"]
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
@@ -108,21 +99,6 @@ spec:
               - path:
                   type: PathPrefix
                   value: /library/streams
-          - backendRefs:
-              - identifier: app
-                port: *port
-      internal:
-        annotations:
-          gatus.home-operations.com/endpoint: |-
-            conditions:
-              - "[STATUS] == any(200, 401, 301, 302)"
-          external-dns.alpha.kubernetes.io/controller: none
-        hostnames:
-          - "{{ .Release.Name }}.homeops.ca"
-        parentRefs:
-          - name: envoy-internal
-            namespace: network
-        rules:
           - backendRefs:
               - identifier: app
                 port: *port

@@ -34,8 +34,9 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
-  name: lan-tcp
+  name: lan-nfs
 spec:
+  jobName: nfs_probe
   module: tcp_connect
   prober:
     url: blackbox-exporter-lan.observability.svc.cluster.local:9115
@@ -43,6 +44,25 @@ spec:
     staticConfig:
       static:
         - nas02.in.homeops.ca:2049
+  metricRelabelings:
+    - targetLabel: service
+      replacement: blackbox-exporter-lan
+      action: replace
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/probe_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: lan-nas02
+spec:
+  jobName: nas02_probe
+  module: icmp
+  prober:
+    url: blackbox-exporter-lan.observability.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - nas02.in.homeops.ca
   metricRelabelings:
     - targetLabel: service
       replacement: blackbox-exporter-lan

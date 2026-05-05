@@ -19,10 +19,10 @@ spec:
         containers:
           app:
             image:
-              repository: docker.io/foxcpp/maddy
-              tag: 0.9.4
+              repository: ghcr.io/foxcpp/maddy
+              tag: 0.9.4@sha256:cf79fddee12228b3c47af5fbbfadceef115d46d4ae434429bef70f1d565a0abf
             env:
-              SMTP_RELAY_SMTP_PORT: &port 587
+              SMTP_RELAY_SMTP_PORT: &port 25
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"

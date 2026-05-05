@@ -57,7 +57,11 @@ spec:
                   failureThreshold: 5
               readiness:
                 enabled: true
+                custom: true
                 spec:
+                  httpGet:
+                    path: /api/v2/app/version
+                    port: *port
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
@@ -73,7 +77,6 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 512Mi
               limits:
                 memory: 16Gi
           metrics:
@@ -127,8 +130,6 @@ spec:
         ports:
           http:
             port: *port
-          metrics:
-            port: *metricsPort
       bittorrent:
         type: LoadBalancer
         annotations:

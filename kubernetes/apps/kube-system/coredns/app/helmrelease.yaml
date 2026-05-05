@@ -39,18 +39,6 @@ spec:
               fallthrough in-addr.arpa ip6.arpa
           - name: autopath
             parameters: "@kubernetes"
-          - name: template
-            parameters: IN A homeops.ca
-            configBlock: |-
-              match ^[^.]+\.homeops\.ca\.$
-              answer "{{ .Name }} 60 IN A 192.168.69.121"
-              fallthrough
-          - name: template
-            parameters: IN A homeops.ca
-            configBlock: |-
-              match ^[^.]+\.homeops\.ca\.$
-              answer "{{ .Name }} 60 IN A 192.168.69.121"
-              fallthrough
           - name: forward
             parameters: . /etc/resolv.conf
           - name: cache
