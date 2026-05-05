@@ -27,24 +27,29 @@ spec:
               liveness:
                 enabled: true
                 spec:
+                  httpGet:
+                    path: /identity
+                    port: &port 32400
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 5
               readiness:
                 enabled: true
-                custom: true
                 spec:
                   httpGet:
                     path: /identity
-                    port: &port 32400
+                    port: *port
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
               startup:
                 enabled: true
                 spec:
-                  failureThreshold: 30
-                  periodSeconds: 10
+                  httpGet:
+                    path: /identity
+                    port: *port
+                  failureThreshold: 60
+                  periodSeconds: 5
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
