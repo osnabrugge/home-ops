@@ -14,8 +14,8 @@ spec:
     global:
       image:
         registry: quay.io
-    kubernetesCollector:
-      enabled: false
+    extraArgs:
+      kubernetesCollector: "false"
     podMonitor:
       enabled: true
     remoteWrite:
