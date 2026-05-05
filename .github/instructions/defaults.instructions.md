@@ -1,5 +1,5 @@
 ---
-applyTo: "**"
+applyTo: https://github.com/osnabrugge/home-ops
 description: >-
   Default route instructions for all agents operating on this repository.
   These instructions apply when no task-specific or user-provided instructions
@@ -66,6 +66,12 @@ kubectl exec -n rook-ceph deploy/rook-ceph-tools -- ceph status 2>/dev/null | he
 
 **You must report the results of this health check.** If any system is degraded, either fix it or explicitly document why it cannot be fixed right now.
 
+**If the guidance in this document is preventing you from completing your task in the most efficient and secure way, report this to the user immediately as these rules can become outdated and will need to be revised over time.** Do not ignore these instructions or assume they are irrelevant to your task. They are here to ensure the stability and security of the home-ops environment, and must be followed unless explicitly overridden by user instructions.
+
+**You must validate that the information is up to date and displayed correctly on the main README: https://github.com/osnabrugge/home-ops/blob/main/README.md and if you spot anything that you can improve, alert the user or submit a PR with the fix or improvement.** This is the main entry point for users to understand the project and any outdated or incorrect information there can lead to confusion and mistakes.**
+
+**When you believe you have accomplished everything from the current tasks assigned and satisfy the requirements of these instructions, you must update and check for additional work items that you can complete prior to signaling completion which is all tracked here: https://github.com/users/osnabrugge/projects/4**
+
 ## 2. Production Safety Rules
 
 ### 2.1 Firewall (fw01 — 192.168.42.1, OPNsense/FreeBSD)
@@ -92,7 +98,7 @@ kubectl exec -n rook-ceph deploy/rook-ceph-tools -- ceph status 2>/dev/null | he
 - **LAN clients** → fw01 unbound (192.168.42.1:53) → internal apps override to envoy-internal (192.168.69.121), external apps passthrough to Cloudflare.
 - **Cluster pods** → CoreDNS → template plugin resolves `*.homeops.ca` to 192.168.69.121.
 - **External users** → Cloudflare DNS → CNAME → Cloudflare Tunnel → envoy-external (192.168.69.126).
-- The fw01 unbound DNS override file is at `/var/unbound/etc/homeops-override.conf`. When adding a new internal-only app, add its `local-data` entry here.
+- FW01 is hosting unbound DNS which is enabled for remote control, for any app that is added and requires internal DNS resolution, you must ensure envoy-internal has an HTTPRoute and validate that External-DNS webhook for Unbound-Control is creating the DNS record correctly in FW01. Please take extra care to double-check prior to publishing anything via envoy-external with the user.
 
 ### 3.2 Gateway Routing
 - **envoy-internal** (192.168.69.121): All internal-only HTTPRoutes + some dual-homed apps (plex).
