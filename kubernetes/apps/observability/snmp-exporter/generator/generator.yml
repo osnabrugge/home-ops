@@ -1,0 +1,223 @@
+---
+# snmp-generator config for Ruckus ICX (FastIron) switches
+# Run with:
+#   docker run --rm \
+#     -v ~/ruckus-mibs:/root/.snmp/mibs:ro \
+#     -v $(pwd)/generator.yml:/app/generator.yml \
+#     -v $(pwd):/app/output \
+#     quay.io/prometheus/snmp-generator:latest generate
+#
+# Required MIBs (from Ruckus support portal):
+#   FOUNDRY-SN-ROOT-MIB, FOUNDRY-SN-AGENT-MIB, FOUNDRY-SN-SWITCH-GROUP-MIB
+#   IF-MIB, EtherLike-MIB (standard, bundled with net-snmp)
+
+modules:
+  ruckus_icx:
+    walk:
+      - ifXTable          # 64-bit interface counters
+      - ifTable           # basic interface table
+      - snAgentCpuUtilTable    # per-slot CPU utilization
+      - snAgentDramInfo        # DRAM usage
+      - snChasFanTable         # fan status table
+      - snChasPwrSupplyTable   # power supply status table
+      - snChasActualTemperature # chassis temperature
+
+    get:
+      - sysDescr.0
+      - sysName.0
+      - sysLocation.0
+      - sysUpTime.0
+      - snChasSerNum.0    # chassis serial number
+      - snSwGroupOperMode.0
+
+    metrics:
+      - name: sysUpTime
+        oid: sysUpTime
+        type: gauge
+        help: System uptime in hundredths of a second
+
+      - name: sysDescr
+        oid: sysDescr
+        type: DisplayString
+
+      - name: sysName
+        oid: sysName
+        type: DisplayString
+
+      # --- CPU ---
+      - name: snAgentCpuUtilPercent
+        oid: snAgentCpuUtil100SecPercent
+        type: gauge
+        help: CPU utilization over the last 100 seconds (%)
+        indexes:
+          - labelname: snAgentCpuUtilSlotNum
+            type: gauge
+          - labelname: snAgentCpuUtilCpuNum
+            type: gauge
+
+      # --- Memory ---
+      - name: snAgentDramTotal
+        oid: snAgentDramSize
+        type: gauge
+        help: Total DRAM in bytes
+
+      - name: snAgentDramFree
+        oid: snAgentDramFree
+        type: gauge
+        help: Free DRAM in bytes
+
+      # --- Temperature ---
+      - name: snChasActualTemperature
+        oid: snChasActualTemperature
+        type: gauge
+        help: Chassis temperature in 0.5C units (divide by 2 for Celsius)
+
+      # --- Fan status ---
+      - name: snChasFanOperStatus
+        oid: snChasFanOperStatus
+        type: gauge
+        help: Fan operational status (1=other 2=normal 3=failure)
+        indexes:
+          - labelname: snChasFanIndex
+            type: gauge
+
+      # --- Power supply status ---
+      - name: snChasPwrSupplyOperStatus
+        oid: snChasPwrSupplyOperStatus
+        type: gauge
+        help: Power supply operational status (1=other 2=normal 3=failure)
+        indexes:
+          - labelname: snChasPwrSupplyIndex
+            type: gauge
+
+      # --- Interfaces (64-bit) ---
+      - name: ifHCInOctets
+        oid: ifHCInOctets
+        type: counter
+        help: Total bytes received on interface
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+          - labels: [ifIndex]
+            labelname: ifAlias
+            oid: ifAlias
+            type: DisplayString
+
+      - name: ifHCOutOctets
+        oid: ifHCOutOctets
+        type: counter
+        help: Total bytes transmitted on interface
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifHCInUcastPkts
+        oid: ifHCInUcastPkts
+        type: counter
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifHCOutUcastPkts
+        oid: ifHCOutUcastPkts
+        type: counter
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifInErrors
+        oid: ifInErrors
+        type: counter
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifOutErrors
+        oid: ifOutErrors
+        type: counter
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifInDiscards
+        oid: ifInDiscards
+        type: counter
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifOutDiscards
+        oid: ifOutDiscards
+        type: counter
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifOperStatus
+        oid: ifOperStatus
+        type: gauge
+        help: Interface operational status (1=up 2=down 3=testing)
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+      - name: ifSpeed
+        oid: ifHighSpeed
+        type: gauge
+        help: Interface speed in Mbps
+        indexes:
+          - labelname: ifIndex
+            type: gauge
+        lookups:
+          - labels: [ifIndex]
+            labelname: ifName
+            oid: ifName
+            type: DisplayString
+
+    auth:
+      community: public

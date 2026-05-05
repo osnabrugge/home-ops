@@ -1,0 +1,327 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: snmp-exporter-config
+data:
+  snmp.yml: |-
+    auths:
+      public_v1:
+        community: public
+        security_level: noAuthNoPriv
+        auth_protocol: MD5
+        priv_protocol: DES
+        version: 1
+      public_v2:
+        community: public
+        security_level: noAuthNoPriv
+        auth_protocol: MD5
+        priv_protocol: DES
+        version: 2
+    modules:
+      # CyberPower UPS module — scalar GET only, no walk, all numeric OIDs
+      # CyberPower enterprise base: 1.3.6.1.4.1.3808.1.1.1
+      cyberpower:
+        get:
+          - 1.3.6.1.2.1.1.1.0      # sysDescr
+          - 1.3.6.1.2.1.1.3.0      # sysUpTime
+          - 1.3.6.1.2.1.1.5.0      # sysName
+          - 1.3.6.1.4.1.3808.1.1.1.2.1.1.0   # upsBasicBatteryStatus
+          - 1.3.6.1.4.1.3808.1.1.1.2.1.2.0   # upsBasicBatteryTimeOnBattery
+          - 1.3.6.1.4.1.3808.1.1.1.4.1.1.0   # upsBasicOutputStatus
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.1.0   # upsAdvBatteryCapacity
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.2.0   # upsAdvBatteryTemperature
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.4.0   # upsAdvBatteryRunTimeRemaining
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.6.0   # upsAdvBatteryNeedsReplacement
+          - 1.3.6.1.4.1.3808.1.1.1.3.2.1.0   # upsAdvInputLineVoltage
+          - 1.3.6.1.4.1.3808.1.1.1.3.2.4.0   # upsAdvInputFrequency
+          - 1.3.6.1.4.1.3808.1.1.1.4.2.1.0   # upsAdvOutputVoltage
+          - 1.3.6.1.4.1.3808.1.1.1.4.2.2.0   # upsAdvOutputFrequency
+          - 1.3.6.1.4.1.3808.1.1.1.4.2.3.0   # upsAdvOutputLoad
+          - 1.3.6.1.4.1.3808.1.1.1.4.2.6.0   # upsAdvOutputActivePower
+          - 1.3.6.1.4.1.3808.1.1.1.5.2.1.0   # upsAdvConfigRatedOutputPower
+        metrics:
+          - name: sysUpTime
+            oid: 1.3.6.1.2.1.1.3.0
+            type: gauge
+            help: System uptime (hundredths of a second)
+          - name: sysDescr
+            oid: 1.3.6.1.2.1.1.1.0
+            type: DisplayString
+          - name: sysName
+            oid: 1.3.6.1.2.1.1.5.0
+            type: DisplayString
+          - name: upsBasicBatteryStatus
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.1.1.0
+            type: gauge
+            help: Battery status (1=unknown 2=normal 3=low)
+          - name: upsBasicBatteryTimeOnBattery_seconds
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.1.2.0
+            type: gauge
+            help: Elapsed time on battery (hundredths of second)
+          - name: upsBasicOutputStatus
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.1.1.0
+            type: gauge
+            help: Output status (2=onLine 3=onBattery 7=off)
+          - name: upsAdvBatteryCapacity
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.1.0
+            type: gauge
+            help: Battery capacity remaining (%)
+          - name: upsAdvBatteryTemperature
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.2.0
+            type: gauge
+            help: Battery temperature (Celsius)
+          - name: upsAdvBatteryRunTimeRemaining
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.4.0
+            type: gauge
+            help: Estimated runtime remaining (hundredths of second)
+          - name: upsAdvBattery_needsreplacing
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.6.0
+            type: gauge
+            help: Battery replacement indicator (1=no 2=yes)
+          - name: upsAdvInputLineVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.1.3.2.1.0
+            type: gauge
+            help: Input line voltage (V)
+          - name: upsAdvInputFrequency
+            oid: 1.3.6.1.4.1.3808.1.1.1.3.2.4.0
+            type: gauge
+            help: Input line frequency (Hz)
+          - name: upsAdvOutputVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.1.0
+            type: gauge
+            help: Output voltage (V)
+          - name: upsAdvOutputFrequency
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.2.0
+            type: gauge
+            help: Output frequency (Hz)
+          - name: upsAdvOutputLoad
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.3.0
+            type: gauge
+            help: Output load (%)
+          - name: upsAdvOutputActivePower
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.6.0
+            type: gauge
+            help: Active output power (Watts)
+          - name: upsAdvConfigRatedOutputPower
+            oid: 1.3.6.1.4.1.3808.1.1.1.5.2.1.0
+            type: gauge
+            help: Rated output power (Watts)
+      # CyberPower PDU module — PDU41001-V, enterprise 1.3.6.1.4.1.3808.1.1.6
+      cyberpower_pdu:
+        get:
+          - 1.3.6.1.2.1.1.1.0      # sysDescr
+          - 1.3.6.1.2.1.1.3.0      # sysUpTime
+          - 1.3.6.1.2.1.1.5.0      # sysName
+          - 1.3.6.1.4.1.3808.1.1.6.3.3.1.0   # ePDUInputVoltage
+          - 1.3.6.1.4.1.3808.1.1.6.3.4.1.0   # ePDUInputTotalActivePower
+          - 1.3.6.1.4.1.3808.1.1.6.3.4.2.0   # ePDUInputTotalApparentPower
+          - 1.3.6.1.4.1.3808.1.1.6.3.4.3.0   # ePDUInputTotalCurrent
+        metrics:
+          - name: sysUpTime
+            oid: 1.3.6.1.2.1.1.3.0
+            type: gauge
+          - name: sysDescr
+            oid: 1.3.6.1.2.1.1.1.0
+            type: DisplayString
+          - name: sysName
+            oid: 1.3.6.1.2.1.1.5.0
+            type: DisplayString
+          - name: ePDUInputVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.3.1.0
+            type: gauge
+            help: PDU input voltage (V)
+          - name: ePDUInputTotalActivePower
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.1.0
+            type: gauge
+            help: Total active power consumed by PDU (Watts)
+          - name: ePDUInputTotalApparentPower
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.2.0
+            type: gauge
+            help: Total apparent power (VA)
+          - name: ePDUInputTotalCurrent
+            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.3.0
+            type: gauge
+            help: Total input current (tenths of Amps)
+      # Synology NAS module — DSM SNMP MIB
+      synology:
+        walk:
+          - 1.3.6.1.4.1.6574.1   # syno disk
+          - 1.3.6.1.4.1.6574.2   # syno raid
+          - 1.3.6.1.4.1.6574.3   # syno UPS
+          - 1.3.6.1.4.1.6574.6   # syno services
+        get:
+          - 1.3.6.1.2.1.1.1.0    # sysDescr
+          - 1.3.6.1.2.1.1.3.0    # sysUpTime
+          - 1.3.6.1.2.1.1.5.0    # sysName
+        metrics:
+          - name: sysUpTime
+            oid: 1.3.6.1.2.1.1.3.0
+            type: gauge
+            help: System uptime (hundredths of a second)
+          - name: sysDescr
+            oid: 1.3.6.1.2.1.1.1.0
+            type: DisplayString
+          - name: sysName
+            oid: 1.3.6.1.2.1.1.5.0
+            type: DisplayString
+          - name: diskID
+            oid: 1.3.6.1.4.1.6574.2.1.1.2
+            type: DisplayString
+            indexes:
+              - labelname: diskIndex
+                type: gauge
+          - name: diskStatus
+            oid: 1.3.6.1.4.1.6574.2.1.1.3
+            type: gauge
+            help: Disk status (1=normal 2=initialized 3=notInitialized 4=systemPartitionFailed 5=crashed)
+            indexes:
+              - labelname: diskIndex
+                type: gauge
+          - name: diskTemperature
+            oid: 1.3.6.1.4.1.6574.2.1.1.6
+            type: gauge
+            help: Disk temperature (Celsius)
+            indexes:
+              - labelname: diskIndex
+                type: gauge
+          - name: raidName
+            oid: 1.3.6.1.4.1.6574.3.1.1.2
+            type: DisplayString
+            indexes:
+              - labelname: raidIndex
+                type: gauge
+          - name: raidStatus
+            oid: 1.3.6.1.4.1.6574.3.1.1.3
+            type: gauge
+            help: RAID status (1=normal 2=repairing 3=migrating 4=expanding 5=deleting 6=creating 7=rollingBack 8=degraded 9=crashed)
+            indexes:
+              - labelname: raidIndex
+                type: gauge
+
+      # Ruckus/Brocade ICX core switch module
+      # Uses standard MIB OIDs only, so no vendor MIB download is required.
+      ruckus_icx:
+        walk:
+          - 1.3.6.1.2.1.2.2.1.2      # ifDescr
+          - 1.3.6.1.2.1.2.2.1.8      # ifOperStatus
+          - 1.3.6.1.2.1.2.2.1.14     # ifInErrors
+          - 1.3.6.1.2.1.2.2.1.20     # ifOutErrors
+          - 1.3.6.1.2.1.2.2.1.13     # ifInDiscards
+          - 1.3.6.1.2.1.2.2.1.19     # ifOutDiscards
+          - 1.3.6.1.2.1.31.1.1.1.1   # ifName
+          - 1.3.6.1.2.1.31.1.1.1.6   # ifHCInOctets
+          - 1.3.6.1.2.1.31.1.1.1.10  # ifHCOutOctets
+          - 1.3.6.1.2.1.31.1.1.1.15  # ifHighSpeed
+        get:
+          - 1.3.6.1.2.1.1.1.0        # sysDescr
+          - 1.3.6.1.2.1.1.3.0        # sysUpTime
+          - 1.3.6.1.2.1.1.5.0        # sysName
+        metrics:
+          - name: sysUpTime
+            oid: 1.3.6.1.2.1.1.3.0
+            type: gauge
+            help: System uptime (hundredths of a second)
+          - name: sysDescr
+            oid: 1.3.6.1.2.1.1.1.0
+            type: DisplayString
+          - name: sysName
+            oid: 1.3.6.1.2.1.1.5.0
+            type: DisplayString
+          - name: ifHCInOctets
+            oid: 1.3.6.1.2.1.31.1.1.1.6
+            type: counter
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString
+              - labels: [ifIndex]
+                labelname: ifDescr
+                oid: 1.3.6.1.2.1.2.2.1.2
+                type: DisplayString
+          - name: ifHCOutOctets
+            oid: 1.3.6.1.2.1.31.1.1.1.10
+            type: counter
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString
+              - labels: [ifIndex]
+                labelname: ifDescr
+                oid: 1.3.6.1.2.1.2.2.1.2
+                type: DisplayString
+          - name: ifOperStatus
+            oid: 1.3.6.1.2.1.2.2.1.8
+            type: gauge
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString
+          - name: ifHighSpeed
+            oid: 1.3.6.1.2.1.31.1.1.1.15
+            type: gauge
+            help: Interface speed in Mbps
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString
+          - name: ifInErrors
+            oid: 1.3.6.1.2.1.2.2.1.14
+            type: counter
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString
+          - name: ifOutErrors
+            oid: 1.3.6.1.2.1.2.2.1.20
+            type: counter
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString
+          - name: ifInDiscards
+            oid: 1.3.6.1.2.1.2.2.1.13
+            type: counter
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString
+          - name: ifOutDiscards
+            oid: 1.3.6.1.2.1.2.2.1.19
+            type: counter
+            indexes:
+              - labelname: ifIndex
+                type: gauge
+            lookups:
+              - labels: [ifIndex]
+                labelname: ifName
+                oid: 1.3.6.1.2.1.31.1.1.1.1
+                type: DisplayString

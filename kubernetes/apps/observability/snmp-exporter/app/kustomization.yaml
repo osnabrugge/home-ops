@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./configmap.yaml
   - ./grafanadashboard.yaml
+  - ./grafanadashboard-pdu.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./prometheusrule.yaml

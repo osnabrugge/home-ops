@@ -11,19 +11,48 @@ spec:
   interval: 1h
   values:
     fullnameOverride: *app
+    extraConfigmapMounts:
+      - name: snmp-config
+        configMap: snmp-exporter-config
+        mountPath: /etc/snmp_exporter/snmp.yml
+        subPath: snmp.yml
     serviceMonitor:
       enabled: true
       params:
-        - name: snmp-targets
+        - name: ups01
           module:
             - cyberpower
+          target: 192.168.99.11
+          auth:
+            - public_v2
+        - name: ups02
+          module:
+            - cyberpower
+          target: 192.168.99.12
+          auth:
+            - public_v2
+        - name: pdu01
+          module:
+            - cyberpower_pdu
+          target: 192.168.99.15
+          auth:
+            - public_v2
+        - name: pdu02
+          module:
+            - cyberpower_pdu
+          target: 192.168.99.16
+          auth:
+            - public_v2
+        - name: synology
+          module:
             - synology
-          targets:
-            - 192.168.99.11
-            - 192.168.99.12
-            - 192.168.99.15
-            - 192.168.99.16
-            - 192.168.99.240
+          target: 192.168.99.240
+          auth:
+            - public_v2
+        - name: core01
+          module:
+            - ruckus_icx
+          target: 192.168.99.4
           auth:
             - public_v2
       path: /snmp
