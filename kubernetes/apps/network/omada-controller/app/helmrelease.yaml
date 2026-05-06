@@ -9,8 +9,6 @@ spec:
     kind: OCIRepository
     name: omada-controller
   interval: 1h
-  dependsOn:
-    - name: omada-db
   values:
     controllers:
       omada-controller:
@@ -100,7 +98,7 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            url: tcp://omada-controller.default.svc.cluster.local:8088
+            url: tcp://omada-controller.network.svc.cluster.local:8088
             conditions:
               - "[CONNECTED] == true"
         hostnames:

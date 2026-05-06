@@ -5,6 +5,4 @@ kind: Kustomization
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
-  - ./mongodb-helmrelease.yaml
-  - ./mongodb-ocirepository.yaml
   - ./ocirepository.yaml
