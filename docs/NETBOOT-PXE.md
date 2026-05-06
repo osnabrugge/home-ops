@@ -48,7 +48,9 @@ added under **Services → DHCPv4 → [interface] → Additional options** or vi
 # LoadBalancer IP for the netboot.xyz TFTP+HTTP service
 # Update this value if the IP changes (check kubernetes/apps/network/netboot-xyz/app/helmrelease.yaml)
 
-# Enable TFTP server proxy (using external TFTP at 192.168.69.131)
+# UEFI-only deployment — legacy BIOS devices are not expected in this environment.
+# The line below serves undionly.kpxe for any legacy/unknown arch devices as a fallback;
+# remove it entirely if you want strict UEFI-only behaviour.
 dhcp-boot=tag:!uefi,undionly.kpxe,,192.168.69.131
 
 # x86-64 UEFI — standard EFI boot
@@ -135,9 +137,10 @@ Custom Talos images can be built via the [Talos Image Factory](https://factory.t
 
 :talos_secureboot
 echo Booting Talos Linux (SecureBoot)...
-# Replace with the Talos Image Factory URL for your specific schematic
+# Replace <SCHEMATIC_ID> with your Image Factory schematic and <TALOS_VERSION>
+# with the version defined in talos/machineconfig.yaml.j2 (e.g. v1.13.0)
 # See: https://factory.talos.dev
-set base-url https://factory.talos.dev/image/<SCHEMATIC_ID>/v1.13.0
+set base-url https://factory.talos.dev/image/<SCHEMATIC_ID>/<TALOS_VERSION>
 kernel ${base-url}/kernel-amd64 talos.platform=metal
 initrd ${base-url}/initramfs-amd64.xz
 boot
