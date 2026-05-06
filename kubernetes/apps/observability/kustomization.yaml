@@ -24,5 +24,6 @@ resources:
   - ./netbox-operator/ks.yaml
   - ./netbox/ks.yaml
   - ./netbox-diode/ks.yaml
+  - ./librenms/ks.yaml
   - ./victoria-logs/ks.yaml
   - ./victoria-metrics/ks.yaml

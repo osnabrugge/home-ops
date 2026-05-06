@@ -1,0 +1,24 @@
+---
+# Diode reconciler database — created in the existing postgres16 cluster.
+# The diode role is managed via spec.managed.roles in cluster16.yaml.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: diode
+spec:
+  cluster:
+    name: postgres16
+  name: diode
+  owner: diode
+---
+# Hydra OAuth2 database — used by Ory Hydra backing diode-auth.
+# The hydra role is managed via spec.managed.roles in cluster16.yaml.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: hydra
+spec:
+  cluster:
+    name: postgres16
+  name: hydra
+  owner: hydra
