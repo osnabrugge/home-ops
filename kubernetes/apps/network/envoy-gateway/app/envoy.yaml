@@ -92,7 +92,7 @@ metadata:
       client:
         insecure: true
       conditions:
-        - "[STATUS] any [200, 301, 302, 303, 307, 401, 403]"
+        - "[STATUS] == any(200, 301, 302, 303, 307, 401, 403)"
       ui:
         hide-hostname: true
         hide-url: true
