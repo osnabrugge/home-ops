@@ -1,239 +1,177 @@
 # Tracker Credentials Setup Guide
 
-## Azure Key Vault Secrets Required
+## Purpose
 
-The following secrets must be created in Azure Key Vault for the torrent ecosystem to function. These are injected via ExternalSecrets into Kubernetes.
+This guide documents how to store torrent-related credentials in Azure Key Vault and expose them to applications through ExternalSecrets.
 
-### For qBittorrent
-**Key names (Azure KV):**
-- `qbittorrent-password` - Web UI admin password
-- `qbittorrent-blutopia-passkey` - Blutopia passkey
-- `qbittorrent-fearnopeer-authkey` - fearnopeer authkey
-- `qbittorrent-uploadcx-infohash` - upload.cx infohash/magnet credentials
+Sensitive operational details should stay out of the repository:
+- Do not commit tracker names, tracker URLs, IRC hosts, usernames, ratio state, or account history.
+- Do not encode one secret per tracker unless the workload already requires it.
+- Prefer one Azure Key Vault secret per app or service, matching the existing ExternalSecret pattern already used in this repository.
 
-**How to set (via Azure CLI):**
+## Secret Layout
+
+The current convention in this repository is:
+- One Azure Key Vault secret object per app or service.
+- One Kubernetes Secret per app or service.
+- ExternalSecrets use `dataFrom.extract` to pull the full object.
+
+For example, [kubernetes/apps/default/qbittorrent/app/externalsecret.yaml](/home/sean/projects/talos/home-ops/kubernetes/apps/default/qbittorrent/app/externalsecret.yaml) extracts a single Azure Key Vault secret named `qbittorrent` into the Kubernetes Secret `qbittorrent-secret`.
+
+## Recommended Azure Key Vault Secrets
+
+Create one secret object for each app that needs credentials:
+- `qbittorrent`
+- `autobrr`
+- `thelounge`
+- `prowlarr`
+- `sonarr`
+- `radarr`
+
+Each secret should contain only the fields that app actually consumes.
+
+## Example Secret Shapes
+
+### qBittorrent
+
+Suggested fields:
+- `QBITTORRENT_USERNAME`
+- `QBITTORRENT_PASSWORD`
+- `TRACKER_1_PASSKEY`
+- `TRACKER_2_AUTHKEY`
+- `TRACKER_3_TOKEN`
+
+### autobrr
+
+Suggested fields:
+- `AUTOBRR_SESSION_SECRET`
+- `TRACKER_1_ANNOUNCE_KEY`
+- `TRACKER_2_ANNOUNCE_KEY`
+- `TRACKER_3_ANNOUNCE_KEY`
+
+### thelounge
+
+Suggested fields:
+- `IRC_NETWORK_1_NICK`
+- `IRC_NETWORK_1_PASSWORD`
+- `IRC_NETWORK_2_NICK`
+- `IRC_NETWORK_2_PASSWORD`
+- `IRC_NETWORK_3_NICK`
+- `IRC_NETWORK_3_PASSWORD`
+
+### prowlarr
+
+Suggested fields:
+- `PROWLARR_USERNAME`
+- `PROWLARR_PASSWORD`
+- `INDEXER_1_API_KEY`
+- `INDEXER_2_API_KEY`
+- `INDEXER_3_API_KEY`
+
+### sonarr and radarr
+
+Suggested fields:
+- `SONARR_USERNAME`
+- `SONARR_PASSWORD`
+- `RADARR_USERNAME`
+- `RADARR_PASSWORD`
+
+## Creating Secrets In Azure Key Vault
+
+Store each app secret as a single JSON object.
+
+Example for `qbittorrent`:
+
 ```bash
-# Blutopia tracker credentials
 az keyvault secret set \
   --vault-name "homeops-ca" \
-  --name "qbittorrent-blutopia-passkey" \
-  --value "YOUR_BLUTOPIA_PASSKEY_HERE"
-
-# fearnopeer tracker credentials
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "qbittorrent-fearnopeer-authkey" \
-  --value "YOUR_FEARNOPEER_AUTHKEY_HERE"
-
-# upload.cx tracker credentials
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "qbittorrent-uploadcx-infohash" \
-  --value "YOUR_UPLOADCX_INFOHASH_HERE"
-
-# Web UI password
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "qbittorrent-password" \
-  --value "STRONG_RANDOM_PASSWORD_HERE"
+  --name "qbittorrent" \
+  --value '{
+    "QBITTORRENT_USERNAME": "admin",
+    "QBITTORRENT_PASSWORD": "REPLACE_ME",
+    "TRACKER_1_PASSKEY": "REPLACE_ME",
+    "TRACKER_2_AUTHKEY": "REPLACE_ME",
+    "TRACKER_3_TOKEN": "REPLACE_ME"
+  }'
 ```
 
-### For autobrr
-**Key names (Azure KV):**
-- `autobrr-session-secret` - Session encryption key
-- `autobrr-blutopia-passkey` - Blutopia API/announce key
-- `autobrr-fearnopeer-authkey` - fearnopeer API key
-- `autobrr-uploadcx-infohash` - upload.cx credentials
+Example for `autobrr`:
 
-**How to set:**
-```bash
-# Session secret (generate random: openssl rand -base64 32)
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "autobrr-session-secret" \
-  --value "$(openssl rand -base64 32)"
-
-# Tracker credentials
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "autobrr-blutopia-passkey" \
-  --value "YOUR_BLUTOPIA_PASSKEY_HERE"
-
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "autobrr-fearnopeer-authkey" \
-  --value "YOUR_FEARNOPEER_AUTHKEY_HERE"
-
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "autobrr-uploadcx-infohash" \
-  --value "YOUR_UPLOADCX_INFOHASH_HERE"
-```
-
-### For thelounge (IRC)
-**Key names (Azure KV):**
-- `thelounge-blutopia-irc-nick` - IRC nickname
-- `thelounge-blutopia-irc-password` - IRC password (if required)
-- `thelounge-fearnopeer-irc-nick` - IRC nickname
-- `thelounge-fearnopeer-irc-password` - IRC password
-- `thelounge-uploadcx-irc-nick` - IRC nickname
-- `thelounge-uploadcx-irc-password` - IRC password
-
-**How to set:**
-```bash
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "thelounge-blutopia-irc-nick" \
-  --value "YOUR_BLUTOPIA_IRC_NICK"
-
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "thelounge-blutopia-irc-password" \
-  --value "YOUR_BLUTOPIA_IRC_PASSWORD"
-
-# Repeat for fearnopeer and upload.cx
-```
-
-### For prowlarr
-**Key names (Azure KV):**
-- `prowlarr-password` - Web UI password
-- `prowlarr-blutopia-passkey` - For indexer defintion
-- `prowlarr-fearnopeer-authkey` - For indexer definition
-- `prowlarr-uploadcx-infohash` - For indexer definition
-
-**How to set:**
 ```bash
 az keyvault secret set \
   --vault-name "homeops-ca" \
-  --name "prowlarr-password" \
-  --value "STRONG_RANDOM_PASSWORD"
-
-# Indexer definitions (usually configured in web UI, not as secrets)
+  --name "autobrr" \
+  --value '{
+    "AUTOBRR_SESSION_SECRET": "REPLACE_ME",
+    "TRACKER_1_ANNOUNCE_KEY": "REPLACE_ME",
+    "TRACKER_2_ANNOUNCE_KEY": "REPLACE_ME",
+    "TRACKER_3_ANNOUNCE_KEY": "REPLACE_ME"
+  }'
 ```
 
-### For sonarr/radarr
-**Key names (Azure KV):**
-- `sonarr-password` - Web UI password
-- `radarr-password` - Web UI password
-
-**How to set:**
-```bash
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "sonarr-password" \
-  --value "STRONG_RANDOM_PASSWORD"
-
-az keyvault secret set \
-  --vault-name "homeops-ca" \
-  --name "radarr-password" \
-  --value "STRONG_RANDOM_PASSWORD"
-```
-
----
-
-## Finding Your Tracker Credentials
-
-### Blutopia
-1. Log in to https://blutopia.reseed.pro
-2. Go to **Profile** → **Security**
-3. Find "Passkey" or "API Key"
-4. Copy the full value
-
-### fearnopeer
-1. Log in to https://fearnopeer.com
-2. Go to **Profile** → **Settings**
-3. Look for "Authentication Token" or "API Key"
-4. Copy the value
-
-### upload.cx
-1. Log in to https://upload.cx
-2. Go to **Account** → **Security**
-3. Find "Infohash Auth" or similar
-4. Request new credentials if needed
-
-### IRC Details
-
-**Blutopia IRC:**
-- Server: `irc.blutopia.xyz` (port 6697 TLS)
-- Nickname: Your tracker username
-- Password: Usually same as tracker password
-- Channels: `#announce`, `#general`, `#staff` (if available)
-
-**fearnopeer IRC:**
-- Server: `irc.fearnopeer.com` (port 6697 TLS)
-- Nickname: Your tracker username
-- Password: Request from admin or same as tracker login
-- Channels: `#announce`, `#general`
-
-**upload.cx IRC:**
-- Server: `irc.upload.cx` (port 6697 TLS)
-- Nickname: Your tracker username
-- Password: Usually same as tracker password
-- Channels: `#announce`, `#staff`
-
----
-
-## Verifying Secrets in Kubernetes
-
-After adding to Azure KV, verify they're synced to Kubernetes:
+Generate long random values for session secrets and passwords.
 
 ```bash
-# Check if ExternalSecrets have synced
-KUBECONFIG=./kubeconfig kubectl get externalsecrets -n default -o wide
-
-# Check if secrets exist
-KUBECONFIG=./kubeconfig kubectl get secrets -n default | grep -E "qbittorrent|autobrr|thelounge|prowlarr"
-
-# View secret content (decoded)
-KUBECONFIG=./kubeconfig kubectl get secret qbittorrent-secret -o jsonpath='{.data}'
+openssl rand -base64 32
 ```
 
----
+## ExternalSecret Pattern
 
-## Post-Deployment Configuration Checklist
+The preferred Kubernetes pattern is a single extract per app.
 
-- [ ] All tracker credentials added to Azure KV
-- [ ] ExternalSecrets synced (watch `kubectl get externalsecrets -w`)
-- [ ] qBittorrent Web UI accessible (https://qbittorrent.homeops.ca)
-- [ ] qBittorrent configured with proper seeding rules (see TORRENT-OPTIMIZATION.md)
-- [ ] autobrr configured with tracker filters
-- [ ] thelounge connected to IRC servers
-- [ ] prowlarr configured with indexers
-- [ ] sonarr/radarr linked to qBittorrent + prowlarr
-- [ ] qui (alternative UI) accessible as backup
-- [ ] Seeding phase 1 activated (pause downloads, focus on existing seeds)
+```yaml
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: qbittorrent
+spec:
+  refreshInterval: 5m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: azurekv
+  target:
+    name: qbittorrent-secret
+  dataFrom:
+    - extract:
+        key: qbittorrent
+```
 
----
+If an application needs renamed fields, use `target.template.data` to map the extracted values to the exact environment variable names the chart expects.
+
+## Verification
+
+After adding or updating a Key Vault secret, verify it syncs into Kubernetes.
+
+```bash
+KUBECONFIG=./kubeconfig kubectl get externalsecrets -n default
+KUBECONFIG=./kubeconfig kubectl describe externalsecret qbittorrent -n default
+KUBECONFIG=./kubeconfig kubectl get secret qbittorrent-secret -n default -o yaml
+```
+
+## Operational Guidance
+
+- Keep tracker-specific notes in a private password manager or a local untracked file.
+- Keep this repository limited to app-level secret shapes and deployment wiring.
+- If you later decide to split a single app secret into multiple secrets, do it only when there is a concrete operational reason such as separate ownership, separate rotation cadence, or distinct access controls.
 
 ## Troubleshooting
 
-### "Secret not found" errors in logs
-```bash
-# Check ExternalSecret status
-KUBECONFIG=./kubeconfig kubectl describe externalsecret qbittorrent -n default
+### Secret not syncing
 
-# Check Azure KV access
-KUBECONFIG=./kubeconfig kubectl logs -n external-secrets deploy/external-secrets -f | grep "qbittorrent"
+```bash
+KUBECONFIG=./kubeconfig kubectl describe externalsecret qbittorrent -n default
+KUBECONFIG=./kubeconfig kubectl logs -n external-secrets deploy/external-secrets | grep qbittorrent
 ```
 
-### Tracker credentials not working
-1. Verify in Azure KV: `az keyvault secret show --vault-name "homeops-ca" --name "thekey"`
-2. Ensure no extra whitespace/newlines
-3. For API keys: verify they're still valid (not revoked/expired)
-4. Check app logs for authentication failures
+### Secret shape mismatch
 
-### "Cannot connect to tracker" in qBittorrent
-1. Verify netcat reachability from pod: `kubectl exec -it qbittorrent-xxx -- nc -zv tracker.example.com 80`
-2. Check firewall rules on NAS02
-3. Verify passkey is correctly added to `.torrent` file
-
----
+If the Kubernetes Secret exists but the app still fails to authenticate:
+- confirm the Azure Key Vault object contains the expected field names
+- confirm the ExternalSecret template maps fields correctly
+- confirm the application chart reads those environment variables or mounted keys
 
 ## References
 
-- [docs/TORRENT-OPTIMIZATION.md](./TORRENT-OPTIMIZATION.md) - Full optimization guide
-- [scripts/setup-torrent-ecosystem.sh](../scripts/setup-torrent-ecosystem.sh) - Auto-setup script
-- Tracker documentation (consult official wiki/forums)
-- [autobrr docs](https://autobrr.com/)
-- [qBittorrent docs](https://github.com/qbittorrent/qBittorrent/wiki)
-
+- [docs/TORRENT-SETUP-ACTION-PLAN.md](/home/sean/projects/talos/home-ops/docs/TORRENT-SETUP-ACTION-PLAN.md)
+- [docs/TORRENT-OPTIMIZATION.md](/home/sean/projects/talos/home-ops/docs/TORRENT-OPTIMIZATION.md)
+- [kubernetes/apps/default/qbittorrent/app/externalsecret.yaml](/home/sean/projects/talos/home-ops/kubernetes/apps/default/qbittorrent/app/externalsecret.yaml)
