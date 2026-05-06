@@ -18,8 +18,23 @@ machine:
             - hardwareAddr: "8c:dc:d4:ac:7a:e9"
         mtu: 1500
         vlans:
+          - vlanId: 1
+            dhcp: false
+            addresses:
+              - 192.168.0.12/24
+            mtu: 1500
+          - vlanId: 50
+            dhcp: false
+            addresses:
+              - 192.168.50.12/24
+            mtu: 1500
           - vlanId: 70
             dhcp: false
             addresses:
               - 192.168.70.12/24
+            mtu: 1500
+          - vlanId: 90
+            dhcp: false
+            addresses:
+              - 192.168.90.12/24
             mtu: 1500

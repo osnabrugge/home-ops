@@ -382,7 +382,37 @@ talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 logs controller-runtime
 
 Interpretation:
 - If `bond0.70` exists but stays `down` and pods on `net1` show `NO-CARRIER`, this is usually an upstream L2/VLAN path issue (switch trunk / VLAN allow-list / native-tag mismatch) rather than multus annotation syntax.
-- If `bond0.70` does not exist on some nodes, re-render and re-apply Talos configs for all CP nodes.
+- If `bond0.70` does not exist on some nodes, re-render and re-apply Talos configs for all nodes (CP and worker).
+
+### Multus macvlan NAD VLAN sub-interfaces missing (VLANs 1, 50, 70, 90)
+
+All nodes k8s01–k8s06 should have `bond0.1`, `bond0.50`, `bond0.70`, and `bond0.90` sub-interfaces for macvlan NADs (IoT/Zigbee, blackbox-exporter-vpn, Omada Controller, etc.).
+
+Expected static IP assignments per node:
+| Node | VLAN 1 (bond0.1) | VLAN 50 (bond0.50) | VLAN 70 (bond0.70) | VLAN 90 (bond0.90) |
+|------|------------------|--------------------|--------------------|---------------------|
+| k8s01 | 192.168.0.11/24 | 192.168.50.11/24 | 192.168.70.11/24 | 192.168.90.11/24 |
+| k8s02 | 192.168.0.12/24 | 192.168.50.12/24 | 192.168.70.12/24 | 192.168.90.12/24 |
+| k8s03 | 192.168.0.13/24 | 192.168.50.13/24 | 192.168.70.13/24 | 192.168.90.13/24 |
+| k8s04 | 192.168.0.14/24 | 192.168.50.14/24 | 192.168.70.14/24 | 192.168.90.14/24 |
+| k8s05 | 192.168.0.15/24 | 192.168.50.15/24 | 192.168.70.15/24 | 192.168.90.15/24 |
+| k8s06 | 192.168.0.16/24 | 192.168.50.16/24 | 192.168.70.16/24 | 192.168.90.16/24 |
+
+```bash
+# Verify all VLAN links on all nodes
+for node in 192.168.42.51 192.168.42.52 192.168.42.53 192.168.42.54 192.168.42.55 192.168.42.56; do
+  echo "=== $node ==="
+  talosctl --nodes $node --endpoints $node get links | grep -E 'bond0\.(1|50|70|90)'
+done
+
+# Verify addresses on a specific node
+talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 get addresses | grep -E '192\.168\.(0|50|70|90)\.'
+```
+
+If sub-interfaces are missing after applying config, re-render and re-apply:
+```bash
+just talos render-config k8s01 | talosctl apply-config --nodes 192.168.42.51 --file /dev/stdin
+```
 
 ### Cluster resource policy audit
 Use this to find containers missing CPU/memory requests/limits:
