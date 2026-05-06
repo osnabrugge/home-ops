@@ -1,0 +1,133 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: netboot-xyz
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: netboot-xyz
+  interval: 1h
+  values:
+    controllers:
+      netboot-xyz:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/netbootxyz/netbootxyz
+              tag: 0.7.6
+            env:
+              TZ: America/Toronto
+              # Web UI port for the admin interface
+              WEB_APP_PORT: &uiport 3000
+              # HTTP port used for serving boot assets
+              NGINX_PORT: &httpport 80
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *uiport
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *uiport
+                  initialDelaySeconds: 15
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *uiport
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              # TFTP (port 69/UDP) and NGINX (port 80/TCP) require NET_BIND_SERVICE.
+              # The netboot.xyz container manages its own user switching internally,
+              # requiring SETUID/SETGID/CHOWN. allowPrivilegeEscalation is needed for
+              # the s6-overlay supervisor used by the official image to drop privileges.
+              allowPrivilegeEscalation: true
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+                add: ["NET_BIND_SERVICE", "CHOWN", "SETUID", "SETGID", "FOWNER", "DAC_OVERRIDE"]
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 512Mi
+    defaultPodOptions:
+      securityContext:
+        # netboot.xyz uses s6-overlay which starts as root and drops privileges
+        # internally. UID 0 is required for the supervisor to manage TFTP/NGINX
+        # processes. fsGroup 0 is set to match so config PVC is writable.
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      # LoadBalancer for PXE boot traffic (TFTP + HTTP boot assets)
+      # Dedicated IP so DHCP/dnsmasq can point tftp-server and boot-file to a stable address
+      boot:
+        type: LoadBalancer
+        annotations:
+          # Next free IP after omada-controller (192.168.69.130)
+          lbipam.cilium.io/ips: 192.168.69.131
+          external-dns.alpha.kubernetes.io/hostname: netboot.homeops.ca
+        externalTrafficPolicy: Local
+        ports:
+          tftp:
+            port: 69
+            protocol: UDP
+          http:
+            port: *httpport
+      # ClusterIP for the admin web UI — accessed via HTTPRoute
+      app:
+        ports:
+          http:
+            port: *uiport
+    route:
+      app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 200"]
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - port: *uiport
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /config
+      # NFS mount for custom ISOs and large boot assets stored on NAS
+      # Ensures ISOs (Windows, Proxmox, custom Talos, etc.) survive pod restarts
+      assets:
+        type: nfs
+        server: nas02.in.homeops.ca
+        path: /volume1/netboot
+        globalMounts:
+          - path: /assets

@@ -61,7 +61,19 @@ just talos wipe-cp
 
 This runs `talosctl reset --graceful=false --wipe-mode=all --reboot` on all 3 CP nodes.
 
-After wipe, nodes **must** be booted from Talos ISO (USB/PXE). They will enter maintenance mode on port 50000.
+After wipe, nodes **must** be booted from Talos ISO (USB or PXE). They will enter maintenance mode on port 50000.
+
+#### PXE boot (recommended)
+
+If **netboot.xyz** is deployed (see `kubernetes/apps/network/netboot-xyz/` and [docs/NETBOOT-PXE.md](NETBOOT-PXE.md)),
+nodes will network-boot automatically after the wipe reboot, as long as:
+
+1. The node's UEFI/firmware is set to PXE boot on the first boot attempt
+2. dnsmasq on fw01 is configured with the boot options (see [docs/NETBOOT-PXE.md](NETBOOT-PXE.md))
+3. The netboot.xyz LoadBalancer service is reachable at `192.168.69.131`
+
+Select **Talos Linux** from the netboot.xyz menu, then wait for maintenance mode.
+For SecureBoot-enabled nodes, use the Talos Image Factory URL for a signed image.
 
 **Checkpoint:** Wait until all 3 nodes respond on port 50000:
 ```bash
