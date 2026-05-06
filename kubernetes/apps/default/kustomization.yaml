@@ -22,7 +22,6 @@ resources:
   - ./lidarr/ks.yaml
   - ./mosquitto/ks.yaml
   - ./notifier/ks.yaml
-  # - ./omada-controller/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
