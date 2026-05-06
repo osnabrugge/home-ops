@@ -117,7 +117,8 @@ spec:
             namespace: network
         rules:
           - backendRefs:
-              - port: *uiport
+              - identifier: app
+                port: *uiport
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
