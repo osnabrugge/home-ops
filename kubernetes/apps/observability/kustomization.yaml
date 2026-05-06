@@ -21,5 +21,7 @@ resources:
   - ./smartctl-exporter/ks.yaml
   - ./snmp-exporter/ks.yaml
   - ./syslog-receiver/ks.yaml
+  - ./netbox-diode/ks.yaml
+  - ./librenms/ks.yaml
   - ./victoria-logs/ks.yaml
   - ./victoria-metrics/ks.yaml

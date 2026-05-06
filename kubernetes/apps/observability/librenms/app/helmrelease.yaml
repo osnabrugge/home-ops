@@ -43,7 +43,7 @@ spec:
             env:
               TZ: America/Toronto
               APP_URL: https://librenms.homeops.ca
-              DB_HOST: librenms-mariadb.default.svc.cluster.local
+              DB_HOST: librenms-mariadb.observability.svc.cluster.local
               DB_PORT: "3306"
               DB_DATABASE: librenms
               DB_USERNAME:

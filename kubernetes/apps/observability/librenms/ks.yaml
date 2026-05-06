@@ -1,18 +1,22 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+# LibreNMS deployment — suspended until NetBox is stable.
+# Depends on netbox being healthy and a separate MariaDB instance.
+# Enable by setting spec.suspend: false once dependencies are met.
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: netbox-diode
+  name: librenms
 spec:
+  suspend: true
   dependsOn:
     - name: netbox
   interval: 1h
-  path: ./kubernetes/apps/default/netbox-diode/app
+  path: ./kubernetes/apps/observability/librenms/app
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
-  wait: false
+  targetNamespace: observability
+  wait: true
