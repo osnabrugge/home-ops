@@ -16,6 +16,27 @@ machine:
             - hardwareAddr: "38:ea:a7:90:4b:0c"
             - hardwareAddr: "38:ea:a7:90:4b:0d"
         mtu: 1500
+        vlans:
+          - vlanId: 1
+            dhcp: false
+            addresses:
+              - 192.168.0.14/24
+            mtu: 1500
+          - vlanId: 50
+            dhcp: false
+            addresses:
+              - 192.168.50.14/24
+            mtu: 1500
+          - vlanId: 70
+            dhcp: false
+            addresses:
+              - 192.168.70.14/24
+            mtu: 1500
+          - vlanId: 90
+            dhcp: false
+            addresses:
+              - 192.168.90.14/24
+            mtu: 1500
   nodeLabels:
     topology.kubernetes.io/zone: w
   type: worker

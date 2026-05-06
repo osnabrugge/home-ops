@@ -49,6 +49,7 @@ spec:
     triggerLoopOnEvent: true
     policy: sync
     extraArgs:
+      - --gateway-name=envoy-internal
       - --webhook-provider-read-timeout=30s
       - --webhook-provider-write-timeout=60s
     sources:
