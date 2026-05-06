@@ -21,9 +21,7 @@ resources:
   - ./home-assistant/ks.yaml
   - ./lidarr/ks.yaml
   - ./mosquitto/ks.yaml
-  # - ./netbox/ks.yaml
   - ./notifier/ks.yaml
-  # - ./omada-controller/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml

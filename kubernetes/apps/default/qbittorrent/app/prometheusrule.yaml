@@ -1,0 +1,38 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: qbittorrent
+spec:
+  groups:
+    - name: qbittorrent.rules
+      rules:
+        - alert: QBittorrentUploadStalled
+          # Fires when there are enough active seeders to expect some upload
+          # but the upload speed has been below 1 KB/s for a full hour.
+          # 10 seeders is chosen as the minimum meaningful count — below this,
+          # zero-upload is plausible due to lack of peer demand.
+          # The 1 KB/s ceiling catches near-zero without triggering on brief lulls;
+          # combined with the 1h `for:` window this should only fire on real
+          # connectivity problems (e.g., a broken firewall port-forward rule).
+          expr: |-
+            qbittorrent_torrents_count{filter="seeding"} > 10
+            AND qbittorrent_global_upload_speed_bytes < 1024
+          for: 1h
+          annotations:
+            summary: >-
+              qBittorrent has {{ $value }} seeding torrents but upload speed is near zero —
+              check firewall port-forward for 192.168.69.123:31288
+          labels:
+            severity: warning
+
+        - alert: QBittorrentDown
+          expr: |-
+            up{job="qbittorrent"} == 0
+          for: 5m
+          annotations:
+            summary: >-
+              qBittorrent metrics endpoint is unreachable — service may be down
+          labels:
+            severity: critical

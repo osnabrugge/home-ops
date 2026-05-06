@@ -15,4 +15,5 @@ resources:
   - ./echo/ks.yaml
   - ./envoy-gateway/ks.yaml
   - ./netboot-xyz/ks.yaml
+  - ./omada-controller/ks.yaml
   - ./unbound-dns/ks.yaml

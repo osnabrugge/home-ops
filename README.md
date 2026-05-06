@@ -86,6 +86,7 @@ Inter-VLAN routing for trusted VLANs is handled by the **Brocade ICX 6610-48P** 
 | 50 | Guest | 192.168.50.0/24 | — | OPNsense | Internet-only guest access |
 | 69 | LoadBalancer | 192.168.69.0/24 | — | Cilium (BGP) | Kubernetes Service LB IPs |
 | 70 | IoT | 192.168.70.0/24 | 192.168.70.1 | OPNsense | Restricted — smart home devices |
+| 90 | VPN | 192.168.90.0/24 | — | OPNsense | blackbox-exporter-vpn and Omada Controller via multus macvlan |
 | 99 | Management | 192.168.99.0/24 | 192.168.99.4 | Brocade Core01 | IPMI, KVM, PDU, switches |
 
 ### BGP

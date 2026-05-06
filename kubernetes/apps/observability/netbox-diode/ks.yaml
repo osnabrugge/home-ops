@@ -3,22 +3,16 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: omada-controller
+  name: netbox-diode
 spec:
-  components:
-    - ../../../../components/volsync
   dependsOn:
-    - name: rook-ceph-cluster
-      namespace: rook-ceph
+    - name: netbox
   interval: 1h
-  path: ./kubernetes/apps/default/omada-controller/app
-  postBuild:
-    substitute:
-      APP: omada-controller
+  path: ./kubernetes/apps/observability/netbox-diode/app
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
+  targetNamespace: observability
   wait: false

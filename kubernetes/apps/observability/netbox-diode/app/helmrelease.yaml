@@ -20,8 +20,8 @@ spec:
               repository: netboxcommunity/netbox-diode
               tag: 0.5.0
             env:
-              DIODE_NETBOX_API_URL: http://netbox.default.svc.cluster.local:80
-              DIODE_TO_NETBOX_API_URL: http://netbox.default.svc.cluster.local:80
+              DIODE_NETBOX_API_URL: http://netbox.observability.svc.cluster.local:80
+              DIODE_TO_NETBOX_API_URL: http://netbox.observability.svc.cluster.local:80
               DIODE_GRPC_PORT: &grpc 8081
               DIODE_HTTP_PORT: &http 8080
               TZ: America/Toronto

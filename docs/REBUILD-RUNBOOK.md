@@ -394,7 +394,37 @@ talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 logs controller-runtime
 
 Interpretation:
 - If `bond0.70` exists but stays `down` and pods on `net1` show `NO-CARRIER`, this is usually an upstream L2/VLAN path issue (switch trunk / VLAN allow-list / native-tag mismatch) rather than multus annotation syntax.
-- If `bond0.70` does not exist on some nodes, re-render and re-apply Talos configs for all CP nodes.
+- If `bond0.70` does not exist on some nodes, re-render and re-apply Talos configs for all nodes (CP and worker).
+
+### Multus macvlan NAD VLAN sub-interfaces missing (VLANs 1, 50, 70, 90)
+
+All nodes k8s01–k8s06 should have `bond0.1`, `bond0.50`, `bond0.70`, and `bond0.90` sub-interfaces for macvlan NADs (IoT/Zigbee, blackbox-exporter-vpn, Omada Controller, etc.).
+
+Expected static IP assignments per node:
+| Node | VLAN 1 (bond0.1) | VLAN 50 (bond0.50) | VLAN 70 (bond0.70) | VLAN 90 (bond0.90) |
+|------|------------------|--------------------|--------------------|---------------------|
+| k8s01 | 192.168.0.11/24 | 192.168.50.11/24 | 192.168.70.11/24 | 192.168.90.11/24 |
+| k8s02 | 192.168.0.12/24 | 192.168.50.12/24 | 192.168.70.12/24 | 192.168.90.12/24 |
+| k8s03 | 192.168.0.13/24 | 192.168.50.13/24 | 192.168.70.13/24 | 192.168.90.13/24 |
+| k8s04 | 192.168.0.14/24 | 192.168.50.14/24 | 192.168.70.14/24 | 192.168.90.14/24 |
+| k8s05 | 192.168.0.15/24 | 192.168.50.15/24 | 192.168.70.15/24 | 192.168.90.15/24 |
+| k8s06 | 192.168.0.16/24 | 192.168.50.16/24 | 192.168.70.16/24 | 192.168.90.16/24 |
+
+```bash
+# Verify all VLAN links on all nodes
+for node in 192.168.42.51 192.168.42.52 192.168.42.53 192.168.42.54 192.168.42.55 192.168.42.56; do
+  echo "=== $node ==="
+  talosctl --nodes $node --endpoints $node get links | grep -E 'bond0\.(1|50|70|90)'
+done
+
+# Verify addresses on a specific node
+talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 get addresses | grep -E '192\.168\.(0|50|70|90)\.'
+```
+
+If sub-interfaces are missing after applying config, re-render and re-apply:
+```bash
+just talos render-config k8s01 | talosctl apply-config --nodes 192.168.42.51 --file /dev/stdin
+```
 
 ### Cluster resource policy audit
 Use this to find containers missing CPU/memory requests/limits:
@@ -466,3 +496,43 @@ just kube snapshot <app>  # Trigger restore from Kopia
 2. **NAS availability:** `nas02.in.homeops.ca` must be online with NFS exports for Kopia backups and NFS mounts.
 3. **AKV secrets:** All ExternalSecrets depend on the `azurekv` ClusterSecretStore. Verify AKV credentials haven't expired.
 4. **Cloudflare Tunnel:** Check tunnel status in Cloudflare dashboard — auth tokens in AKV may need refresh.
+
+---
+
+## Torrent port-forward configuration
+
+qBittorrent uses a dedicated LoadBalancer IP (`192.168.69.123`) on port `31288` for inbound BitTorrent peer connections. This is separate from the web UI (which goes through envoy-internal at `192.168.69.121`).
+
+### Firewall port-forward on fw01 (OPNsense)
+
+The firewall NAT rule must forward WAN:31288 → `192.168.69.123:31288`.
+The alias that backs the destination (e.g., `torrent_hosts`) **must contain only the direct IP** — never the hostname `qbittorrent.homeops.ca`.
+
+**Why:** `qbittorrent.homeops.ca` resolves to `192.168.69.121` (envoy-internal) via unbound DNS override.
+If the hostname is in the alias alongside the direct IP, OPNsense creates a round-robin table entry and 50% of inbound torrent connections will be forwarded to the wrong IP, silently breaking peering with private trackers and causing ratio degradation.
+
+**Correct alias config (torrent_hosts):**
+```
+192.168.69.123    ← direct LB IP only
+```
+
+**Verify port-forward is working:**
+```bash
+# From fw01: confirm pf state table shows ESTABLISHED connections on :31288
+pfctl -ss | grep 31288
+
+# From a LAN host: confirm the port is reachable
+nc -zv 192.168.69.123 31288
+
+# From Gatus: the "qBittorrent BitTorrent Port" service endpoint should show success
+# at https://status.homeops.ca
+```
+
+### Monitoring
+
+After a rebuild, verify:
+- Gatus endpoint `services / qBittorrent BitTorrent Port` → green (TCP 192.168.69.123:31288)
+- Prometheus alert `QBittorrentUploadStalled` is NOT firing (upload > 1 KB/s when seeders > 10)
+- Reannounce all torrents to trackers after any port-forward disruption:
+  - qBittorrent → select all → right-click → Force Reannounce
+  - or via API: `curl -X POST 'http://qbittorrent.homeops.ca/api/v2/torrents/reannounce?hashes=all'`
