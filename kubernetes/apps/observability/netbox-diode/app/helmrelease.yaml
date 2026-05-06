@@ -18,7 +18,7 @@ spec:
           migrate:
             image:
               repository: oryd/hydra
-              tag: v2.2.0
+              tag: v26.2.0
             # -e reads the DSN from env (DSN var), --yes auto-confirms the migration
             command: [migrate, sql, up, -e, --yes]
             env:
@@ -40,7 +40,7 @@ spec:
           app:
             image:
               repository: oryd/hydra
-              tag: v2.2.0
+              tag: v26.2.0
             command: [serve, all]
             env:
               TZ: America/Toronto
