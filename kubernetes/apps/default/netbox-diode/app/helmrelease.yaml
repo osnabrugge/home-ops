@@ -19,6 +19,7 @@ spec:
             image:
               repository: oryd/hydra
               tag: v2.2.0
+            # -e reads the DSN from env (DSN var), --yes auto-confirms the migration
             command: [migrate, sql, up, -e, --yes]
             env:
               DSN:
@@ -211,7 +212,8 @@ spec:
                     name: netbox-diode-secret
                     key: REDIS_PASSWORD
               NETBOX_DIODE_PLUGIN_API_BASE_URL: http://netbox.default.svc.cluster.local/api/
-              # Internal cluster communication is over plain HTTP — no TLS to verify
+              # SKIP_TLS_VERIFY=false means TLS verification is enabled (not skipped).
+              # Communication uses plain HTTP internally, so this is a safe no-op default.
               NETBOX_DIODE_PLUGIN_SKIP_TLS_VERIFY: "false"
               DIODE_AUTH_TOKEN_URL: http://netbox-diode-hydra.default.svc.cluster.local:4444/oauth2/token
               DIODE_TO_NETBOX_CLIENT_ID:
