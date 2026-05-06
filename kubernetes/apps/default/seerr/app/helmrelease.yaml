@@ -78,6 +78,8 @@ spec:
           - "{{ .Release.Name }}.homeops.ca"
           - requests.homeops.ca
         parentRefs:
+          - name: envoy-internal
+            namespace: network
           - name: envoy-external
             namespace: network
     persistence:
