@@ -22,7 +22,7 @@ spec:
             env:
               QUI__AUTH_DISABLED: true
               QUI__I_ACKNOWLEDGE_THIS_IS_A_BAD_IDEA: true
-              QUI__AUTH_DISABLED_ALLOWED_CIDRS: 0.0.0.0/0
+              QUI__AUTH_DISABLED_ALLOWED_CIDRS: 10.42.0.0/16,192.168.42.0/24,192.168.69.0/24
               QUI__HOST: 0.0.0.0
               QUI__PORT: &port 80
               TZ: America/Toronto
