@@ -89,8 +89,6 @@ spec:
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
-          - name: envoy-internal
-            namespace: network
           - name: envoy-external
             namespace: network
         rules:
