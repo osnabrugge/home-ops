@@ -26,6 +26,20 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
 
+  # Direct-IP TCP check for qBittorrent BitTorrent port.
+  # Uses the LoadBalancer IP (not the hostname) to avoid DNS round-robin
+  # issues where qbittorrent.homeops.ca could resolve to envoy-internal
+  # (192.168.69.121) instead of the torrent LB (192.168.69.123).
+  # A failure here means the firewall port-forward for inbound peers is broken.
+  - name: qBittorrent BitTorrent Port
+    group: services
+    url: tcp://192.168.69.123:31288
+    interval: 5m
+    conditions:
+      - "[CONNECTED] == true"
+    alerts:
+      - type: pushover
+
 metrics: true
 
 storage:
