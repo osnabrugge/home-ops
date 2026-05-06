@@ -258,6 +258,43 @@ This is the shared operating lane: detect, respond, harden, and upstream improve
 
 This section is a running record of AI-assisted work on the cluster. It serves as a historical record and a source of truth when memory is incomplete.
 
+### Session 2026-05-06: Network Monitoring Infrastructure (Issue #3057)
+
+**Duration:** ~2 hours | **Status:** ✅ Complete
+
+#### New Infrastructure Deployed
+| Component | Type | Status | Notes |
+|-----------|------|--------|-------|
+| **NetBox** | IPAM/DCIM | ✅ Enabled | Re-enabled in kustomization; CNPG 3/3 healthy |
+| **Diode (multi-service)** | NetBox ingestion | ✅ Manifests ready | Replaced broken single-image with proper 4-service architecture |
+| **LibreNMS** | Network monitoring | ⏸️ Suspended | Manifests prepared; enable after NetBox is stable |
+
+#### Architecture Changes
+- **netbox-diode** rewritten to use proper 3-service Diode architecture:
+  - `netboxlabs/diode-auth:1.12.0` — OAuth2 client manager (wraps Ory Hydra)
+  - `netboxlabs/diode-ingester:1.13.0` — gRPC endpoint accepting network device data
+  - `netboxlabs/diode-reconciler:1.13.0` — Reconciles data streams into NetBox
+  - `oryd/hydra:v2.2.0` — OAuth2 server for secure agent authentication
+- **CNPG postgres16 cluster** extended with `managed.roles` for `diode` and `hydra` users
+- **CNPG Database CRDs** added for `diode` and `hydra` databases in existing cluster
+- **Dragonfly** gained `dragonfly-diode` service for Diode Redis stream separation
+- **ExternalSecret** created for Diode credentials (`netbox-diode` AKV key)
+- **ExternalSecret** created for Diode/Hydra DB users (`diode-db-user`, `hydra-db-user`)
+
+#### AKV Secrets Required (must add before deployment)
+| AKV Key | Required Fields |
+|---------|----------------|
+| `netbox-diode` | `DIODE_INGEST_CLIENT_ID`, `DIODE_INGEST_CLIENT_SECRET`, `DIODE_TO_NETBOX_CLIENT_ID`, `DIODE_TO_NETBOX_CLIENT_SECRET`, `NETBOX_TO_DIODE_CLIENT_ID`, `NETBOX_TO_DIODE_CLIENT_SECRET`, `HYDRA_SECRETS_SYSTEM` (≥32 chars), `DIODE_REDIS_PASSWORD`, `DIODE_DB_USERNAME`, `DIODE_DB_PASSWORD`, `HYDRA_DB_USERNAME`, `HYDRA_DB_PASSWORD` |
+| `librenms` | `LIBRENMS_DB_USERNAME`, `LIBRENMS_DB_PASSWORD`, `LIBRENMS_APP_KEY` |
+
+#### Deployment Order
+1. AKV secrets populated → ExternalSecrets sync
+2. CNPG managed roles created (diode + hydra users)
+3. CNPG Database CRDs create `diode` and `hydra` databases
+4. NetBox deploys (depends on CNPG + Dragonfly — both healthy)
+5. netbox-diode deploys (depends on netbox): Hydra → diode-auth → ingester + reconciler
+6. LibreNMS: enable `suspend: false` in `ks.yaml` once NetBox is stable
+
 ### Session 2026-04-18: Database Tier + Alert Triage (PR #3014)
 
 **Duration:** ~4 hours | **Status:** ✅ Complete

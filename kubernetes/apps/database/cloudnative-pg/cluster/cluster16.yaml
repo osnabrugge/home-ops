@@ -39,6 +39,18 @@ spec:
         action: replace
       - regex: cluster
         action: labeldrop
+  managed:
+    roles:
+      - name: diode
+        login: true
+        superuser: false
+        passwordSecret:
+          name: diode-db-user
+      - name: hydra
+        login: true
+        superuser: false
+        passwordSecret:
+          name: hydra-db-user
   backup:
     retentionPolicy: 30d
     barmanObjectStore:

@@ -11,23 +11,97 @@ spec:
   interval: 1h
   values:
     controllers:
-      netbox-diode:
+      # Ory Hydra database migration job — must complete before hydra starts
+      hydra-migrate:
+        type: job
+        containers:
+          migrate:
+            image:
+              repository: oryd/hydra
+              tag: v2.2.0
+            command: [migrate, sql, up, -e, --yes]
+            env:
+              DSN:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: HYDRA_DSN
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+
+      # Ory Hydra — OAuth2 server backing diode-auth
+      hydra:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
-          diode-server:
+          app:
             image:
-              repository: netboxcommunity/netbox-diode
-              tag: 0.5.0
+              repository: oryd/hydra
+              tag: v2.2.0
+            command: [serve, all]
             env:
-              DIODE_NETBOX_API_URL: http://netbox.default.svc.cluster.local:80
-              DIODE_TO_NETBOX_API_URL: http://netbox.default.svc.cluster.local:80
-              DIODE_GRPC_PORT: &grpc 8081
-              DIODE_HTTP_PORT: &http 8080
               TZ: America/Toronto
-            envFrom:
-              - secretRef:
-                  name: netbox-diode-secret
+              DSN:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: HYDRA_DSN
+              URLS_SELF_ISSUER: http://netbox-diode-hydra.default.svc.cluster.local:4444
+              STRATEGIES_ACCESS_TOKEN: jwt
+              STRATEGIES_JWT_SCOPE_CLAIM: list
+              OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES: public
+              SECRETS_SYSTEM:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: HYDRA_SECRETS_SYSTEM
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/alive
+                    port: 4434
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/ready
+                    port: 4434
+                  initialDelaySeconds: 15
+                  periodSeconds: 10
+                  failureThreshold: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+
+      # Diode Auth — wraps Hydra, manages OAuth2 clients for agent authentication
+      diode-auth:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: netboxlabs/diode-auth
+              tag: 1.12.0
+            env:
+              TZ: America/Toronto
+              HTTP_PORT: &auth-port 8082
+              OAUTH2_PUBLIC_SERVER_URL: http://netbox-diode-hydra.default.svc.cluster.local:4444
+              OAUTH2_ADMIN_SERVER_URL: http://netbox-diode-hydra.default.svc.cluster.local:4445
             probes:
               liveness:
                 enabled: true
@@ -35,9 +109,9 @@ spec:
                 spec:
                   httpGet:
                     path: /healthz
-                    port: *http
+                    port: *auth-port
+                  initialDelaySeconds: 15
                   periodSeconds: 30
-                  timeoutSeconds: 5
                   failureThreshold: 5
               readiness:
                 enabled: true
@@ -45,9 +119,62 @@ spec:
                 spec:
                   httpGet:
                     path: /healthz
-                    port: *http
+                    port: *auth-port
                   periodSeconds: 10
-                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 128Mi
+
+      # Diode Ingester — gRPC endpoint accepting network device data into Redis streams
+      diode-ingester:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: netboxlabs/diode-ingester
+              tag: 1.13.0
+            env:
+              TZ: America/Toronto
+              REDIS_HOST: dragonfly-diode.database.svc.cluster.local
+              REDIS_PORT: "6379"
+              REDIS_USERNAME: ""
+              REDIS_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: REDIS_PASSWORD
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  periodSeconds: 10
                   failureThreshold: 5
               startup:
                 enabled: true
@@ -63,6 +190,91 @@ spec:
                 cpu: 10m
               limits:
                 memory: 256Mi
+
+      # Diode Reconciler — reads Redis streams and reconciles data with NetBox
+      diode-reconciler:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: netboxlabs/diode-reconciler
+              tag: 1.13.0
+            env:
+              TZ: America/Toronto
+              REDIS_HOST: dragonfly-diode.database.svc.cluster.local
+              REDIS_PORT: "6379"
+              REDIS_USERNAME: ""
+              REDIS_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: REDIS_PASSWORD
+              NETBOX_DIODE_PLUGIN_API_BASE_URL: http://netbox.default.svc.cluster.local/api/
+              # Internal cluster communication is over plain HTTP — no TLS to verify
+              NETBOX_DIODE_PLUGIN_SKIP_TLS_VERIFY: "false"
+              DIODE_AUTH_TOKEN_URL: http://netbox-diode-hydra.default.svc.cluster.local:4444/oauth2/token
+              DIODE_TO_NETBOX_CLIENT_ID:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: DIODE_TO_NETBOX_CLIENT_ID
+              DIODE_TO_NETBOX_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: DIODE_TO_NETBOX_CLIENT_SECRET
+              POSTGRES_HOST: postgres16-rw.database.svc.cluster.local
+              POSTGRES_PORT: "5432"
+              POSTGRES_DB_NAME: diode
+              POSTGRES_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: POSTGRES_USER
+              POSTGRES_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: POSTGRES_PASSWORD
+              MIGRATION_ENABLED: "true"
+              LOGGING_LEVEL: INFO
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -70,13 +282,51 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+
     service:
-      app:
+      hydra:
+        controller: hydra
+        ports:
+          public:
+            port: 4444
+          admin:
+            port: 4445
+          introspect:
+            port: 4434
+      diode-auth:
+        controller: diode-auth
         ports:
           http:
-            port: *http
+            port: *auth-port
+      diode-ingester:
+        controller: diode-ingester
+        ports:
+          http:
+            port: 8080
           grpc:
-            port: *grpc
+            port: 8081
+      diode-reconciler:
+        controller: diode-reconciler
+        ports:
+          http:
+            port: 8080
+
     persistence:
       tmp:
         type: emptyDir
+        advancedMounts:
+          diode-auth:
+            app:
+              - path: /tmp
+          diode-ingester:
+            app:
+              - path: /tmp
+          diode-reconciler:
+            app:
+              - path: /tmp
+          hydra:
+            app:
+              - path: /tmp
+          hydra-migrate:
+            migrate:
+              - path: /tmp

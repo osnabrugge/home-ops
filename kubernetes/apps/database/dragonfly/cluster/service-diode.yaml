@@ -1,0 +1,15 @@
+---
+# Stable Redis endpoint for Diode services (streams for ingester/reconciler pipeline).
+apiVersion: v1
+kind: Service
+metadata:
+  name: dragonfly-diode
+spec:
+  selector:
+    app: dragonfly
+    app.kubernetes.io/name: dragonfly
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
