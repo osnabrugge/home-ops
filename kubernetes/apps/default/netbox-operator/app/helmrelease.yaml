@@ -1,0 +1,30 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: netbox-operator
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: netbox-operator
+  interval: 1h
+  values:
+    # NetBox cluster-internal URL (HTTP, no TLS within cluster).
+    # NOTE: The netbox-operator Kustomization uses wait: false, so this
+    # HelmRelease will be applied before NetBox is running. The operator pod
+    # will fail to connect and restart until the NetBox service exists. This
+    # is intentional — the operator is deployed first to register its CRDs,
+    # and it will become healthy automatically once NetBox reconciles.
+    host: netbox.default.svc.cluster.local
+    https: false
+    # Operator's own ExternalSecret creates netbox-operator-secret, avoiding
+    # a circular dependency with the netbox Kustomization's netbox-secret.
+    auth:
+      existingSecret: netbox-operator-secret
+    # Do not deploy bundled NetBox subchart; we manage it separately
+    netbox:
+      enabled: false
+    replicaCount: 1
+    updateStrategy:
+      type: Recreate

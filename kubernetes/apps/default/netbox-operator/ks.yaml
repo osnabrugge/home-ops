@@ -3,27 +3,24 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: netbox
+  name: netbox-operator
 spec:
-  components:
-    - ../../../../components/volsync
-    - ../../../../components/zeroscaler
+  # Operator must exist before the NetBox app so CRDs are registered;
+  # wait: false because the operator will error until NetBox is running.
+  # Once NetBox reconciles, the operator will become healthy automatically.
   dependsOn:
     - name: cloudnative-pg-cluster
       namespace: database
     - name: dragonfly-cluster
       namespace: database
-    - name: netbox-operator
+    - name: azurekv
+      namespace: external-secrets
   interval: 1h
-  path: ./kubernetes/apps/default/netbox/app
-  postBuild:
-    substitute:
-      APP: netbox
-      VOLSYNC_CAPACITY: 10Gi
+  path: ./kubernetes/apps/default/netbox-operator/app
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
   targetNamespace: default
-  wait: true
+  wait: false
