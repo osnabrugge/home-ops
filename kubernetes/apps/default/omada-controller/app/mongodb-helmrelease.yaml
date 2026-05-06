@@ -1,0 +1,93 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+# Bitnami standalone MongoDB for Omada Controller external database
+# Ref: https://github.com/mbentley/docker-omada-controller/blob/master/k8s/helm/README.md
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: omada-db
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: omada-db
+  interval: 1h
+  values:
+    # Standalone (single instance) — no replica set key required
+    architecture: standalone
+    # Mount passwords as files rather than env vars (more secure)
+    usePasswordFiles: true
+    auth:
+      existingSecret: omada-db-secret
+      databases:
+        - omada
+      usernames:
+        - omada
+    # Init script grants omada user access to omada_data DB (created by Omada at runtime)
+    initdbScripts:
+      omada-init.js: |+
+        // Wait for MongoDB to be ready (max 30 attempts)
+        let attempts = 0;
+        while (attempts < 30) {
+          try {
+            db.adminCommand({ ping: 1 });
+            break;
+          } catch (e) {
+            attempts++;
+            if (attempts >= 30) { throw new Error("MongoDB not ready after 30 attempts"); }
+            print("Waiting for MongoDB to be ready... attempt " + attempts);
+            sleep(1000);
+          }
+        }
+
+        // Read root credentials from environment / file
+        const rootUser = process.env.MONGODB_ROOT_USER || "root";
+        const rootPassPath = process.env.MONGODB_ROOT_PASSWORD_FILE;
+        let rootPass = process.env.MONGODB_ROOT_PASSWORD;
+
+        if (rootPassPath && typeof cat === 'function') {
+          rootPass = cat(rootPassPath).trim();
+        }
+
+        // Switch to admin and authenticate as root
+        db = db.getSiblingDB("admin");
+        db.auth(rootUser, rootPass);
+
+        // Grant omada user readWrite + dbOwner on both omada and omada_data databases
+        db.getSiblingDB('omada').grantRolesToUser("omada", [
+          { role: "readWrite", db: "omada" },
+          { role: "dbOwner", db: "omada" },
+          { role: "readWrite", db: "omada_data" },
+          { role: "dbOwner", db: "omada_data" }
+        ]);
+
+        print("Init script finished. Databases 'omada' and 'omada_data' permissions granted.");
+
+    persistence:
+      enabled: true
+      storageClass: ceph-block
+      accessModes:
+        - ReadWriteOnce
+      size: 8Gi
+      # Retain PVC on helm delete to prevent data loss
+      resourcePolicy: keep
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+
+    podSecurityContext:
+      enabled: true
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+
+    containerSecurityContext:
+      enabled: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      capabilities:
+        drop:
+          - ALL

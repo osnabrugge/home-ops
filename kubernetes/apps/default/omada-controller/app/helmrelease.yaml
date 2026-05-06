@@ -9,6 +9,8 @@ spec:
     kind: OCIRepository
     name: omada-controller
   interval: 1h
+  dependsOn:
+    - name: omada-db
   values:
     controllers:
       omada-controller:
@@ -22,9 +24,13 @@ spec:
             env:
               MANAGE_HTTP_PORT: "8088"
               MANAGE_HTTPS_PORT: "8043"
+              MONGO_EXTERNAL: "true"
               PGID: "1000"
               PUID: "1000"
               TZ: America/Toronto
+            envFrom:
+              - secretRef:
+                  name: omada-controller-secret
             probes:
               liveness:
                 enabled: true
@@ -59,6 +65,7 @@ spec:
               limits:
                 memory: 2Gi
     defaultPodOptions:
+      terminationGracePeriodSeconds: 60
       securityContext:
         runAsNonRoot: false
         runAsUser: 0
