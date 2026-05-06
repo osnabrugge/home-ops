@@ -15,7 +15,7 @@ spec:
       namespace: database
     - name: netbox-operator
   interval: 1h
-  path: ./kubernetes/apps/default/netbox/app
+  path: ./kubernetes/apps/observability/netbox/app
   postBuild:
     substitute:
       APP: netbox
@@ -25,5 +25,5 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
+  targetNamespace: observability
   wait: true

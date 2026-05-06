@@ -16,7 +16,7 @@ spec:
     # will fail to connect and restart until the NetBox service exists. This
     # is intentional — the operator is deployed first to register its CRDs,
     # and it will become healthy automatically once NetBox reconciles.
-    host: netbox.default.svc.cluster.local
+    host: netbox.observability.svc.cluster.local
     https: false
     # Operator's own ExternalSecret creates netbox-operator-secret, avoiding
     # a circular dependency with the netbox Kustomization's netbox-secret.

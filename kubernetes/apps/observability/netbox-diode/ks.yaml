@@ -8,11 +8,11 @@ spec:
   dependsOn:
     - name: netbox
   interval: 1h
-  path: ./kubernetes/apps/default/netbox-diode/app
+  path: ./kubernetes/apps/observability/netbox-diode/app
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
+  targetNamespace: observability
   wait: false
