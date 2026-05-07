@@ -1,41 +1,17 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
-components:
-- ../../../../components/volsync
-- ../../../../components/zeroscaler
+kind: Kustomization
+resources:
+  - ./externalsecret.yaml
+  - ./helmrelease.yaml
+  - ./ocirepository.yaml
 configMapGenerator:
-- files:
-  - refresh-series.sh=./resources/refresh-series.sh
-  - tag-resolution.sh=./resources/tag-resolution.sh
-  name: sonarr-configmap
+  - name: sonarr-configmap
+    files:
+      - refresh-series.sh=./resources/refresh-series.sh
+      - tag-resolution.sh=./resources/tag-resolution.sh
 generatorOptions:
+  disableNameSuffixHash: true
   annotations:
     kustomize.toolkit.fluxcd.io/substitute: disabled
-  disableNameSuffixHash: true
-kind: Kustomization
-namespace: default
-patches:
-- patch: |-
-    apiVersion: helm.toolkit.fluxcd.io/v2
-    kind: HelmRelease
-    metadata:
-      name: _
-    spec:
-      install:
-        crds: CreateReplace
-      rollback:
-        cleanupOnFail: true
-      upgrade:
-        cleanupOnFail: true
-        crds: CreateReplace
-        strategy:
-          name: RemediateOnFailure
-        remediation:
-          remediateLastFailure: true
-          retries: 2
-  target:
-    group: helm.toolkit.fluxcd.io
-    kind: HelmRelease
-resources:
-- ./externalsecret.yaml
-- ./helmrelease.yaml
-- ./ocirepository.yaml
