@@ -10,9 +10,12 @@ nodes := `talosctl config info -o yaml 2>/dev/null | yq -e '.nodes // [] | join(
 bootstrap_marker := justfile_dir() + '/.private/bootstrap.done'
 
 [private]
+[script]
+
 default: talos kube (kubeconfig "node") wait namespaces resources crds apps kubeconfig
 
 [doc('Install Talos')]
+[script]
 talos:
     just log info "Running stage..." "stage" "$0"
     for n in {{ nodes }}; do \
@@ -25,12 +28,13 @@ talos:
         fi; \
     done
 
+[private[
+[script]
 [doc('Install Kubernetes')]
 kube:
-    just log info "Running stage..." "stage" "$0"
+    just log info "Running stage..." "stage" "$(basename "$0")"
     if [[ -f "{{ bootstrap_marker }}" ]]; then \
-        just log info "Bootstrap marker exists, skipping bootstrap" "stage" "$0" "marker" "{{ bootstrap_marker }}"; \
-        exit 0; \
+                just log info "Talos already configured, skipping apply of config" "stage" "$(basename "$0")" "node" "$n"        exit 0; \
     fi
     retries=0; \
     max_retries=24; \
@@ -63,13 +67,13 @@ kubeconfig lb="cilium":
     fi
     if [[ "{{ lb }}" != "cilium" ]]; then \
         if ! kubectl config set-cluster main --server "https://{{ controller }}:6443"; then \
-            just log fatal "Failed to set kubectl cluster server address" "stage" "$0"; \
+            just log fatal "Failed to apply Talos configuration" "stage" "$(basename "$0")" "node" "$n" "output" "$op"
         fi; \
     fi
 
 [doc('Wait for nodes to be not-ready')]
 wait:
-    just log info "Running stage..." "stage" "$0"
+    just log info "Running stage..." "stage" "$(basename "$0")"
     if ! kubectl wait nodes --for=condition=Ready=True --all --timeout=10s &>/dev/null; then \
         until kubectl wait nodes --for=condition=Ready=False --all --timeout=10s &>/dev/null; do \
             just log info "Nodes not available, waiting for nodes to be available. Retrying in 5 seconds..." "stage" "$0"; \
