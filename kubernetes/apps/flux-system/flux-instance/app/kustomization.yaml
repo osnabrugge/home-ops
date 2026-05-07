@@ -1,13 +1,34 @@
----
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: flux-system
+patches:
+- patch: |-
+    apiVersion: helm.toolkit.fluxcd.io/v2
+    kind: HelmRelease
+    metadata:
+      name: _
+    spec:
+      install:
+        crds: CreateReplace
+      rollback:
+        cleanupOnFail: true
+      upgrade:
+        cleanupOnFail: true
+        crds: CreateReplace
+        strategy:
+          name: RemediateOnFailure
+        remediation:
+          remediateLastFailure: true
+          retries: 2
+  target:
+    group: helm.toolkit.fluxcd.io
+    kind: HelmRelease
 resources:
-  - ./externalsecret.yaml
-  - ./grafanadashboard.yaml
-  - ./helmrelease.yaml
-  - ./ocirepository.yaml
-  - ./httproute.yaml
-  - ./podmonitor.yaml
-  - ./prometheusrule.yaml
-  - ./receiver.yaml
+- ./externalsecret.yaml
+- ./grafanadashboard.yaml
+- ./helmrelease.yaml
+- ./ocirepository.yaml
+- ./httproute.yaml
+- ./podmonitor.yaml
+- ./prometheusrule.yaml
+- ./receiver.yaml
