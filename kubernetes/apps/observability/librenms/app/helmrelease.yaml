@@ -102,7 +102,7 @@ spec:
           app:
             image:
               repository: mariadb
-              tag: "11.4"
+              tag: "11.8"
             env:
               TZ: America/Toronto
               MARIADB_DATABASE: librenms
