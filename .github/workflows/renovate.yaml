@@ -56,15 +56,17 @@ jobs:
         id: load-secrets
         uses: azure/cli@v2
         with:
-        azcliversion: latest
+          azcliversion: latest
           inlineScript: |
             SECRET=$(az keyvault secret show \
             --vault-name ${{ secrets.KEYVAULT_NAME }} \
             --name github-bot \
             --query value -o tsv
-)
-            echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_ENV
-            echo "GITHUB_BOT_APP_PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)" >> $GITHUB_ENV
+            )
+            echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_OUTPUT
+            echo "GITHUB_BOT_APP_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

@@ -31,15 +31,17 @@ jobs:
         id: load-secrets
         uses: azure/cli@v2
         with:
-        azcliversion: latest
+          azcliversion: latest
           inlineScript: |
             SECRET=$(az keyvault secret show \
             --vault-name ${{ secrets.KEYVAULT_NAME }} \
             --name github-bot \
             --query value -o tsv
-)
-            echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_ENV
-            echo "GITHUB_BOT_APP_PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)" >> $GITHUB_ENV
+            )
+            echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_OUTPUT
+            echo "GITHUB_BOT_APP_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Generate Token
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
