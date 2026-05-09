@@ -25,7 +25,9 @@ jobs:
 
       - uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ fromJson(secrets.AZURE_OIDC).clientId }}
+          tenant-id: ${{ fromJson(secrets.AZURE_OIDC).tenantId }}
+          subscription-id: ${{ fromJson(secrets.AZURE_OIDC).subscriptionId }}
 
       - name: Load Secrets
         id: load-secrets
