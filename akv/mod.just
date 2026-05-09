@@ -1,9 +1,12 @@
-set quiet := true
+set lazy
+set quiet
+set script-interpreter := ['bash', '-euo', 'pipefail']
 set shell := ['bash', '-euo', 'pipefail', '-c']
 
 root := justfile_directory()
 
 [private]
+[script]
 default:
   just -l akv
 

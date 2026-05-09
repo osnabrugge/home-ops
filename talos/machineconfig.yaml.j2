@@ -2,9 +2,9 @@
 version: v1alpha1
 machine:
   ca:
-    crt: azkv://keyvault-kube/talos#MACHINE_CA_CRT
+    crt: azkv://kubernetes/talos#MACHINE_CA_CRT
     {% if ENV.IS_CONTROLLER %}
-    key: azkv://keyvault-kube/talos#MACHINE_CA_KEY
+    key: azkv://kubernetes/talos#MACHINE_CA_KEY
     {% endif %}
   features:
     apidCheckExtKeyUsage: true

@@ -20,12 +20,33 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Load Secrets
+        id: load-secrets
+        uses: azure/cli@v2
+        with:
+        azcliversion: latest
+          inlineScript: |
+            SECRET=$(az keyvault secret show \
+            --vault-name ${{ secrets.KEYVAULT_NAME }} \
+            --name github-bot \
+            --query value -o tsv
+)
+            echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_ENV
+            echo "GITHUB_BOT_APP_PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)" >> $GITHUB_ENV
+
       - name: Generate Token
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: app-token
         with:
-          client-id: ${{ steps.load-secrets.outputs.BOT_APP_ID }}
-          private-key: ${{ steps.load-secrets.outputs.BOT_APP_PRIVATE_KEY }}
+          client-id: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_CLIENT_ID }}
+          private-key: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_PRIVATE_KEY }}
 
       - name: Labeler
         uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # v6.1.0
