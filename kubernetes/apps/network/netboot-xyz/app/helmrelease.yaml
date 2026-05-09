@@ -17,8 +17,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/netbootxyz/netbootxyz
-              tag: 0.7.6
+              repository: docker.io/netbootxyz/netbootxyz
+              tag: 0.7.6-nbxyz18
             env:
               TZ: America/Toronto
               # Web UI port for the admin interface

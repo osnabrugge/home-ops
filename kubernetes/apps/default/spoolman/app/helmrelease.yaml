@@ -39,9 +39,9 @@ spec:
                   failureThreshold: 30
                   periodSeconds: 10
             securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
+              allowPrivilegeEscalation: true
+              readOnlyRootFilesystem: false
+              capabilities: {drop: ["ALL"], add: ["CHOWN", "SETUID", "SETGID", "FOWNER"]}
             resources:
               requests:
                 cpu: 10m
@@ -50,9 +50,9 @@ spec:
                 memory: 512Mi
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
     service:
