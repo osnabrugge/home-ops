@@ -20,37 +20,46 @@ spec:
             env:
               TZ: America/Toronto
               SPOOLMAN_HOST: "0.0.0.0"
-              SPOOLMAN_PORT: "7912"
+              SPOOLMAN_PORT: &port 80
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/health
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+                  failureThreshold: 5
+              readiness:
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
                 memory: 128Mi
               limits:
                 memory: 512Mi
-            probes:
-              liveness: &probe
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /api/v1/health
-                    port: 7912
-                  initialDelaySeconds: 10
-                  periodSeconds: 30
-                  failureThreshold: 5
-              readiness: *probe
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
-        runAsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         ports:
           http:
-            port: 7912
+            port: *port
     route:
       app:
         hostnames:
@@ -60,6 +69,6 @@ spec:
             namespace: network
     persistence:
       data:
-        existingClaim: spoolman
+        existingClaim: "{{ .Release.Name }}"
         globalMounts:
-          - path: /home/app/.local/share/spoolman
+          - path: /data

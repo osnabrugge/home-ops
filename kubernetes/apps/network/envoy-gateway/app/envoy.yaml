@@ -85,14 +85,10 @@ kind: Gateway
 metadata:
   name: envoy-internal
   annotations:
-    external-dns.alpha.kubernetes.io/target: "192.168.69.121"
+    external-dns.alpha.kubernetes.io/target: &hostname internal.homeops.ca
     gatus.home-operations.com/endpoint: |-
       group: internal
-      dns-resolver: tcp://10.43.0.10:53
-      client:
-        insecure: true
-      conditions:
-        - "[STATUS] == any(200, 301, 302, 303, 307, 401, 403)"
+      guarded: true
       ui:
         hide-hostname: true
         hide-url: true
@@ -100,7 +96,7 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: internal.homeops.ca
+      external-dns.alpha.kubernetes.io/hostname: *hostname
       lbipam.cilium.io/ips: 192.168.69.121
   listeners:
     - name: http

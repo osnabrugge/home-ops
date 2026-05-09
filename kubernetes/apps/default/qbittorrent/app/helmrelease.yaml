@@ -56,7 +56,15 @@ spec:
                   timeoutSeconds: 5
                   failureThreshold: 5
               readiness:
-                enabled: false
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v2/app/version
+                    port: *port
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
               startup:
                 enabled: true
                 spec:
@@ -69,7 +77,6 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 1Gi
               limits:
                 memory: 16Gi
           metrics:

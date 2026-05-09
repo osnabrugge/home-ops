@@ -29,7 +29,7 @@ spec:
               SEASONPACKARR__FUZZY_MATCHING_SKIP_REPACK_COMPARE: true
               SEASONPACKARR__CLIENTS_DEFAULT_HOST: qbittorrent.default.svc.cluster.local
               SEASONPACKARR__CLIENTS_DEFAULT_PORT: 80
-              SEASONPACKARR__CLIENTS_DEFAULT_PREIMPORTPATH: /data/torrents/tv
+              SEASONPACKARR__CLIENTS_DEFAULT_PREIMPORTPATH: /data/downloads/torrents/complete/tv
             probes:
               liveness:
                 enabled: true

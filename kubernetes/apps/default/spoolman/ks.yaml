@@ -5,12 +5,21 @@ kind: Kustomization
 metadata:
   name: spoolman
 spec:
+  components:
+    - ../../../../components/volsync
+    - ../../../../components/zeroscaler
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/spoolman/app
+  postBuild:
+    substitute:
+      APP: spoolman
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
   targetNamespace: default
-  wait: true
+  wait: false

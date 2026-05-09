@@ -30,25 +30,18 @@ spec:
               UN_LIDARR_0_DELETE_ORIG: false
               # Radarr
               UN_RADARR_0_URL: http://radarr.default.svc.cluster.local
-              UN_RADARR_0_PATHS_0: /data/downloads/torrents/complete
+              UN_RADARR_0_PATHS_0: /data/downloads/torrents/complete/movies
               UN_RADARR_0_PROTOCOLS: torrent
               UN_RADARR_0_TIMEOUT: 10s
               UN_RADARR_0_DELETE_DELAY: 5m
               UN_RADARR_0_DELETE_ORIG: false
               # Sonarr
               UN_SONARR_0_URL: http://sonarr.default.svc.cluster.local
-              UN_SONARR_0_PATHS_0: /data/downloads/torrents/complete
+              UN_SONARR_0_PATHS_0: /data/downloads/torrents/complete/tv
               UN_SONARR_0_PROTOCOLS: torrent
               UN_SONARR_0_TIMEOUT: 10s
               UN_SONARR_0_DELETE_DELAY: 5m
               UN_SONARR_0_DELETE_ORIG: false
-              # Whisparr
-              UN_WHISPARR_0_URL: http://whisparr.default.svc.cluster.local
-              UN_WHISPARR_0_PATHS_0: /data/downloads/torrents/complete
-              UN_WHISPARR_0_PROTOCOLS: torrent
-              UN_WHISPARR_0_TIMEOUT: 10s
-              UN_WHISPARR_0_DELETE_DELAY: 5m
-              UN_WHISPARR_0_DELETE_ORIG: false
             envFrom:
               - secretRef:
                   name: unpackerr-secret

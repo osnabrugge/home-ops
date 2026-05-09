@@ -27,29 +27,24 @@ spec:
               liveness:
                 enabled: true
                 spec:
-                  httpGet:
-                    path: /identity
-                    port: &port 32400
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 5
               readiness:
                 enabled: true
+                custom: true
                 spec:
                   httpGet:
                     path: /identity
-                    port: *port
+                    port: &port 32400
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
               startup:
                 enabled: true
                 spec:
-                  httpGet:
-                    path: /identity
-                    port: *port
-                  failureThreshold: 60
-                  periodSeconds: 5
+                  failureThreshold: 30
+                  periodSeconds: 10
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -59,7 +54,6 @@ spec:
                 - name: gpu
               requests:
                 cpu: 100m
-                memory: 512Mi
               limits:
                 memory: 16Gi
     defaultPodOptions:
