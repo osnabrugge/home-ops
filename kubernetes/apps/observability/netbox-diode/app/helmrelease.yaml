@@ -65,7 +65,7 @@ spec:
                 spec:
                   httpGet:
                     path: /health/alive
-                    port: 4434
+                    port: 4445
                   initialDelaySeconds: 15
                   periodSeconds: 30
                   failureThreshold: 5
@@ -75,7 +75,7 @@ spec:
                 spec:
                   httpGet:
                     path: /health/ready
-                    port: 4434
+                    port: 4445
                   initialDelaySeconds: 15
                   periodSeconds: 10
                   failureThreshold: 5
