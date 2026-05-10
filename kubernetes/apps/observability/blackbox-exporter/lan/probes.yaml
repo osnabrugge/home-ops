@@ -49,23 +49,3 @@ spec:
     - targetLabel: service
       replacement: blackbox-exporter-lan
       action: replace
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/probe_v1.json
-apiVersion: monitoring.coreos.com/v1
-kind: Probe
-metadata:
-  name: lan-icmp
-spec:
-  jobName: icmp_probe
-  module: icmp
-  prober:
-    url: blackbox-exporter-lan.observability.svc.cluster.local:9115
-  targets:
-    staticConfig:
-      static:
-        - nas02.in.homeops.ca
-        - pve01.in.homeops.ca
-  metricRelabelings:
-    - targetLabel: service
-      replacement: blackbox-exporter-lan
-      action: replace
