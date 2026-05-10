@@ -108,8 +108,7 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /healthz
+                  tcpSocket:
                     port: *auth-port
                   initialDelaySeconds: 15
                   periodSeconds: 30
@@ -118,8 +117,7 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /healthz
+                  tcpSocket:
                     port: *auth-port
                   periodSeconds: 10
                   failureThreshold: 5
@@ -162,9 +160,8 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /healthz
-                    port: 8080
+                  tcpSocket:
+                    port: 8081
                   initialDelaySeconds: 15
                   periodSeconds: 30
                   failureThreshold: 5
@@ -172,9 +169,8 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /healthz
-                    port: 8080
+                  tcpSocket:
+                    port: 8081
                   periodSeconds: 10
                   failureThreshold: 5
               startup:
@@ -246,9 +242,8 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /healthz
-                    port: 8080
+                  tcpSocket:
+                    port: 8081
                   initialDelaySeconds: 30
                   periodSeconds: 30
                   failureThreshold: 5
@@ -256,9 +251,8 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /healthz
-                    port: 8080
+                  tcpSocket:
+                    port: 8081
                   initialDelaySeconds: 30
                   periodSeconds: 10
                   failureThreshold: 5
