@@ -41,7 +41,7 @@ spec:
             image:
               repository: oryd/hydra
               tag: v26.2.0
-            command: [hydra, serve, all]
+            command: [hydra, serve, all, --dev]
             env:
               TZ: America/Toronto
               DSN:
