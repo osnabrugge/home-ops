@@ -15,8 +15,27 @@ spec:
       reporting_enabled: "false"
     auth:
       disable_login_form: "false"
+      oauth_allow_insecure_email_lookup: "true"
     auth.anonymous:
       enabled: "true"
+    auth.generic_oauth:
+      enabled: "true"
+      name: Authelia
+      icon: signin
+      client_id: grafana
+      client_secret: $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}
+      scopes: openid profile email groups
+      empty_scopes: "false"
+      auth_url: https://auth.homeops.ca/api/oidc/authorization
+      token_url: https://auth.homeops.ca/api/oidc/token
+      api_url: https://auth.homeops.ca/api/oidc/userinfo
+      login_attribute_path: preferred_username
+      groups_attribute_path: groups
+      name_attribute_path: name
+      use_pkce: "true"
+      role_attribute_path: contains(groups[*], 'admins') && 'GrafanaAdmin' || contains(groups[*], 'users') && 'Editor' || 'Viewer'
+      allow_assign_grafana_admin: "true"
+      auto_login: "false"
     log:
       mode: console
     metrics:
@@ -29,6 +48,7 @@ spec:
       angular_support_enabled: "true"
     server:
       enable_gzip: "true"
+      root_url: https://grafana.homeops.ca
   deployment:
     spec:
       strategy:
@@ -43,6 +63,11 @@ spec:
                     secretKeyRef:
                       name: grafana-admin-password-secret
                       key: GF_SECURITY_ADMIN_PASSWORD
+                - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-admin-password-secret
+                      key: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
                 - name: GF_INSTALL_PLUGINS
                   value: "victoriametrics-metrics-datasource"
               securityContext:
