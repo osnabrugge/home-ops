@@ -78,7 +78,7 @@ spec:
         type: LoadBalancer
         annotations:
           # Dedicated IP so OPNsense and Omada can reach RADIUS directly
-          lbipam.cilium.io/ips: 192.168.69.124
+          lbipam.cilium.io/ips: 192.168.69.132
         externalTrafficPolicy: Local
         ports:
           radius-auth:
