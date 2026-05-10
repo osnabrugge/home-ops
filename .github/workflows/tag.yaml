@@ -38,8 +38,15 @@ jobs:
             --name github-bot \
             --query value -o tsv)
 
+          PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)
+          echo "::add-mask::$PRIVATE_KEY"
+
           echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_OUTPUT
-          echo "GITHUB_BOT_APP_PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)" >> $GITHUB_OUTPUT
+          {
+            echo "GITHUB_BOT_APP_PRIVATE_KEY<<PEM_EOF"
+            echo "$PRIVATE_KEY"
+            echo "PEM_EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Create GitHub App token
         id: app-token
