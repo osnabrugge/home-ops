@@ -3,7 +3,7 @@ version: v1alpha1
 machine:
   ca:
     crt: azkv://kubernetes/talos#MACHINE_CA_CRT
-    {% if ENV.IS_CONTROLLER %}
+    {% if ENV.CONTROLPLANE %}
     key: azkv://kubernetes/talos#MACHINE_CA_KEY
     {% endif %}
   features:
@@ -16,7 +16,7 @@ machine:
     kubePrism:
       enabled: true
       port: 7445
-    {% if ENV.IS_CONTROLLER %}
+    {% if ENV.CONTROLPLANE %}
     kubernetesTalosAPIAccess:
       enabled: true
       allowedKubernetesNamespaces:
@@ -67,7 +67,7 @@ machine:
   nodeLabels:
     node.kubernetes.io/gpu: "true"
     topology.kubernetes.io/region: main
-    topology.kubernetes.io/zone: {{ 'm' if ENV.MACHINE_TYPE == 'controlplane' else 'w' }}
+    topology.kubernetes.io/zone: {{ 'm' if ENV.CONTROLPLANE else 'w' }}
   sysctls:
     fs.inotify.max_user_instances: "8192"
     fs.inotify.max_user_watches: "1048576"
@@ -97,7 +97,7 @@ machine:
 cluster:
   ca:
     crt: azkv://keyvault-kube/talos#CLUSTER_CA_CRT
-    {% if ENV.IS_CONTROLLER %}
+    {% if ENV.CONTROLPLANE %}
     key: azkv://keyvault-kube/talos#CLUSTER_CA_KEY
     {% endif %}
   clusterName: main
@@ -121,7 +121,7 @@ cluster:
       - 10.43.0.0/16
   secret: azkv://keyvault-kube/talos#CLUSTER_SECRET
   token: azkv://keyvault-kube/talos#CLUSTER_TOKEN
-  {% if ENV.IS_CONTROLLER %}
+  {% if ENV.CONTROLPLANE %}
   aggregatorCA:
     crt: azkv://keyvault-kube/talos#CLUSTER_AGGREGATORCA_CRT
     key: azkv://keyvault-kube/talos#CLUSTER_AGGREGATORCA_KEY

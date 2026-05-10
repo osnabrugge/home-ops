@@ -6,19 +6,19 @@ set script-interpreter := ['bash', '-euo', 'pipefail']
 set shell := ['bash', '-euo', 'pipefail', '-c']
 
 # Azure Key Vault Recipes
-[group: 'Azure Keyvault']
+[group: 'Azure Key Vault']
 mod akv "akv"
 
 # Infrastructure Recipes
 [group: 'Infrastructure']
-mod infra "infra"
+mod infra "infrastructure"
 
 # Bootstrap Recipes
 [group: 'Bootstrap']
 mod bootstrap "bootstrap"
 
 # Kube Recipes
-[group: 'Kube']
+[group: 'Kubernetes']
 mod kube "kubernetes"
 
 # Talos Recipes

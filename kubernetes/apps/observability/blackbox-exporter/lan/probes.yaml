@@ -21,6 +21,7 @@ spec:
         - nas02.in.homeops.ca
         - pdu01.in.homeops.ca
         - pdu02.in.homeops.ca
+        - pve01.in.homeops.ca
         - ups01.in.homeops.ca
         - ups02.in.homeops.ca
         - zig01.in.homeops.ca
@@ -53,9 +54,9 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: Probe
 metadata:
-  name: lan-nas02
+  name: lan-icmp
 spec:
-  jobName: nas02_probe
+  jobName: icmp_probe
   module: icmp
   prober:
     url: blackbox-exporter-lan.observability.svc.cluster.local:9115
@@ -63,6 +64,7 @@ spec:
     staticConfig:
       static:
         - nas02.in.homeops.ca
+        - pve01.in.homeops.ca
   metricRelabelings:
     - targetLabel: service
       replacement: blackbox-exporter-lan

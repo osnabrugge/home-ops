@@ -11,6 +11,7 @@ nodes := `talosctl config info -o yaml | yq -e '.nodes | join (" ")'`
 default:
     just -l bootstrap
 
+[confirm('Bootstrap cluster? [y|N]')]
 [doc('Bootstrap Cluster')]
 [script]
 cluster: talos kube (kubeconfig "node") wait-for-nodes resources crds apps kubeconfig
@@ -20,7 +21,7 @@ cluster: talos kube (kubeconfig "node") wait-for-nodes resources crds apps kubec
 talos:
     just log info "Running stage..." "stage" "$(basename "$0")"
     for n in {{ nodes }}; do
-        if ! op=$(just talos apply-node "$n" --insecure 2>&1); then
+        if ! op=$(just --yes talos apply-node "$n" --insecure 2>&1); then
             if [[ "$op" == *"certificate required"* ]]; then
                 just log info "Talos already configured, skipping apply of config" "stage" "$(basename "$0")" "node" "$n"
                 continue

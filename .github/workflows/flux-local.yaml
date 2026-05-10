@@ -38,9 +38,9 @@ jobs:
 
       - uses: azure/login@v2
         with:
-          client-id: ${{ fromJson(secrets.AZURE_OIDC).clientId }}
-          tenant-id: ${{ fromJson(secrets.AZURE_OIDC).tenantId }}
-          subscription-id: ${{ fromJson(secrets.AZURE_OIDC).subscriptionId }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Load Secrets
         id: load-secrets
@@ -53,11 +53,11 @@ jobs:
           echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_OUTPUT
           echo "GITHUB_BOT_APP_PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)" >> $GITHUB_OUTPUT
 
-      - name: Generate Token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+      - name: Create GitHub App token
         id: app-token
+        uses: actions/create-github-app-token@v1
         with:
-          client-id: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_CLIENT_ID }}
+          app-id: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_CLIENT_ID }}
           private-key: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_PRIVATE_KEY }}
 
       - name: Checkout
@@ -104,11 +104,11 @@ jobs:
           echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_OUTPUT
           echo "GITHUB_BOT_APP_PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)" >> $GITHUB_OUTPUT
 
-      - name: Generate Token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+      - name: Create GitHub App token
         id: app-token
+        uses: actions/create-github-app-token@v1
         with:
-          client-id: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_CLIENT_ID }}
+          app-id: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_CLIENT_ID }}
           private-key: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_PRIVATE_KEY }}
 
       - name: Checkout Pull Request Branch

@@ -1,9 +1,9 @@
 {
   "recommendations": [
-    "bluebrown.yamlfmt",
     "blueglassblock.better-json5",
     "irongeek.vscode-env",
     "PKief.material-icon-theme",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "thegeeklab.yamlfmt-ng"
   ]
 }
