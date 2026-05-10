@@ -40,7 +40,7 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-        - spoolman.default.svc.cluster.local:7912
+        - spoolman.default.svc.cluster.local:80
   metricsPath: /metrics
   relabelings:
     - action: replace

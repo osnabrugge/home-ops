@@ -16,4 +16,4 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: qbittorrent
-      app.kubernetes.io/component: app
+      app.kubernetes.io/service: qbittorrent

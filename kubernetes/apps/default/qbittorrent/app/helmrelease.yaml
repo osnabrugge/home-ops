@@ -131,6 +131,8 @@ spec:
         ports:
           http:
             port: *port
+          metrics:
+            port: *metricsPort
       bittorrent:
         type: LoadBalancer
         annotations:
