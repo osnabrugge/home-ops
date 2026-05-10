@@ -9,7 +9,6 @@ spec:
     - targets:
         - fw01.in.homeops.ca:9100
         - kvm01.in.homeops.ca:9100
-        - nas02.in.homeops.ca:9100
         - pve01.in.homeops.ca:9100
   metricsPath: /metrics
   relabelings:

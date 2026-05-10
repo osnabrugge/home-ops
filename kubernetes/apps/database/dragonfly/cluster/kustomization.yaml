@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: database
 resources:
   - ./dragonfly.yaml
+  - ./networkpolicy.yaml
   - ./podmonitor.yaml
   - ./service-diode.yaml
   - ./service-netbox.yaml
