@@ -21,6 +21,7 @@ spec:
               TZ: America/Toronto
               SPOOLMAN_HOST: "0.0.0.0"
               SPOOLMAN_PORT: &port 80
+              SPOOLMAN_DIR_DATA: /data
             probes:
               liveness:
                 enabled: true
