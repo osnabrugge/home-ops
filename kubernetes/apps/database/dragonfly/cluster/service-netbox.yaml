@@ -1,5 +1,5 @@
 ---
-# Stable Redis endpoint for clients that cannot rely on the operator's role-based Service selector.
+# Stable Redis endpoint for NetBox — targets only the Dragonfly master to avoid read-only replica errors.
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,6 +8,7 @@ spec:
   selector:
     app: dragonfly
     app.kubernetes.io/name: dragonfly
+    role: master
   ports:
     - name: redis
       port: 6379
