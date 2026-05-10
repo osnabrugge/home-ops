@@ -79,8 +79,8 @@ releases:
 
   - name: azurekv
     namespace: external-secrets
-    chart: oci://ghcr.io/bjw-s-labs/helm/app-template
-    version: 5.0.0
+    chart: oci://ghcr.io/external-secrets/charts/external-secrets
+    version: 2.4.1
     values:
       - ./templates/values.yaml.gotmpl
     hooks:

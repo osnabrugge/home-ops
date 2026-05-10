@@ -4,28 +4,23 @@ set script-interpreter := ['bash', '-euo', 'pipefail']
 set shell := ['bash', '-euo', 'pipefail', '-c']
 
 scripts_dir := justfile_dir() + '/scripts'
-
 talos_dir := justfile_dir() + '/talos'
 rendered_dir := talos_dir + '/rendered'
-
 # Control-plane nodes (order matters: first node is bootstrap target)
 cp_nodes := "k8s01 k8s02 k8s03"
 # Expected IPs for control-plane nodes (must match cp_nodes order)
 cp_ips := "192.168.42.51 192.168.42.52 192.168.42.53"
 # Bootstrap endpoint: first CP node IP (no DNS/VIP dependency)
 bootstrap_ip := "192.168.42.51"
-
 # First configured endpoint from talosctl (or empty if talosctl not configured yet)
 controller := `talosctl config info -o yaml 2>/dev/null | yq -r '.endpoints[0] // ""' 2>/dev/null || true`
 
 [private]
-[script]
 default:
     just -l talos
 
 [confirm('Apply Talos config to ' + node + ' [y|N] ?')]
 [doc('Apply Talos config to a node')]
-[script]
 apply-node node *args:
     just talos render-config "{{ node }}" | talosctl -n "{{ node }}" apply-config -f /dev/stdin {{ args }}
 
@@ -40,7 +35,6 @@ download-image version:
 
 [confirm('Reboot node ' + node + ' [y|N] ?')]
 [doc('Reboot a node')]
-[script]
 reboot-node node:
     talosctl -n {{ node }} reboot -m powercycle || exit 0
 
@@ -53,7 +47,6 @@ render-config node:
 
 [confirm('Reset node ' + node + ' [y|N] ?')]
 [doc('Reset a node')]
-[script]
 reset-node node *args:
     talosctl -n "{{ node }}" reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --system-labels-to-wipe u-local-hostpath --graceful=false {{ args }}
 
@@ -65,13 +58,11 @@ shutdown-node node *args:
 
 [confirm('Upgrade Kubernetes to ' + version + ' [y|N] ?')]
 [doc('Upgrade Kubernetes version on the cluster')]
-[script]
 upgrade-k8s version:
     talosctl -n "$(talosctl config info -o yaml | yq -e '.endpoints[0]')" upgrade-k8s --to {{ version }}
 
 [confirm('Upgrade node ' + node + ' [y|N] ?')]
 [doc('Upgrade Talos version on a node')]
-[script]
 upgrade-node node *args:
     talosctl -n "{{ node }}" upgrade -i "$(just talos machine-image)" -m powercycle --timeout=10m {{ args }}
 
@@ -80,12 +71,10 @@ schematic-id:
     curl -sX POST --data-binary @<(just template "{{ source_directory() }}/schematic.yaml.j2") "https://factory.talos.dev/schematics" | jq -r '.id'
 
 [private]
-[script]
 machine-controller node:
     just template "{{ source_directory() }}/nodes/{{ node }}.yaml.j2" | yq -e 'select(.machine) | (.machine.type == "controlplane") // ""'
 
 [private]
-[script]
 machine-image:
     just template "{{ source_directory() }}/machineconfig.yaml.j2" | yq -r 'select(.machine) | .machine.install.image // ""'
 
@@ -95,7 +84,6 @@ machine-image:
 
 [confirm('Perform full rebuild for all nodes [y|N] ?')]
 [private]
-[script]
 [doc('Full rebuild: preflight → render → apply → bootstrap → verify')]
 rebuild:
     just log info "Starting full control-plane rebuild"
@@ -167,6 +155,7 @@ preflight:
     echo ""
     echo "All preflight checks passed."
 
+[private]
 [doc('Render configs for all CP nodes to talos/rendered/')]
 render:
     #!/usr/bin/env bash
@@ -242,6 +231,7 @@ render:
     echo ""
     echo "All configs rendered and validated in {{ rendered_dir }}/"
 
+[private]
 [doc('Apply rendered configs to CP nodes in maintenance')]
 apply:
     #!/usr/bin/env bash
@@ -330,6 +320,7 @@ apply:
     echo ""
     echo "All CP nodes configured and running."
 
+[private]
 [doc('Bootstrap etcd + Kubernetes on first CP node')]
 bootstrap:
     #!/usr/bin/env bash
@@ -407,6 +398,7 @@ bootstrap:
     kubectl config set-cluster main --server "https://$bootstrap_ip:6443" --kubeconfig "{{ justfile_dir() }}/kubeconfig"
     echo "  kubeconfig cluster server set to https://$bootstrap_ip:6443"
 
+[private]
 [doc('Verify cluster health after bootstrap')]
 verify:
     #!/usr/bin/env bash
@@ -451,6 +443,7 @@ verify:
     echo ""
     echo "Cluster verification complete."
 
+[private]
 [doc('Wipe all CP nodes (DESTRUCTIVE — requires confirmation)')]
 wipe-cp:
     #!/usr/bin/env bash
@@ -478,6 +471,7 @@ wipe-cp:
     echo "All CP nodes reset. They will reboot into maintenance (ISO/PXE required)."
     echo "Wait for nodes to become available on port 50000 before proceeding."
 
+[private]
 [doc('Regenerate Talos secrets and upload to Azure Key Vault')]
 rotate-secrets:
     #!/usr/bin/env bash
@@ -536,6 +530,7 @@ rotate-secrets:
     echo ""
     echo "New secrets are in AKV. Run 'just talos render' to generate new configs."
 
+[private]
 [doc('Export AKV secrets to .private/secrets/ for local/offline bootstrap')]
 export-secrets:
     #!/usr/bin/env bash
