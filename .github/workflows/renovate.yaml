@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Azure login via OIDC
-        uses: azure/login@v2
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
