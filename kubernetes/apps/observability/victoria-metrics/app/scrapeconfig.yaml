@@ -7,7 +7,10 @@ metadata:
 spec:
   staticConfigs:
     - targets:
+        - fw01.in.homeops.ca:9100
+        - kvm01.in.homeops.ca:9100
         - nas02.in.homeops.ca:9100
+        - pve01.in.homeops.ca:9100
   metricsPath: /metrics
   relabelings:
     - action: replace
@@ -33,13 +36,13 @@ spec:
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
-  name: pikvm
+  name: spoolman
 spec:
   staticConfigs:
     - targets:
-        - kvm01.in.homeops.ca
+        - spoolman.default.svc.cluster.local:7912
   metricsPath: /metrics
   relabelings:
     - action: replace
       targetLabel: job
-      replacement: pikvm
+      replacement: spoolman
