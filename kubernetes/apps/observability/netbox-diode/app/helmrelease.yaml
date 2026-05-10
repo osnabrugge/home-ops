@@ -20,7 +20,7 @@ spec:
               repository: oryd/hydra
               tag: v26.2.0
             # -e reads the DSN from env (DSN var), --yes auto-confirms the migration
-            command: [migrate, sql, up, -e, --yes]
+            command: [hydra, migrate, sql, up, -e, --yes]
             env:
               DSN:
                 valueFrom:
