@@ -12,6 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
@@ -31,6 +32,10 @@ jobs:
     if: ${{ needs.filter.outputs.changed-files != '[]' }}
     needs: filter
     name: Flux Local - Test
+    permissions:
+      id-token: write
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
