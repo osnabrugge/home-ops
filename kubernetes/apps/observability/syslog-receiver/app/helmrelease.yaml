@@ -45,7 +45,6 @@ spec:
           name modify
           match syslog*
           rename message log
-          add _stream syslog
 
       outputs: |-
         [OUTPUT]
@@ -53,7 +52,7 @@ spec:
           match syslog*
           host victoria-logs.observability.svc.cluster.local
           port 9428
-          uri /insert/jsonline?_stream_fields=_stream,host,ident&_msg_field=log&_time_field=date
+          uri /insert/jsonline?_stream_fields=host,ident&_msg_field=log&_time_field=date
           format json_lines
           json_date_format iso8601
           compress gzip
