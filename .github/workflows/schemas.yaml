@@ -20,6 +20,7 @@ jobs:
   main:
     name: Schemas
     runs-on: home-ops-runner
+    environment: "Github Action Runner"
     permissions:
       id-token: write
       contents: read

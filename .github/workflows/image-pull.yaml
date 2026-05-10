@@ -33,6 +33,7 @@ jobs:
     needs: filter
     name: Image Pull - Extract Images
     runs-on: ubuntu-latest
+    environment: "Github Action Runner"
     permissions:
       id-token: write
       contents: read

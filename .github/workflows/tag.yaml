@@ -15,6 +15,7 @@ jobs:
   main:
     name: Tag
     runs-on: ubuntu-latest
+    environment: "Github Action Runner"
     permissions:
       id-token: write
       contents: read

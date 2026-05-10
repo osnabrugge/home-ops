@@ -43,6 +43,7 @@ jobs:
   main:
     name: Renovate
     runs-on: ubuntu-latest
+    environment: "Github Action Runner"
     permissions:
       contents: read
       packages: read
