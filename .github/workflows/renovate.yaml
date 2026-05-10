@@ -36,17 +36,17 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  id-token: write
   contents: read
+  id-token: write
 
 jobs:
   main:
     name: Renovate
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
       packages: read
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

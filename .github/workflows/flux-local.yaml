@@ -32,11 +32,11 @@ jobs:
     if: ${{ needs.filter.outputs.changed-files != '[]' }}
     needs: filter
     name: Flux Local - Test
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
       packages: read
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
