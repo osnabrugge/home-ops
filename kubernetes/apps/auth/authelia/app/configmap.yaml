@@ -60,8 +60,7 @@ data:
     notifier:
       disable_startup_check: true
       smtp:
-        host: smtp-relay.default.svc.cluster.local
-        port: 25
+        address: smtp://smtp-relay.default.svc.cluster.local:25
         sender: Authelia <auth@homeops.ca>
         disable_require_tls: true
 
