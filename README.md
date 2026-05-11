@@ -191,8 +191,9 @@ Work in progress — updated each session with Copilot. The full backlog with pr
 | ✅ | Add NetBox deployment wired to shared PostgreSQL and Redis-compatible cache |
 | ✅ | Wire Grafana SSO through Authelia OIDC |
 | ⏳ | Plex: decide architecture for direct LAN/WAN access without Cloudflare relay (CF tunnel intercepts `*.homeops.ca`, mangles Plex binary protocol) |
-| ⏳ | Diagnose & fix kromgo / alertmanager 404 via Cloudflare edge (direct envoy is 200) |
-| ⏳ | Authelia: re-enroll TOTP for `sean` (`totp_configurations` table empty post-rebuild) |
+| ⏳ | Diagnose & fix kromgo / alertmanager 404 via Cloudflare edge (direct envoy is 200) — [#3171](https://github.com/osnabrugge/home-ops/issues/3171) |
+| ⏳ | Restore SNMP visibility — every device on `192.168.99.0/24` mgmt VLAN ignores SNMP v2c (both `public` and `private`) from laptop *and* in-cluster; pings/HTTP fine. Device-side fix needed; also no Ruckus ICX dashboard exists — [#3175](https://github.com/osnabrugge/home-ops/issues/3175) |
+| ⏳ | Authelia: re-enroll TOTP for `sean` (`totp_configurations` table empty post-rebuild) — [#3172](https://github.com/osnabrugge/home-ops/issues/3172) |
 | ⏳ | Rewrite apply-wait logic (remove `--insecure` polling; use event-driven readiness) |
 | ⏳ | Update `REBUILD-RUNBOOK.md` to reflect all new automation |
 | ⏳ | Migrate TheLounge IRC nicks from NAS02 to configmap |
