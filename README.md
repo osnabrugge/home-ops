@@ -15,8 +15,10 @@ _Backed by [Flux](https://fluxcd.io/), [Renovate](https://github.com/renovatebot
 
 ---
 
-[![Nodes](https://kromgo.homeops.ca/cluster_node_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![Pods](https://kromgo.homeops.ca/cluster_pod_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![CPU](https://kromgo.homeops.ca/cluster_cpu_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Memory](https://kromgo.homeops.ca/cluster_memory_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Power](https://kromgo.homeops.ca/cluster_power_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Uptime](https://kromgo.homeops.ca/cluster_uptime_days?format=badge)](https://grafana.homeops.ca)
-[![Alerts](https://kromgo.homeops.ca/cluster_alert_count?format=badge)](https://alertmanager.homeops.ca)&nbsp;[![HR Degraded](https://kromgo.homeops.ca/flux_hr_not_ready?format=badge)](https://grafana.homeops.ca)&nbsp;[![KS Degraded](https://kromgo.homeops.ca/flux_ks_not_ready?format=badge)](https://grafana.homeops.ca)&nbsp;[![Pods Degraded](https://kromgo.homeops.ca/pods_not_ready?format=badge)](https://grafana.homeops.ca)&nbsp;[![Ceph](https://kromgo.homeops.ca/ceph_health?format=badge)](https://grafana.homeops.ca)&nbsp;[![Seeding](https://kromgo.homeops.ca/torrent_seeding_count?format=badge)](https://qbittorrent.homeops.ca)&nbsp;[![Upload](https://kromgo.homeops.ca/torrent_upload_speed?format=badge)](https://qbittorrent.homeops.ca)
+[![Nodes](https://kromgo.homeops.ca/cluster_node_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![Pods](https://kromgo.homeops.ca/cluster_pod_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![CPU](https://kromgo.homeops.ca/cluster_cpu_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Memory](https://kromgo.homeops.ca/cluster_memory_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Power](https://kromgo.homeops.ca/cluster_power_usage?format=badge)](https://grafana.homeops.ca)
+[![Alerts](https://kromgo.homeops.ca/cluster_alert_count?format=badge)](https://alertmanager.homeops.ca)&nbsp;[![Ceph](https://kromgo.homeops.ca/ceph_health_status?format=badge)](https://grafana.homeops.ca)
+
+_Live cluster stats from [kromgo](https://github.com/kashalls/kromgo). Badges may show as broken when the public Cloudflare edge is having issues; direct envoy still serves them. Tracked in [#3171](https://github.com/osnabrugge/home-ops/issues/3171)._
 
 </div>
 
@@ -112,7 +114,7 @@ Cilium advertises LoadBalancer IPs (192.168.69.0/24) via BGP to the Brocade core
 
 | Device | Count | Role | IP(s) | OS |
 |--------|-------|------|-------|-----|
-| Lenovo ThinkCentre M920q | 6 | Kubernetes (3 CP + 3 worker) | 192.168.42.51–56 | Talos v1.12.6 |
+| Lenovo ThinkCentre M920q | 6 | Kubernetes (3 CP + 3 worker) | 192.168.42.51–56 | Talos v1.13.0 |
 | Synology DS1821+ | 1 | NAS + temporary app host | 192.168.42.10 | DSM |
 | Brocade ICX 6610-48P (stacked) | 2 | Core L3 switch | VIP: .4/vlan | FastIron |
 | Protectli FW6C | 1 | Firewall (OPNsense) | 192.168.0.10 | OPNsense |
@@ -171,26 +173,30 @@ See [REBUILD-RUNBOOK.md](docs/REBUILD-RUNBOOK.md) for the full step-by-step rebu
 
 ## 🔧 Active Sprint
 
-Work in progress — updated each session with Copilot.
+Work in progress — updated each session with Copilot. The full backlog with priorities lives on [GitHub Project #4](https://github.com/users/osnabrugge/projects/4) and individual issues in this repo.
 
 | Status | Item |
 |--------|------|
+| ✅ | Upgrade Talos to v1.13.0 across all 6 nodes |
+| ✅ | Restore postgres16 cluster after wedged replica (rebuild postgres16-9 → postgres16-11 via pg_basebackup) |
+| ✅ | Authelia: allow login by uid OR email (`users_filter` updated; commit 3dded43bd) |
+| ✅ | Gatus: also attach HTTPRoute to envoy-internal so LAN DNS hits a live listener (commit 1cf07186b) |
+| ✅ | Zigbee2MQTT: recover from RBD `emergency_ro` after k8s06 network blip (force-delete pod) |
+| ✅ | Recover 8 emergency_ro RBD volumes after network blip (k8s06 reboot, etcd defrag) |
 | ✅ | Replace `sed` with bash string replacement in `akv-inject.sh` (longest-first sort, no escaping bugs) |
 | ✅ | Add post-render guardrails to render recipe (unresolved placeholders, empty secrets, `talosctl validate`) |
-| ✅ | Add guardrails to bootstrap recipe (missing rendered configs, azkv:// check, endpoint mismatch) |
-| ✅ | Add bootstrap marker file (`.private/bootstrap.done`) with double-bootstrap protection |
-| ✅ | Add local-mode to `akv-inject.sh` (`AKV_LOCAL_DIR` for offline/air-gapped use) |
-| ✅ | Add `export-secrets` recipe (dump AKV secrets to `.private/` for local-mode use) |
 | ✅ | Restore root `kubernetes/apps` kustomization and add a dedicated `database` namespace |
 | ✅ | Reintroduce CloudNativePG operator in-cluster for shared PostgreSQL workloads |
-| ✅ | Add shared PostgreSQL cluster resources under CNPG with scheduled backups |
 | ✅ | Reintroduce shared Redis-compatible cache layer with Dragonfly in `database` |
 | ✅ | Add NetBox deployment wired to shared PostgreSQL and Redis-compatible cache |
+| ✅ | Wire Grafana SSO through Authelia OIDC |
+| ⏳ | Plex: decide architecture for direct LAN/WAN access without Cloudflare relay (CF tunnel intercepts `*.homeops.ca`, mangles Plex binary protocol) |
+| ⏳ | Diagnose & fix kromgo / alertmanager 404 via Cloudflare edge (direct envoy is 200) |
+| ⏳ | Authelia: re-enroll TOTP for `sean` (`totp_configurations` table empty post-rebuild) |
 | ⏳ | Rewrite apply-wait logic (remove `--insecure` polling; use event-driven readiness) |
-| ⏳ | Fix bootstrap double-call bug (idempotent bootstrap gate) |
 | ⏳ | Update `REBUILD-RUNBOOK.md` to reflect all new automation |
-| ⏳ | Fix Zigbee2MQTT CrashLoop (serial-over-TCP adapter at `192.168.70.37:6638` unreachable) |
 | ⏳ | Migrate TheLounge IRC nicks from NAS02 to configmap |
+| ⏳ | Deferred: NFD + Coral + Frigate, Printguard + Klipper (net-new features; stability-first mandate) |
 
 ---
 
@@ -258,6 +264,53 @@ This is the shared operating lane: detect, respond, harden, and upstream improve
 ## 🤖 Copilot Agent Activity Log
 
 This section is a running record of AI-assisted work on the cluster. It serves as a historical record and a source of truth when memory is incomplete.
+
+### Session 2026-05-11: Cluster Stabilization Marathon
+
+**Duration:** ~6 hours | **Status:** ✅ Mostly complete (1 architectural decision pending)
+
+#### Items Resolved
+| Item | Root Cause | Fix | Commit |
+|------|-----------|-----|--------|
+| `postgres16-9` wedged 9h | Replica stuck in standby join | Deleted pod + PVC; CNPG rebuilt as `postgres16-11` via pg_basebackup. 3/3 ready. | (runtime) |
+| Gatus 404 from LAN | `external-dns/unbound` published `.121` (envoy-internal LB) but HTTPRoute only attached to envoy-external listener | Added `envoy-internal` as second `parentRef`. `curl --resolve gatus.homeops.ca:443:192.168.69.121` now 200. | `1cf07186b` |
+| Authelia login fails for email | `users_filter` only matched `uid`, not `mail` | Changed filter to `(&(\|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))` | `3dded43bd` |
+| Zigbee2MQTT crashloop (`EROFS`) | `/config` RBD remounted `emergency_ro` after k8s06 network blip | `kubectl delete pod --force` → kubelet remounted clean. 1/1 Running, MQTT publishing. | (runtime) |
+| Arrs (radarr/sonarr/prowlarr/agregarr) | Verified healthy; no action required | — | — |
+
+#### Items Pending
+| Item | Status | Notes |
+|------|--------|-------|
+| Plex direct connect (no relay) | ⏳ Architectural decision | Cloudflare tunnel `*.homeops.ca` ingress catches `plex.homeops.ca` and CF mangles Plex binary protocol → client falls back to relay. Three options under consideration: (A) bypass CF + router NAT, (B) accept relay, (C) separate gateway with non-`homeops.ca` hostname. |
+| kromgo / alertmanager 404 via CF | ⏳ New tracking issue | Direct envoy-external returns 200; CF edge returns 404 without hitting tunnel. Likely a Cloudflare cache or page rule on these specific subdomains. |
+| TOTP re-enrollment for `sean` | ⏳ User action | `totp_configurations` table empty after Authelia DB rebuild |
+
+#### Lessons Learned
+- `external-dns` decides which LB to publish to from `.status.parents`, not `.spec.parentRefs`. A route attached to gateway A whose listener has `allowedRoutes.namespaces.from=All` will appear under gateway B's parents too if both gateways permit it — so external-dns may publish via the "wrong" LB.
+- CNAMEs to `cfargotunnel` are always Cloudflare-proxied; the `external-dns.alpha.kubernetes.io/cloudflare-proxied=false` annotation is a no-op for these.
+- CNPG pipes (`/controller/log/postgres*`) cannot be `tail -f`'d; use `kubectl logs` instead.
+
+---
+
+### Session 2026-05-10: Network Blip Recovery
+
+**Duration:** ~2 hours | **Status:** ✅ Complete
+
+#### What Happened
+A brief network blip on the storage VLAN caused 8 RBD volumes to remount as `emergency_ro` across multiple workloads (zigbee, postgres replicas, atuin, others). k8s06 also became partially unreachable to etcd peers.
+
+#### Recovery Steps
+1. Identified affected pods via `kubectl get pods -A -o wide | grep -E 'CrashLoopBackOff|Error'` and matched against `kubectl exec ... -- mount | grep emergency_ro`
+2. Force-deleted each affected pod (`kubectl delete pod --force --grace-period=0`) so kubelet would remount cleanly
+3. Rebooted k8s06 to clear etcd connectivity issues
+4. Ran `etcdctl defrag` against all etcd members to reclaim space
+5. Verified all PVCs `Bound` and pods `Running`
+
+#### Lessons Learned
+- RBD `emergency_ro` recovery is just a pod restart away when the underlying RBD image is healthy. Don't overthink it.
+- Keep this runbook bias toward boring, repeatable recovery (Guardian Charter).
+
+---
 
 ### Session 2026-05-06: Network Monitoring Infrastructure (Issue #3057)
 
