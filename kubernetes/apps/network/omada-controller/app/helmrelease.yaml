@@ -20,8 +20,8 @@ spec:
               repository: docker.io/mbentley/omada-controller
               tag: "6.2"
             env:
-              MANAGE_HTTP_PORT: "8088"
-              MANAGE_HTTPS_PORT: "8043"
+              MANAGE_HTTP_PORT: &http_port "8088"
+              MANAGE_HTTPS_PORT: &https_port "8043"
               MONGO_EXTERNAL: "true"
               PGID: "1000"
               PUID: "1000"
@@ -42,7 +42,7 @@ spec:
                 spec:
                   httpGet:
                     path: /
-                    port: &port 8088
+                    port: *http_port
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
@@ -80,9 +80,9 @@ spec:
         externalTrafficPolicy: Local
         ports:
           http:
-            port: *port
+            port: *http_port
           https:
-            port: 8043
+            port: *https_port
           discovery:
             port: 29810
             protocol: UDP
@@ -108,7 +108,8 @@ spec:
             namespace: network
         rules:
           - backendRefs:
-              - port: *port
+              - port: *http_port
+              - port: *https_port
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
