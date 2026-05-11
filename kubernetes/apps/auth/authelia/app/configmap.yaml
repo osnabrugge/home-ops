@@ -56,11 +56,12 @@ data:
           mode: disable
 
     # Email notifications (via smtp-relay)
+    # NOTE: smtp-relay (maddy) Service exposes port 25 only; do not use 587 here.
     notifier:
       disable_startup_check: true
       smtp:
         host: smtp-relay.default.svc.cluster.local
-        port: 587
+        port: 25
         sender: Authelia <auth@homeops.ca>
         disable_require_tls: true
 
