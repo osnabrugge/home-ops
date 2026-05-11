@@ -81,7 +81,6 @@ spec:
         annotations:
           gatus.home-operations.com/endpoint: |-
             conditions: ["[STATUS] == 401"]
-          external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
