@@ -42,7 +42,7 @@ spec:
                 spec:
                   httpGet:
                     path: /
-                    port: *http_port
+                    port: 8088
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
