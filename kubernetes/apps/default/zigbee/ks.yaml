@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: zigbee
-      ZEROSCALER_JOB_NAME: slzb_ultima_probe
+      ZEROSCALER_JOB_NAME: nas02_probe
   prune: true
   sourceRef:
     kind: GitRepository

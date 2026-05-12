@@ -18,7 +18,6 @@ spec:
         - k8s05.in.homeops.ca
         - k8s06.in.homeops.ca
         - kvm01.in.homeops.ca
-        - nas02.in.homeops.ca
         - pdu01.in.homeops.ca
         - pdu02.in.homeops.ca
         - pve01.in.homeops.ca
@@ -45,6 +44,25 @@ spec:
     staticConfig:
       static:
         - nas02.in.homeops.ca:2049
+  metricRelabelings:
+    - targetLabel: service
+      replacement: blackbox-exporter-lan
+      action: replace
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/probe_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: lan-nas02
+spec:
+  jobName: nas02_probe
+  module: icmp
+  prober:
+    url: blackbox-exporter-lan.observability.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - nas02.in.homeops.ca:9115
   metricRelabelings:
     - targetLabel: service
       replacement: blackbox-exporter-lan
