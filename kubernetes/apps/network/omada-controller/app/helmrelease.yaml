@@ -108,8 +108,8 @@ spec:
             namespace: network
         rules:
           - backendRefs:
-              - port: *http_port
-              - port: *https_port
+              - identifier: app
+                port: http
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
