@@ -39,3 +39,4 @@ resources:
   - ./thelounge/ks.yaml
   - ./unpackerr/ks.yaml
   - ./zigbee/ks.yaml
+  - ./zigbee2/ks.yaml
