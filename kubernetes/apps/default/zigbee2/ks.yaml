@@ -15,7 +15,7 @@ spec:
   path: ./kubernetes/apps/default/zigbee2/app
   postBuild:
     substitute:
-      APP: zigbee
+      APP: zigbee2
       ZEROSCALER_JOB_NAME: nas02_probe
   prune: true
   sourceRef:
