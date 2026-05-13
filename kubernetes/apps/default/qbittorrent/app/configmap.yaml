@@ -31,9 +31,9 @@ data:
     Session\QueueingSystemEnabled=true
     Session\uTP\RateLimited=true
     Session\Encryption=2
-    Session\DHTEnabled=true
-    Session\LSDEnabled=true
-    Session\PeXEnabled=true
+    Session\DHTEnabled=false
+    Session\LSDEnabled=false
+    Session\PeXEnabled=false
     Session\AnnounceToAllTrackers=true
     Session\AnnounceToAllTiers=true
 
