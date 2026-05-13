@@ -1,0 +1,212 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: frigate
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: frigate
+  interval: 1h
+  values:
+    controllers:
+      frigate:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          # Pin to a node with both Coral USB and Intel iGPU
+          nodeSelector:
+            google.feature.node.kubernetes.io/coral: "true"
+            node.kubernetes.io/gpu: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/blakeblackshear/frigate
+              tag: 0.17.1
+            env:
+              TZ: America/Toronto
+              LIBVA_DRIVER_NAME: iHD
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/version
+                    port: &port 5000
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 60
+                  periodSeconds: 10
+            securityContext:
+              # Coral USB requires raw /dev/bus/usb access. Talos default-namespace
+              # PSS allows privileged here; switch to a dedicated namespace + USB
+              # device plugin if tightening is required.
+              privileged: true
+            resources:
+              claims:
+                - name: gpu
+              requests:
+                cpu: 200m
+                memory: 1Gi
+              limits:
+                memory: 4Gi
+    defaultPodOptions:
+      resourceClaims:
+        - name: gpu
+          resourceClaimTemplateName: frigate
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+          rtsp:
+            port: 8554
+          webrtc:
+            port: 8555
+          webrtc-udp:
+            port: 8555
+            protocol: UDP
+    route:
+      app:
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /config
+      config-file:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - path: /config/config.yml
+            subPath: config.yml
+            readOnly: true
+      cache:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 2Gi
+        globalMounts:
+          - path: /tmp/cache
+      media:
+        type: nfs
+        server: nas02.in.homeops.ca
+        path: /volume1/data/frigate
+        globalMounts:
+          - path: /media/frigate
+      usb:
+        type: hostPath
+        hostPath: /dev/bus/usb
+        hostPathType: Directory
+        globalMounts:
+          - path: /dev/bus/usb
+    configMaps:
+      config:
+        enabled: true
+        data:
+          config.yml: |
+            mqtt:
+              enabled: true
+              host: mosquitto.default.svc.cluster.local
+              port: 1883
+              topic_prefix: frigate
+              client_id: frigate
+            detectors:
+              coral:
+                type: edgetpu
+                device: usb
+            ffmpeg:
+              hwaccel_args: preset-vaapi
+            objects:
+              track:
+                - person
+                - car
+                - dog
+                - cat
+            record:
+              enabled: true
+              retain:
+                days: 7
+                mode: motion
+              events:
+                retain:
+                  default: 14
+                  mode: motion
+            snapshots:
+              enabled: true
+              retain:
+                default: 14
+            go2rtc:
+              streams:
+                server_room:
+                  - rtsp://go2rtc.default.svc.cluster.local:8554/server_room
+                nozzle_cam:
+                  - rtsp://go2rtc.default.svc.cluster.local:8554/nozzle_cam
+                front:
+                  - rtsp://go2rtc.default.svc.cluster.local:8554/front
+                rear:
+                  - rtsp://go2rtc.default.svc.cluster.local:8554/rear
+            cameras:
+              server_room:
+                ffmpeg:
+                  inputs:
+                    - path: rtsp://127.0.0.1:8554/server_room
+                      input_args: preset-rtsp-restream
+                      roles: [detect, record]
+                detect:
+                  width: 1920
+                  height: 1080
+                  fps: 5
+              nozzle_cam:
+                ffmpeg:
+                  inputs:
+                    - path: rtsp://127.0.0.1:8554/nozzle_cam
+                      input_args: preset-rtsp-restream
+                      roles: [detect, record]
+                detect:
+                  width: 1920
+                  height: 1080
+                  fps: 5
+                # Tuned for nozzle inspection — print failure detection scaffold;
+                # add custom model + zone in a later commit
+                objects:
+                  track: [person]
+              front:
+                ffmpeg:
+                  inputs:
+                    - path: rtsp://127.0.0.1:8554/front
+                      input_args: preset-rtsp-restream
+                      roles: [detect, record]
+                detect:
+                  width: 1920
+                  height: 1080
+                  fps: 5
+              rear:
+                ffmpeg:
+                  inputs:
+                    - path: rtsp://127.0.0.1:8554/rear
+                      input_args: preset-rtsp-restream
+                      roles: [detect, record]
+                detect:
+                  width: 1920
+                  height: 1080
+                  fps: 5
+            version: 0.17-0
