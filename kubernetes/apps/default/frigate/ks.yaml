@@ -11,9 +11,9 @@ spec:
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: node-feature-discovery-rules
-      namespace: flux-system
+      namespace: kube-system
     - name: intel-gpu-resource-driver
-      namespace: flux-system
+      namespace: kube-system
   interval: 1h
   path: ./kubernetes/apps/default/frigate/app
   postBuild:
