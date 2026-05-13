@@ -51,17 +51,3 @@ spec:
         superuser: false
         passwordSecret:
           name: hydra-db-user
-  backup:
-    retentionPolicy: 30d
-    barmanObjectStore:
-      data:
-        compression: bzip2
-      wal:
-        compression: bzip2
-        maxParallel: 8
-      destinationPath: https://backupkube.blob.core.windows.net/cnpg/
-      serverName: postgres16-v1
-      azureCredentials:
-        connectionString:
-          name: cloudnative-pg-secret
-          key: azure-connection-string
