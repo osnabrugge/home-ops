@@ -5,8 +5,16 @@ kind: Kustomization
 metadata:
   name: dashbrr
 spec:
+  components:
+    - ../../../../components/volsync
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/dashbrr/app
+  postBuild:
+    substitute:
+      APP: dashbrr
   prune: true
   sourceRef:
     kind: GitRepository

@@ -102,6 +102,6 @@ spec:
           - path: /config/config.toml
             subPath: config.toml
       data:
-        type: emptyDir
+        existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /data
