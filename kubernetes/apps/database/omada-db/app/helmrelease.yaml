@@ -71,11 +71,16 @@ spec:
       # Retain PVC on helm delete to prevent data loss
       resourcePolicy: keep
 
-    # RWO PVC + RollingUpdate caused Multi-Attach errors when the new pod
-    # landed on a different node from the old one. Recreate kills the old
-    # pod first so the PVC detaches before the new pod starts.
+    # RWO PVC + default RollingUpdate (25% maxSurge) caused Multi-Attach errors
+    # when the new pod landed on a different node from the old one. maxSurge: 0
+    # forces the old pod to terminate (and detach the PVC) before the new pod
+    # is created. Cannot use type: Recreate because the Bitnami chart still
+    # renders rollingUpdate fields, which k8s rejects with Recreate.
     updateStrategy:
-      type: Recreate
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
 
     resources:
       requests:
