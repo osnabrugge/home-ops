@@ -71,6 +71,12 @@ spec:
       # Retain PVC on helm delete to prevent data loss
       resourcePolicy: keep
 
+    # RWO PVC + RollingUpdate caused Multi-Attach errors when the new pod
+    # landed on a different node from the old one. Recreate kills the old
+    # pod first so the PVC detaches before the new pod starts.
+    updateStrategy:
+      type: Recreate
+
     resources:
       requests:
         cpu: 100m
