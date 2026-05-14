@@ -62,7 +62,7 @@ spec:
   targets:
     staticConfig:
       static:
-        - nas02.in.homeops.ca:9115
+        - nas02.in.homeops.ca
   metricRelabelings:
     - targetLabel: service
       replacement: blackbox-exporter-lan

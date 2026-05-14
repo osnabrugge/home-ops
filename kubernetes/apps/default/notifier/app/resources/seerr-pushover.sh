@@ -20,7 +20,7 @@ function notify() {
         "TEST_NOTIFICATION")
             printf -v PUSHOVER_TITLE "Test Notification"
             printf -v PUSHOVER_MESSAGE "Howdy this is a test notification from <b>%s</b>" "Seerr"
-            printf -v PUSHOVER_URL "%s" "https://requests.turbo.ac"
+            printf -v PUSHOVER_URL "%s" "https://requests.homeops.ca"
             printf -v PUSHOVER_URL_TITLE "Open %s" "Seerr"
             printf -v PUSHOVER_PRIORITY "%s" "low"
             ;;
