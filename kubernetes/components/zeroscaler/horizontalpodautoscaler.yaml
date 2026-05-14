@@ -4,7 +4,10 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: ${APP}
 spec:
-  minReplicas: 0
+  # Kubernetes API rejects minReplicas: 0 unless the HPAScaleToZero feature gate
+  # is enabled in kube-controller-manager. Talos does not enable it by default,
+  # so use 1 here. For real scale-to-zero, deploy KEDA and use a ScaledObject.
+  minReplicas: 1
   maxReplicas: 1
   scaleTargetRef:
     apiVersion: apps/v1

@@ -102,11 +102,16 @@ spec:
       config:
         data:
           config.yaml: |-
+            # Beets shares /music with Lidarr (which always moves+renames on import).
+            # Running beets in mutating mode would race Lidarr and corrupt the library.
+            # Keep beets passive: it indexes/queries the existing library only.
+            # To enrich a specific album manually: `beet import -A -W <path>` (no move, no write).
             directory: /music
             library: /config/beets.db
             import:
-              move: yes
-              write: yes
+              move: no
+              copy: no
+              write: no
               log: /config/import.log
             # --- Path formats: separate DJ sets from tracks ---
             paths:
