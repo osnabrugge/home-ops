@@ -43,12 +43,6 @@ spec:
           target: 192.168.99.16
           auth:
             - public_v2
-        - name: synology
-          module:
-            - synology
-          target: 192.168.99.240
-          auth:
-            - public_v2
         - name: core01
           module:
             - ruckus_icx

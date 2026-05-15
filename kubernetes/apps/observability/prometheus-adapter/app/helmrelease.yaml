@@ -10,18 +10,8 @@ spec:
     name: prometheus-adapter
   interval: 1h
   values:
-    replicas: 2
-    topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app.kubernetes.io/name: prometheus-adapter
-            app.kubernetes.io/instance: prometheus-adapter
     prometheus:
-      url: http://vmsingle-victoria-metrics.observability.svc.cluster.local
-      port: 8428
+      url: http://prometheus-operated.observability.svc.cluster.local
     rules:
       default: false
       external:

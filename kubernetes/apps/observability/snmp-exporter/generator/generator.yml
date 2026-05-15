@@ -220,4 +220,4 @@ modules:
             type: DisplayString
 
     auth:
-      community: public
+      community: public_v2

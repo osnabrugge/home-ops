@@ -1,4 +1,3 @@
-set lazy
 set quiet
 set script-interpreter := ['bash', '-euo', 'pipefail']
 set shell := ['bash', '-euo', 'pipefail', '-c']
@@ -36,12 +35,13 @@ download-image version:
 [confirm('Reboot node ' + node + ' [y|N] ?')]
 [doc('Reboot a node')]
 reboot-node node:
-    talosctl -n {{ node }} reboot -m powercycle || exit 0
+    talosctl -n {{ node }} reboot -m powercycle
 
 [doc('Render Talos config for a node')]
 [script]
 render-config node:
     export CONTROLPLANE="$(just talos machine-controller {{ node }})"
+    export SCHEMATIC="$(just talos schematic-id)"
     talosctl machineconfig patch <(just template "{{ source_directory() }}/machineconfig.yaml.j2") \
         -p @<(just template "{{ source_directory() }}/nodes/{{ node }}.yaml.j2")
 
@@ -52,7 +52,6 @@ reset-node node *args:
 
 [confirm('Shutdown node ' + node + ' [y|N] ?')]
 [doc('Shutdown a node')]
-[script]
 shutdown-node node *args:
     talosctl -n "{{ node }}" shutdown --force {{ args }}
 

@@ -11,6 +11,7 @@ _.file = [
 ]
 
 [tools]
+"python" = "latest"
 "uv" = "latest"
 "pipx:flux-local" = "latest"
 "azure" = { version = "latest", uvx_args = "--prerelease=allow" }
