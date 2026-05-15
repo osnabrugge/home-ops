@@ -71,7 +71,7 @@ releases:
   - name: external-secrets
     namespace: external-secrets
     chart: oci://ghcr.io/external-secrets/charts/external-secrets
-    version: 2.4.1
+    version: 2.5.0
     values:
       - ./templates/values.yaml.gotmpl
     needs:
@@ -80,7 +80,7 @@ releases:
   - name: azurekv
     namespace: external-secrets
     chart: oci://ghcr.io/external-secrets/charts/external-secrets
-    version: 2.4.1
+    version: 2.5.0
     values:
       - ./templates/values.yaml.gotmpl
     hooks:
