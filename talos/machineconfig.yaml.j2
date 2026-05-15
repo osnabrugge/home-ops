@@ -2,9 +2,9 @@
 version: v1alpha1
 machine:
   ca:
-    crt: azkv://kubernetes/talos#MACHINE_CA_CRT
+    crt: azkv://keyvault-kube/talos#MACHINE_CA_CRT
     {% if ENV.CONTROLPLANE %}
-    key: azkv://kubernetes/talos#MACHINE_CA_KEY
+    key: azkv://keyvault-kube/talos#MACHINE_CA_KEY
     {% endif %}
   features:
     apidCheckExtKeyUsage: true
@@ -50,7 +50,7 @@ machine:
   install:
     diskSelector:
       model: DOGFISH SSD 256G
-    image: factory.talos.dev/metal-installer-secureboot/e39e36c032e1f2e22dcacf2007090a204e4bb1de019c9740c67aca9a1b2b3caf:v1.13.2
+    image: factory.talos.dev/metal-installer/{{ ENV.SCHEMATIC }}:v1.13.2
     wipe: false
   kernel:
     modules:

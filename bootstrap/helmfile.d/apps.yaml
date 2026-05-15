@@ -74,15 +74,6 @@ releases:
     version: 2.5.0
     values:
       - ./templates/values.yaml.gotmpl
-    needs:
-      - cert-manager/cert-manager
-
-  - name: azurekv
-    namespace: external-secrets
-    chart: oci://ghcr.io/external-secrets/charts/external-secrets
-    version: 2.5.0
-    values:
-      - ./templates/values.yaml.gotmpl
     hooks:
       - # Wait for CRDs to be available
         command: kubectl
@@ -105,7 +96,7 @@ releases:
           - postsync
         showlogs: true
     needs:
-      - external-secrets/external-secrets
+      - cert-manager/cert-manager
 
   - name: flux-operator
     namespace: flux-system
@@ -114,7 +105,7 @@ releases:
     values:
       - ./templates/values.yaml.gotmpl
     needs:
-      - external-secrets/azurekv
+      - external-secrets/external-secrets
 
   - name: flux-instance
     namespace: flux-system

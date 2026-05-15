@@ -7,7 +7,7 @@ JUST_UNSTABLE = "1"
 LEFTHOOK_OUTPUT = "false"
 
 _.file = [
-  { path = "{{config_root}}/.secrets.env", redact = true }
+  "{{config_root}}/.secrets.env",
 ]
 
 [tools]

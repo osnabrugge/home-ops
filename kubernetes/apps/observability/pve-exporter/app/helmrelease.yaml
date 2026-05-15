@@ -1,0 +1,72 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pve-exporter
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: pve-exporter
+  interval: 1h
+  values:
+    controllers:
+      pve-exporter:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/prometheus-pve/prometheus-pve-exporter
+              tag: 3.8.3@sha256:4527b8080c4bd53ae8d7326ff7a3469dad0c1abb5753ff0bae9f1ef1c23cb2c9
+            env:
+              PYTHONWARNINGS: once
+              PVE_VERIFY_SSL: "true"
+              PVE_MODULES: default
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+                memory: 40Mi
+              limits:
+                memory: 80Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: pve-exporter
+        ports:
+          metrics:
+            protocol: HTTP
+            port: 9221
+    serviceMonitor:
+      app:
+        serviceName: pve-exporter
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /pve
+            params:
+              target:
+                - pve01.in.homeops.ca:8006
+            interval: 60s
+            scrapeTimeout: 30s
+            metricRelabelings:
+              - action: labeldrop
+                regex: (pod)
+              - action: replace
+                sourceLabels: ["service"]
+                targetLabel: instance
+                replacement: "pve01"

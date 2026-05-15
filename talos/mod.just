@@ -2,7 +2,6 @@ set quiet
 set script-interpreter := ['bash', '-euo', 'pipefail']
 set shell := ['bash', '-euo', 'pipefail', '-c']
 
-scripts_dir := justfile_dir() + '/scripts'
 talos_dir := justfile_dir() + '/talos'
 rendered_dir := talos_dir + '/rendered'
 # Control-plane nodes (order matters: first node is bootstrap target)
@@ -11,8 +10,6 @@ cp_nodes := "k8s01 k8s02 k8s03"
 cp_ips := "192.168.42.51 192.168.42.52 192.168.42.53"
 # Bootstrap endpoint: first CP node IP (no DNS/VIP dependency)
 bootstrap_ip := "192.168.42.51"
-# First configured endpoint from talosctl (or empty if talosctl not configured yet)
-controller := `talosctl config info -o yaml 2>/dev/null | yq -r '.endpoints[0] // ""' 2>/dev/null || true`
 
 [private]
 default:
@@ -74,8 +71,10 @@ machine-controller node:
     just template "{{ source_directory() }}/nodes/{{ node }}.yaml.j2" | yq -e 'select(.machine) | (.machine.type == "controlplane") // ""'
 
 [private]
+[script]
 machine-image:
-    just template "{{ source_directory() }}/machineconfig.yaml.j2" | yq -r 'select(.machine) | .machine.install.image // ""'
+    export SCHEMATIC="$(just talos schematic-id)"
+    just template "{{ source_directory() }}/machineconfig.yaml.j2" | yq -e 'select(.machine) | .machine.install.image'
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Rebuild / bootstrap automation
@@ -93,6 +92,7 @@ rebuild:
     just talos verify
     just log info "Rebuild complete — control plane is healthy"
 
+[private]
 [doc('Preflight: verify AKV access, az login, node maintenance, tooling')]
 preflight:
     #!/usr/bin/env bash

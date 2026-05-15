@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/grafana.integreatly.org/grafana_v1beta1.json
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafana_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1
 kind: Grafana
 metadata:
@@ -68,8 +68,6 @@ spec:
                     secretKeyRef:
                       name: grafana-admin-password-secret
                       key: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
-                - name: GF_INSTALL_PLUGINS
-                  value: "victoriametrics-metrics-datasource"
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
