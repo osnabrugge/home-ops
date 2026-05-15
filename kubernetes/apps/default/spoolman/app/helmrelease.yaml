@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/donkie/spoolman
-              tag: 0.23.1
+              tag: 0.23.1@sha256:c798bcc19194949962044459e4b43c09d667d084ae9c2c2e0187a42c36d43d9e
             env:
               TZ: America/Toronto
               SPOOLMAN_HOST: "0.0.0.0"
@@ -26,19 +26,20 @@ spec:
             probes:
               liveness:
                 enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /api/v1/health
                     port: *port
-                  initialDelaySeconds: 10
-                  periodSeconds: 30
-                  failureThreshold: 5
-              readiness:
-                enabled: true
-                spec:
-                  failureThreshold: 30
                   periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
               startup:
                 enabled: true
                 spec:

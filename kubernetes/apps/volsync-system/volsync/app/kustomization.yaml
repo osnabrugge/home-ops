@@ -8,3 +8,4 @@ resources:
   - ./mutatingadmissionpolicy.yaml
   - ./ocirepository.yaml
   - ./prometheusrule.yaml
+  - ./servicemonitor.yaml
