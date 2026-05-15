@@ -22,6 +22,7 @@ spec:
               SPOOLMAN_HOST: "0.0.0.0"
               SPOOLMAN_PORT: &port 80
               SPOOLMAN_DIR_DATA: /data
+              SPOOLMAN_METRICS_ENABLED: true
             probes:
               liveness:
                 enabled: true
@@ -34,6 +35,10 @@ spec:
                   periodSeconds: 30
                   failureThreshold: 5
               readiness:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
               startup:
                 enabled: true
                 spec:

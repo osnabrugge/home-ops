@@ -1,0 +1,100 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-defrag
+spec:
+  schedule: "30 3 * * *"
+  timeZone: America/Toronto
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+            - name: install-talosctl
+              image: docker.io/curlimages/curl:8.11.1
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  VERSION=v1.13.2
+                  echo ">>> Downloading talosctl ${VERSION}"
+                  curl -fsSL -o /shared/talosctl \
+                    "https://github.com/siderolabs/talos/releases/download/${VERSION}/talosctl-linux-amd64"
+                  chmod +x /shared/talosctl
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              volumeMounts:
+                - name: bin
+                  mountPath: /shared
+          containers:
+            - name: defrag
+              image: docker.io/library/busybox:1.37
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  export TALOSCONFIG=/etc/talos/config
+                  NODES="192.168.42.51 192.168.42.52 192.168.42.53"
+                  ALL=$(echo "$NODES" | tr ' ' ',')
+                  echo ">>> Pre-defrag etcd status:"
+                  /shared/talosctl -n "$ALL" etcd status || true
+                  for n in $NODES; do
+                    echo ">>> Defragmenting etcd on $n"
+                    /shared/talosctl -n "$n" etcd defrag
+                    echo ">>> Waiting 30s before next member..."
+                    sleep 30
+                  done
+                  echo ">>> Post-defrag etcd status:"
+                  /shared/talosctl -n "$ALL" etcd status
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+              volumeMounts:
+                - name: bin
+                  mountPath: /shared
+                  readOnly: true
+                - name: talosconfig
+                  mountPath: /etc/talos
+                  readOnly: true
+          volumes:
+            - name: bin
+              emptyDir: {}
+            - name: talosconfig
+              secret:
+                secretName: etcd-defrag-talosconfig
+                items:
+                  - key: config
+                    path: config
+                defaultMode: 0400
