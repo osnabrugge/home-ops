@@ -16,6 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: brrpolice
+      VOLSYNC_SCHEDULE: "12 * * * *"
   prune: true
   sourceRef:
     kind: GitRepository

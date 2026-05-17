@@ -16,6 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: zigbee2
+      VOLSYNC_SCHEDULE: "54 * * * *"
       ZEROSCALER_JOB_NAME: nas02_probe
   prune: true
   sourceRef:

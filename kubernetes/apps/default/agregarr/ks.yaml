@@ -16,6 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: agregarr
+      VOLSYNC_SCHEDULE: "2 * * * *"
   prune: true
   sourceRef:
     kind: GitRepository

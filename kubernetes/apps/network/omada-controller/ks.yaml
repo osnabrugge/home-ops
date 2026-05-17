@@ -17,6 +17,7 @@ spec:
   postBuild:
     substitute:
       APP: omada-controller
+      VOLSYNC_SCHEDULE: "26 * * * *"
   prune: true
   sourceRef:
     kind: GitRepository

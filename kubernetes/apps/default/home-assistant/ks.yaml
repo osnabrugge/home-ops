@@ -17,6 +17,7 @@ spec:
   postBuild:
     substitute:
       APP: home-assistant
+      VOLSYNC_SCHEDULE: "18 * * * *"
   prune: true
   sourceRef:
     kind: GitRepository

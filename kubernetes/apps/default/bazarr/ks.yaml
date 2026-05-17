@@ -16,6 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: bazarr
+      VOLSYNC_SCHEDULE: "8 * * * *"
   prune: true
   sourceRef:
     kind: GitRepository

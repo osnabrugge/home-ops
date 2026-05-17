@@ -17,6 +17,7 @@ spec:
   postBuild:
     substitute:
       APP: lldap
+      VOLSYNC_SCHEDULE: "22 * * * *"
       VOLSYNC_CAPACITY: 1Gi
   prune: true
   sourceRef:

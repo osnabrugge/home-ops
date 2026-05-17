@@ -16,6 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: sonarr
+      VOLSYNC_SCHEDULE: "44 * * * *"
   prune: true
   sourceRef:
     kind: GitRepository

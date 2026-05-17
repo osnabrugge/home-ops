@@ -15,6 +15,7 @@ spec:
   postBuild:
     substitute:
       APP: atuin
+      VOLSYNC_SCHEDULE: "4 * * * *"
   prune: true
   sourceRef:
     kind: GitRepository
