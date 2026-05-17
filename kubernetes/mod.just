@@ -83,7 +83,7 @@ sync resource:
 
 [doc('View a secret')]
 view-secret ns secret:
-    kubectl view-secret -n {{ ns }} {{ secret }}
+    kubectl get secret -n {{ ns }} {{ secret }}
 
 [private]
 render-local-ks ns ks:
