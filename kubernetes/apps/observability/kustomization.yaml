@@ -14,11 +14,13 @@ resources:
   - ./grafana/ks.yaml
   - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
+  - ./opnsense-exporter/ks.yaml
   - ./prometheus-adapter/ks.yaml
   - ./pve-exporter/ks.yaml
   - ./silence-operator/ks.yaml
   - ./smartctl-exporter/ks.yaml
   - ./snmp-exporter/ks.yaml
+  - ./speedtest-exporter/ks.yaml
   - ./syslog-receiver/ks.yaml
   - ./netbox-operator/ks.yaml
   - ./netbox/ks.yaml

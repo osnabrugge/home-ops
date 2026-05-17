@@ -3,15 +3,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: spoolman
+  name: &app spoolman
 spec:
   chartRef:
     kind: OCIRepository
-    name: spoolman
+    name: *app
   interval: 1h
   values:
     controllers:
       spoolman:
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
@@ -20,7 +22,7 @@ spec:
             env:
               TZ: America/Toronto
               SPOOLMAN_HOST: "0.0.0.0"
-              SPOOLMAN_PORT: &port 80
+              SPOOLMAN_PORT: &port 8000
               SPOOLMAN_DIR_DATA: /data
               SPOOLMAN_METRICS_ENABLED: true
             probes:
@@ -64,9 +66,19 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
+        controller: *app
         ports:
           http:
             port: *port
+    serviceMonitor:
+      app:
+        serviceName: *app
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 60m
+            scrapeTimeout: 5m
     route:
       app:
         hostnames:

@@ -75,6 +75,8 @@ spec:
     operator:
       dashboards:
         enabled: true
+        annotations:
+          grafana_folder: Cilium
       prometheus:
         enabled: true
         serviceMonitor:
@@ -110,6 +112,8 @@ spec:
           - NET_ADMIN
           - SYS_ADMIN
           - SYS_RESOURCE
+          - PERFMON
+          - BPF
     socketLB:
       enabled: true
       hostNamespaceOnly: true
