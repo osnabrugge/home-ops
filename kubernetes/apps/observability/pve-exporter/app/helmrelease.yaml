@@ -69,3 +69,6 @@ spec:
                 sourceLabels: ["service"]
                 targetLabel: instance
                 replacement: "pve01"
+    persistence:
+      tmp:
+        type: emptyDir
