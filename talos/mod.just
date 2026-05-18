@@ -81,7 +81,6 @@ machine-image:
 # ──────────────────────────────────────────────────────────────────────────────
 
 [confirm('Perform full rebuild for all nodes [y|N] ?')]
-[private]
 [doc('Full rebuild: preflight → render → apply → bootstrap → verify')]
 rebuild:
     just log info "Starting full control-plane rebuild"
@@ -92,11 +91,11 @@ rebuild:
     just talos verify
     just log info "Rebuild complete — control plane is healthy"
 
+[script]
 [private]
 [doc('Preflight: verify AKV access, az login, node maintenance, tooling')]
 preflight:
     #!/usr/bin/env bash
-    set -euo pipefail
     echo "── Preflight checks ──"
     fail=0
     # 1. Required tools
