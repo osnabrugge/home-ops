@@ -2,6 +2,8 @@ set quiet
 set script-interpreter := ['bash', '-euo', 'pipefail']
 set shell := ['bash', '-euo', 'pipefail', '-c']
 
+scripts_dir := justfile_dir() + '/scripts'
+
 [private]
 default:
     just -l kube
@@ -32,6 +34,12 @@ prune-pods:
     for phase in Failed Pending Succeeded; do
         kubectl delete pods -A --field-selector status.phase="$phase" --ignore-not-found=true
     done
+
+[doc('Quick cluster health sweep focused on workloads and recent warnings')]
+[script]
+health-sweep:
+    echo "Checking for pods not in Running or Completed state..."
+    {{ scripts_dir }}/health-sweep.sh
 
 [doc('Restore a PVC from VolSync')]
 [script]

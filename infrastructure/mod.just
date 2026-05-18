@@ -12,65 +12,77 @@ default:
 # ──────────────────────────────────────────────────────────────────────────────
 # KVM — PiKVM + TESmart HDMI Switch
 # ──────────────────────────────────────────────────────────────────────────────
-
+[script]
 [doc('Switch KVM to a node (nas01, k8s01-06, pi01-04, pve01, fw01)')]
 kvm-switch node:
-    bash "{{ scripts_dir }}/infra-pikvm.sh" switch "{{ node }}"
+    {{ scripts_dir }}/infra-pikvm.sh switch {{ node }}
 
+[script]
 [doc('Send Wake-on-LAN to a node via PiKVM')]
 wol node:
-    bash "{{ scripts_dir }}/infra-pikvm.sh" wol "{{ node }}"
+    {{ scripts_dir }}/infra-pikvm.sh wol {{ node }}
 
+[script]
 [doc('Show which KVM port is active')]
 kvm-active:
-    bash "{{ scripts_dir }}/infra-pikvm.sh" active
+    {{ scripts_dir }}/infra-pikvm.sh active
 
+[script]
 [doc('Take a KVM screenshot (optionally with OCR)')]
 kvm-screenshot *args:
-    bash "{{ scripts_dir }}/infra-pikvm.sh" snapshot {{ args }}
+    {{ scripts_dir }}/infra-pikvm.sh snapshot {{ args }}
 
+[script]
 [doc('OCR the current KVM screen')]
 kvm-ocr:
-    bash "{{ scripts_dir }}/infra-pikvm.sh" ocr
+    {{ scripts_dir }}/infra-pikvm.sh ocr
 
+[script]
 [doc('Show PiKVM system info')]
 kvm-info:
-    bash "{{ scripts_dir }}/infra-pikvm.sh" info
+    {{ scripts_dir }}/infra-pikvm.sh info
 
+[script]
 [doc('Show PiKVM GPIO state (TESmart ports)')]
 kvm-gpio:
-    bash "{{ scripts_dir }}/infra-pikvm.sh" gpio
+    {{ scripts_dir }}/infra-pikvm.sh gpio
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PDU — CyberPower PDU41001 Power Control (SNMP)
 # ──────────────────────────────────────────────────────────────────────────────
 
+[script]
 [doc('Power on a node via PDU')]
 pdu-on node:
-    bash "{{ scripts_dir }}/infra-pdu.sh" on "{{ node }}"
+    {{ scripts_dir }}/infra-pdu.sh on {{ node }}
 
+[script]
+[confirm('Power off a node via PDU' + node + ' [y|N] ?')]
 [doc('Power off a node via PDU (DANGEROUS — requires confirmation)')]
 pdu-off node:
-    bash "{{ scripts_dir }}/infra-pdu.sh" off "{{ node }}"
+    {{ scripts_dir }}/infra-pdu.sh off {{ node }}
 
+[script]
+[confirm('Power cycle a node via PDU' + node + ' [y|N] ?')]
 [doc('Power cycle a node via PDU (requires confirmation)')]
 pdu-reboot node:
-    bash "{{ scripts_dir }}/infra-pdu.sh" reboot "{{ node }}"
+    {{ scripts_dir }}/infra-pdu.sh reboot {{ node }}
 
+[script]
 [doc('Show PDU outlet status (all outlets or specific node)')]
 pdu-status *node:
-    bash "{{ scripts_dir }}/infra-pdu.sh" status {{ node }}
+    {{ scripts_dir }}/infra-pdu.sh status {{ node }}
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Compound operations
 # ──────────────────────────────────────────────────────────────────────────────
 
+[script]
+[confirm('Hard reboot a node: power cycle via PDU + wait for maintenance port' + node + ' [y|N] ?')]
 [doc('Hard reboot a k8s node: PDU power cycle + wait for maintenance port')]
 hard-reboot node:
-    #!/usr/bin/env bash
-    set -euo pipefail
     echo "Hard rebooting {{ node }} via PDU power cycle..."
-    bash "{{ scripts_dir }}/infra-pdu.sh" reboot "{{ node }}"
+    {{ scripts_dir }}/infra-pdu.sh reboot {{ node }}
     echo ""
     echo "Waiting for {{ node }} to come back on maintenance port 50000..."
     # Derive IP from node name
@@ -98,15 +110,14 @@ hard-reboot node:
     done
     echo "  WARN: {{ node }} did not come back within $((max_retries * 5))s"
 
+[script]
 [doc('View KVM console for a node: switch KVM + take screenshot')]
 console node:
-    #!/usr/bin/env bash
-    set -euo pipefail
     echo "Switching KVM to {{ node }}..."
-    bash "{{ scripts_dir }}/infra-pikvm.sh" switch "{{ node }}"
+    {{ scripts_dir }}/infra-pikvm.sh switch {{ node }}
     sleep 2
     echo "Taking screenshot..."
     outfile="{{ justfile_dir() }}/.private/screenshots/{{ node }}-$(date +%Y%m%d-%H%M%S).jpg"
     mkdir -p "$(dirname "$outfile")"
-    bash "{{ scripts_dir }}/infra-pikvm.sh" snapshot "$outfile"
+    {{ scripts_dir }}/infra-pikvm.sh snapshot "$outfile"
     echo "  Screenshot saved: $outfile"
