@@ -26,16 +26,21 @@ spec:
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            resources:
+              requests:
+                cpu: 10m
+                memory: 50Mi
+              limits:
+                memory: 200Mi
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: {drop: ["ALL"]}
-            resources:
-              requests:
-                cpu: 10m
-                memory: 40Mi
-              limits:
-                memory: 80Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
