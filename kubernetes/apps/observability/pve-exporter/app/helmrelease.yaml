@@ -14,6 +14,7 @@ spec:
       pve-exporter:
         annotations:
           reloader.stakater.com/auto: "true"
+        strategy: RollingUpdate
         containers:
           app:
             image:
@@ -77,3 +78,5 @@ spec:
     persistence:
       tmp:
         type: emptyDir
+        globalMounts:
+          - path: /tmp

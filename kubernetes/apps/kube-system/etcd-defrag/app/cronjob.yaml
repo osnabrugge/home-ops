@@ -97,4 +97,4 @@ spec:
                 items:
                   - key: config
                     path: config
-                defaultMode: 0400
+                defaultMode: 0444
