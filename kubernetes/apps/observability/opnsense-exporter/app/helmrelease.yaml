@@ -20,11 +20,12 @@ spec:
               repository: ghcr.io/athennamind/opnsense-exporter
               tag: 0.0.15@sha256:aa766f7b4ee209cfff8643f397748b719223ab14ef532eaa4b75b3d1c7b6b3e8
             args:
+              - --exporter.instance-label=fw01
               - --opnsense.protocol=https
               - --opnsense.address=fw01.in.homeops.ca
               - --web.listen-address=:8080
-              - --exporter.disable-openvpn=true
-              - --exporter.disable-ipsec=true
+              - --exporter.disable-openvpn
+              - --exporter.disable-ipsec
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
