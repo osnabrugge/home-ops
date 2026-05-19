@@ -88,7 +88,8 @@ metadata:
     external-dns.alpha.kubernetes.io/target: &hostname internal.homeops.ca
     gatus.home-operations.com/endpoint: |-
       group: internal
-      guarded: true
+      conditions:
+        - "[STATUS] == any(200, 301, 302, 401)"
       ui:
         hide-hostname: true
         hide-url: true
