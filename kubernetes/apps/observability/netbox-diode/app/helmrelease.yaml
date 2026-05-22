@@ -199,7 +199,7 @@ spec:
           app:
             image:
               repository: netboxlabs/diode-reconciler
-              tag: 1.13.0
+              tag: 2.0.0
             env:
               TZ: America/Toronto
               REDIS_HOST: dragonfly-diode.database.svc.cluster.local
