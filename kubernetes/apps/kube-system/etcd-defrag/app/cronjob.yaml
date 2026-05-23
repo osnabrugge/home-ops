@@ -52,7 +52,7 @@ spec:
                   mountPath: /shared
           containers:
             - name: defrag
-              image: docker.io/library/busybox:1.37
+              image: docker.io/library/busybox:1.38
               command: ["/bin/sh", "-c"]
               args:
                 - |
