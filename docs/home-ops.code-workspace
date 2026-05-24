@@ -65,6 +65,7 @@
 			"titleBar.inactiveBackground": "#4b59f899",
 			"titleBar.inactiveForeground": "#e7e7e799"
 		},
-		"peacock.remoteColor": "#4b59f8"
+		"peacock.remoteColor": "#4b59f8",
+		"python.defaultInterpreterPath": "${workspaceFolder}/.venv"
 	}
 }

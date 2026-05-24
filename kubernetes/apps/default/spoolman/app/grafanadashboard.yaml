@@ -10,5 +10,5 @@ spec:
       dashboards: grafana
   datasources:
     - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
+      inputName: DS_SPOOLMAN
   url: https://grafana.com/api/dashboards/19414/revisions/1/download
