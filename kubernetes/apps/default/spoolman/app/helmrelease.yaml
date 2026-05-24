@@ -70,13 +70,12 @@ spec:
         ports:
           http:
             port: *port
+          metrics:
+            port: 7912
     serviceMonitor:
       app:
-        serviceName: *app
         endpoints:
-          - port: http
-            scheme: http
-            path: /metrics
+          - port: metrics
             interval: 60m
             scrapeTimeout: 5m
     route:
