@@ -38,4 +38,15 @@ services:
     privileged: true
     ports:
       - "9633:9633"
+    command:
+      - '--smartctl.device=/dev/nvme0'
+      - '--smartctl.device=/dev/nvme1'
+      - '--smartctl.device=/dev/sata1'
+      - '--smartctl.device=/dev/sata2'
+      - '--smartctl.device=/dev/sata3'
+      - '--smartctl.device=/dev/sata4'
+      - '--smartctl.device=/dev/sata5'
+      - '--smartctl.device=/dev/sata6'
+      - '--smartctl.device=/dev/sata7'
+      - '--smartctl.device=/dev/sata8'
 ```
