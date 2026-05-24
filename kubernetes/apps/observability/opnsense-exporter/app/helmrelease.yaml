@@ -26,6 +26,8 @@ spec:
               - --web.listen-address=:8080
               - --exporter.disable-openvpn
               - --exporter.disable-ipsec
+              - --exporter.disable-kea-dhcpv4
+              - --exporter.disable-kea-dhcpv6
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
