@@ -6,6 +6,7 @@ resources:
   - ./configmap.yaml
   - ./grafanadashboard.yaml
   - ./grafanadashboard-pdu.yaml
+  - ./grafanadashboard-core01.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./prometheusrule.yaml

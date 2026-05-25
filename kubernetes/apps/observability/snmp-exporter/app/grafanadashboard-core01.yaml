@@ -1,0 +1,229 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: ruckus-icx-core
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasources:
+    - datasourceName: prometheus
+      inputName: DS_PROMETHEUS
+  json: |
+    {
+      "annotations": {"list": [{"builtIn": 1,"datasource": "-- Grafana --","enable": true,"hide": true,"iconColor": "rgba(0, 211, 255, 1)","name": "Annotations & Alerts","type": "dashboard"}]},
+      "editable": true,
+      "graphTooltip": 0,
+      "links": [],
+      "panels": [
+        {
+          "datasource": "Prometheus",
+          "type": "stat",
+          "title": "Hostname",
+          "id": 1,
+          "gridPos": {"h": 3,"w": 4,"x": 0,"y": 0},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"],"fields": "/.*/"},"textMode": "name","colorMode": "none","graphMode": "none"},
+          "targets": [{"expr": "sysName{instance=\"$instance\"}","instant": true,"legendFormat": "{{sysName}}","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "stat",
+          "title": "Uptime",
+          "id": 2,
+          "gridPos": {"h": 3,"w": 4,"x": 4,"y": 0},
+          "fieldConfig": {"defaults": {"unit": "s","color": {"mode": "fixed","fixedColor": "blue"}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "value","graphMode": "area"},
+          "targets": [{"expr": "sysUpTime{instance=\"$instance\"} / 100","instant": true,"refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "stat",
+          "title": "Chassis Temp",
+          "id": 3,
+          "gridPos": {"h": 3,"w": 4,"x": 8,"y": 0},
+          "fieldConfig": {"defaults": {"unit": "celsius","decimals": 1,"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null},{"color": "yellow","value": 60},{"color": "red","value": 75}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "value","graphMode": "area"},
+          "targets": [{"expr": "snChasActualTemperature{instance=\"$instance\"} / 2","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "stat",
+          "title": "BGP Peers Established",
+          "id": 4,
+          "gridPos": {"h": 3,"w": 4,"x": 12,"y": 0},
+          "fieldConfig": {"defaults": {"unit": "short","color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "red","value": null},{"color": "yellow","value": 1},{"color": "green","value": 6}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "background","graphMode": "none","textMode": "value_and_name"},
+          "targets": [{"expr": "count(bgpPeerState{instance=\"$instance\"} == 6)","legendFormat": "Established","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "stat",
+          "title": "PoE Consumed",
+          "id": 5,
+          "gridPos": {"h": 3,"w": 4,"x": 16,"y": 0},
+          "fieldConfig": {"defaults": {"unit": "watt","decimals": 1,"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null},{"color": "yellow","value": 600},{"color": "red","value": 700}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "value","graphMode": "area"},
+          "targets": [{"expr": "snAgentPoeGblConsumedPower{instance=\"$instance\"}","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "stat",
+          "title": "PoE Budget",
+          "id": 6,
+          "gridPos": {"h": 3,"w": 4,"x": 20,"y": 0},
+          "fieldConfig": {"defaults": {"unit": "watt","color": {"mode": "fixed","fixedColor": "blue"}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "value","graphMode": "none"},
+          "targets": [{"expr": "snAgentPoeGblMaxPower{instance=\"$instance\"}","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "gauge",
+          "title": "PoE Utilization",
+          "id": 7,
+          "gridPos": {"h": 6,"w": 6,"x": 0,"y": 3},
+          "fieldConfig": {"defaults": {"unit": "percent","min": 0,"max": 100,"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null},{"color": "yellow","value": 70},{"color": "red","value": 90}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"showThresholdLabels": false,"showThresholdMarkers": true},
+          "targets": [{"expr": "100 * snAgentPoeGblConsumedPower{instance=\"$instance\"} / snAgentPoeGblMaxPower{instance=\"$instance\"}","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "timeseries",
+          "title": "PoE Consumed vs Budget",
+          "id": 8,
+          "gridPos": {"h": 6,"w": 18,"x": 6,"y": 3},
+          "fieldConfig": {"defaults": {"unit": "watt","custom": {"lineWidth": 1,"fillOpacity": 10,"showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "snAgentPoeGblConsumedPower{instance=\"$instance\"}","legendFormat": "Consumed","refId": "A"},
+            {"expr": "snAgentPoeGblMaxPower{instance=\"$instance\"}","legendFormat": "Budget","refId": "B"}
+          ]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "timeseries",
+          "title": "Chassis Temperature",
+          "id": 9,
+          "gridPos": {"h": 8,"w": 12,"x": 0,"y": 9},
+          "fieldConfig": {"defaults": {"unit": "celsius","decimals": 1,"custom": {"lineWidth": 1,"fillOpacity": 10,"showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "snChasActualTemperature{instance=\"$instance\"} / 2","legendFormat": "Actual","refId": "A"},
+            {"expr": "snChasWarningTemperature{instance=\"$instance\"} / 2","legendFormat": "Warning","refId": "B"},
+            {"expr": "snChasShutdownTemperature{instance=\"$instance\"} / 2","legendFormat": "Shutdown","refId": "C"}
+          ]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "table",
+          "title": "BGP Peers",
+          "id": 10,
+          "gridPos": {"h": 8,"w": 12,"x": 12,"y": 9},
+          "fieldConfig": {"defaults": {},"overrides": [
+            {"matcher": {"id": "byName","options": "State"},"properties": [{"id": "mappings","value": [{"type": "value","options": {"1": {"text": "idle","color": "red"},"2": {"text": "connect","color": "yellow"},"3": {"text": "active","color": "yellow"},"4": {"text": "opensent","color": "yellow"},"5": {"text": "openconfirm","color": "yellow"},"6": {"text": "established","color": "green"}}}]},{"id": "custom.cellOptions","value": {"type": "color-background"}}]},
+            {"matcher": {"id": "byName","options": "Admin"},"properties": [{"id": "mappings","value": [{"type": "value","options": {"1": {"text": "stop","color": "red"},"2": {"text": "start","color": "green"}}}]}]},
+            {"matcher": {"id": "byName","options": "Established For"},"properties": [{"id": "unit","value": "s"}]}
+          ]},
+          "options": {"showHeader": true},
+          "transformations": [
+            {"id": "joinByField","options": {"byField": "bgpPeerRemoteAddr","mode": "outer"}},
+            {"id": "filterFieldsByName","options": {"include": {"names": ["bgpPeerRemoteAddr","Value #A","Value #B","Value #C","Value #D"]}}},
+            {"id": "organize","options": {"renameByName": {"bgpPeerRemoteAddr": "Peer","Value #A": "State","Value #B": "Admin","Value #C": "Remote AS","Value #D": "Established For"}}}
+          ],
+          "targets": [
+            {"expr": "bgpPeerState{instance=\"$instance\"}","format": "table","instant": true,"refId": "A"},
+            {"expr": "bgpPeerAdminStatus{instance=\"$instance\"}","format": "table","instant": true,"refId": "B"},
+            {"expr": "bgpPeerRemoteAs{instance=\"$instance\"}","format": "table","instant": true,"refId": "C"},
+            {"expr": "bgpPeerFsmEstablishedTime{instance=\"$instance\"}","format": "table","instant": true,"refId": "D"}
+          ]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "timeseries",
+          "title": "BGP Updates Rate",
+          "id": 11,
+          "gridPos": {"h": 8,"w": 24,"x": 0,"y": 17},
+          "fieldConfig": {"defaults": {"unit": "cps","custom": {"lineWidth": 1,"fillOpacity": 5,"showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "table","placement": "right","calcs": ["last","max"]},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "rate(bgpPeerInUpdates{instance=\"$instance\"}[5m])","legendFormat": "{{bgpPeerRemoteAddr}} in","refId": "A"},
+            {"expr": "rate(bgpPeerOutUpdates{instance=\"$instance\"}[5m])","legendFormat": "{{bgpPeerRemoteAddr}} out","refId": "B"}
+          ]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "state-timeline",
+          "title": "PoE Port Admin Status (1=disabled 2=enabled)",
+          "id": 12,
+          "gridPos": {"h": 10,"w": 24,"x": 0,"y": 25},
+          "fieldConfig": {"defaults": {"custom": {"fillOpacity": 70,"lineWidth": 0},"mappings": [{"type": "value","options": {"1": {"text": "OFF","color": "red"},"2": {"text": "ON","color": "green"}}}],"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "red","value": null},{"color": "green","value": 2}]}}},
+          "options": {"mergeValues": true,"showValue": "never","alignValue": "left","rowHeight": 0.9,"legend": {"displayMode": "list","placement": "bottom","showLegend": false}},
+          "targets": [{"expr": "snAgentPoePortAdminStatus{instance=\"$instance\"}","legendFormat": "Port {{snAgentPoePortIndex}}","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "timeseries",
+          "title": "Per-Port PoE Consumed (mW)",
+          "id": 13,
+          "gridPos": {"h": 10,"w": 24,"x": 0,"y": 35},
+          "fieldConfig": {"defaults": {"unit": "mwatt","custom": {"lineWidth": 1,"fillOpacity": 10,"showPoints": "never","stacking": {"mode": "normal","group": "A"}}}},
+          "options": {"legend": {"displayMode": "table","placement": "right","calcs": ["last"]},"tooltip": {"mode": "multi"}},
+          "targets": [{"expr": "snAgentPoePortConsumed{instance=\"$instance\"} > 0","legendFormat": "Port {{snAgentPoePortIndex}}","refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "table",
+          "title": "LAG Trunk Membership",
+          "id": 14,
+          "gridPos": {"h": 10,"w": 12,"x": 0,"y": 45},
+          "options": {"showHeader": true},
+          "transformations": [
+            {"id": "filterFieldsByName","options": {"include": {"names": ["snTrunkPortIndex","Value"]}}},
+            {"id": "filterByValue","options": {"filters": [{"fieldName": "Value","config": {"id": "greater","options": {"value": 0}}}],"type": "include","match": "all"}},
+            {"id": "organize","options": {"renameByName": {"snTrunkPortIndex": "Trunk Port","Value": "Member Port"}}}
+          ],
+          "targets": [{"expr": "snTrunkPortMember{instance=\"$instance\"}","format": "table","instant": true,"refId": "A"}]
+        },
+        {
+          "datasource": "Prometheus",
+          "type": "table",
+          "title": "Chassis Components",
+          "id": 15,
+          "gridPos": {"h": 10,"w": 12,"x": 12,"y": 45},
+          "options": {"showHeader": true},
+          "transformations": [
+            {"id": "filterFieldsByName","options": {"include": {"names": ["snChasComponentDescription"]}}}
+          ],
+          "targets": [{"expr": "snChasComponentDescription{instance=\"$instance\"}","format": "table","instant": true,"refId": "A"}]
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 30,
+      "style": "dark",
+      "tags": ["snmp","ruckus","brocade","switch","bgp","poe"],
+      "templating": {
+        "list": [
+          {
+            "datasource": "Prometheus",
+            "definition": "label_values(snAgentPoeGblMaxPower, instance)",
+            "hide": 0,
+            "includeAll": false,
+            "label": "Switch",
+            "multi": false,
+            "name": "instance",
+            "query": {"query": "label_values(snAgentPoeGblMaxPower, instance)","refId": "StandardVariableQuery"},
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {"from": "now-6h","to": "now"},
+      "timepicker": {"refresh_intervals": ["5s","10s","30s","1m","5m","15m","30m","1h","2h","1d"]},
+      "timezone": "",
+      "title": "Ruckus ICX Core Switch",
+      "uid": "ruckus-icx-core",
+      "version": 1
+    }

@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: dragonfly-allow-vmagent
+  name: dragonfly-allow-prometheus
 spec:
   podSelector:
     matchLabels:
@@ -18,7 +18,7 @@ spec:
               kubernetes.io/metadata.name: observability
           podSelector:
             matchLabels:
-              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/name: prometheus
       ports:
         - port: 9999
           protocol: TCP
