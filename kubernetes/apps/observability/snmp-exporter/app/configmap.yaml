@@ -23,7 +23,8 @@ data:
           - 1.3.6.1.4.1.3808.1.1.1.2.2.1.0   # upsAdvBatteryCapacity
           - 1.3.6.1.4.1.3808.1.1.1.2.2.2.0   # upsAdvBatteryTemperature
           - 1.3.6.1.4.1.3808.1.1.1.2.2.4.0   # upsAdvBatteryRunTimeRemaining
-          - 1.3.6.1.4.1.3808.1.1.1.2.2.6.0   # upsAdvBatteryNeedsReplacement
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.5.0   # upsAdvBatteryReplaceIndicator (PR1500RT2U does NOT expose 2.2.6)
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.8.0   # upsAdvBatteryActualVoltage
           - 1.3.6.1.4.1.3808.1.1.1.3.2.1.0   # upsAdvInputLineVoltage
           - 1.3.6.1.4.1.3808.1.1.1.3.2.4.0   # upsAdvInputFrequency
           - 1.3.6.1.4.1.3808.1.1.1.4.2.1.0   # upsAdvOutputVoltage
@@ -66,10 +67,14 @@ data:
             oid: 1.3.6.1.4.1.3808.1.1.1.2.2.4.0
             type: gauge
             help: Estimated runtime remaining (hundredths of second)
-          - name: upsAdvBatteryNeedsReplacement
-            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.6.0
+          - name: upsAdvBatteryReplaceIndicator
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.5.0
             type: gauge
-            help: Battery replacement indicator (1=no 2=yes)
+            help: Battery replace indicator (1=noBatteryNeedsReplacing 2=batteryNeedsReplacing)
+          - name: upsAdvBatteryActualVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.2.8.0
+            type: gauge
+            help: Battery actual voltage (V)
           - name: upsAdvInputLineVoltage
             oid: 1.3.6.1.4.1.3808.1.1.1.3.2.1.0
             type: gauge
@@ -98,16 +103,28 @@ data:
             oid: 1.3.6.1.4.1.3808.1.1.1.5.2.1.0
             type: gauge
             help: Rated output power (Watts)
-      # CyberPower PDU module — PDU41001-V, enterprise 1.3.6.1.4.1.3808.1.1.6
+      # CyberPower PDU41001 — "PDU2" NextGen MIB, enterprise 1.3.6.1.4.1.3808.1.1.3
+      # NOTE: PDU41001 is bank-metered (no per-outlet metering). The legacy
+      # ePDULoadStatus* OIDs under 3808.1.1.6 do NOT exist on this device and
+      # cause snmp-exporter to return HTTP 500 (Error Status 2 = noSuchName).
       cyberpower_pdu:
+        walk:
+          - 1.3.6.1.4.1.3808.1.1.3.2.1.8   # ePDU2DeviceConfigVoltage per bank
+          - 1.3.6.1.4.1.3808.1.1.3.2.2.1   # ePDU2DeviceStatus current (bank A)
+          - 1.3.6.1.4.1.3808.1.1.3.2.3.1   # ePDU2DeviceStatus energy/load
+          - 1.3.6.1.4.1.3808.1.1.3.3.3.1   # ePDU2BankConfigTable
+          - 1.3.6.1.4.1.3808.1.1.3.5.4.1   # ePDU2OutletSwitched status
         get:
-          - 1.3.6.1.2.1.1.1.0      # sysDescr
-          - 1.3.6.1.2.1.1.3.0      # sysUpTime
-          - 1.3.6.1.2.1.1.5.0      # sysName
-          - 1.3.6.1.4.1.3808.1.1.6.3.3.1.0   # ePDUInputVoltage
-          - 1.3.6.1.4.1.3808.1.1.6.3.4.1.0   # ePDUInputTotalActivePower
-          - 1.3.6.1.4.1.3808.1.1.6.3.4.2.0   # ePDUInputTotalApparentPower
-          - 1.3.6.1.4.1.3808.1.1.6.3.4.3.0   # ePDUInputTotalCurrent
+          - 1.3.6.1.2.1.1.1.0              # sysDescr
+          - 1.3.6.1.2.1.1.3.0              # sysUpTime
+          - 1.3.6.1.2.1.1.5.0              # sysName
+          - 1.3.6.1.4.1.3808.1.1.3.1.1.0   # ePDU2IdentName
+          - 1.3.6.1.4.1.3808.1.1.3.1.5.0   # ePDU2IdentModelName
+          - 1.3.6.1.4.1.3808.1.1.3.1.6.0   # ePDU2IdentSerialNumber
+          - 1.3.6.1.4.1.3808.1.1.3.1.7.0   # ePDU2IdentNumOutlets
+          - 1.3.6.1.4.1.3808.1.1.3.1.8.0   # ePDU2IdentNumCircuits
+          - 1.3.6.1.4.1.3808.1.1.3.5.7.0   # ePDU2OutletEnergy (0.1 kWh)
+          - 1.3.6.1.4.1.3808.1.1.3.5.8.0   # ePDU2OutletPower (W)
         metrics:
           - name: sysUpTime
             oid: 1.3.6.1.2.1.1.3.0
@@ -118,22 +135,60 @@ data:
           - name: sysName
             oid: 1.3.6.1.2.1.1.5.0
             type: DisplayString
-          - name: ePDUInputVoltage
-            oid: 1.3.6.1.4.1.3808.1.1.6.3.3.1.0
+          - name: ePDU2IdentName
+            oid: 1.3.6.1.4.1.3808.1.1.3.1.1.0
+            type: DisplayString
+          - name: ePDU2IdentModelName
+            oid: 1.3.6.1.4.1.3808.1.1.3.1.5.0
+            type: DisplayString
+          - name: ePDU2IdentSerialNumber
+            oid: 1.3.6.1.4.1.3808.1.1.3.1.6.0
+            type: DisplayString
+          - name: ePDU2IdentNumOutlets
+            oid: 1.3.6.1.4.1.3808.1.1.3.1.7.0
             type: gauge
-            help: PDU input voltage (V)
-          - name: ePDUInputTotalActivePower
-            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.1.0
+          - name: ePDU2IdentNumCircuits
+            oid: 1.3.6.1.4.1.3808.1.1.3.1.8.0
             type: gauge
-            help: Total active power consumed by PDU (Watts)
-          - name: ePDUInputTotalApparentPower
-            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.2.0
+          # Per-bank: 3808.1.1.3.2.1.8.1.3.{bank} = 120 (configured voltage V)
+          - name: ePDU2DeviceConfigVoltage
+            oid: 1.3.6.1.4.1.3808.1.1.3.2.1.8.1.3
             type: gauge
-            help: Total apparent power (VA)
-          - name: ePDUInputTotalCurrent
-            oid: 1.3.6.1.4.1.3808.1.1.6.3.4.3.0
+            help: Configured input voltage per bank (V)
+            indexes:
+              - labelname: bankIndex
+                type: gauge
+          # Per-bank: 3808.1.1.3.2.2.1.1.3.{bank} = current in 0.1A units
+          - name: ePDU2DeviceStatusLoad
+            oid: 1.3.6.1.4.1.3808.1.1.3.2.2.1.1.3
             type: gauge
-            help: Total input current (tenths of Amps)
+            help: Per-bank load in 0.1 Amp units
+            indexes:
+              - labelname: bankIndex
+                type: gauge
+          # Per-bank: 3808.1.1.3.2.3.1.1.6.{bank} = energy in 0.1 kWh units
+          - name: ePDU2DeviceStatusEnergy
+            oid: 1.3.6.1.4.1.3808.1.1.3.2.3.1.1.6
+            type: gauge
+            help: Per-bank cumulative energy in 0.1 kWh units
+            indexes:
+              - labelname: bankIndex
+                type: gauge
+          - name: ePDU2OutletSwitchedStatus
+            oid: 1.3.6.1.4.1.3808.1.1.3.5.4.1.3
+            type: gauge
+            help: Per-outlet status (1=on 2=off)
+            indexes:
+              - labelname: outletIndex
+                type: gauge
+          - name: ePDU2DeviceTotalEnergy
+            oid: 1.3.6.1.4.1.3808.1.1.3.5.7.0
+            type: gauge
+            help: Total device energy (0.1 kWh)
+          - name: ePDU2DeviceTotalPower
+            oid: 1.3.6.1.4.1.3808.1.1.3.5.8.0
+            type: gauge
+            help: Total device active power (Watts)
       # Synology NAS module — DSM SNMP MIB
       synology:
         walk:
@@ -190,14 +245,19 @@ data:
               - labelname: raidIndex
                 type: gauge
 
-      # Ruckus/Brocade ICX core switch module
-      # Uses standard MIB OIDs only, so no vendor MIB download is required.
+      # Ruckus/Brocade ICX core switch module (ICX6610-48-HPOE)
+      # Standard IF-MIB plus Foundry vendor MIBs for PoE / LAG / chassis / BGP.
       ruckus_icx:
         walk:
           - 1.3.6.1.2.1.2.2.1.2      # ifDescr
           - 1.3.6.1.2.1.2.2.1.8      # ifOperStatus
           - 1.3.6.1.2.1.2.2.1.14     # ifInErrors
           - 1.3.6.1.2.1.2.2.1.20     # ifOutErrors
+          - 1.3.6.1.2.1.15           # BGP4-MIB (peers + states + counters)
+          - 1.3.6.1.4.1.1991.1.1.1.1 # snChasGen (temp, model, serial scalars)
+          - 1.3.6.1.4.1.1991.1.1.1.2 # snChasComponentTable (PSU/fan list)
+          - 1.3.6.1.4.1.1991.1.1.2.14 # snAgentPoeMIB (global + per-port PoE)
+          - 1.3.6.1.4.1.1991.1.1.3.3 # snSwitchGroup / snTrunkPortTable (LAG)
           - 1.3.6.1.2.1.2.2.1.13     # ifInDiscards
           - 1.3.6.1.2.1.2.2.1.19     # ifOutDiscards
           - 1.3.6.1.2.1.31.1.1.1.1   # ifName
@@ -316,3 +376,95 @@ data:
                 labelname: ifName
                 oid: 1.3.6.1.2.1.31.1.1.1.1
                 type: DisplayString
+          # --- Chassis (Foundry) ---
+          - name: snChasActualTemperature
+            oid: 1.3.6.1.4.1.1991.1.1.1.1.18.0
+            type: gauge
+            help: Chassis temperature in 0.5C units (divide by 2 for Celsius)
+          - name: snChasWarningTemperature
+            oid: 1.3.6.1.4.1.1991.1.1.1.1.19.0
+            type: gauge
+          - name: snChasShutdownTemperature
+            oid: 1.3.6.1.4.1.1991.1.1.1.1.20.0
+            type: gauge
+          # snChasComponentTable: .1991.1.1.1.2.1.1.{col}.{slot}.{idx}
+          # col 2 = description (PSU/fan status text), col 3 = serial blob
+          - name: snChasComponentDescription
+            oid: 1.3.6.1.4.1.1991.1.1.1.2.1.1.2
+            type: DisplayString
+            indexes:
+              - labelname: snChasComponentSlot
+                type: gauge
+              - labelname: snChasComponentIndex
+                type: gauge
+          # --- PoE (snAgentPoeMIB) ---
+          - name: snAgentPoeGblMaxPower
+            oid: 1.3.6.1.4.1.1991.1.1.2.14.1.1.0
+            type: gauge
+            help: Global PoE maximum power budget (mW)
+          - name: snAgentPoeGblConsumedPower
+            oid: 1.3.6.1.4.1.1991.1.1.2.14.1.2.0
+            type: gauge
+            help: Global PoE consumed power (mW)
+          # snAgentPoePortTable: .1991.1.1.2.14.2.2.1.{col}.{port}
+          # col 2=adminStatus, col 3=priority, col 4=consumedPower(mW), col 5=class
+          - name: snAgentPoePortAdminStatus
+            oid: 1.3.6.1.4.1.1991.1.1.2.14.2.2.1.2
+            type: gauge
+            indexes:
+              - labelname: snAgentPoePortIndex
+                type: gauge
+          - name: snAgentPoePortConsumed
+            oid: 1.3.6.1.4.1.1991.1.1.2.14.2.2.1.4
+            type: gauge
+            help: PoE consumed power per port (mW)
+            indexes:
+              - labelname: snAgentPoePortIndex
+                type: gauge
+          # --- Trunks / LAG (snTrunkPortTable .1991.1.1.3.3.1.1.{col}.{portIfIndex}) ---
+          - name: snTrunkPortMember
+            oid: 1.3.6.1.4.1.1991.1.1.3.3.1.1.1
+            type: gauge
+            help: Trunk member port ifIndex
+            indexes:
+              - labelname: snTrunkPortIndex
+                type: gauge
+          # --- BGP4 (standard BGP4-MIB; AS=64513, 6 peers) ---
+          - name: bgpPeerState
+            oid: 1.3.6.1.2.1.15.3.1.2
+            type: gauge
+            help: BGP peer state (1=idle 2=connect 3=active 4=opensent 5=openconfirm 6=established)
+            indexes:
+              - labelname: bgpPeerRemoteAddr
+                type: InetAddressIPv4
+          - name: bgpPeerAdminStatus
+            oid: 1.3.6.1.2.1.15.3.1.3
+            type: gauge
+            indexes:
+              - labelname: bgpPeerRemoteAddr
+                type: InetAddressIPv4
+          - name: bgpPeerRemoteAs
+            oid: 1.3.6.1.2.1.15.3.1.9
+            type: gauge
+            indexes:
+              - labelname: bgpPeerRemoteAddr
+                type: InetAddressIPv4
+          - name: bgpPeerInUpdates
+            oid: 1.3.6.1.2.1.15.3.1.10
+            type: counter
+            indexes:
+              - labelname: bgpPeerRemoteAddr
+                type: InetAddressIPv4
+          - name: bgpPeerOutUpdates
+            oid: 1.3.6.1.2.1.15.3.1.11
+            type: counter
+            indexes:
+              - labelname: bgpPeerRemoteAddr
+                type: InetAddressIPv4
+          - name: bgpPeerFsmEstablishedTime
+            oid: 1.3.6.1.2.1.15.3.1.16
+            type: gauge
+            help: Seconds since BGP session entered established state
+            indexes:
+              - labelname: bgpPeerRemoteAddr
+                type: InetAddressIPv4
