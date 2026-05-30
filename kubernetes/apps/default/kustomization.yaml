@@ -24,6 +24,7 @@ resources:
   - ./mosquitto/ks.yaml
   - ./notifier/ks.yaml
   - ./plex/ks.yaml
+  - ./printguard/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./qui/ks.yaml
