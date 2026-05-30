@@ -19,14 +19,20 @@ spec:
             image:
               repository: ghcr.io/oliverbravery/printguard
               tag: latest
+            # The upstream image relies on Docker auto-creating /.dockerenv so that
+            # is_running_in_docker() is true (file-based secrets in /data instead of
+            # the headless-unfriendly keyring backend). containerd does not create it,
+            # so we touch it before launching the app.
+            command: ["/bin/sh", "-c", "touch /.dockerenv && exec printguard"]
             env:
               TZ: America/Toronto
               HF_HOME: /data/huggingface
-              XDG_DATA_HOME: /data
               XDG_CACHE_HOME: /data/cache
-            envFrom:
-              - secretRef:
-                  name: printguard-secret
+              PRINTGUARD_SECRET_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: printguard-secret
+                    key: password
             probes:
               liveness:
                 enabled: true
@@ -65,11 +71,13 @@ spec:
               limits:
                 memory: 2Gi
     defaultPodOptions:
+      # PrintGuard (pre-release) writes its ML model into its own site-packages dir
+      # and expects to run as root like its upstream Docker image.
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
         fsGroupChangePolicy: OnRootMismatch
     service:
       app:
@@ -89,3 +97,7 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /data
+          # Persist the downloaded model so it is not re-fetched from HuggingFace
+          # on every pod restart (the app writes it into its package dir).
+          - path: /usr/local/lib/python3.11/site-packages/printguard/model
+            subPath: model
