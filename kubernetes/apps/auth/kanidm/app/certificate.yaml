@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kanidm-tls
+spec:
+  # Kanidm mandates TLS on its own origin. cert-manager issues a dedicated
+  # Let's Encrypt cert for kanidm.homeops.ca into the kanidm-tls secret, which
+  # the pod mounts at /certs. Envoy re-encrypts to this backend and validates
+  # the cert against the system trust store (see backendtlspolicy.yaml).
+  dnsNames:
+    - kanidm.homeops.ca
+  duration: 160h
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  secretName: kanidm-tls
+  usages:
+    - digital signature
+    - server auth
