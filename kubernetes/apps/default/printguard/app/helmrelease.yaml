@@ -23,7 +23,19 @@ spec:
             # is_running_in_docker() is true (file-based secrets in /data instead of
             # the headless-unfriendly keyring backend). containerd does not create it,
             # so we touch it before launching the app.
-            command: ["/bin/sh", "-c", "touch /.dockerenv && exec printguard"]
+            #
+            # We bypass printguard's own `run()` entrypoint (which wraps uvicorn in
+            # self-signed HTTPS for "local" mode). Instead we launch the ASGI app
+            # directly over PLAIN HTTP and let Envoy terminate/serve TLS at the edge
+            # (the standard pattern for every other app in this cluster). The browser
+            # still gets HTTPS via the gateway, satisfying web-push secure-context
+            # requirements, while avoiding fragile backend re-encryption against
+            # uvicorn's Python TLS stack. The lifespan still loads the ML model since
+            # the saved startup_mode requirements are met.
+            command:
+              - /bin/sh
+              - -c
+              - touch /.dockerenv && exec python -m uvicorn printguard.app:app --host 0.0.0.0 --port 8000
             env:
               TZ: America/Toronto
               HF_HOME: /data/huggingface
@@ -83,12 +95,11 @@ spec:
       app:
         controller: *app
         ports:
-          # PrintGuard's "local" startup mode serves HTTPS on this port; the
-          # named "https" port + appProtocol let the BackendTLSPolicy target it
-          # and tell Envoy to re-encrypt to the backend.
-          https:
+          # PrintGuard serves plain HTTP on this port (see container command);
+          # Envoy terminates TLS at the edge, so no BackendTLSPolicy is needed.
+          http:
             port: *port
-            appProtocol: https
+            appProtocol: http
     route:
       app:
         hostnames:
