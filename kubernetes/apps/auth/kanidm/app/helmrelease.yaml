@@ -26,8 +26,10 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  tcpSocket:
+                  httpGet:
+                    path: /status
                     port: 8443
+                    scheme: HTTPS
                   initialDelaySeconds: 15
                   periodSeconds: 30
                   timeoutSeconds: 5
@@ -37,8 +39,10 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  tcpSocket:
+                  httpGet:
+                    path: /status
                     port: 8443
+                    scheme: HTTPS
                   failureThreshold: 30
                   periodSeconds: 5
             securityContext:
