@@ -32,10 +32,14 @@ spec:
             # requirements, while avoiding fragile backend re-encryption against
             # uvicorn's Python TLS stack. The lifespan still loads the ML model since
             # the saved startup_mode requirements are met.
+            #
+            # --proxy-headers + --forwarded-allow-ips '*' make uvicorn honor Envoy's
+            # X-Forwarded-Proto: https, so request.url.scheme == "https" and the app's
+            # http_redirect_middleware does NOT force every request to /setup.
             command:
               - /bin/sh
               - -c
-              - touch /.dockerenv && exec python -m uvicorn printguard.app:app --host 0.0.0.0 --port 8000
+              - touch /.dockerenv && exec python -m uvicorn printguard.app:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*'
             env:
               TZ: America/Toronto
               HF_HOME: /data/huggingface
