@@ -83,8 +83,12 @@ spec:
       app:
         controller: *app
         ports:
-          http:
+          # PrintGuard's "local" startup mode serves HTTPS on this port; the
+          # named "https" port + appProtocol let the BackendTLSPolicy target it
+          # and tell Envoy to re-encrypt to the backend.
+          https:
             port: *port
+            appProtocol: https
     route:
       app:
         hostnames:
