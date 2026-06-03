@@ -18,7 +18,7 @@ spec:
             severity: critical
 
         - alert: UPSReplaceBattery
-          expr: upsAdvBattery_needsreplacing > 0
+          expr: upsAdvBatteryReplaceIndicator == 2
           annotations:
             summary: >-
               ZPM {{ $labels.instance }} battery needs to be replaced

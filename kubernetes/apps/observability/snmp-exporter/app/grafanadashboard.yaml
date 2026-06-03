@@ -12,4 +12,196 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
-  url: https://grafana.com/api/dashboards/21605/revisions/2/download
+  json: |
+    {
+      "annotations": {"list": [{"builtIn": 1,"datasource": "-- Grafana --","enable": true,"hide": true,"iconColor": "rgba(0, 211, 255, 1)","name": "Annotations & Alerts","type": "dashboard"}]},
+      "editable": true,
+      "graphTooltip": 0,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "stat",
+          "title": "Hostname",
+          "id": 1,
+          "gridPos": {"h": 3,"w": 4,"x": 0,"y": 0},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"],"fields": "/.*/"},"textMode": "name","colorMode": "none","graphMode": "none"},
+          "targets": [{"expr": "sysName{instance=\"$instance\"}","instant": true,"legendFormat": "{{sysName}}","refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "stat",
+          "title": "Battery Status",
+          "id": 2,
+          "gridPos": {"h": 3,"w": 5,"x": 4,"y": 0},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value","options": {"1": {"text": "Unknown","color": "yellow"},"2": {"text": "Normal","color": "green"},"3": {"text": "Low","color": "red"}}}],"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "background","graphMode": "none","textMode": "value"},
+          "targets": [{"expr": "upsBasicBatteryStatus{instance=\"$instance\"}","instant": true,"refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "stat",
+          "title": "Output Status",
+          "id": 3,
+          "gridPos": {"h": 3,"w": 5,"x": 9,"y": 0},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value","options": {"2": {"text": "On Line","color": "green"},"3": {"text": "On Battery","color": "yellow"},"7": {"text": "Off","color": "red"}}}],"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "background","graphMode": "none","textMode": "value"},
+          "targets": [{"expr": "upsBasicOutputStatus{instance=\"$instance\"}","instant": true,"refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "stat",
+          "title": "Replace Battery",
+          "id": 4,
+          "gridPos": {"h": 3,"w": 4,"x": 14,"y": 0},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value","options": {"1": {"text": "OK","color": "green"},"2": {"text": "Replace","color": "red"}}}],"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "background","graphMode": "none","textMode": "value"},
+          "targets": [{"expr": "upsAdvBatteryReplaceIndicator{instance=\"$instance\"}","instant": true,"refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "stat",
+          "title": "Time on Battery",
+          "id": 5,
+          "gridPos": {"h": 3,"w": 6,"x": 18,"y": 0},
+          "fieldConfig": {"defaults": {"unit": "s","color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null},{"color": "red","value": 1}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "value","graphMode": "none"},
+          "targets": [{"expr": "upsBasicBatteryTimeOnBattery_seconds{instance=\"$instance\"} / 100","instant": true,"refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "gauge",
+          "title": "Battery Capacity",
+          "id": 10,
+          "gridPos": {"h": 6,"w": 6,"x": 0,"y": 3},
+          "fieldConfig": {"defaults": {"unit": "percent","min": 0,"max": 100,"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "red","value": null},{"color": "yellow","value": 50},{"color": "green","value": 90}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"showThresholdLabels": false,"showThresholdMarkers": true},
+          "targets": [{"expr": "upsAdvBatteryCapacity{instance=\"$instance\"}","refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "stat",
+          "title": "Runtime Remaining",
+          "id": 11,
+          "gridPos": {"h": 6,"w": 6,"x": 6,"y": 3},
+          "fieldConfig": {"defaults": {"unit": "s","color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "red","value": null},{"color": "yellow","value": 300},{"color": "green","value": 600}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "value","graphMode": "area"},
+          "targets": [{"expr": "upsAdvBatteryRunTimeRemaining{instance=\"$instance\"} / 100","refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "gauge",
+          "title": "Output Load",
+          "id": 12,
+          "gridPos": {"h": 6,"w": 6,"x": 12,"y": 3},
+          "fieldConfig": {"defaults": {"unit": "percent","min": 0,"max": 100,"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null},{"color": "yellow","value": 70},{"color": "red","value": 90}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"showThresholdLabels": false,"showThresholdMarkers": true},
+          "targets": [{"expr": "upsAdvOutputLoad{instance=\"$instance\"}","refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "stat",
+          "title": "Output Power",
+          "id": 13,
+          "gridPos": {"h": 6,"w": 6,"x": 18,"y": 3},
+          "fieldConfig": {"defaults": {"unit": "watt","decimals": 0,"color": {"mode": "thresholds"},"thresholds": {"mode": "absolute","steps": [{"color": "green","value": null},{"color": "yellow","value": 800},{"color": "red","value": 1200}]}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]},"colorMode": "value","graphMode": "area"},
+          "targets": [{"expr": "upsAdvOutputActivePower{instance=\"$instance\"}","refId": "A"}]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "timeseries",
+          "title": "Input / Output Voltage",
+          "id": 20,
+          "gridPos": {"h": 8,"w": 12,"x": 0,"y": 9},
+          "fieldConfig": {"defaults": {"unit": "volt","custom": {"lineWidth": 1,"fillOpacity": 10,"showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "upsAdvInputLineVoltage{instance=\"$instance\"}","legendFormat": "Input","refId": "A"},
+            {"expr": "upsAdvOutputVoltage{instance=\"$instance\"}","legendFormat": "Output","refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "timeseries",
+          "title": "Battery Capacity & Output Load (%)",
+          "id": 21,
+          "gridPos": {"h": 8,"w": 12,"x": 12,"y": 9},
+          "fieldConfig": {"defaults": {"unit": "percent","min": 0,"max": 100,"custom": {"lineWidth": 1,"fillOpacity": 10,"showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "upsAdvBatteryCapacity{instance=\"$instance\"}","legendFormat": "Battery Capacity","refId": "A"},
+            {"expr": "upsAdvOutputLoad{instance=\"$instance\"}","legendFormat": "Output Load","refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "timeseries",
+          "title": "Input / Output Frequency",
+          "id": 22,
+          "gridPos": {"h": 8,"w": 12,"x": 0,"y": 17},
+          "fieldConfig": {"defaults": {"unit": "hertz","decimals": 1,"custom": {"lineWidth": 1,"fillOpacity": 0,"showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "upsAdvInputFrequency{instance=\"$instance\"}","legendFormat": "Input","refId": "A"},
+            {"expr": "upsAdvOutputFrequency{instance=\"$instance\"}","legendFormat": "Output","refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "timeseries",
+          "title": "Battery Temperature & Voltage",
+          "id": 23,
+          "gridPos": {"h": 8,"w": 12,"x": 12,"y": 17},
+          "fieldConfig": {"defaults": {"custom": {"lineWidth": 1,"fillOpacity": 0,"showPoints": "never"}},"overrides": [
+            {"matcher": {"id": "byName","options": "Temperature"},"properties": [{"id": "unit","value": "celsius"}]},
+            {"matcher": {"id": "byName","options": "Battery Voltage"},"properties": [{"id": "unit","value": "volt"},{"id": "custom.axisPlacement","value": "right"}]}
+          ]},
+          "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "upsAdvBatteryTemperature{instance=\"$instance\"}","legendFormat": "Temperature","refId": "A"},
+            {"expr": "upsAdvBatteryActualVoltage{instance=\"$instance\"}","legendFormat": "Battery Voltage","refId": "B"}
+          ]
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "type": "timeseries",
+          "title": "Output Power vs Rated (W)",
+          "id": 24,
+          "gridPos": {"h": 6,"w": 24,"x": 0,"y": 25},
+          "fieldConfig": {"defaults": {"unit": "watt","custom": {"lineWidth": 1,"fillOpacity": 10,"showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
+          "targets": [
+            {"expr": "upsAdvOutputActivePower{instance=\"$instance\"}","legendFormat": "Active Power","refId": "A"},
+            {"expr": "upsAdvConfigRatedOutputPower{instance=\"$instance\"}","legendFormat": "Rated Power","refId": "B"}
+          ]
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 30,
+      "style": "dark",
+      "tags": ["snmp","cyberpower","ups"],
+      "templating": {
+        "list": [
+          {
+            "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+            "definition": "label_values(upsBasicBatteryStatus, instance)",
+            "hide": 0,
+            "includeAll": false,
+            "label": "UPS",
+            "multi": false,
+            "name": "instance",
+            "query": {"query": "label_values(upsBasicBatteryStatus, instance)","refId": "StandardVariableQuery"},
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {"from": "now-6h","to": "now"},
+      "timepicker": {"refresh_intervals": ["5s","10s","30s","1m","5m","15m","30m","1h","2h","1d"]},
+      "timezone": "",
+      "title": "CyberPower UPS",
+      "uid": "cyberpower-ups",
+      "version": 1
+    }

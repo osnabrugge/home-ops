@@ -20,7 +20,7 @@ spec:
       "links": [],
       "panels": [
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Model",
           "id": 1,
@@ -29,7 +29,7 @@ spec:
           "targets": [{"expr": "ePDU2IdentModelName{instance=\"$instance\"}","instant": true,"legendFormat": "{{ePDU2IdentModelName}}","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Serial",
           "id": 2,
@@ -38,7 +38,7 @@ spec:
           "targets": [{"expr": "ePDU2IdentSerialNumber{instance=\"$instance\"}","instant": true,"legendFormat": "{{ePDU2IdentSerialNumber}}","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Outlets",
           "id": 3,
@@ -48,7 +48,7 @@ spec:
           "targets": [{"expr": "ePDU2IdentNumOutlets{instance=\"$instance\"}","instant": true,"refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Banks",
           "id": 4,
@@ -58,7 +58,7 @@ spec:
           "targets": [{"expr": "ePDU2IdentNumCircuits{instance=\"$instance\"}","instant": true,"refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Outlets On",
           "id": 5,
@@ -68,7 +68,7 @@ spec:
           "targets": [{"expr": "count(ePDU2OutletSwitchedStatus{instance=\"$instance\"} == 1)","instant": true,"refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Uptime",
           "id": 6,
@@ -78,7 +78,7 @@ spec:
           "targets": [{"expr": "sysUpTime{instance=\"$instance\"} / 100","instant": true,"refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Total Load (A)",
           "id": 10,
@@ -88,7 +88,7 @@ spec:
           "targets": [{"expr": "sum(0.1 * ePDU2DeviceStatusLoad{instance=\"$instance\"})","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Total Power",
           "id": 11,
@@ -98,7 +98,7 @@ spec:
           "targets": [{"expr": "ePDU2DeviceTotalPower{instance=\"$instance\"}","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Input Voltage",
           "id": 12,
@@ -108,7 +108,7 @@ spec:
           "targets": [{"expr": "avg(ePDU2DeviceConfigVoltage{instance=\"$instance\"})","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "stat",
           "title": "Total Energy",
           "id": 13,
@@ -118,7 +118,7 @@ spec:
           "targets": [{"expr": "0.1 * ePDU2DeviceTotalEnergy{instance=\"$instance\"}","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "timeseries",
           "title": "Per-Bank Load (A)",
           "id": 20,
@@ -128,7 +128,7 @@ spec:
           "targets": [{"expr": "0.1 * ePDU2DeviceStatusLoad{instance=\"$instance\"}","legendFormat": "Bank {{bankIndex}}","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "timeseries",
           "title": "Total Power (W)",
           "id": 21,
@@ -138,7 +138,7 @@ spec:
           "targets": [{"expr": "ePDU2DeviceTotalPower{instance=\"$instance\"}","legendFormat": "Total","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "timeseries",
           "title": "Per-Bank Energy (kWh)",
           "id": 22,
@@ -148,7 +148,7 @@ spec:
           "targets": [{"expr": "0.1 * ePDU2DeviceStatusEnergy{instance=\"$instance\"}","legendFormat": "Bank {{bankIndex}}","refId": "A"}]
         },
         {
-          "datasource": "Prometheus",
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
           "type": "state-timeline",
           "title": "Outlet Switched Status (1=on 2=off)",
           "id": 23,
@@ -165,7 +165,7 @@ spec:
       "templating": {
         "list": [
           {
-            "datasource": "Prometheus",
+            "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
             "definition": "label_values(ePDU2IdentName, instance)",
             "hide": 0,
             "includeAll": false,
