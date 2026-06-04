@@ -112,7 +112,11 @@ jobs:
 
           pairs = set()
           for path in Path("/github/workspace/kubernetes").rglob("ocirepository.yaml"):
-              data = yaml.safe_load(path.read_text())
+              try:
+                  data = yaml.safe_load(path.read_text())
+              except yaml.YAMLError as err:
+                  raise SystemExit(f"Failed to parse {path}: {err}") from err
+
               if data.get("spec", {}).get("layerSelector", {}).get("mediaType") != "application/vnd.cncf.helm.chart.content.v1.tar+gzip":
                   continue
 
@@ -127,7 +131,7 @@ jobs:
           PY
 
               while read -r url tag; do
-                helm pull "$url" --version "$tag" --destination /tmp/helm-warmup >/dev/null
+            helm pull "$url" --version "$tag" --destination /tmp/helm-warmup
               done < /tmp/oci-charts.txt
 
               flux-local get cluster \
