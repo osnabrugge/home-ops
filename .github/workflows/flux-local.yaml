@@ -8,7 +8,7 @@ on:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.user.login || github.ref }}
   cancel-in-progress: false
 
 permissions:
