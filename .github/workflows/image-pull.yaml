@@ -97,13 +97,14 @@ jobs:
           mkdir -p "${FLUX_LOCAL_HOME}"
 
           docker run --rm \
+            --entrypoint sh \
             -e GITHUB_TOKEN \
             -e HOME=/github/home \
             -v "${FLUX_LOCAL_HOME}:/github/home" \
             -v "${PWD}:/github/workspace" \
             -w /github/workspace \
             ghcr.io/allenporter/flux-local:v8.2.0 \
-            sh -euc '
+            -euc '
               mkdir -p /tmp/helm-warmup
 
               python - <<'"'"'PY'"'"' > /tmp/oci-charts.txt
