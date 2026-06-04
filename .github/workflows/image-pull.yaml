@@ -90,18 +90,58 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Gather Images
-        uses: docker://ghcr.io/allenporter/flux-local:v8.2.0
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        with:
-          args: >-
-            get cluster
-            --all-namespaces
-            --path /github/workspace/kubernetes/flux/cluster
-            --enable-images
-            --only-images
-            --output json
-            --output-file images.json
+          FLUX_LOCAL_HOME: ${{ runner.temp }}/flux-local-home/${{ matrix.branch }}
+        run: |-
+          mkdir -p "${FLUX_LOCAL_HOME}"
+
+          docker run --rm \
+            -e GITHUB_TOKEN \
+            -e HOME=/github/home \
+            -v "${FLUX_LOCAL_HOME}:/github/home" \
+            -v "${PWD}:/github/workspace" \
+            -w /github/workspace \
+            ghcr.io/allenporter/flux-local:v8.2.0 \
+            sh -euc '
+              mkdir -p /tmp/helm-warmup
+
+              python - <<'"'"'PY'"'"' > /tmp/oci-charts.txt
+          from pathlib import Path
+
+          pairs = set()
+          for path in Path("/github/workspace/kubernetes").rglob("ocirepository.yaml"):
+              lines = path.read_text().splitlines()
+              if not any("application/vnd.cncf.helm.chart.content.v1.tar+gzip" in line for line in lines):
+                  continue
+
+              url = tag = None
+              for line in lines:
+                  stripped = line.strip()
+                  if stripped.startswith("url: oci://"):
+                      url = stripped.split(":", 1)[1].strip()
+                  elif stripped.startswith("tag:"):
+                      tag = stripped.split(":", 1)[1].strip()
+
+              if url and tag:
+                  pairs.add((url, tag))
+
+          for url, tag in sorted(pairs):
+              print(f"{url}\t{tag}")
+          PY
+
+              while read -r url tag; do
+                helm pull "$url" --version "$tag" --destination /tmp/helm-warmup >/dev/null
+              done < /tmp/oci-charts.txt
+
+              flux-local get cluster \
+                --all-namespaces \
+                --path /github/workspace/kubernetes/flux/cluster \
+                --enable-images \
+                --only-images \
+                --output json \
+                --output-file /github/workspace/images.json
+            '
 
       - name: Extract Images
         id: extract
@@ -157,7 +197,10 @@ jobs:
 
   success:
     if: ${{ !cancelled() }}
-    needs: pull
+    needs:
+      - extract
+      - diff
+      - pull
     name: Image Pull - Success
     runs-on: ubuntu-latest
     steps:
