@@ -108,20 +108,16 @@ jobs:
 
               python - <<'"'"'PY'"'"' > /tmp/oci-charts.txt
           from pathlib import Path
+          import yaml
 
           pairs = set()
           for path in Path("/github/workspace/kubernetes").rglob("ocirepository.yaml"):
-              lines = path.read_text().splitlines()
-              if not any("application/vnd.cncf.helm.chart.content.v1.tar+gzip" in line for line in lines):
+              data = yaml.safe_load(path.read_text())
+              if data.get("spec", {}).get("layerSelector", {}).get("mediaType") != "application/vnd.cncf.helm.chart.content.v1.tar+gzip":
                   continue
 
-              url = tag = None
-              for line in lines:
-                  stripped = line.strip()
-                  if stripped.startswith("url: oci://"):
-                      url = stripped.split(":", 1)[1].strip()
-                  elif stripped.startswith("tag:"):
-                      tag = stripped.split(":", 1)[1].strip()
+              url = data.get("spec", {}).get("url")
+              tag = data.get("spec", {}).get("ref", {}).get("tag")
 
               if url and tag:
                   pairs.add((url, tag))
