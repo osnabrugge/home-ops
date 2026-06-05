@@ -66,7 +66,7 @@ spec:
           "gridPos": {"h": 12,"w": 12,"x": 0,"y": 4},
           "fieldConfig": {"defaults": {"unit": "massg","decimals": 0,"min": 0,"color": {"mode": "continuous-GrYlRd"}}},
           "options": {"displayMode": "gradient","orientation": "horizontal","reduceOptions": {"calcs": ["lastNotNull"]},"showUnfilled": true},
-          "targets": [{"expr": "(spoolman_spool_initial_weight - spoolman_spool_weight_used) * on(filament_id) group_left(name) spoolman_filament_info","instant": true,"legendFormat": "{{name}} (#{{spool_id}})","refId": "A"}]
+          "targets": [{"expr": "(spoolman_spool_initial_weight - spoolman_spool_weight_used) * on(filament_id) group_left(name) (topk by(filament_id) (1, spoolman_filament_info))","instant": true,"legendFormat": "{{name}} (#{{spool_id}})","refId": "A"}]
         },
         {
           "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
@@ -76,7 +76,7 @@ spec:
           "gridPos": {"h": 12,"w": 12,"x": 12,"y": 4},
           "fieldConfig": {"defaults": {"custom": {"align": "auto","filterable": true}},"overrides": [{"matcher": {"id": "byName","options": "Remaining (g)"},"properties": [{"id": "unit","value": "massg"},{"id": "decimals","value": 0}]}]},
           "options": {"showHeader": true,"sortBy": [{"displayName": "Remaining (g)","desc": true}]},
-          "targets": [{"expr": "(spoolman_spool_initial_weight - spoolman_spool_weight_used) * on(filament_id) group_left(name, material, vendor) spoolman_filament_info","instant": true,"format": "table","refId": "A"}],
+          "targets": [{"expr": "(spoolman_spool_initial_weight - spoolman_spool_weight_used) * on(filament_id) group_left(name, material, vendor) (topk by(filament_id) (1, spoolman_filament_info))","instant": true,"format": "table","refId": "A"}],
           "transformations": [
             {"id": "organize","options": {"excludeByName": {"Time": true,"__name__": true,"endpoint": true,"filament_id": true,"instance": true,"job": true,"namespace": true,"pod": true,"service": true,"container": true},"indexByName": {"spool_id": 0,"name": 1,"vendor": 2,"material": 3,"Value": 4},"renameByName": {"spool_id": "Spool","name": "Filament","vendor": "Vendor","material": "Material","Value": "Remaining (g)"}}}
           ]
