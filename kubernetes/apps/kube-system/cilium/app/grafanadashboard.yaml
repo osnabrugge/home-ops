@@ -24,6 +24,7 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
+  folderRef: cilium
   configMapRef:
     name: cilium-dashboard
     key: cilium-dashboard.json
@@ -41,6 +42,7 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
+  folderRef: cilium
   configMapRef:
     name: cilium-operator-dashboard
     key: cilium-operator-dashboard.json
