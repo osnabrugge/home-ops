@@ -90,18 +90,59 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Gather Images
-        uses: docker://ghcr.io/allenporter/flux-local:v8.2.0
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        with:
-          args: >-
-            get cluster
-            --all-namespaces
-            --path /github/workspace/kubernetes/flux/cluster
-            --enable-images
-            --only-images
-            --output json
-            --output-file images.json
+          FLUX_LOCAL_HOME: ${{ runner.temp }}/flux-local-home/${{ matrix.branch }}
+        run: |-
+          mkdir -p "${FLUX_LOCAL_HOME}"
+
+          docker run --rm \
+            --entrypoint sh \
+            -e GITHUB_TOKEN \
+            -e HOME=/github/home \
+            -v "${FLUX_LOCAL_HOME}:/github/home" \
+            -v "${PWD}:/github/workspace" \
+            -w /github/workspace \
+            ghcr.io/allenporter/flux-local:v8.2.0 \
+            -euc '
+              mkdir -p /tmp/helm-warmup
+
+              python - <<'"'"'PY'"'"' > /tmp/oci-charts.txt
+          from pathlib import Path
+          import yaml
+
+          pairs = set()
+          for path in Path("/github/workspace/kubernetes").rglob("ocirepository.yaml"):
+              try:
+                  data = yaml.safe_load(path.read_text())
+              except yaml.YAMLError as err:
+                  raise SystemExit(f"Failed to parse {path}: {err}") from err
+
+              if data.get("spec", {}).get("layerSelector", {}).get("mediaType") != "application/vnd.cncf.helm.chart.content.v1.tar+gzip":
+                  continue
+
+              url = data.get("spec", {}).get("url")
+              tag = data.get("spec", {}).get("ref", {}).get("tag")
+
+              if url and tag:
+                  pairs.add((url, tag))
+
+          for url, tag in sorted(pairs):
+              print(f"{url}\t{tag}")
+          PY
+
+              while read -r url tag; do
+            helm pull "$url" --version "$tag" --destination /tmp/helm-warmup
+              done < /tmp/oci-charts.txt
+
+              flux-local get cluster \
+                --all-namespaces \
+                --path /github/workspace/kubernetes/flux/cluster \
+                --enable-images \
+                --only-images \
+                --output json \
+                --output-file /github/workspace/images.json
+            '
 
       - name: Extract Images
         id: extract
@@ -157,7 +198,10 @@ jobs:
 
   success:
     if: ${{ !cancelled() }}
-    needs: pull
+    needs:
+      - extract
+      - diff
+      - pull
     name: Image Pull - Success
     runs-on: ubuntu-latest
     steps:
