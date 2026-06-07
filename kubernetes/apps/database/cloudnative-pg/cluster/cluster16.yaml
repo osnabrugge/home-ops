@@ -5,7 +5,7 @@ metadata:
   name: postgres16
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:16.9-18
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.5-18
   bootstrap:
     initdb:
       database: netbox
