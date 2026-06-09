@@ -63,6 +63,13 @@ spec:
               limits:
                 memory: 4Gi
     defaultPodOptions:
+      # frigate runs privileged/root for Coral USB + iGPU. The nas02 NFS export
+      # for /media uses root_squash and the share dir is group-owned 1000:1000,
+      # so root is denied writes. Supplemental gids are not squashed, so adding
+      # group 1000 grants the group rwx on /media/frigate (recordings).
+      securityContext:
+        supplementalGroups:
+          - 1000
       resourceClaims:
         - name: gpu
           resourceClaimTemplateName: frigate
