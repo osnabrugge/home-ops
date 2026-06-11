@@ -80,7 +80,7 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == 401"]
+            conditions: ["[STATUS] == any(200, 401, 404)"]
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
