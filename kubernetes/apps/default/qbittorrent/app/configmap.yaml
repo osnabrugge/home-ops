@@ -28,7 +28,7 @@ data:
     Session\MaxUploadsPerTorrent=16
     Session\Port=31288
     Session\Preallocation=false
-    Session\QueueingSystemEnabled=true
+    Session\QueueingSystemEnabled=false
     Session\uTP\RateLimited=true
     Session\Encryption=2
     Session\DHTEnabled=false
