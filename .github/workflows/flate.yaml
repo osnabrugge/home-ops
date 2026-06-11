@@ -56,7 +56,7 @@ jobs:
       - name: Run flate
         id: flate
         run: |
-          flate diff all -p ./kubernetes/flux/cluster -o markdown > diff.md
+          flate diff all -p ./kubernetes/flux/cluster -o github > diff.md
           if [ -s diff.md ]; then
             echo "diff=true" >> "$GITHUB_OUTPUT"
           else

@@ -1,6 +1,8 @@
 .claude/
+.copilot/
 .private/
 .pytest_cache/
+.serena/
 .venv/
 .vs/
 *.crt
@@ -17,4 +19,3 @@ talos/rendered/
 .tmp-*
 # Sensitive credential files
 youtube-cookies.txt
-.serena/
