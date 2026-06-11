@@ -12,9 +12,12 @@ machine:
           miimon: 100
           updelay: 200
           downdelay: 200
-          deviceSelectors:
-            - hardwareAddr: "38:ea:a7:8e:8b:6c"
-            - hardwareAddr: "38:ea:a7:8e:8b:6d"
+          # interfaces (not deviceSelectors) to avoid Talos bug #12782:
+          # VLAN-on-bond gets wrong linkspec (masterName) with deviceSelectors,
+          # causing an enslave loop (EBUSY) that forces the VLAN DOWN.
+          interfaces:
+            - enp1s0f0
+            - enp1s0f1
         mtu: 1500
         vlans:
           - vlanId: 1
