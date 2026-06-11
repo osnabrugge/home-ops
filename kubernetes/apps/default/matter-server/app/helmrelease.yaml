@@ -1,0 +1,70 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: matter-server
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: matter-server
+  interval: 1h
+  values:
+    controllers:
+      matter-server:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-assistant-libs/python-matter-server
+              tag: 8.1.2
+            args:
+              - --storage-path
+              - /data
+              - --port
+              - "5580"
+              - --primary-interface
+              - net1
+            resources:
+              requests:
+                cpu: 25m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+            securityContext:
+              # CHIP/Matter requires raw sockets + IPv6 multicast (mDNS) on the
+              # IoT interface; the upstream image runs as root.
+              runAsUser: 0
+              runAsGroup: 0
+              allowPrivilegeEscalation: false
+              capabilities:
+                add: ["NET_ADMIN", "NET_RAW", "NET_BIND_SERVICE"]
+                drop: ["ALL"]
+    defaultPodOptions:
+      # Attach to the IoT VLAN (VLAN70) so the Matter/Thread stack shares L2 with
+      # the SLZB OTBR (otbr01) and Matter devices, and can use IPv6/mDNS.
+      annotations:
+        k8s.v1.cni.cncf.io/networks: |-
+          [{
+            "name": "iot",
+            "namespace": "kube-system",
+            "ips": ["192.168.70.21/24"],
+            "mac": "c6:07:27:af:fb:54"
+          }]
+      securityContext:
+        fsGroup: 0
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            appProtocol: kubernetes.io/ws
+            port: 5580
+    persistence:
+      data:
+        existingClaim: matter-server-data
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
