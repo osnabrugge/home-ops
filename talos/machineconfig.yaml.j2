@@ -33,6 +33,7 @@ machine:
         [plugins."io.containerd.cri.v1.images"]
           discard_unpacked_layers = false
         [plugins."io.containerd.cri.v1.runtime"]
+          cdi_spec_dirs = ["/var/cdi/static", "/var/cdi/dynamic"]
           device_ownership_from_security_context = true
     - op: overwrite
       path: /etc/nfsmount.conf
@@ -50,7 +51,7 @@ machine:
   install:
     diskSelector:
       model: DOGFISH SSD 256G
-    image: factory.talos.dev/metal-installer/{{ ENV.SCHEMATIC }}:v1.13.4
+    image: factory.talos.dev/metal-installer-secureboot/{{ ENV.SCHEMATIC }}:v1.13.4
     wipe: false
   kernel:
     modules:
@@ -134,6 +135,10 @@ cluster:
         - level: Metadata
     certSANs:
       - k8s.in.homeops.ca
+      - 192.168.42.51
+      - 192.168.42.52
+      - 192.168.42.53
+      - 192.168.69.120
     disablePodSecurityPolicy: true
     extraArgs:
       enable-aggregator-routing: "true"
