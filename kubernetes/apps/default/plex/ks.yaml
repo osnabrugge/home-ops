@@ -20,6 +20,7 @@ spec:
       APP: plex
       VOLSYNC_SCHEDULE: "28 * * * *"
       VOLSYNC_CAPACITY: 50Gi
+      VOLSYNC_CACHE_CAPACITY: 50Gi
   prune: true
   sourceRef:
     kind: GitRepository
