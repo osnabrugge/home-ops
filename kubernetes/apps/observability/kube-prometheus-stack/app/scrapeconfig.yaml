@@ -7,7 +7,7 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-        - fw01.in.homeops.ca:9100
+        - gw02.in.homeops.ca:9100
         - kvm01.in.homeops.ca:9100
         - nas02.in.homeops.ca:9100
         - pve01.in.homeops.ca:9100
@@ -25,7 +25,7 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-        - fw01.in.homeops.ca:9633
+        - gw02.in.homeops.ca:9633
         - nas02.in.homeops.ca:9633
         - pve01.in.homeops.ca:9633
   metricsPath: /metrics
