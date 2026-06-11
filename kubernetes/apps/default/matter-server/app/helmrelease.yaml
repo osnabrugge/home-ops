@@ -33,8 +33,8 @@ spec:
               limits:
                 memory: 1Gi
             securityContext:
-              # CHIP/Matter requires raw sockets + IPv6 multicast (mDNS) on the
-              # IoT interface; the upstream image runs as root.
+              # The upstream image runs as root; the CHIP stack needs raw sockets
+              # for Matter device discovery on the IoT network.
               runAsUser: 0
               runAsGroup: 0
               allowPrivilegeEscalation: false
@@ -42,8 +42,8 @@ spec:
                 add: ["NET_ADMIN", "NET_RAW", "NET_BIND_SERVICE"]
                 drop: ["ALL"]
     defaultPodOptions:
-      # Attach to the IoT VLAN (VLAN70) so the Matter/Thread stack shares L2 with
-      # the SLZB OTBR (otbr01) and Matter devices, and can use IPv6/mDNS.
+      # Attach to the IoT VLAN (VLAN70) so the Matter stack shares L2 with the
+      # SLZB OTBR (otbr01, wired) and Matter devices, matching the zigbee/HA pattern.
       annotations:
         k8s.v1.cni.cncf.io/networks: |-
           [{

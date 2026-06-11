@@ -52,6 +52,9 @@ spec:
       - --gateway-name=envoy-internal
       - --webhook-provider-read-timeout=30s
       - --webhook-provider-write-timeout=60s
+      # IPv6 is disabled across this environment; never manage AAAA records.
+      - --managed-record-types=A
+      - --managed-record-types=CNAME
     sources:
       - gateway-httproute
       - service
