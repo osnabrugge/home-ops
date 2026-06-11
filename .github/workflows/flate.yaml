@@ -1,0 +1,150 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Flate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  filter:
+    name: Flate - Filter
+    runs-on: ubuntu-latest
+    outputs:
+      changed-files: ${{ steps.changed-files.outputs.changed_files }}
+    steps:
+      - name: Get Changed Files
+        id: changed-files
+        uses: bjw-s-labs/action-changed-files@a9a36fb08ce06db9b02fbd8026cc2c0945eb9841 # v0.6.0
+        with:
+          patterns: kubernetes/**/*
+
+  flate:
+    if: ${{ needs.filter.outputs.changed-files != '[]' && github.event.action != 'closed' }}
+    needs: filter
+    name: Flate
+    runs-on: ubuntu-latest
+    # Azure federated credential (OIDC) is scoped to this GitHub environment.
+    environment: "Github Action Runner"
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Mise
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+        with:
+          cache: false
+          tool_versions: |
+            github:home-operations/flate 0.2.12
+
+      - name: Run flate
+        id: flate
+        run: |
+          flate diff all -p ./kubernetes/flux/cluster -o markdown > diff.md
+          if [ -s diff.md ]; then
+            echo "diff=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "diff=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: ${{ steps.flate.outputs.diff == 'true' }}
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - if: ${{ steps.flate.outputs.diff == 'true' }}
+        name: Load Secrets
+        id: load-secrets
+        run: |
+          SECRET=$(az keyvault secret show \
+            --vault-name ${{ secrets.KEYVAULT_NAME }} \
+            --name github-bot \
+            --query value -o tsv)
+
+          PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)
+          echo "::add-mask::$PRIVATE_KEY"
+
+          echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_OUTPUT
+          {
+            echo "GITHUB_BOT_APP_PRIVATE_KEY<<PEM_EOF"
+            echo "$PRIVATE_KEY"
+            echo "PEM_EOF"
+          } >> $GITHUB_OUTPUT
+
+      - if: ${{ steps.flate.outputs.diff == 'true' }}
+        name: Generate Token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          client-id: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_CLIENT_ID }}
+          private-key: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_PRIVATE_KEY }}
+          permission-pull-requests: write
+
+      - if: ${{ steps.flate.outputs.diff == 'true' }}
+        name: Add or Update Comment
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const fs = require("fs");
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const marker = `<!-- flate -->`;
+            const sha = context.payload.pull_request.head.sha;
+            const shortSha = sha.slice(0, 7);
+            const commitUrl = `${context.serverUrl}/${owner}/${repo}/commit/${sha}`;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            // GitHub comment hard limit is 65536 chars; keep headroom for the wrapper.
+            const LIMIT = 60000;
+            let diff = fs.readFileSync("diff.md", "utf8");
+            let truncated = "";
+            if (diff.length > LIMIT) {
+              diff = diff.slice(0, LIMIT);
+              truncated = `\n\n> [!NOTE]\n> Diff truncated to ${LIMIT} characters — see the [workflow run](${runUrl}) for the full output.`;
+            }
+
+            const body = [
+              marker,
+              `### 📄 Flux Diff Preview`,
+              ``,
+              `Rendered for commit [\`${shortSha}\`](${commitUrl})`,
+              ``,
+              `<details><summary>Show diff</summary>`,
+              ``,
+              diff,
+              ``,
+              `</details>`,
+              truncated,
+              ``,
+              `<sub>Rendered by [flate](https://github.com/home-operations/flate) · [Workflow run](${runUrl})</sub>`,
+            ].join("\n");
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find(c => c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
