@@ -57,6 +57,13 @@
       automergeType: "branch",
       ignoreTests: true,
     },
+    // Version constraints
+    {
+      description: "Pin maddy <0.9.5 (0.9.5 layer blobs 404 on ghcr.io, breaks image pull)",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/foxcpp/maddy/"],
+      allowedVersions: "<0.9.5",
+    },
     // Grouping rules
     {
       description: "Actions Runner Controller Group",
