@@ -78,25 +78,57 @@ data:
         user_verification: preferred
 
     # Access control policies
-    # Default: deny; explicitly allow per-domain/group
+    # Default: deny. MFA (2FA = TOTP/WebAuthn) is only required from OUTSIDE the
+    # home network, and only for control-plane / infrastructure apps. Internal LAN
+    # access uses a single factor (password). "internal" = home VLANs + cluster.
     access_control:
       default_policy: deny
+      networks:
+        - name: internal
+          networks:
+            - 192.168.0.0/16   # home LAN (all VLANs)
+            - 10.42.0.0/16      # cluster pod network
+            - 10.43.0.0/16      # cluster service network
       rules:
         # Bypass auth for the auth portal itself
         - domain: auth.homeops.ca
           policy: bypass
 
-        # Internal-only apps: require 2FA for admins, 1FA for users
+        # Control-plane / infra apps: 1FA on the LAN, 2FA from the internet
         - domain:
-            - "*.homeops.ca"
+            - opnsense.homeops.ca
+            - omada.homeops.ca
+            - omada-controller.homeops.ca
+            - netbox.homeops.ca
+            - proxmox.homeops.ca
+          networks:
+            - internal
+          subject:
+            - "group:admins"
+          policy: one_factor
+        - domain:
+            - opnsense.homeops.ca
+            - omada.homeops.ca
+            - omada-controller.homeops.ca
+            - netbox.homeops.ca
+            - proxmox.homeops.ca
           subject:
             - "group:admins"
           policy: two_factor
 
+        # Everything else under *.homeops.ca: single factor for known groups
+        - domain:
+            - "*.homeops.ca"
+          networks:
+            - internal
+          subject:
+            - "group:admins"
+            - "group:users"
+          policy: one_factor
         - domain:
             - "*.homeops.ca"
           subject:
-            - "group:users"
+            - "group:remote"
           policy: one_factor
 
         # Catch-all: deny everything else
@@ -106,6 +138,18 @@ data:
     # OIDC provider for SSO integration with Proxmox, Grafana, NetBox, etc.
     identity_providers:
       oidc:
+        # Custom policy: 2FA by default, but only 1FA when the client connects from
+        # an internal/home network. Applied to control-plane OIDC clients so MFA is
+        # only enforced from outside the LAN (falls back to 2FA if IP is unknown).
+        authorization_policies:
+          two_factor_external:
+            default_policy: two_factor
+            rules:
+              - policy: one_factor
+                networks:
+                  - 192.168.0.0/16
+                  - 10.42.0.0/16
+                  - 10.43.0.0/16
         cors:
           endpoints:
             - authorization
@@ -121,7 +165,7 @@ data:
             # and the AUTHELIA_OIDC_CLIENT_PROXMOX_SECRET env var from authelia-secret
             client_secret: '$plaintext${{ env "OIDC_CLIENT_PROXMOX_SECRET" }}'
             public: false
-            authorization_policy: two_factor
+            authorization_policy: two_factor_external
             redirect_uris:
               - https://proxmox.homeops.ca
             scopes:
@@ -153,7 +197,7 @@ data:
             # secret injected at runtime via X_AUTHELIA_CONFIG_FILTERS=template
             client_secret: '$plaintext${{ env "OIDC_CLIENT_NETBOX_SECRET" }}'
             public: false
-            authorization_policy: one_factor
+            authorization_policy: two_factor_external
             redirect_uris:
               - https://netbox.homeops.ca/oidc/callback/
             scopes:
