@@ -18,7 +18,9 @@ spec:
           # rlm_ldap instantiation hard-fails (crash) if LLDAP is unreachable at
           # boot, causing a startup crash-loop. Wait for the LDAP port first.
           wait-for-lldap:
-            image: docker.io/library/busybox:1.37
+            image:
+              repository: docker.io/library/busybox
+              tag: "1.37"
             command:
               - /bin/sh
               - -c
