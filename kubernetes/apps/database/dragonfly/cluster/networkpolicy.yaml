@@ -2,8 +2,15 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: dragonfly-allow-prometheus
+  name: dragonfly-allow-clients
 spec:
+  # The dragonfly-operator (v1.6.x) also manages an Ingress NetworkPolicy named
+  # "dragonfly" that only permits 6379 from the SAME namespace and 9999 from a
+  # control-plane label the operator pod does not carry. Because any Ingress
+  # policy selecting a pod is default-deny for everything else, that blocked the
+  # operator's own 9999 readiness probe (leaving 3 split-brain masters) and all
+  # cross-namespace Redis clients (Authelia, NetBox, Diode). NetworkPolicies are
+  # additive, so this policy re-opens the legitimate paths without fighting it.
   podSelector:
     matchLabels:
       app: dragonfly
@@ -12,13 +19,22 @@ spec:
   policyTypes:
     - Ingress
   ingress:
+    # Redis (6379): cluster-internal clients (Authelia, NetBox, Diode, ...) and
+    # intra-cluster master/replica replication. Dragonfly requires a password.
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: 6379
+          protocol: TCP
+    # Admin/metrics (9999): operator readiness checks (database ns) + Prometheus
+    # scrape (observability ns).
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: observability
-          podSelector:
+              kubernetes.io/metadata.name: database
+        - namespaceSelector:
             matchLabels:
-              app.kubernetes.io/name: prometheus
+              kubernetes.io/metadata.name: observability
       ports:
         - port: 9999
           protocol: TCP
