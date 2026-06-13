@@ -24,7 +24,11 @@ spec:
               PORT: &port 8191
               LOG_LEVEL: INFO
             probes:
-              liveness: &probe
+              # Browser automation blocks the single HTTP server while Chrome
+              # solves a challenge, making /health time out transiently. Liveness
+              # must be lenient (only restart if TRULY hung); readiness can drop
+              # it from the Service during a solve and recover.
+              liveness:
                 enabled: true
                 custom: true
                 spec:
@@ -33,9 +37,19 @@ spec:
                     port: *port
                   initialDelaySeconds: 30
                   periodSeconds: 30
+                  timeoutSeconds: 15
+                  failureThreshold: 10
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *port
+                  initialDelaySeconds: 20
+                  periodSeconds: 15
                   timeoutSeconds: 10
                   failureThreshold: 3
-              readiness: *probe
             securityContext:
               allowPrivilegeEscalation: false
               capabilities: {drop: ["ALL"]}
@@ -44,7 +58,8 @@ spec:
                 cpu: 100m
                 memory: 512Mi
               limits:
-                memory: 2Gi
+                # Chrome + the 1Gi /dev/shm Memory emptyDir count against this
+                memory: 3Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
