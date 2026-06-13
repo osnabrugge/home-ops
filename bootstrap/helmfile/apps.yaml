@@ -68,32 +68,12 @@ releases:
     needs:
       - cert-manager/cert-manager
 
-  - name: onepassword-connect
-    namespace: external-secrets
-    hooks:
-      - # Wait for CRDs to be available
-        command: kubectl
-        args:
-          - wait
-          - --for=create
-          - crd/clustersecretstores.external-secrets.io
-          - --timeout=2m
-        events:
-          - postsync
-        showlogs: true
-      - # Apply Resources
-        command: kubectl
-        args:
-          - apply
-          - --server-side
-          - --force-conflicts
-          - --filename=../../kubernetes/apps/{{ .Release.Namespace }}/{{ .Release.Name }}/app/clustersecretstore.yaml
-        events:
-          - postsync
-        showlogs: true
-    needs:
-      - external-secrets/external-secrets
-
+  # NOTE: no onepassword-connect — this cluster uses Azure Key Vault. The
+  # azurekv-secret (service-principal creds) is bootstrapped via
+  # bootstrap/kustomize/apps/external-secrets/secret.yaml (azkv:// refs resolved
+  # by akv-inject in the `base` step), and the azurekv ClusterSecretStore is
+  # applied by Flux (kubernetes/apps/external-secrets/azurekv). ExternalSecrets
+  # talk to Azure KV directly, so no 1Password Connect server is needed.
   - name: flux-operator
     namespace: flux-system
     needs:

@@ -8,3 +8,6 @@ JUST_UNSTABLE = "1"
 
 [hooks]
 postinstall = "lefthook install"
+
+[tools]
+"aqua:charmbracelet/gum" = "0.17.0"

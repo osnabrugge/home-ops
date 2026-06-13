@@ -24,7 +24,10 @@ releases:
   - name: envoy-gateway
     namespace: network
 
-  - name: grafana-operator
+  # Dir is `grafana` (holds the grafana-operator HelmRelease in app/ + the
+  # Grafana instance in instance/); the helmfile path is derived from the
+  # release name, so it must match the directory, not the HelmRelease name.
+  - name: grafana
     namespace: observability
 
   - name: kube-prometheus-stack
