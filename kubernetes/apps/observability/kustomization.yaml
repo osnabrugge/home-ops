@@ -17,6 +17,7 @@ resources:
   - ./opnsense-exporter/ks.yaml
   - ./prometheus-adapter/ks.yaml
   - ./pve-exporter/ks.yaml
+  - ./radar/ks.yaml
   - ./silence-operator/ks.yaml
   - ./smartctl-exporter/ks.yaml
   - ./snmp-exporter/ks.yaml

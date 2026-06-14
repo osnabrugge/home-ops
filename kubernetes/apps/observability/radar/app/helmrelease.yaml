@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: radar
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: radar
+      version: 1.5.10
+      sourceRef:
+        kind: HelmRepository
+        name: skyhook
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    # Radar holds a single in-memory informer cache of the whole cluster, so it
+    # MUST run as a single replica.
+    replicaCount: 1
+    image:
+      # tag defaults to the chart appVersion (kept in sync by the chart bump)
+      pullPolicy: IfNotPresent
+    serviceAccount:
+      create: true
+    # Read-only, least-privilege RBAC. Write/exec/port-forward/secrets stay OFF;
+    # enable later if Radar should mutate the cluster on our behalf.
+    rbac:
+      create: true
+      podLogs: true      # log viewer + MCP get_pod_logs/diagnose
+      metrics: true      # top_resources (metrics-server)
+      viewRBAC: true     # RBAC blast-radius analysis (internal, trusted)
+      # helm/secrets/podExec/portForward intentionally left at chart defaults (off)
+    # MCP server (the whole point) — reachable at /mcp on the service port.
+    mcp:
+      enabled: true
+    # No auth: this is exposed ONLY on envoy-internal (LAN/trusted boundary).
+    auth:
+      mode: none
+    service:
+      port: 9280
+    # Recent activity is enough; avoids a PVC. Switch to sqlite+persistence for
+    # a long-lived audit trail later if desired.
+    timeline:
+      storage: memory
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
