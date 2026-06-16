@@ -12,4 +12,3 @@ resources:
   - ./lldap/ks.yaml
   - ./authelia/ks.yaml
   - ./freeradius/ks.yaml
-  - ./kanidm/ks.yaml
