@@ -24,7 +24,7 @@ spec:
         - ups01.in.homeops.ca
         - ups02.in.homeops.ca
         - zig01.in.homeops.ca
-        - zig02.in.homeops.ca
+        - otbr01.in.homeops.ca
   metricRelabelings:
     - targetLabel: service
       replacement: blackbox-exporter-lan
