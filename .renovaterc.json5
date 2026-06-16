@@ -2,6 +2,12 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["github>home-operations/renovate-presets#2.0.0", ":timezone(America/New_York)"],
   packageRules: [
+    {
+      description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/foxcpp/maddy"],
+      enabled: false,
+    },
     // Auto-merge rules
     {
       description: "Auto-merge trusted OCI digests",

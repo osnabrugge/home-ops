@@ -11,6 +11,10 @@ spec:
   interval: 1h
   values:
     fullnameOverride: *app
+    # PodSecurityPolicy was removed in Kubernetes 1.25. The chart otherwise
+    # creates a RoleBinding to a non-existent "unrestricted-psp" ClusterRole.
+    rbac:
+      podSecurityPolicy: ""
     serviceMonitor:
       enabled: true
     prometheusRules:
