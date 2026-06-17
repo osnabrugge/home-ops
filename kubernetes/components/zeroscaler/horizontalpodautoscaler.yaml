@@ -4,10 +4,11 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: ${APP}
 spec:
-  # Kubernetes API rejects minReplicas: 0 unless the HPAScaleToZero feature gate
-  # is enabled in kube-controller-manager. Talos does not enable it by default,
-  # so use 1 here. For real scale-to-zero, deploy KEDA and use a ScaledObject.
-  minReplicas: 1
+  # HPAScaleToZero feature gate IS enabled in talos/machineconfig.yaml.j2
+  # (apiServer + controllerManager extraArgs), so minReplicas: 0 gives true
+  # scale-to-zero when the probe metric (NFS/NAS reachability) drops to 0.
+  # Matches onedr0p/home-ops. KEDA is unnecessary here.
+  minReplicas: 0
   maxReplicas: 1
   scaleTargetRef:
     apiVersion: apps/v1
