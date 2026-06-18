@@ -1,0 +1,182 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app printguard
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *app
+  interval: 1h
+  values:
+    controllers:
+      printguard:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/oliverbravery/printguard
+              tag: 2.0.1
+            # PrintGuard v2 serves plain HTTP on :8000 by default (the entrypoint no
+            # longer wraps uvicorn in self-signed HTTPS, so the old /.dockerenv +
+            # uvicorn-override hack is gone). Envoy terminates TLS at the edge;
+            # PRINTGUARD_ORIGINS lets the app trust its public origin for the
+            # WebSocket origin check. The vision model is baked into the image at
+            # /app/models and config/secrets live under DATA_DIR=/data.
+            env:
+              TZ: America/Toronto
+              DATA_DIR: /data
+              PRINTGUARD_ORIGINS: "https://{{ .Release.Name }}.homeops.ca"
+              # MediaMTX runs as a sidecar in this pod, reachable over localhost.
+              MEDIAMTX_API: http://localhost:9997
+              MEDIAMTX_RTSP: rtsp://localhost:8554
+              MEDIAMTX_HLS: http://localhost:8888
+              PRINTGUARD_SECRET_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: printguard-secret
+                    key: password
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: &port 8000
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+          mediamtx:
+            image:
+              repository: docker.io/bluenviron/mediamtx
+              tag: 1.18.2
+            env:
+              TZ: America/Toronto
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 9997
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 9997
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+    defaultPodOptions:
+      # PrintGuard (pre-release) writes its ML model into its own site-packages dir
+      # and expects to run as root like its upstream Docker image.
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        controller: *app
+        ports:
+          # PrintGuard serves plain HTTP on this port (see container command);
+          # Envoy terminates TLS at the edge, so no BackendTLSPolicy is needed.
+          http:
+            port: *port
+            appProtocol: http
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+    persistence:
+      data:
+        existingClaim: "{{ .Release.Name }}"
+        advancedMounts:
+          printguard:
+            app:
+              - path: /data
+      mediamtx-config:
+        type: configMap
+        identifier: mediamtx
+        advancedMounts:
+          printguard:
+            mediamtx:
+              - path: /mediamtx.yml
+                subPath: mediamtx.yml
+                readOnly: true
+    configMaps:
+      mediamtx:
+        data:
+          # Mirrors PrintGuard's upstream mediamtx.yml. The API (:9997) and HLS
+          # muxer (:8888) stay pod-internal; RTSP/RTMP listeners accept LAN camera
+          # pushes, and "Stream URL" cameras (e.g. Dahua RTSP) are pulled by MediaMTX.
+          mediamtx.yml: |
+            api: yes
+            apiAddress: :9997
+            authInternalUsers:
+              - user: any
+                permissions:
+                  - action: publish
+                  - action: read
+                  - action: playback
+                  - action: api
+            rtsp: yes
+            rtspAddress: :8554
+            rtmp: yes
+            rtmpAddress: :1935
+            hls: yes
+            hlsAddress: :8888
+            hlsVariant: fmp4
+            hlsSegmentCount: 3
+            hlsSegmentDuration: 1s
+            webrtc: no
+            srt: no
+            paths:
+              all_others:
