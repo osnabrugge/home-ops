@@ -16,6 +16,13 @@ spec:
         registry: quay.io
     server:
       fullnameOverride: *app
+      # Native syslog ingestion (replaces the standalone fluent-bit
+      # "syslog-receiver" forwarder). Listens on a high port so the
+      # non-root container does not need CAP_NET_BIND_SERVICE; the
+      # victoria-logs-syslog LoadBalancer maps :514 -> :5140.
+      extraArgs:
+        syslog.listenAddr.tcp: ":5140"
+        syslog.listenAddr.udp: ":5140"
       persistentVolume:
         enabled: true
         storageClassName: ceph-block

@@ -1,0 +1,27 @@
+---
+# Dedicated LoadBalancer for syslog ingestion into VictoriaLogs. The chart's
+# primary service stays ClusterIP (HTTP API on 9428, exposed via the internal
+# HTTPRoute); this service carries only the syslog ports on the dedicated VIP
+# previously owned by the fluent-bit syslog-receiver app.
+apiVersion: v1
+kind: Service
+metadata:
+  name: victoria-logs-syslog
+  annotations:
+    lbipam.cilium.io/ips: 192.168.69.125
+    external-dns.alpha.kubernetes.io/hostname: syslog.homeops.ca
+spec:
+  type: LoadBalancer
+  selector:
+    app: server
+    app.kubernetes.io/instance: victoria-logs
+    app.kubernetes.io/name: victoria-logs-single
+  ports:
+    - name: syslog-tcp
+      port: 514
+      targetPort: 5140
+      protocol: TCP
+    - name: syslog-udp
+      port: 514
+      targetPort: 5140
+      protocol: UDP
