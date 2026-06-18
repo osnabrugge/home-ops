@@ -4,10 +4,6 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: ${APP}
 spec:
-  # HPAScaleToZero feature gate IS enabled in talos/machineconfig.yaml.j2
-  # (apiServer + controllerManager extraArgs), so minReplicas: 0 gives true
-  # scale-to-zero when the probe metric (NFS/NAS reachability) drops to 0.
-  # Matches onedr0p/home-ops. KEDA is unnecessary here.
   minReplicas: 0
   maxReplicas: 1
   scaleTargetRef:

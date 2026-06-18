@@ -1,0 +1,83 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app mainsail
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *app
+  interval: 1h
+  values:
+    controllers:
+      mainsail:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/mainsail-crew/mainsail
+              tag: v2.11.1
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                add: ["NET_BIND_SERVICE", "CHOWN", "SETUID", "SETGID"]
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+    defaultPodOptions:
+      # The mainsail-crew image runs nginx, which binds :80 and forks workers,
+      # so it runs as root (with only the caps it needs added back above).
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+    service:
+      app:
+        controller: *app
+        ports:
+          http:
+            port: 80
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - path: /usr/share/nginx/html/config.json
+            subPath: config.json
+            readOnly: true
+    configMaps:
+      config:
+        data:
+          # Pre-points mainsail at fdm01's Moonraker via the TLS gateway endpoint
+          # (https://fdm01.homeops.ca). You can add/remove printers from the UI too.
+          config.json: |
+            {
+              "instancesDB": "json",
+              "instances": [
+                { "hostname": "fdm01.homeops.ca", "port": 443 }
+              ]
+            }

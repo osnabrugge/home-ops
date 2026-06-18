@@ -26,7 +26,6 @@ resources:
   - ./mosquitto/ks.yaml
   - ./notifier/ks.yaml
   - ./plex/ks.yaml
-  - ./printguard/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
   - ./qui/ks.yaml
@@ -38,7 +37,6 @@ resources:
   - ./slskd/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./sonarr/ks.yaml
-  - ./spoolman/ks.yaml
   - ./tautulli/ks.yaml
   - ./thelounge/ks.yaml
   - ./unpackerr/ks.yaml

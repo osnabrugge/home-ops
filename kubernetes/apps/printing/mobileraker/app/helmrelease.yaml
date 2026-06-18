@@ -1,0 +1,65 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app mobileraker
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *app
+  interval: 1h
+  values:
+    controllers:
+      mobileraker:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/clon1998/mobileraker_companion
+              tag: latest
+            env:
+              TZ: America/Toronto
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+    service:
+      app:
+        enabled: false
+        controller: *app
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - path: /opt/printer_data/config/mobileraker.conf
+            subPath: mobileraker.conf
+            readOnly: true
+    configMaps:
+      config:
+        data:
+          # The companion connects out to Moonraker over the LAN (server-side, no
+          # browser involved) and relays push notifications via Mobileraker's FCM.
+          # Most settings are now managed in the Mobileraker app per-device.
+          mobileraker.conf: |
+            [general]
+            timezone: America/Toronto
+
+            [printer fdm01]
+            moonraker_uri: ws://192.168.42.25:7125/websocket
+            moonraker_api_key: False

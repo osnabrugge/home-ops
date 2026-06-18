@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: printing
+
+components:
+  - ../../components/alerts
+
+resources:
+  - ./namespace.yaml
+  - ./moonraker-fdm01/ks.yaml
+  - ./printguard/ks.yaml
+  - ./spoolman/ks.yaml
+  - ./mainsail/ks.yaml
+  - ./fluidd/ks.yaml
+  - ./mobileraker/ks.yaml
+  - ./pgcode/ks.yaml
+  - ./printstash/ks.yaml
