@@ -33,6 +33,41 @@ spec:
       - netbox.homeops.ca
       - netbox.observability.svc.cluster.local
     timeZone: America/Toronto
+    # Authenticate NetBox against LLDAP. Uses direct-bind (userDnTemplate), so no
+    # bind service account or stored bind password is required: django-auth-ldap
+    # binds as the authenticating user, and LLDAP permits that user to read the
+    # group tree for the group->permission mapping below. The local superuser from
+    # netbox-secret remains a break-glass login.
+    #
+    # NOTE: the LLDAP `admins` group currently contains BOTH sean-admin and sean,
+    # so both will receive NetBox superuser until sean is removed from `admins`.
+    remoteAuth:
+      enabled: true
+      backends:
+        - netbox.authentication.LDAPBackend
+      ldap:
+        serverUri: ldap://lldap.auth.svc.cluster.local:3890
+        startTls: false
+        userDnTemplate: "uid=%(user)s,ou=people,dc=homeops,dc=ca"
+        # Authentication uses userDnTemplate above (bind as the user). LLDAP
+        # forbids anonymous search, so a read-only service account is required
+        # ONLY for the group search that drives the superuser/staff mapping.
+        # Create an LLDAP user `netbox` (read-only) and store its password in the
+        # AKV `netbox` secret as NETBOX_LDAP_BIND_PASSWORD (see externalsecret).
+        bindDn: "uid=netbox,ou=people,dc=homeops,dc=ca"
+        groupSearchBaseDn: "ou=groups,dc=homeops,dc=ca"
+        groupSearchClass: groupOfNames
+        groupType: GroupOfNamesType
+        requireGroupDn: []
+        isAdminDn:
+          - "cn=admins,ou=groups,dc=homeops,dc=ca"
+        isSuperUserDn:
+          - "cn=admins,ou=groups,dc=homeops,dc=ca"
+        findGroupPerms: true
+        mirrorGroups: true
+        attrFirstName: givenName
+        attrLastName: sn
+        attrMail: mail
     existingSecret: netbox-secret
     superuser:
       existingSecret: netbox-secret
