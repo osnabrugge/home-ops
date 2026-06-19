@@ -13,19 +13,12 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/lidarr/app
-  patches:
-    # Backups OFF (music library cleanup pending; lidarr being reworked).
-    - target:
-        kind: ReplicationSource
-      patch: |-
-        - op: add
-          path: /spec/paused
-          value: true
   postBuild:
     substitute:
       APP: lidarr
       VOLSYNC_CAPACITY: "15Gi"
-      VOLSYNC_SCHEDULE: "20 * * * *"
+      VOLSYNC_SCHEDULE: "0 0 31 2 *" # never — backups off (see docs/BACKUP-TIERS.md)
+      VOLSYNC_PAUSED: "true"
   prune: true
   sourceRef:
     kind: GitRepository

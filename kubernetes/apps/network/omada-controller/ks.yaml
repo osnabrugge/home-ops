@@ -14,18 +14,11 @@ spec:
       namespace: database
   interval: 1h
   path: ./kubernetes/apps/network/omada-controller/app
-  patches:
-    # Backups OFF (no data yet / being migrated). Keeps the PVC, pauses the RS.
-    - target:
-        kind: ReplicationSource
-      patch: |-
-        - op: add
-          path: /spec/paused
-          value: true
   postBuild:
     substitute:
       APP: omada-controller
-      VOLSYNC_SCHEDULE: "26 * * * *"
+      VOLSYNC_SCHEDULE: "0 0 31 2 *" # never — backups off (see docs/BACKUP-TIERS.md)
+      VOLSYNC_PAUSED: "true"
   prune: true
   sourceRef:
     kind: GitRepository

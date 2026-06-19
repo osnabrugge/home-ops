@@ -6,6 +6,9 @@ metadata:
   name: ${APP}
 spec:
   sourcePVC: ${APP}
+  # Set VOLSYNC_PAUSED=true in an app's ks.yaml postBuild to disable its backups
+  # (keeps the PVC, stops the ReplicationSource). Defaults to enabled.
+  paused: ${VOLSYNC_PAUSED:=false}
   trigger:
     schedule: ${VOLSYNC_SCHEDULE:=0 * * * *}
   kopia:

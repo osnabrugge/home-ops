@@ -12,18 +12,11 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/recyclarr/app
-  patches:
-    # Backups OFF (config, redo-able). Keeps the PVC, pauses the RS.
-    - target:
-        kind: ReplicationSource
-      patch: |-
-        - op: add
-          path: /spec/paused
-          value: true
   postBuild:
     substitute:
       APP: recyclarr
-      VOLSYNC_SCHEDULE: "38 * * * *"
+      VOLSYNC_SCHEDULE: "0 0 31 2 *" # never — backups off (see docs/BACKUP-TIERS.md)
+      VOLSYNC_PAUSED: "true"
   prune: true
   sourceRef:
     kind: GitRepository

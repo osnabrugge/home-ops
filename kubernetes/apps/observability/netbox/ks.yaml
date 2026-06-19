@@ -16,18 +16,11 @@ spec:
     - name: netbox-operator
   interval: 1h
   path: ./kubernetes/apps/observability/netbox/app
-  patches:
-    # Backups OFF (no data yet). Keeps the PVC, pauses the RS.
-    - target:
-        kind: ReplicationSource
-      patch: |-
-        - op: add
-          path: /spec/paused
-          value: true
   postBuild:
     substitute:
       APP: netbox
-      VOLSYNC_SCHEDULE: "24 * * * *"
+      VOLSYNC_SCHEDULE: "0 0 31 2 *" # never — backups off (see docs/BACKUP-TIERS.md)
+      VOLSYNC_PAUSED: "true"
       VOLSYNC_CAPACITY: 10Gi
       VOLSYNC_CACHE_CAPACITY: 10Gi
   prune: true
