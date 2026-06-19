@@ -10,6 +10,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./moonraker-fdm01/ks.yaml
+  - ./moonraker-fdm02/ks.yaml
   - ./printguard/ks.yaml
   - ./spoolman/ks.yaml
   - ./mainsail/ks.yaml

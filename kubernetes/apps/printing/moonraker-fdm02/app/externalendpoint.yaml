@@ -1,0 +1,59 @@
+---
+# Exposes fdm02's Moonraker API (192.168.42.26:7125) through the internal gateway
+# at https://fdm02.homeops.ca with TLS + WebSocket support. This lets the browser
+# UIs (mainsail/fluidd/pgcode), which are served over HTTPS, talk to Moonraker over
+# HTTPS too — avoiding the mixed-content block you'd hit calling http://fdm02:7125
+# directly. Implemented as a selector-less Service + manual EndpointSlice (pure
+# Kubernetes/Gateway API, no Envoy-specific Backend CRD needed).
+#
+# NOTE (host-side, you apply on fdm02): add to moonraker.conf [authorization]:
+#   cors_domains:
+#     https://mainsail.homeops.ca
+#     https://fluidd.homeops.ca
+#     https://pgcode.homeops.ca
+#   trusted_clients:
+#     192.168.42.0/24
+# and reload Moonraker. (printguard talks to Moonraker server-side, no CORS needed.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: moonraker-fdm02
+spec:
+  type: ClusterIP
+  ports:
+    - name: moonraker
+      port: 7125
+      targetPort: 7125
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: moonraker-fdm02
+  labels:
+    kubernetes.io/service-name: moonraker-fdm02
+addressType: IPv4
+ports:
+  - name: moonraker
+    port: 7125
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 192.168.42.26
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: moonraker-fdm02
+spec:
+  hostnames:
+    - fdm02.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: moonraker-fdm02
+          port: 7125

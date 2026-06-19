@@ -74,7 +74,7 @@ spec:
             {
               "instancesDB": "json",
               "instances": [
-                { "hostname": "192.168.42.25", "port": 7125 },
-                { "hostname": "192.168.42.26", "port": 7125 }
+                { "hostname": "fdm01.homeops.ca", "port": 443 },
+                { "hostname": "fdm02.homeops.ca", "port": 443 }
               ]
             }
