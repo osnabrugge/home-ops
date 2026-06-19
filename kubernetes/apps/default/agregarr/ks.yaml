@@ -13,6 +13,14 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/agregarr/app
+  patches:
+    # Backups OFF (redo-able supporting service). Keeps the PVC, pauses the RS.
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: agregarr

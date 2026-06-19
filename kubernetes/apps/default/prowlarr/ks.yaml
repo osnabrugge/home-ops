@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: prowlarr
-      VOLSYNC_SCHEDULE: "30 * * * *"
+      VOLSYNC_SCHEDULE: "0 1 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

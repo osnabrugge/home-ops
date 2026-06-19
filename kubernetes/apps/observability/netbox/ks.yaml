@@ -16,6 +16,14 @@ spec:
     - name: netbox-operator
   interval: 1h
   path: ./kubernetes/apps/observability/netbox/app
+  patches:
+    # Backups OFF (no data yet). Keeps the PVC, pauses the RS.
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: netbox

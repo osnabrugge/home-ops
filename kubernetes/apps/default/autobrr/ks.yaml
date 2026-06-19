@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: autobrr
-      VOLSYNC_SCHEDULE: "6 * * * *"
+      VOLSYNC_SCHEDULE: "20 5 * * 0"
   prune: true
   sourceRef:
     kind: GitRepository

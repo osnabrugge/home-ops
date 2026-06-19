@@ -29,7 +29,7 @@ spec:
   postBuild:
     substitute:
       APP: spoolman
-      VOLSYNC_SCHEDULE: "46 * * * *"
+      VOLSYNC_SCHEDULE: "15 3 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

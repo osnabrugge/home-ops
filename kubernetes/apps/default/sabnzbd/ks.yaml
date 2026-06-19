@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: sabnzbd
-      VOLSYNC_SCHEDULE: "40 * * * *"
+      VOLSYNC_SCHEDULE: "45 1 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

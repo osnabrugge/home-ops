@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: radarr
-      VOLSYNC_SCHEDULE: "36 * * * *"
+      VOLSYNC_SCHEDULE: "30 1 * * *"
       VOLSYNC_CAPACITY: 10Gi
       VOLSYNC_CACHE_CAPACITY: 10Gi
   prune: true

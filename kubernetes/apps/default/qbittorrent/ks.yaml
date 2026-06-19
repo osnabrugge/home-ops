@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: qbittorrent
-      VOLSYNC_SCHEDULE: "32 * * * *"
+      VOLSYNC_SCHEDULE: "30 2 * * *"
       VOLSYNC_CAPACITY: 20Gi
       VOLSYNC_CACHE_CAPACITY: 20Gi
   prune: true

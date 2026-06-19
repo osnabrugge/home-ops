@@ -13,6 +13,14 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/lidarr/app
+  patches:
+    # Backups OFF (music library cleanup pending; lidarr being reworked).
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: lidarr

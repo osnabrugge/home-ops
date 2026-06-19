@@ -13,6 +13,14 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/tautulli/app
+  patches:
+    # Backups OFF (redo-able). Keeps the PVC, pauses the RS.
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: tautulli

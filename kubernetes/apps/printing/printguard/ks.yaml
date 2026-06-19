@@ -12,6 +12,14 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/printing/printguard/app
+  patches:
+    # Backups OFF until actively printing. Keeps the PVC, pauses the RS.
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: printguard

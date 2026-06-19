@@ -12,6 +12,14 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/beets/app
+  patches:
+    # Backups OFF (music library cleanup pending; beets being reworked).
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: beets

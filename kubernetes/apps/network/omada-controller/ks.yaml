@@ -14,6 +14,14 @@ spec:
       namespace: database
   interval: 1h
   path: ./kubernetes/apps/network/omada-controller/app
+  patches:
+    # Backups OFF (no data yet / being migrated). Keeps the PVC, pauses the RS.
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: omada-controller

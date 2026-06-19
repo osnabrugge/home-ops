@@ -16,6 +16,14 @@ spec:
       namespace: kube-system
   interval: 1h
   path: ./kubernetes/apps/default/frigate/app
+  patches:
+    # Backups OFF (not configured yet). Keeps the PVC, pauses the RS.
+    - target:
+        kind: ReplicationSource
+      patch: |-
+        - op: add
+          path: /spec/paused
+          value: true
   postBuild:
     substitute:
       APP: frigate

@@ -18,7 +18,7 @@ spec:
   postBuild:
     substitute:
       APP: plex
-      VOLSYNC_SCHEDULE: "28 * * * *"
+      VOLSYNC_SCHEDULE: "0 3 * * *"
       VOLSYNC_CAPACITY: 50Gi
       VOLSYNC_CACHE_CAPACITY: 50Gi
   prune: true
