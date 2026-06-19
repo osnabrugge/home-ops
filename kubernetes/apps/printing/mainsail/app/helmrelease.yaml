@@ -72,12 +72,11 @@ spec:
     configMaps:
       config:
         data:
-          # Pre-points mainsail at fdm01's Moonraker via the TLS gateway endpoint
-          # (https://fdm01.homeops.ca). You can add/remove printers from the UI too.
           config.json: |
             {
               "instancesDB": "json",
               "instances": [
-                { "hostname": "fdm01.homeops.ca", "port": 443 }
+                { "hostname": "fdm01.in.homeops.ca", "port": 443 },
+                { "hostname": "fdm02.in.homeops.ca", "port": 443 }
               ]
             }
