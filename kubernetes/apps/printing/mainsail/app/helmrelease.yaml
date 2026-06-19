@@ -42,8 +42,6 @@ spec:
               limits:
                 memory: 128Mi
     defaultPodOptions:
-      # The mainsail-crew image runs nginx, which binds :80 and forks workers,
-      # so it runs as root (with only the caps it needs added back above).
       securityContext:
         runAsUser: 0
         runAsGroup: 0

@@ -42,8 +42,6 @@ spec:
               limits:
                 memory: 128Mi
     defaultPodOptions:
-      # The fluidd-core image runs nginx, which binds :80 and forks workers,
-      # so it runs as root (with only the caps it needs added back above).
       securityContext:
         runAsUser: 0
         runAsGroup: 0
@@ -72,12 +70,11 @@ spec:
     configMaps:
       config:
         data:
-          # Pre-points fluidd at fdm01's Moonraker via the TLS gateway endpoint
-          # (https://fdm01.homeops.ca). You can add/remove printers from the UI too.
           config.json: |
             {
               "instancesDB": "json",
               "instances": [
-                { "hostname": "fdm01.homeops.ca", "port": 443 }
+                { "hostname": "fdm01.in.homeops.ca", "port": 443 },
+                { "hostname": "fdm02.in.homeops.ca", "port": 443 }
               ]
             }
