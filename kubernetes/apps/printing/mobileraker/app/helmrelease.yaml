@@ -63,3 +63,7 @@ spec:
             [printer fdm01]
             moonraker_uri: ws://192.168.42.25:7125/websocket
             moonraker_api_key: False
+
+            [printer fdm02]
+            moonraker_uri: ws://192.168.42.26:7125/websocket
+            moonraker_api_key: False
