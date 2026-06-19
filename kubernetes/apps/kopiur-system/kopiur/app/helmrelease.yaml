@@ -22,8 +22,9 @@ spec:
         enabled: true
       prometheusRule:
         enabled: true
-    secretProjection:
-      enabled: true
+    features:
+      credentialProjection:
+        enabled: true
     webhook:
       tls:
         mode: self
