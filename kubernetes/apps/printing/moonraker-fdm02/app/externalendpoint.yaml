@@ -57,3 +57,51 @@ spec:
     - backendRefs:
         - name: moonraker-fdm02
           port: 7125
+---
+# fdm02 (SV08) crowsnest webcam (192.168.42.26:8080) exposed over HTTPS at
+# https://cam-fdm02.homeops.ca so the browser UIs (mainsail/fluidd), served over
+# HTTPS, can load the MJPEG stream/snapshot without the mixed-content block.
+# PrintGuard connects to the camera server-side so it never needed this.
+apiVersion: v1
+kind: Service
+metadata:
+  name: cam-fdm02
+spec:
+  type: ClusterIP
+  ports:
+    - name: webcam
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: cam-fdm02
+  labels:
+    kubernetes.io/service-name: cam-fdm02
+addressType: IPv4
+ports:
+  - name: webcam
+    port: 8080
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 192.168.42.26
+    conditions:
+      ready: true
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cam-fdm02
+spec:
+  hostnames:
+    - cam-fdm02.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: cam-fdm02
+          port: 8080
