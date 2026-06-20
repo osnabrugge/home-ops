@@ -63,7 +63,10 @@ spec:
             severity: warning
 
         - alert: UPSHighLoad
-          expr: (upsAdvOutputActivePower / upsAdvConfigRatedOutputPower) * 100 > 80
+          # upsAdvOutputLoad is already a load percentage (0-100). The previous
+          # expr divided centi-watt power by watt rated power -> ~100x inflated
+          # -> fired at any load. Use the native load % instead.
+          expr: upsAdvOutputLoad > 80
           annotations:
             summary: >-
               UPS {{ $labels.instance }} load is high ({{ $value | humanize }}%)

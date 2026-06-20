@@ -55,3 +55,15 @@ spec:
   matchers:
     - name: alertname
       value: KubeHpaMaxedOut
+---
+# UPS batteries genuinely flag replacement (upsAdvBatteryReplaceIndicator==2),
+# but replacement is deferred (hardware/budget). Silence the page until then so
+# it stops spamming Pushover; the alert remains defined and will resume if removed.
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: ups-replace-battery
+spec:
+  matchers:
+    - name: alertname
+      value: UPSReplaceBattery
