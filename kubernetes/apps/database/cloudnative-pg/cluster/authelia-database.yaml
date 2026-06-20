@@ -1,0 +1,12 @@
+---
+# Authelia database — created in the existing postgres16 cluster.
+# The authelia role is managed via spec.managed.roles in cluster16.yaml.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: authelia
+spec:
+  cluster:
+    name: postgres16
+  name: authelia
+  owner: authelia
