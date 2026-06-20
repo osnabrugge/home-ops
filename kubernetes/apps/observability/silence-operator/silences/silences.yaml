@@ -67,3 +67,16 @@ spec:
   matchers:
     - name: alertname
       value: UPSReplaceBattery
+---
+# nas02 (Synology, being retired) has a phantom `bond2` with 0 active members
+# (an unused leftover; its real bond0/bond1 are up per the core switch). Both
+# NodeBondingDegraded and CephNodeNetworkBondDegraded carry master=bond2, so
+# this one matcher silences both. Remove when nas02 is decommissioned.
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: nas02-phantom-bond2
+spec:
+  matchers:
+    - name: master
+      value: bond2
