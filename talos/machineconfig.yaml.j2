@@ -206,14 +206,10 @@ features:
   rx-gro-list: off
   rx-udp-gro-forwarding: on
 ---
-apiVersion: v1alpha1
-kind: UserVolumeConfig
-name: local-hostpath
-provisioning:
-  diskSelector:
-    match: disk.model == "Samsung SSD 970 EVO Plus 1TB" && !system_disk
-  minSize: 1TB
----
+# NOTE: the `local-hostpath` UserVolume (Samsung 970 → OpenEBS) was removed in the
+# 3->6 OSD migration (docs/CEPH-6OSD-MIGRATION.md). All Samsung 970 NVMe are now raw
+# Ceph OSDs; Postgres moved to ceph-block. Per node: apply this config (releases the
+# volume), then `talosctl wipe disk nvme0n1`, and Rook claims the disk as an OSD.
 apiVersion: v1alpha1
 kind: WatchdogTimerConfig
 device: /dev/watchdog0
