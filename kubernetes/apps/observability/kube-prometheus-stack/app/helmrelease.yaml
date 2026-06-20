@@ -15,6 +15,11 @@ spec:
       valuesKey: flux-metrics.yaml
   values:
     cleanPrometheusOperatorObjectNames: true
+    defaultRules:
+      disabled:
+        # zeroscaler scale-to-zero HPAs (maxReplicas=1) always report "maxed"
+        # at 1 active replica -> pure false positive in this cluster.
+        KubeHpaMaxedOut: true
     alertmanager:
       route:
         main:
