@@ -19,11 +19,14 @@ spec:
             severity: critical
 
         - alert: VolSyncVolumeOutOfSync
+          # OFF-tier (paused) backups are intentionally never synced, so they
+          # would page forever. Exclude them. Keep this list aligned with the
+          # paused apps in docs/BACKUP-TIERS.md.
           expr: |-
-            volsync_volume_out_of_sync == 1
+            volsync_volume_out_of_sync{obj_name!~"agregarr|beets|brrpolice|dashbrr|frigate|lidarr|netbox|omada-controller|printguard|recyclarr|tautulli"} == 1
           annotations:
             summary: >-
               {{ $labels.obj_namespace }}/{{ $labels.obj_name }} volume is out of sync
-          for: 5m
+          for: 15m
           labels:
             severity: critical
