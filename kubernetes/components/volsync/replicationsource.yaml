@@ -17,7 +17,10 @@ spec:
     cacheAccessModes:
       - ${VOLSYNC_CACHE_ACCESSMODES:=ReadWriteOnce}
     cacheCapacity: ${VOLSYNC_CACHE_CAPACITY:=5Gi}
-    cacheStorageClassName: ${VOLSYNC_CACHE_STORAGECLASS:=openebs-hostpath}
+    # ceph-block (not openebs-hostpath): after the 6-OSD migration the CP Samsungs are
+    # Ceph OSDs, so openebs-hostpath falls back to the small boot SATADOM (/var on sda4)
+    # and VolSync caches were filling it (CephNodeDiskspaceWarning). Caches live on Ceph now.
+    cacheStorageClassName: ${VOLSYNC_CACHE_STORAGECLASS:=ceph-block}
     compression: zstd-fastest
     copyMethod: Snapshot
     moverSecurityContext:

@@ -18,12 +18,16 @@ spec:
           labels:
             severity: critical
 
-        - alert: GatusEndpointExposed
+        # Fires when an endpoint served ONLY via the internal gateway is unreachable
+        # from in-cluster (its backend is down). NOTE: previously named
+        # "GatusEndpointExposed" with a misleading "public DNS record / exposed" summary —
+        # the expr only ever detected an internal endpoint being DOWN, not exposure.
+        - alert: GatusInternalEndpointDown
           expr: |-
             gatus_results_endpoint_success{group="internal"} == 0
           for: 5m
           annotations:
             summary: >-
-              The {{ $labels.name }} endpoint has a public DNS record and is exposed
+              The {{ $labels.name }} internal endpoint is unreachable (backend down)
           labels:
-            severity: critical
+            severity: warning

@@ -15,6 +15,15 @@ spec:
     - action: replace
       targetLabel: job
       replacement: node-exporter
+  metricRelabelings:
+    # nas02 bond2 (eth2/eth3) is an unused/uncabled onboard NIC pair — both slaves have
+    # been DOWN since boot (Link Failure Count 0, Speed Unknown). nas02's real bonds
+    # (bond0 1GbE, bond1 10GbE) are healthy. Drop bond2's node_bonding series so the
+    # upstream NodeBondingDegraded / CephNodeNetworkBondDegraded rules stop flagging an
+    # intentionally-dead bond. Replaces the nas02-phantom-bond2 Alertmanager silence.
+    - action: drop
+      sourceLabels: [master]
+      regex: bond2
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/scrapeconfig_v1alpha1.json
 apiVersion: monitoring.coreos.com/v1alpha1
