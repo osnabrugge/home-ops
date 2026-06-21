@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/mainsail-crew/mainsail
-              tag: v2.14.0
+              tag: v2.18.0
             probes:
               liveness:
                 enabled: true
