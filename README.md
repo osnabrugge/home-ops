@@ -8,15 +8,15 @@ _Backed by [Flux](https://fluxcd.io/), [Renovate](https://github.com/renovatebot
 
 > _"I literally bootstrapped this system from bare metal."_ — GitHub Copilot
 
-[![Talos](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.homeops.ca%2Ftalos_version%3Fformat%3Dendpoint&style=for-the-badge&logo=talos&logoColor=white)](https://talos.dev)&nbsp;&nbsp;
-[![Kubernetes](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.homeops.ca%2Fkubernetes_version%3Fformat%3Dendpoint&style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io)&nbsp;&nbsp;
-[![Flux](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.homeops.ca%2Fflux_version%3Fformat%3Dendpoint&style=for-the-badge&logo=flux&logoColor=white)](https://fluxcd.io)&nbsp;&nbsp;
-[![Renovate](https://img.shields.io/github/actions/workflow/status/osnabrugge/home-ops/renovate.yaml?branch=main&label=&logo=renovatebot&style=for-the-badge&color=blue)](https://github.com/osnabrugge/home-ops/actions/workflows/renovate.yaml)
+[![Talos](https://kromgo.homeops.ca/badges/talos_version)](https://talos.dev)&nbsp;&nbsp;
+[![Kubernetes](https://kromgo.homeops.ca/badges/kubernetes_version)](https://kubernetes.io)&nbsp;&nbsp;
+[![Flux](https://kromgo.homeops.ca/badges/flux_version)](https://fluxcd.io)&nbsp;&nbsp;
+[![Renovate](https://img.shields.io/github/actions/workflow/status/osnabrugge/home-ops/renovate.yaml?branch=main&label&logo=renovate&color=blue)](https://github.com/osnabrugge/home-ops/actions/workflows/renovate.yaml)
 
 ---
 
-[![Nodes](https://kromgo.homeops.ca/cluster_node_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![Pods](https://kromgo.homeops.ca/cluster_pod_count?format=badge)](https://grafana.homeops.ca)&nbsp;[![CPU](https://kromgo.homeops.ca/cluster_cpu_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Memory](https://kromgo.homeops.ca/cluster_memory_usage?format=badge)](https://grafana.homeops.ca)&nbsp;[![Power](https://kromgo.homeops.ca/cluster_power_usage?format=badge)](https://grafana.homeops.ca)
-[![Alerts](https://kromgo.homeops.ca/cluster_alert_count?format=badge)](https://alertmanager.homeops.ca)&nbsp;[![Ceph](https://kromgo.homeops.ca/ceph_health_status?format=badge)](https://grafana.homeops.ca)
+[![Nodes](https://kromgo.homeops.ca/badges/cluster_node_count)](https://grafana.homeops.ca)&nbsp;[![Pods](https://kromgo.homeops.ca/badges/cluster_pod_count)](https://grafana.homeops.ca)&nbsp;[![CPU](https://kromgo.homeops.ca/badges/cluster_cpu_usage)](https://grafana.homeops.ca)&nbsp;[![Memory](https://kromgo.homeops.ca/badges/cluster_memory_usage)](https://grafana.homeops.ca)&nbsp;[![Power](https://kromgo.homeops.ca/badges/cluster_power_usage)](https://grafana.homeops.ca)
+[![Alerts](https://kromgo.homeops.ca/badges/cluster_alert_count)](https://alertmanager.homeops.ca)&nbsp;[![Ceph](https://kromgo.homeops.ca/badges/ceph_health_status)](https://grafana.homeops.ca)
 
 _Live cluster stats from [kromgo](https://github.com/kashalls/kromgo). Badges may show as broken when the public Cloudflare edge is having issues; direct envoy still serves them. Tracked in [#3171](https://github.com/osnabrugge/home-ops/issues/3171)._
 

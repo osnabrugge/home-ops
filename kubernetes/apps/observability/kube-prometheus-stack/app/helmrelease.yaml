@@ -70,7 +70,7 @@ spec:
             # steady working set ~2Gi; was 98% of the old 2000Mi cap
             memory: 2Gi
           limits:
-            memory: 3000Mi
+            memory: 2000Mi
         storageSpec:
           volumeClaimTemplate:
             spec:

@@ -37,4 +37,4 @@ spec:
         # peak ~0.9Gi (was 88% of 1Gi)
         memory: 768Mi
       limits:
-        memory: 1536Mi
+        memory: 1Gi
