@@ -61,6 +61,8 @@ spec:
             resources:
               requests:
                 cpu: 100m
+                # 7d peak ~0.48Gi; explicit request stops the scheduler reserving the full limit
+                memory: 768Mi
               limits:
                 memory: 1Gi
     defaultPodOptions:

@@ -34,6 +34,14 @@ spec:
         osd:
           limits:
             memory: 8Gi # Required for bootstrap
+        mgr:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            # mgr working set sits at ~1Gi (prometheus module + pg_autoscaler) and was
+            # pinned at 100% of Rook's 1Gi default, risking OOM -> CephMgr* alerts.
+            memory: 2Gi
       storage:
         devicePathFilter: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_*
         useAllDevices: false

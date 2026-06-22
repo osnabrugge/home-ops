@@ -57,6 +57,8 @@ spec:
             resources:
               requests:
                 cpu: 100m
+                # 7d peak ~1.8Gi (lidarr is genuinely heavier); request sized to match
+                memory: 2Gi
               limits:
                 memory: 4Gi
     defaultPodOptions:
