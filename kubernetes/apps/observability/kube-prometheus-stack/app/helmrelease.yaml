@@ -67,10 +67,11 @@ spec:
         resources:
           requests:
             cpu: 100m
-            # steady working set ~2Gi; was 98% of the old 2000Mi cap
+            # steady working set ~2Gi (7d peak ~1972Mi)
             memory: 2Gi
           limits:
-            memory: 2000Mi
+            # must be >= request; 2000Mi was invalid (< 2Gi request) AND too tight (OOM)
+            memory: 3Gi
         storageSpec:
           volumeClaimTemplate:
             spec:
