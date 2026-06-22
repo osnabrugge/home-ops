@@ -41,6 +41,21 @@ health-sweep:
     echo "Checking for pods not in Running or Completed state..."
     {{ scripts_dir }}/health-sweep.sh
 
+[doc('Mute infra alerts for a planned maintenance window (auto-expires)')]
+[script]
+maintenance-start hours='2':
+    {{ scripts_dir }}/maintenance-silence.sh start {{ hours }}
+
+[doc('Expire active maintenance-window silences')]
+[script]
+maintenance-stop:
+    {{ scripts_dir }}/maintenance-silence.sh stop
+
+[doc('Show active maintenance-window silences')]
+[script]
+maintenance-status:
+    {{ scripts_dir }}/maintenance-silence.sh status
+
 [doc('Restore a PVC from VolSync')]
 [script]
 restore ns app previous='0':

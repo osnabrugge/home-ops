@@ -70,6 +70,19 @@ Migration checklist per app:
 - [ ] P1: Build a scripted health sweep for all apps in `kubernetes/apps/default`
 - [ ] P1: Verify each app endpoint responds and each workload is `Ready` with no crash loops
 - [ ] P1: Capture and triage failing probes in a single report
+
+### In-cluster health-sweep CronJob that files a GitHub issue (designed 2026-06-21, NOT yet built)
+There is currently **no** in-cluster cronjob — only `just kubernetes health-sweep` (local,
+manual, `scripts/health-sweep.sh`). To make findings surface automatically:
+- CronJob (daily) in `observability` running the sweep + a resource right-sizing check
+  (OOM-risk: peak >85% of limit; over-provisioned: request >2x 7d peak) via Prometheus.
+- Read-only cluster RBAC (ServiceAccount: get/list pods, events, deploy/sts; no secrets).
+- Opens/updates ONE deduplicated GitHub issue on `osnabrugge/home-ops` (search by a fixed
+  marker label/title, PATCH if open else POST) so it doesn't spam.
+- **BLOCKER (needs user decision):** a GitHub credential. Options: reuse the
+  `actions-runner-system` GitHub App (needs app id + installation token minting in the job)
+  OR a dedicated fine-grained PAT in AKV (`GITHUB_HEALTHSWEEP_PAT`, issues:write on the repo)
+  surfaced via ExternalSecret. Pick one, then wire the CronJob + RBAC + ExternalSecret.
 - [ ] P1: Add/adjust missing probes where needed
 
 ### First Sweep Findings (2026-04-14)
