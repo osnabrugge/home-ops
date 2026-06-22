@@ -7,4 +7,5 @@ resources:
   - ./cluster16.yaml
   - ./authelia-database.yaml
   - ./diode-databases.yaml
+  - ./dispatcharr-database.yaml
   - ./scheduledbackup.yaml

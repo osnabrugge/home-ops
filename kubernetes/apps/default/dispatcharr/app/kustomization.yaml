@@ -2,12 +2,6 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: database
 resources:
-  - ./authelia-db-externalsecret.yaml
-  - ./diode-db-externalsecret.yaml
-  - ./dispatcharr-db-externalsecret.yaml
   - ./externalsecret.yaml
-  - ./netbox-db-externalsecret.yaml
   - ./helmrelease.yaml
-  - ./ocirepository.yaml

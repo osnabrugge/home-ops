@@ -1,0 +1,113 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dispatcharr
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: dispatcharr
+  interval: 1h
+  values:
+    controllers:
+      dispatcharr:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/dispatcharr/dispatcharr
+              tag: 0.27.0@sha256:425129020764037869c7d1a2e74ba57ca640cb5d551ef57d869b745b6ea71c7b
+            env: &svcEnv
+              TZ: America/Toronto
+              # Modular mode: use the cluster's shared PostgreSQL (CNPG postgres16)
+              # and shared Redis (Dragonfly) instead of bundling them in-container.
+              DISPATCHARR_ENV: modular
+              DISPATCHARR_LOG_LEVEL: info
+              DISPATCHARR_PORT: &port 9191
+              POSTGRES_HOST: postgres16-rw.database.svc.cluster.local
+              POSTGRES_PORT: "5432"
+              POSTGRES_DB: dispatcharr
+              POSTGRES_USER: dispatcharr
+              REDIS_HOST: dragonfly.database.svc.cluster.local
+              REDIS_PORT: "6379"
+              CELERY_BROKER_URL: redis://dragonfly.database.svc.cluster.local:6379/0
+              DJANGO_SETTINGS_MODULE: dispatcharr.settings
+              PYTHONUNBUFFERED: "1"
+            envFrom: &svcEnvFrom
+              - secretRef:
+                  name: dispatcharr-secret
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *port
+                  initialDelaySeconds: 120
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              claims:
+                - name: gpu
+              requests:
+                cpu: 50m
+                memory: 1Gi
+              limits:
+                memory: 3Gi
+          celery:
+            image:
+              repository: ghcr.io/dispatcharr/dispatcharr
+              tag: 0.27.0@sha256:425129020764037869c7d1a2e74ba57ca640cb5d551ef57d869b745b6ea71c7b
+            command: ["/app/docker/entrypoint.celery.sh"]
+            env: *svcEnv
+            envFrom: *svcEnvFrom
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+    defaultPodOptions:
+      resourceClaims:
+        - name: gpu
+          resourceClaimTemplateName: dispatcharr
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
+    service:
+      app:
+        controller: dispatcharr
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.homeops.ca"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir

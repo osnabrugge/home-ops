@@ -56,3 +56,8 @@ spec:
         superuser: false
         passwordSecret:
           name: hydra-db-user
+      - name: dispatcharr
+        login: true
+        superuser: false
+        passwordSecret:
+          name: dispatcharr-db-user

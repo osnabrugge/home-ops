@@ -1,0 +1,12 @@
+---
+# Dispatcharr database — created in the existing postgres16 cluster.
+# The dispatcharr role is managed via spec.managed.roles in cluster16.yaml.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: dispatcharr
+spec:
+  cluster:
+    name: postgres16
+  name: dispatcharr
+  owner: dispatcharr
