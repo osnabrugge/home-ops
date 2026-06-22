@@ -1,0 +1,57 @@
+---
+# Normalizes kopia repository blob permissions to group-readable.
+#
+# Why this exists: VolSync movers run as mixed uids — most as uid 1000 (which kopia
+# writes group-readable 0660), but root-running movers and the KopiaMaintenance job get
+# NFS root-squashed to uid 1024 and write owner-only 0600 index blobs. The uid-1000
+# movers (group 1000) then get "permission denied" reading those blobs and backups fail.
+# kopia's file-mode can't be set through VolSync (additionalArgs only reach snapshot/restore,
+# not the repository connect), so we re-grant group access here. Metadata only — never
+# touches blob contents. Runs frequently and only on recently-written files lacking group
+# read, so it's cheap and overlaps the hourly backups + 03:30/15:30 maintenance windows.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kopia-repo-perms
+  namespace: volsync-system
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          containers:
+            - name: chmod
+              image: busybox:1.37
+              command:
+                - sh
+                - -c
+                - >
+                  find /repository -mmin -120 ! -perm -040 -exec chmod g+rwX {} + 2>/dev/null;
+                  echo "normalized $(find /repository -mmin -120 ! -perm -040 2>/dev/null | wc -l) remaining"
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                  add: ["FOWNER", "DAC_OVERRIDE"]
+              volumeMounts:
+                - name: repository
+                  mountPath: /repository
+          volumes:
+            - name: repository
+              nfs:
+                server: nas02.in.homeops.ca
+                path: /volume1/data/kopia
