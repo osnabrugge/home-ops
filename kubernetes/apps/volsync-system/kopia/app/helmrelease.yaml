@@ -78,7 +78,9 @@ spec:
               "storage": {
                 "type": "filesystem",
                 "config": {
-                  "path": "/repository"
+                  "path": "/repository",
+                  "dirMode": 504,
+                  "fileMode": 432
                 }
               },
               "hostname": "volsync.{{ .Release.Namespace }}.svc.cluster.local",

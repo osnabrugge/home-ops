@@ -19,10 +19,7 @@ resources:
   - ./chaski/ks.yaml
   - ./dashbrr/ks.yaml
   - ./deduparr/ks.yaml
-  # dispatcharr: temporarily disabled — cannot roll out until the VolSync/kopia
-  # version-mismatch (0.22.3 movers vs 0.23.1 repo) is resolved. Its config PVC
-  # is stuck waiting on a restore that hangs. Re-enable after the kopia fix.
-  # - ./dispatcharr/ks.yaml
+  - ./dispatcharr/ks.yaml
   - ./frigate/ks.yaml
   - ./go2rtc/ks.yaml
   - ./home-assistant/ks.yaml
