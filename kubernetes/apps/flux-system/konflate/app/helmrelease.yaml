@@ -34,5 +34,7 @@ spec:
     resources:
       requests:
         cpu: 50m
+        # peak ~0.9Gi (was 88% of 1Gi)
+        memory: 768Mi
       limits:
-        memory: 1Gi
+        memory: 1536Mi

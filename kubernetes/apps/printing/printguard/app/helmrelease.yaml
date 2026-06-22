@@ -74,7 +74,8 @@ spec:
                 cpu: 50m
                 memory: 512Mi
               limits:
-                memory: 2Gi
+                # peak ~1.7Gi (was 85% of 2Gi); headroom to avoid OOM
+                memory: 3Gi
           mediamtx:
             image:
               repository: docker.io/bluenviron/mediamtx
