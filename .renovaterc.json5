@@ -1,6 +1,6 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["github>home-operations/renovate-presets#2.0.0", ":timezone(America/Toronto)"],
+  extends: ["github>home-operations/renovate-presets#2.0.1", ":timezone(America/Toronto)"],
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
