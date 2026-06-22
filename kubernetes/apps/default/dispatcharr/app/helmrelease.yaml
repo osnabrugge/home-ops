@@ -52,11 +52,14 @@ spec:
                   failureThreshold: 3
               readiness: *probes
             securityContext:
-              allowPrivilegeEscalation: false
-              # dispatcharr bundles nginx + supervisord + django and writes to
-              # /etc/profile.d, /var/lib/nginx, /run etc. at startup -> needs writable root
+              # dispatcharr (nginx + supervisord + django) is built to run as root;
+              # it writes /etc/profile.d, /var/lib/nginx, /run etc. at startup and
+              # cannot run as an arbitrary uid. celery container stays non-root.
+              runAsUser: 0
+              runAsGroup: 0
+              runAsNonRoot: false
+              allowPrivilegeEscalation: true
               readOnlyRootFilesystem: false
-              capabilities: { drop: ["ALL"] }
             resources:
               claims:
                 - name: gpu
