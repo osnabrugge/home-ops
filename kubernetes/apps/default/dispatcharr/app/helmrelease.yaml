@@ -53,7 +53,9 @@ spec:
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              # dispatcharr bundles nginx + supervisord + django and writes to
+              # /etc/profile.d, /var/lib/nginx, /run etc. at startup -> needs writable root
+              readOnlyRootFilesystem: false
               capabilities: { drop: ["ALL"] }
             resources:
               claims:
