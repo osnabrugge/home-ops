@@ -56,10 +56,13 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 512Mi
+                # Headless Chrome working set observed peaking ~2.9Gi over 7d, which
+                # OOMKilled against the old 3Gi cap. Request reflects steady baseline.
+                memory: 768Mi
               limits:
-                # Chrome + the 1Gi /dev/shm Memory emptyDir count against this
-                memory: 3Gi
+                # Chrome + the 1Gi /dev/shm Memory emptyDir count against this; 4Gi
+                # gives the browser headroom during heavy solves to avoid OOM restarts.
+                memory: 4Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true

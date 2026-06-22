@@ -71,9 +71,11 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
+                # Observed 14d working set spikes to ~512Mi (announce/filter bursts),
+                # which repeatedly OOMKilled at the old 512Mi limit. Sized with headroom.
+                memory: 256Mi
               limits:
-                memory: 512Mi
+                memory: 1Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
