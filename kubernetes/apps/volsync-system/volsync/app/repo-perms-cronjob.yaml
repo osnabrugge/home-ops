@@ -34,8 +34,9 @@ spec:
                 - sh
                 - -c
                 - >
-                  find /repository -mmin -120 ! -perm -040 -exec chmod g+rwX {} + 2>/dev/null;
-                  echo "normalized $(find /repository -mmin -120 ! -perm -040 2>/dev/null | wc -l) remaining"
+                  find /repository -mmin -120 -exec chown 1000:1000 {} + 2>/dev/null;
+                  find /repository -mmin -120 -exec chmod g+rwX {} + 2>/dev/null;
+                  echo "normalized $(find /repository -mmin -120 \( ! -group 1000 -o ! -perm -040 \) 2>/dev/null | wc -l) remaining"
               resources:
                 requests:
                   cpu: 10m
@@ -46,7 +47,7 @@ spec:
                 allowPrivilegeEscalation: false
                 capabilities:
                   drop: ["ALL"]
-                  add: ["FOWNER", "DAC_OVERRIDE"]
+                  add: ["CHOWN", "FOWNER", "DAC_OVERRIDE"]
               volumeMounts:
                 - name: repository
                   mountPath: /repository

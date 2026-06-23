@@ -110,19 +110,15 @@ spec:
           - name: envoy-internal
             namespace: network
     persistence:
+      # Single 10Gi config PVC (volsync-backed) holds both /data and /app/media.
+      # dispatcharr writes channel logos / cached media to /app/media from both the app
+      # and celery containers; mounting it here (a volume) keeps it writable even though
+      # celery has a read-only root fs, shared between containers, and backed up.
       config:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /data
-      # dispatcharr writes channel logos / cached media to /app/media from both the
-      # app and celery containers, so it needs a shared, writable, persistent volume
-      # (the container root fs is read-only on celery). Dedicated PVC, not volsync-backed.
-      media:
-        type: persistentVolumeClaim
-        accessMode: ReadWriteOnce
-        size: 10Gi
-        storageClass: ceph-block
-        globalMounts:
           - path: /app/media
+            subPath: media
       tmp:
         type: emptyDir
