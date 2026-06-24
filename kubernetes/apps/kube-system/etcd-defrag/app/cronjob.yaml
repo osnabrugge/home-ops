@@ -25,7 +25,7 @@ spec:
               type: RuntimeDefault
           initContainers:
             - name: install-talosctl
-              image: docker.io/curlimages/curl:8.20.0
+              image: docker.io/curlimages/curl:8.21.0
               command:
                 - sh
                 - -c
