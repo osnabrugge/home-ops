@@ -13,6 +13,19 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/default/dispatcharr/app
+  # The config PVC was originally helm-created (bound without a volsync
+  # dataSourceRef). A bound PVC's spec is immutable, so re-applying the
+  # volsync-templated PVC (which adds dataSourceRef) fails the dry-run and
+  # blocks the whole Kustomization. Mark the PVC IfNotPresent so Flux creates
+  # it once and never tries to mutate the immutable spec again.
+  patches:
+    - target:
+        kind: PersistentVolumeClaim
+      patch: |
+        - op: add
+          path: /metadata/labels
+          value:
+            kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
   postBuild:
     substitute:
       APP: dispatcharr
