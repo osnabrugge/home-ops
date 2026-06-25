@@ -3,6 +3,12 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: ${APP}
+  annotations:
+    # Default Override = normal Flux behaviour. Apps whose config PVC was not
+    # born from the volsync populator (e.g. an older helm-created PVC) can set
+    # VOLSYNC_PVC_SSA=IfNotPresent so Flux stops trying to mutate the immutable
+    # bound spec (which otherwise fails the dry-run and blocks reconciliation).
+    kustomize.toolkit.fluxcd.io/ssa: ${VOLSYNC_PVC_SSA:=Override}
 spec:
   accessModes:
     - ${VOLSYNC_ACCESSMODES:=ReadWriteOnce}
