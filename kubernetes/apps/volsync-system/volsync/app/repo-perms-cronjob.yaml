@@ -27,6 +27,13 @@ spec:
         spec:
           restartPolicy: Never
           automountServiceAccountToken: false
+          # Run as uid 1024 (the uid nas02 squashes root/maintenance writes to) so
+          # we are the OWNER of the 0600 index blobs and can actually chmod them.
+          # As root we get NFS-squashed and the chmod silently fails.
+          securityContext:
+            runAsUser: 1024
+            runAsGroup: 1000
+            runAsNonRoot: true
           containers:
             - name: chmod
               image: busybox:1.38
@@ -34,9 +41,9 @@ spec:
                 - sh
                 - -c
                 - >
-                  find /repository -mmin -120 -exec chown 1000:1000 {} + 2>/dev/null;
-                  find /repository -mmin -120 -exec chmod g+rwX {} + 2>/dev/null;
-                  echo "normalized $(find /repository -mmin -120 \( ! -group 1000 -o ! -perm -040 \) 2>/dev/null | wc -l) remaining"
+                  find /repository -mmin -180 -type f -exec chmod g+rX {} + 2>/dev/null;
+                  find /repository -mmin -180 -type d -exec chmod g+rwxs {} + 2>/dev/null;
+                  echo "normalized $(find /repository -mmin -180 ! -perm -040 2>/dev/null | wc -l) remaining"
               resources:
                 requests:
                   cpu: 10m
@@ -47,7 +54,7 @@ spec:
                 allowPrivilegeEscalation: false
                 capabilities:
                   drop: ["ALL"]
-                  add: ["CHOWN", "FOWNER", "DAC_OVERRIDE"]
+                  add: ["FOWNER"]
               volumeMounts:
                 - name: repository
                   mountPath: /repository
