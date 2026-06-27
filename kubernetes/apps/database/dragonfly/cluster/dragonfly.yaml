@@ -19,6 +19,11 @@ spec:
     - --proactor_threads=2
     - --cluster_mode=emulated
     - --lock_on_hashtags
+    # django-channels (dispatcharr modular mode) runs Lua scripts that access keys
+    # not passed in KEYS[]; Dragonfly rejects this by default ("script tried
+    # accessing undeclared key"), which breaks the daphne/ASGI layer and stream
+    # playback. Allow undeclared key access (real-Redis behaviour).
+    - --default_lua_flags=allow-undeclared-keys
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
