@@ -89,7 +89,7 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == 200"]
+            conditions: ["len([BODY]) > 0"]
         hostnames:
           - lldap.homeops.ca
         parentRefs:

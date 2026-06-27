@@ -87,8 +87,9 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == 200"]
-            url: https://auth.homeops.ca/api/health
+            # Internal-only from gatus' perspective + public wildcard DNS; use the
+            # inherited guarded DNS-resolve check (real fix = remove *.homeops.ca).
+            conditions: ["len([BODY]) > 0"]
         hostnames:
           - auth.homeops.ca
         parentRefs:

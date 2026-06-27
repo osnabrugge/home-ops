@@ -98,6 +98,9 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
+            # Override the inherited guarded DNS probe; check the in-cluster
+            # service directly (reachable from the gatus pod).
+            guarded: false
             url: tcp://omada-controller.network.svc.cluster.local:8088
             conditions:
               - "[CONNECTED] == true"
