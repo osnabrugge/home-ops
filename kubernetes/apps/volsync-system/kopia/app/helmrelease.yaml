@@ -12,6 +12,13 @@ spec:
   values:
     controllers:
       kopia:
+        # Kept scaled to 0: this 0.23.x browser creates owner-only (0700) epoch
+        # index dirs under /repository/x that the volsync movers (kopia 0.22.3,
+        # NFS root-squashed, group-only access) cannot ReadDir -> movers hang
+        # "Connecting to filesystem repository". The dirMode/fileMode below are
+        # ignored by kopia for those dirs. Proper fix = nas02 NFS share mapall
+        # user/group 1000 (consistent ownership); until then, run on demand only.
+        replicas: 0
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
