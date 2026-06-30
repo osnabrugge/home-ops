@@ -15,7 +15,7 @@ metadata:
   name: kopia-repo-perms
   namespace: volsync-system
 spec:
-  schedule: "*/15 * * * *"
+  schedule: "*/10 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
@@ -31,26 +31,50 @@ spec:
           # we are the OWNER of the 0600 index blobs and can actually chmod them.
           # As root we get NFS-squashed and the chmod silently fails.
           securityContext:
-            runAsUser: 1024
             runAsGroup: 1000
             runAsNonRoot: true
           containers:
-            - name: chmod
+            # Two passes: kopia writes index blobs 0600 (owner-only) regardless of
+            # the writer uid. Root-running movers/maintenance get NFS-squashed to
+            # uid 1024; uid-1000 movers (and the browser) write as 1000. NFS ignores
+            # FOWNER cross-owner, so each uid can only chmod its OWN files -> we need
+            # one container per owner uid or the other class stays unreadable and the
+            # squashed-root movers fail with "permission denied" on x/<shard>.
+            - name: chmod-1024
               image: busybox:1.38
               command:
                 - sh
                 - -c
                 - >
-                  find /repository -mmin -180 -type f -exec chmod g+rX {} + 2>/dev/null;
-                  find /repository -mmin -180 -type d -exec chmod g+rwxs {} + 2>/dev/null;
-                  echo "normalized $(find /repository -mmin -180 ! -perm -040 2>/dev/null | wc -l) remaining"
+                  find /repository -mmin -180 -user 1024 -type f ! -perm -040 -exec chmod g+rX {} + 2>/dev/null;
+                  find /repository -mmin -180 -user 1024 -type d -exec chmod g+rwxs {} + 2>/dev/null;
+                  echo "1024 pass: $(find /repository -mmin -180 -user 1024 -type f ! -perm -040 2>/dev/null | wc -l) remaining"
               resources:
-                requests:
-                  cpu: 10m
-                  memory: 32Mi
-                limits:
-                  memory: 64Mi
+                requests: { cpu: 10m, memory: 32Mi }
+                limits: { memory: 64Mi }
               securityContext:
+                runAsUser: 1024
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                  add: ["FOWNER"]
+              volumeMounts:
+                - name: repository
+                  mountPath: /repository
+            - name: chmod-1000
+              image: busybox:1.38
+              command:
+                - sh
+                - -c
+                - >
+                  find /repository -mmin -180 -user 1000 -type f ! -perm -040 -exec chmod g+rX {} + 2>/dev/null;
+                  find /repository -mmin -180 -user 1000 -type d -exec chmod g+rwxs {} + 2>/dev/null;
+                  echo "1000 pass: $(find /repository -mmin -180 -user 1000 -type f ! -perm -040 2>/dev/null | wc -l) remaining"
+              resources:
+                requests: { cpu: 10m, memory: 32Mi }
+                limits: { memory: 64Mi }
+              securityContext:
+                runAsUser: 1000
                 allowPrivilegeEscalation: false
                 capabilities:
                   drop: ["ALL"]
