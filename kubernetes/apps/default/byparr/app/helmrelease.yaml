@@ -60,6 +60,10 @@ spec:
                 # OOMKilled against the old 3Gi cap. Request reflects steady baseline.
                 memory: 768Mi
               limits:
+                # Cap CPU so a headless-Chrome solve storm can't saturate the node
+                # and starve co-located Ceph OSD heartbeat threads (caused an osd.3
+                # flap on k8s01 2026-06-30). 2 cores is ~2x observed peak (~1.16).
+                cpu: "2"
                 # Chrome + the 1Gi /dev/shm Memory emptyDir count against this; 4Gi
                 # gives the browser headroom during heavy solves to avoid OOM restarts.
                 memory: 4Gi
