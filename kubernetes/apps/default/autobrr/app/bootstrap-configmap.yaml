@@ -4,6 +4,10 @@ kind: ConfigMap
 metadata:
   name: autobrr-bootstrap
   namespace: default
+  annotations:
+    # Shell script uses ${VAR} syntax; skip Flux envsubst so it isn't treated
+    # as postBuild substitution (otherwise: "variable not set (strict mode)").
+    kustomize.toolkit.fluxcd.io/substitute: disabled
 data:
   bootstrap.sh: |
     #!/usr/bin/env sh
