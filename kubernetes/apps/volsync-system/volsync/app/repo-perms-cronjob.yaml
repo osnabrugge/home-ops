@@ -22,7 +22,13 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 1
-      activeDeadlineSeconds: 300
+      # 300s was too short: the two find passes walk the whole NFS repo tree and, with
+      # any backlog of 0600 blobs to chmod, routinely blew the 5-min deadline -> the Job
+      # died DeadlineExceeded and NEVER fixed perms, so unreadable index blobs piled up
+      # (1600+ stragglers) and every volsync mover crash-looped on "permission denied",
+      # churning Ceph RBD on the mover's node and flapping that node's OSD. 15 min gives
+      # the sweep room to finish even on a slow NFS / large repo.
+      activeDeadlineSeconds: 900
       template:
         spec:
           restartPolicy: Never
