@@ -36,7 +36,11 @@ spec:
           # Run as uid 1024 (the uid nas02 squashes root/maintenance writes to) so
           # we are the OWNER of the 0600 index blobs and can actually chmod them.
           # As root we get NFS-squashed and the chmod silently fails.
+          # runAsUser is REQUIRED at pod level: containerd rejects the sandbox with
+          # "user group 1000 is specified without user" if a group is set without a
+          # user. The per-container securityContext below overrides this uid anyway.
           securityContext:
+            runAsUser: 1000
             runAsGroup: 1000
             runAsNonRoot: true
           containers:
