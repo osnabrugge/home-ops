@@ -15,6 +15,19 @@ spec:
         wipeDevicesFromOtherClusters: true
       crashCollector:
         disable: false
+      # Scrub throttling for CONSUMER Samsung 970 EVO Plus NVMe (onedr0p uses enterprise
+      # Micron 7450). At the Ceph defaults (osd_scrub_sleep=0, osd_max_scrubs=3, no
+      # off-peak window) deep scrubs run flat-out and spike read latency on these consumer
+      # drives -> OSD sub-op stalls ("waiting for sub ops") -> heartbeat miss -> OSD flap
+      # -> RBD clients remount READ-ONLY -> app crashloops (qui/HA/zigbee/spoolman etc).
+      # Proven NOT physical: enp1s0f0/f1 have 0 errors/drops, bond 0 link-failures, disks
+      # 4-7ms, OSDs idle (CPU ~20m, client IO <1MiB/s) when it flaps. Throttling scrubs is
+      # the durable, non-physical fix. Applied at runtime 2026-07-05; pinned here.
+      cephConfig:
+        osd:
+          osd_scrub_sleep: "0.1" # sleep between scrub chunks (default 0 = flat-out)
+          osd_max_scrubs: "1" # one scrub per OSD at a time (default 3)
+          osd_scrub_load_threshold: "5.0" # defer scrub when node load is high
       csi:
         readAffinity:
           enabled: false # https://github.com/ceph/ceph-csi/issues/5772
