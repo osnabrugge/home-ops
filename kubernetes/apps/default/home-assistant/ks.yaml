@@ -6,7 +6,7 @@ metadata:
   name: home-assistant
 spec:
   components:
-    - ../../../../components/volsync
+    - ../../../../components/kopiur/backup
   dependsOn:
     - name: multus-networks
       namespace: kube-system
@@ -17,7 +17,7 @@ spec:
   postBuild:
     substitute:
       APP: home-assistant
-      VOLSYNC_SCHEDULE: "0 2 * * *"
+      KOPIUR_SCHEDULE: "0 2 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

@@ -6,7 +6,7 @@ metadata:
   name: qbittorrent
 spec:
   components:
-    - ../../../../components/volsync
+    - ../../../../components/kopiur/backup
     - ../../../../components/zeroscaler
   dependsOn:
     - name: rook-ceph-cluster
@@ -16,9 +16,8 @@ spec:
   postBuild:
     substitute:
       APP: qbittorrent
-      VOLSYNC_SCHEDULE: "30 2 * * *"
-      VOLSYNC_CAPACITY: 20Gi
-      VOLSYNC_CACHE_CAPACITY: 20Gi
+      KOPIUR_SCHEDULE: "30 2 * * *"
+      KOPIUR_CAPACITY: 20Gi
   prune: true
   sourceRef:
     kind: GitRepository

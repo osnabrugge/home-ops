@@ -6,7 +6,7 @@ metadata:
   name: omada-controller
 spec:
   components:
-    - ../../../../components/volsync
+    - ../../../../components/kopiur/backup
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
@@ -17,8 +17,7 @@ spec:
   postBuild:
     substitute:
       APP: omada-controller
-      VOLSYNC_SCHEDULE: "0 0 31 2 *" # never — backups off (see docs/BACKUP-TIERS.md)
-      VOLSYNC_PAUSED: "true"
+      KOPIUR_SUSPEND: "true"
   prune: true
   sourceRef:
     kind: GitRepository

@@ -6,7 +6,7 @@ metadata:
   name: zigbee
 spec:
   components:
-    - ../../../../components/volsync
+    - ../../../../components/kopiur/backup
     - ../../../../components/zeroscaler
   dependsOn:
     - name: rook-ceph-cluster
@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: zigbee
-      VOLSYNC_SCHEDULE: "30 3 * * *"
+      KOPIUR_SCHEDULE: "30 3 * * *"
       ZEROSCALER_JOB_NAME: nas02_probe
   prune: true
   sourceRef:

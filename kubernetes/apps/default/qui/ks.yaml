@@ -6,7 +6,7 @@ metadata:
   name: qui
 spec:
   components:
-    - ../../../../components/volsync
+    - ../../../../components/kopiur/backup
     - ../../../../components/zeroscaler
   dependsOn:
     - name: rook-ceph-cluster
@@ -16,7 +16,7 @@ spec:
   postBuild:
     substitute:
       APP: qui
-      VOLSYNC_SCHEDULE: "40 5 * * 0"
+      KOPIUR_SCHEDULE: "40 5 * * 0"
   prune: true
   sourceRef:
     kind: GitRepository
