@@ -6,7 +6,8 @@ namespace: kopiur-system
 
 components:
   - ../../components/alerts
+  - ../../components/kopiur/secret
 
 resources:
   - ./namespace.yaml
-  # - ./kopiur/ks.yaml
+  - ./kopiur/ks.yaml

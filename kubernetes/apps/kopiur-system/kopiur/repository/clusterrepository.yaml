@@ -14,18 +14,11 @@ spec:
         nfs:
           server: nas02.in.homeops.ca
           path: /volume1/data/kopiur
-  create:
-    enabled: true
-  credentialProjection:
-    allowed: true
   encryption:
     passwordSecretRef:
       name: kopiur-nas-secret
       namespace: kopiur-system
       key: KOPIA_PASSWORD
-  identityDefaults:
-    hostnameExpr: namespace
-    usernameExpr: namespace + '-' + policyName
   moverDefaults:
     cache:
       capacity: 1Mi
@@ -34,7 +27,12 @@ spec:
     podSecurityContext:
       fsGroup: 1000
       fsGroupChangePolicy: OnRootMismatch
+    scratch:
+      capacity: 1Mi
+      storageClassName: openebs-hostpath
     securityContext:
       runAsUser: 1000
       runAsGroup: 1000
     ttlSecondsAfterFinished: 300
+  scheduleDefaults:
+    timezone: America/Toronto
