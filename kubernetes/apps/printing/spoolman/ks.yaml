@@ -13,19 +13,6 @@ spec:
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/printing/spoolman/app
-  patches:
-    # One-time data migration: spoolman moved from the `default` namespace to
-    # `printing`. VolSync's Kopia restore identity defaults to the destination's
-    # own namespace, so without this it would restore nothing and the filament
-    # inventory would be lost. Point the first restore at the `default` backup.
-    # Safe to leave in place: the ReplicationDestination trigger is restore-once.
-    - target:
-        kind: ReplicationDestination
-        name: spoolman-dst
-      patch: |
-        - op: add
-          path: /spec/kopia/sourceIdentity/sourceNamespace
-          value: default
   postBuild:
     substitute:
       APP: spoolman
