@@ -1,3 +1,4 @@
+set default-list
 set default-script
 set quiet
 set script-interpreter := ['bash', '-euo', 'pipefail']

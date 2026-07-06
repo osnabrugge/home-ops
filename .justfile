@@ -1,5 +1,6 @@
 #!/usr/bin/env -S just --justfile
 
+set default-list
 set default-script
 set lazy
 set quiet

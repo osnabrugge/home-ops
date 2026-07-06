@@ -4,10 +4,9 @@ apiVersion: kopiur.home-operations.com/v1alpha1
 kind: SnapshotPolicy
 metadata:
   name: ${APP}
+  annotations:
+    kopiur.home-operations.com/allow-identity-change: "true"
 spec:
-  copyMethod: Snapshot
-  credentialProjection:
-    enabled: true
   repository:
     kind: ClusterRepository
     name: nas
@@ -20,11 +19,8 @@ spec:
   verification:
     deep:
       schedule:
-        cron: H 5 * * 0
-        jitter: 1h
-        timezone: America/Toronto
+        cron: H 5 1 * *
     quick:
-      cron: H 5 * * *
-      jitter: 1h
-      timezone: America/Toronto
-  volumeSnapshotClassName: ${KOPIUR_SNAPSHOTCLASS:=csi-ceph-block}
+      schedule:
+        cron: H 3 * * *
+  volumeSnapshotClassName: ${KOPIUR_SNAPSHOTCLASS:=csi-ceph-blockpool}
