@@ -5,16 +5,14 @@ metadata:
   name: ${APP}
   annotations:
     # IfNotPresent = adopt an existing PVC (e.g. one migrated from volsync) without Flux
-    # trying to mutate its immutable bound spec (dataSourceRef). On a fresh provision the
-    # PVC is created with the kopiur Restore populator below. Override per-app if needed.
+    # trying to mutate its immutable bound spec. This claim holds the PVC in the Flux
+    # inventory so it is never pruned; for an existing PVC it is a no-op. On a fresh
+    # provision an EMPTY PVC is created (kopiur's Restore populator was removed because a
+    # perpetually-Pending Restore blocks `wait: true` health checks; DR restore is manual).
     kustomize.toolkit.fluxcd.io/ssa: ${KOPIUR_PVC_SSA:=IfNotPresent}
 spec:
   accessModes:
     - ${KOPIUR_ACCESSMODES:=ReadWriteOnce}
-  dataSourceRef:
-    apiGroup: kopiur.home-operations.com
-    kind: Restore
-    name: ${APP}
   resources:
     requests:
       storage: ${KOPIUR_CAPACITY:=5Gi}
