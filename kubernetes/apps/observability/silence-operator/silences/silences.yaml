@@ -30,21 +30,15 @@ kind: Silence
 metadata:
   name: ceph-node-network-packet-drops
 spec:
+  # Scoped to pve01 only: its packet "drops" are on Proxmox virtual/bridge interfaces
+  # (vmbr*, tap*, enwan0 bridged WAN) = VM-destined frames counted as host rx_dropped,
+  # not real loss (0 fifo/ring-overflow), and pve01 is not a Ceph OSD node. Real drops on
+  # the k8s Ceph nodes' bond0 are NOT silenced and will still alert.
   matchers:
     - name: alertname
       value: CephNodeNetworkPacketDrops
----
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/observability.giantswarm.io/silence_v1alpha2.json
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: nas-memory-high-utilization
-spec:
-  matchers:
-    - name: alertname
-      value: NodeMemoryHighUtilization
     - name: instance
-      value: nas02.in.homeops.ca:9100
+      value: pve01.in.homeops.ca:9100
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/observability.giantswarm.io/silence_v1alpha2.json
 apiVersion: observability.giantswarm.io/v1alpha2
@@ -70,16 +64,3 @@ spec:
 # NOTE: the former `nas02-phantom-bond2` silence was removed — nas02's unused bond2
 # is now dropped at scrape time via metricRelabelings in the node-exporter ScrapeConfig
 # (kube-prometheus-stack/app/scrapeconfig.yaml), so the bonding rules no longer fire.
----
-# Printer maintenance: fdm01/fdm02 are being worked on, so their moonraker/webcam
-# endpoints (cam-fdm0x, moonraker-fdm0x) report down via Gatus. Silence those endpoints
-# while work is in progress. Remove this once the printers are back in service.
-apiVersion: observability.giantswarm.io/v1alpha2
-kind: Silence
-metadata:
-  name: printers-maintenance
-spec:
-  matchers:
-    - name: name
-      value: .*fdm0[12].*
-      matchType: "=~"

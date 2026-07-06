@@ -67,11 +67,11 @@ spec:
         resources:
           requests:
             cpu: 100m
-            # steady working set ~2Gi (7d peak ~1972Mi)
-            memory: 2Gi
-          limits:
-            # must be >= request; 2000Mi was invalid (< 2Gi request) AND too tight (OOM)
+            # working set grew to ~3Gi (more series post kopiur migration + 30d
+            # retention); request matches steady state, limit gives OOM headroom.
             memory: 3Gi
+          limits:
+            memory: 4Gi
         storageSpec:
           volumeClaimTemplate:
             spec:
