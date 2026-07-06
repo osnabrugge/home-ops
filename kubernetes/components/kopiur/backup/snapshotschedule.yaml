@@ -8,4 +8,7 @@ spec:
   policyRef:
     name: ${APP}
   schedule:
-    cron: H * * * *
+    # Preserve the staggered per-app schedule from docs/BACKUP-TIERS.md. Paused apps
+    # (no data yet / redo-able) set KOPIUR_SUSPEND=true to own the PVC without backing up.
+    cron: ${KOPIUR_SCHEDULE:=0 4 * * *}
+    suspend: ${KOPIUR_SUSPEND:=false}

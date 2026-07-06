@@ -7,12 +7,15 @@ metadata:
   annotations:
     kopiur.home-operations.com/allow-identity-change: "true"
 spec:
+  # Clone (not Snapshot) sidesteps the rook-1.20.1 CSI-VolumeSnapshot RBD read-only
+  # fencing cascade documented in docs/BACKUP-TIERS.md ("copyMethod: Snapshot -> Clone").
+  copyMethod: ${KOPIUR_COPYMETHOD:=Clone}
   repository:
     kind: ClusterRepository
     name: nas
   retention:
-    keepDaily: 7
-    keepHourly: 24
+    keepDaily: ${KOPIUR_KEEP_DAILY:=7}
+    keepHourly: ${KOPIUR_KEEP_HOURLY:=24}
   sources:
     - pvc:
         name: ${APP}

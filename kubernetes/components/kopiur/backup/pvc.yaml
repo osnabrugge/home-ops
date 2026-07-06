@@ -3,6 +3,11 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: ${APP}
+  annotations:
+    # IfNotPresent = adopt an existing PVC (e.g. one migrated from volsync) without Flux
+    # trying to mutate its immutable bound spec (dataSourceRef). On a fresh provision the
+    # PVC is created with the kopiur Restore populator below. Override per-app if needed.
+    kustomize.toolkit.fluxcd.io/ssa: ${KOPIUR_PVC_SSA:=IfNotPresent}
 spec:
   accessModes:
     - ${KOPIUR_ACCESSMODES:=ReadWriteOnce}
