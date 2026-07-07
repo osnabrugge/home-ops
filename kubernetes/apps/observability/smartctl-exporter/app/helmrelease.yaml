@@ -11,6 +11,12 @@ spec:
   interval: 1h
   values:
     fullnameOverride: *app
+    # Chart default rbac.podSecurityPolicy=unrestricted-psp creates a RoleBinding
+    # to a PSP ClusterRole that no longer exists (PSPs removed in k8s 1.25). The
+    # exporter reads local devices via hostPath and needs no cluster RBAC, so
+    # disable it to drop the dead RoleBinding (Radar "Missing roleRef target").
+    rbac:
+      create: false
     serviceMonitor:
       enabled: true
     prometheusRules:
