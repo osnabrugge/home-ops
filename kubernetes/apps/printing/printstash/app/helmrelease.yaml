@@ -61,7 +61,7 @@ spec:
           api:
             image:
               repository: ghcr.io/xiao-villamor/printstash-api
-              tag: "v0.8.1"
+              tag: "v0.8.2"
             # Mirror the upstream compose entrypoint: run DB migrations, then serve.
             # The single PVC mounts at /data, so the subdirs are created first.
             command:
