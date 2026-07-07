@@ -9,13 +9,13 @@ metadata:
 spec:
   # Clone (not Snapshot) sidesteps the rook-1.20.1 CSI-VolumeSnapshot RBD read-only
   # fencing cascade documented in docs/BACKUP-TIERS.md ("copyMethod: Snapshot -> Clone").
-  copyMethod: ${KOPIUR_COPYMETHOD:=Clone}
+  copyMethod: ${KOPIUR_COPYMETHOD:=Clone} # yayamlls-disable-line
   repository:
     kind: ClusterRepository
     name: nas
   retention:
-    keepDaily: ${KOPIUR_KEEP_DAILY:=7}
-    keepHourly: ${KOPIUR_KEEP_HOURLY:=24}
+    keepDaily: ${KOPIUR_KEEP_DAILY:=7} # yayamlls-disable-line
+    keepHourly: ${KOPIUR_KEEP_HOURLY:=24} # yayamlls-disable-line
   sources:
     - pvc:
         name: ${APP}
