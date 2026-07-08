@@ -1,0 +1,14 @@
+---
+# Spoolman database — created in the existing postgres16 cluster.
+# The spoolman role is managed via spec.managed.roles in cluster16.yaml.
+# Migrated off SQLite-on-Ceph-RBD (which hit "database is locked" write
+# failures under RBD fsync latency + the daily backup) on 2026-07-08.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: spoolman
+spec:
+  cluster:
+    name: postgres16
+  name: spoolman
+  owner: spoolman

@@ -8,4 +8,5 @@ resources:
   - ./authelia-database.yaml
   - ./diode-databases.yaml
   - ./dispatcharr-database.yaml
+  - ./spoolman-database.yaml
   - ./scheduledbackup.yaml

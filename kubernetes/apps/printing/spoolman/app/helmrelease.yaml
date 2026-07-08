@@ -25,6 +25,19 @@ spec:
               SPOOLMAN_PORT: &port 8000
               SPOOLMAN_DIR_DATA: /data
               SPOOLMAN_METRICS_ENABLED: true
+              # Use the cluster's HA PostgreSQL (CNPG postgres16) instead of the
+              # default SQLite-on-Ceph-RBD DB, which hit "database is locked" write
+              # failures under RBD fsync latency + Spoolman's daily backup and
+              # silently broke usage tracking (2026-07-07). Postgres removes the
+              # single-file writer-lock contention. /data PVC is retained for uploads.
+              SPOOLMAN_DB_TYPE: postgres
+              SPOOLMAN_DB_HOST: postgres16-rw.database.svc.cluster.local
+              SPOOLMAN_DB_PORT: "5432"
+              SPOOLMAN_DB_NAME: spoolman
+              SPOOLMAN_DB_USERNAME: spoolman
+            envFrom:
+              - secretRef:
+                  name: spoolman-secret
             probes:
               liveness:
                 enabled: true

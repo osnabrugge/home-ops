@@ -61,3 +61,8 @@ spec:
         superuser: false
         passwordSecret:
           name: dispatcharr-db-user
+      - name: spoolman
+        login: true
+        superuser: false
+        passwordSecret:
+          name: spoolman-db-user

@@ -9,5 +9,6 @@ resources:
   - ./dispatcharr-db-externalsecret.yaml
   - ./externalsecret.yaml
   - ./netbox-db-externalsecret.yaml
+  - ./spoolman-db-externalsecret.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
