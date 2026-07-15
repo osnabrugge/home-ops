@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/oliverbravery/printguard
-              tag: 2.3.4
+              tag: 2.3.5
             # PrintGuard v2 serves plain HTTP on :8000 by default (the entrypoint no
             # longer wraps uvicorn in self-signed HTTPS, so the old /.dockerenv +
             # uvicorn-override hack is gone). Envoy terminates TLS at the edge;
