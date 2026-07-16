@@ -15,17 +15,10 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
-          # Pin to a node with both Coral USB and Intel iGPU
           nodeSelector:
             google.feature.node.kubernetes.io/coral: "true"
             node.kubernetes.io/gpu: "true"
         initContainers:
-          # Frigate 0.16+ migrates (rewrites) its config on startup. The configMap
-          # is mounted read-only, so migration fails and Frigate silently falls back
-          # to an EMPTY config (no cameras, CPU detector) -- this is why Frigate
-          # never worked. Copy the Git-managed config from the read-only configMap
-          # into the writable PVC so Frigate can load and migrate it. Reuses the
-          # frigate image (no extra pull); reloader restarts on configMap change.
           init-config:
             image:
               repository: ghcr.io/blakeblackshear/frigate
@@ -43,8 +36,6 @@ spec:
               TZ: America/Toronto
               LIBVA_DRIVER_NAME: iHD
             envFrom:
-              # FRIGATE_RTSP_PASSWORD (frigate_svc account) — substituted into the
-              # go2rtc stream URLs below by Frigate's env-var expansion.
               - secretRef:
                   name: frigate-secret
             probes:
@@ -70,9 +61,6 @@ spec:
                   failureThreshold: 60
                   periodSeconds: 10
             securityContext:
-              # Coral USB requires raw /dev/bus/usb access. Talos default-namespace
-              # PSS allows privileged here; switch to a dedicated namespace + USB
-              # device plugin if tightening is required.
               privileged: true
             resources:
               claims:
@@ -83,10 +71,6 @@ spec:
               limits:
                 memory: 4Gi
     defaultPodOptions:
-      # frigate runs privileged/root for Coral USB + iGPU. The nas02 NFS export
-      # for /media uses root_squash and the share dir is group-owned 1000:1000,
-      # so root is denied writes. Supplemental gids are not squashed, so adding
-      # group 1000 grants the group rwx on /media/frigate (recordings).
       securityContext:
         supplementalGroups:
           - 1000
@@ -177,9 +161,6 @@ spec:
                 - cat
             record:
               enabled: true
-              # Frigate 0.14+ record schema: continuous/motion for time-based
-              # recording, alerts/detections for tracked-object recording. The old
-              # record.retain / record.events keys were removed (caused safe mode).
               motion:
                 days: 7
               alerts:
@@ -194,20 +175,14 @@ spec:
               enabled: true
               retain:
                 default: 14
-            # Cameras connect DIRECTLY to their RTSP streams on :554 (no go2rtc
-            # restream layer). Standard Dahua-style paths: subtype=0 = main stream
-            # (record), subtype=1 = substream (detect). The frigate_svc password is
-            # injected from FRIGATE_RTSP_PASSWORD (envFrom frigate-secret) via
-            # Frigate's {FRIGATE_*} env substitution. NOTE: if the password contains
-            # RTSP-URL-reserved chars (@ : / ? #) it must be percent-encoded in Key Vault.
             cameras:
               cam01:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=0
+                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=0
                       input_args: preset-rtsp-generic
                       roles: [record]
-                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=1
+                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=1
                       input_args: preset-rtsp-generic
                       roles: [detect]
                 # detect width/height omitted -> Frigate auto-detects from the stream.
@@ -217,10 +192,10 @@ spec:
               cam02:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=0
+                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=0
                       input_args: preset-rtsp-generic
                       roles: [record]
-                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=1
+                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=1
                       input_args: preset-rtsp-generic
                       roles: [detect]
                 detect:

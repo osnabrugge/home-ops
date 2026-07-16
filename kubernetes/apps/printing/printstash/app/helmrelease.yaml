@@ -15,9 +15,6 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
-          # SPA served by nginx on :3000. It proxies /api/v1 (incl. WebSockets)
-          # same-origin to the api container, which the compose reaches via the
-          # service name "api" — here the pod hostAliases maps "api" -> 127.0.0.1.
           frontend:
             image:
               repository: ghcr.io/xiao-villamor/printstash-frontend
@@ -62,8 +59,6 @@ spec:
             image:
               repository: ghcr.io/xiao-villamor/printstash-api
               tag: "v0.10.0"
-            # Mirror the upstream compose entrypoint: run DB migrations, then serve.
-            # The single PVC mounts at /data, so the subdirs are created first.
             command:
               - /bin/sh
               - -c
@@ -73,9 +68,6 @@ spec:
                 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log --proxy-headers
             env:
               TZ: America/Toronto
-              # uv's default cache (/tmp/.uv_cache) is baked read-only into the
-              # image layer, so `uv run` fails with EACCES even as root. Point it
-              # at a fresh writable emptyDir instead.
               UV_CACHE_DIR: /uv-cache
               VAULT_STORAGE_BACKEND: local
               VAULT_DATA_DIR: /data/files
