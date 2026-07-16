@@ -175,15 +175,33 @@ spec:
               enabled: true
               retain:
                 default: 14
+            # go2rtc restreams each camera ONCE (Frigate best practice). Detect,
+            # record and live view all consume the local restream (rtsp://127.0.0.1:8554)
+            # so each EmpireTech/Dahua camera only sees a single RTSP session — important
+            # for the PTZ domes, which limit concurrent streams. subtype=0 = main
+            # (2560x1440, record), subtype=1 = substream (detect). Frigate substitutes
+            # {FRIGATE_RTSP_PASSWORD} (from frigate-secret) across the whole config incl.
+            # this go2rtc block. User `viewer`; percent-encode the pw in Key Vault if it
+            # ever contains RTSP-reserved chars (@ : / ? # & % =).
+            go2rtc:
+              streams:
+                cam01:
+                  - rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=0
+                cam01_sub:
+                  - rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=1
+                cam02:
+                  - rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=0
+                cam02_sub:
+                  - rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=1
             cameras:
               cam01:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=0
-                      input_args: preset-rtsp-generic
+                    - path: rtsp://127.0.0.1:8554/cam01
+                      input_args: preset-rtsp-restream
                       roles: [record]
-                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=1
-                      input_args: preset-rtsp-generic
+                    - path: rtsp://127.0.0.1:8554/cam01_sub
+                      input_args: preset-rtsp-restream
                       roles: [detect]
                 # detect width/height omitted -> Frigate auto-detects from the stream.
                 detect:
@@ -192,11 +210,11 @@ spec:
               cam02:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=0
-                      input_args: preset-rtsp-generic
+                    - path: rtsp://127.0.0.1:8554/cam02
+                      input_args: preset-rtsp-restream
                       roles: [record]
-                    - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=1
-                      input_args: preset-rtsp-generic
+                    - path: rtsp://127.0.0.1:8554/cam02_sub
+                      input_args: preset-rtsp-restream
                       roles: [detect]
                 detect:
                   enabled: true
