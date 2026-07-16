@@ -177,12 +177,18 @@ spec:
                 - cat
             record:
               enabled: true
-              retain:
+              # Frigate 0.14+ record schema: continuous/motion for time-based
+              # recording, alerts/detections for tracked-object recording. The old
+              # record.retain / record.events keys were removed (caused safe mode).
+              motion:
                 days: 7
-                mode: motion
-              events:
+              alerts:
                 retain:
-                  default: 14
+                  days: 14
+                  mode: motion
+              detections:
+                retain:
+                  days: 14
                   mode: motion
             snapshots:
               enabled: true
