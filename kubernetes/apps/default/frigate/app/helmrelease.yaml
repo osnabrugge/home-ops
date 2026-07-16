@@ -203,9 +203,12 @@ spec:
                     - path: rtsp://127.0.0.1:8554/cam01_sub
                       input_args: preset-rtsp-restream
                       roles: [detect]
-                # detect width/height omitted -> Frigate auto-detects from the stream.
+                # Substream is 704x480; pin it so Frigate skips the OpenCV auto-probe
+                # (that probe blocks startup for 30s per stream if a source stalls).
                 detect:
                   enabled: true
+                  width: 704
+                  height: 480
                   fps: 5
               cam02:
                 ffmpeg:
@@ -218,6 +221,8 @@ spec:
                       roles: [detect]
                 detect:
                   enabled: true
+                  width: 704
+                  height: 480
                   fps: 5
             # cam03 (192.168.70.73): PoE link up but no IP yet — likely a hard-coded
             #   static IP on the camera. Add a stream+camera block once it's reachable
