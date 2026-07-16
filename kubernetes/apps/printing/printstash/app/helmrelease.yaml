@@ -73,6 +73,10 @@ spec:
                 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log --proxy-headers
             env:
               TZ: America/Toronto
+              # uv's default cache (/tmp/.uv_cache) is baked read-only into the
+              # image layer, so `uv run` fails with EACCES even as root. Point it
+              # at a fresh writable emptyDir instead.
+              UV_CACHE_DIR: /uv-cache
               VAULT_STORAGE_BACKEND: local
               VAULT_DATA_DIR: /data/files
               VAULT_THUMB_DIR: /data/thumbs
@@ -147,6 +151,12 @@ spec:
           - name: envoy-internal
             namespace: network
     persistence:
+      uv-cache:
+        type: emptyDir
+        advancedMounts:
+          printstash:
+            api:
+              - path: /uv-cache
       data:
         type: persistentVolumeClaim
         accessMode: ReadWriteOnce
