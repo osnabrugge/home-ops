@@ -19,6 +19,21 @@ spec:
           nodeSelector:
             google.feature.node.kubernetes.io/coral: "true"
             node.kubernetes.io/gpu: "true"
+        initContainers:
+          # Frigate 0.16+ migrates (rewrites) its config on startup. The configMap
+          # is mounted read-only, so migration fails and Frigate silently falls back
+          # to an EMPTY config (no cameras, CPU detector) -- this is why Frigate
+          # never worked. Copy the Git-managed config from the read-only configMap
+          # into the writable PVC so Frigate can load and migrate it. Reuses the
+          # frigate image (no extra pull); reloader restarts on configMap change.
+          init-config:
+            image:
+              repository: ghcr.io/blakeblackshear/frigate
+              tag: 0.17.2
+            command:
+              - sh
+              - -c
+              - cp -v /config-src/config.yml /config/config.yml
         containers:
           app:
             image:
@@ -105,11 +120,11 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /config
-      config-file:
+      config-src:
         type: configMap
         identifier: config
         globalMounts:
-          - path: /config/config.yml
+          - path: /config-src/config.yml
             subPath: config.yml
             readOnly: true
       cache:
@@ -118,6 +133,13 @@ spec:
         sizeLimit: 2Gi
         globalMounts:
           - path: /tmp/cache
+      shm:
+        # Frigate needs >=114MB /dev/shm for two 1080p cameras; default is 64MB.
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 256Mi
+        globalMounts:
+          - path: /dev/shm
       media:
         type: nfs
         server: nas02.in.homeops.ca
@@ -166,32 +188,21 @@ spec:
               enabled: true
               retain:
                 default: 14
-            # Frigate's BUILT-IN go2rtc restreams each camera once, so detect +
-            # record + live view share a single connection to the camera. Standard
-            # Dahua-style RTSP: subtype=0 = main (record), subtype=1 = substream
-            # (detect). Credentials use the frigate_svc account; the password comes
-            # from FRIGATE_RTSP_PASSWORD (envFrom frigate-secret) and is expanded by
-            # Frigate. NOTE: if the password contains RTSP-URL-reserved chars
-            # (@ : / ? #) it must be percent-encoded in Key Vault.
-            go2rtc:
-              streams:
-                cam01:
-                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=0
-                cam01_sub:
-                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=1
-                cam02:
-                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=0
-                cam02_sub:
-                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=1
+            # Cameras connect DIRECTLY to their RTSP streams on :554 (no go2rtc
+            # restream layer). Standard Dahua-style paths: subtype=0 = main stream
+            # (record), subtype=1 = substream (detect). The frigate_svc password is
+            # injected from FRIGATE_RTSP_PASSWORD (envFrom frigate-secret) via
+            # Frigate's {FRIGATE_*} env substitution. NOTE: if the password contains
+            # RTSP-URL-reserved chars (@ : / ? #) it must be percent-encoded in Key Vault.
             cameras:
               cam01:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://127.0.0.1:8554/cam01
-                      input_args: preset-rtsp-restream
+                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=0
+                      input_args: preset-rtsp-generic
                       roles: [record]
-                    - path: rtsp://127.0.0.1:8554/cam01_sub
-                      input_args: preset-rtsp-restream
+                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=1
+                      input_args: preset-rtsp-generic
                       roles: [detect]
                 # detect width/height omitted -> Frigate auto-detects from the stream.
                 detect:
@@ -200,11 +211,11 @@ spec:
               cam02:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://127.0.0.1:8554/cam02
-                      input_args: preset-rtsp-restream
+                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=0
+                      input_args: preset-rtsp-generic
                       roles: [record]
-                    - path: rtsp://127.0.0.1:8554/cam02_sub
-                      input_args: preset-rtsp-restream
+                    - path: rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=1
+                      input_args: preset-rtsp-generic
                       roles: [detect]
                 detect:
                   enabled: true
