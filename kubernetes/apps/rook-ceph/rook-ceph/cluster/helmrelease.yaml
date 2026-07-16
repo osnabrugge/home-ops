@@ -10,16 +10,23 @@ spec:
     name: rook-ceph-cluster
   interval: 1h
   values:
+    # Pin the Ceph image FORWARD at v20.2.2. On 2026-07-08 the rook chart bump
+    # v1.20.1->v1.20.2 started a Ceph 20.2.1->20.2.2 upgrade (mons/mgr/mds reached
+    # 20.2.2); the HR upgrade timed out mid-roll and Flux auto-rolled-back to
+    # v1.20.1, reverting the image to v20.2.1. mon.i (store already 20.2.2) then
+    # crashlooped on 20.2.1 ("unsupported features: incompat 32=nvmeof beacon").
+    # Ceph forbids downgrades, so we pin forward to where the mons already are.
+    #
+    # Chart v1.20.2 MOVED image config out of cephClusterSpec.cephVersion into this
+    # top-level cephImage key (dedicated template block in cephcluster.yaml). Leaving
+    # the old cephClusterSpec.cephVersion in place rendered cephVersion TWICE, so
+    # Flux's post-render YAML parse failed and the HR upgrade got stuck (failing
+    # every 15m since 2026-07-08), cascading "dependency not ready" to ~40 apps.
+    cephImage:
+      repository: quay.io/ceph/ceph
+      tag: v20.2.2
+      allowUnsupported: false
     cephClusterSpec:
-      # Pin the Ceph image FORWARD at v20.2.2. On 2026-07-08 the rook chart bump
-      # v1.20.1->v1.20.2 started a Ceph 20.2.1->20.2.2 upgrade (mons/mgr/mds reached
-      # 20.2.2); the HR upgrade timed out mid-roll and Flux auto-rolled-back to
-      # v1.20.1, reverting the image to v20.2.1. mon.i (store already 20.2.2) then
-      # crashlooped on 20.2.1 ("unsupported features: incompat 32=nvmeof beacon").
-      # Ceph forbids downgrades, so we pin forward to where the mons already are.
-      cephVersion:
-        image: quay.io/ceph/ceph:v20.2.2
-        allowUnsupported: false
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
       crashCollector:
