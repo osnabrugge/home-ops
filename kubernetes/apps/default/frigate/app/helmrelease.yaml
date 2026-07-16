@@ -27,6 +27,11 @@ spec:
             env:
               TZ: America/Toronto
               LIBVA_DRIVER_NAME: iHD
+            envFrom:
+              # FRIGATE_RTSP_PASSWORD (frigate_svc account) — substituted into the
+              # go2rtc stream URLs below by Frigate's env-var expansion.
+              - secretRef:
+                  name: frigate-secret
             probes:
               liveness:
                 enabled: true
@@ -161,59 +166,51 @@ spec:
               enabled: true
               retain:
                 default: 14
+            # Frigate's BUILT-IN go2rtc restreams each camera once, so detect +
+            # record + live view share a single connection to the camera. Standard
+            # Dahua-style RTSP: subtype=0 = main (record), subtype=1 = substream
+            # (detect). Credentials use the frigate_svc account; the password comes
+            # from FRIGATE_RTSP_PASSWORD (envFrom frigate-secret) and is expanded by
+            # Frigate. NOTE: if the password contains RTSP-URL-reserved chars
+            # (@ : / ? #) it must be percent-encoded in Key Vault.
             go2rtc:
               streams:
-                server_room:
-                  - rtsp://go2rtc.default.svc.cluster.local:8554/server_room
-                nozzle_cam:
-                  - rtsp://go2rtc.default.svc.cluster.local:8554/nozzle_cam
-                front:
-                  - rtsp://go2rtc.default.svc.cluster.local:8554/front
-                rear:
-                  - rtsp://go2rtc.default.svc.cluster.local:8554/rear
+                cam01:
+                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=0
+                cam01_sub:
+                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.71:554/cam/realmonitor?channel=1&subtype=1
+                cam02:
+                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=0
+                cam02_sub:
+                  - rtsp://frigate_svc:{FRIGATE_RTSP_PASSWORD}@192.168.70.72:554/cam/realmonitor?channel=1&subtype=1
             cameras:
-              server_room:
+              cam01:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://127.0.0.1:8554/server_room
+                    - path: rtsp://127.0.0.1:8554/cam01
                       input_args: preset-rtsp-restream
-                      roles: [detect, record]
+                      roles: [record]
+                    - path: rtsp://127.0.0.1:8554/cam01_sub
+                      input_args: preset-rtsp-restream
+                      roles: [detect]
+                # detect width/height omitted -> Frigate auto-detects from the stream.
                 detect:
-                  width: 1920
-                  height: 1080
+                  enabled: true
                   fps: 5
-              nozzle_cam:
+              cam02:
                 ffmpeg:
                   inputs:
-                    - path: rtsp://127.0.0.1:8554/nozzle_cam
+                    - path: rtsp://127.0.0.1:8554/cam02
                       input_args: preset-rtsp-restream
-                      roles: [detect, record]
-                detect:
-                  width: 1920
-                  height: 1080
-                  fps: 5
-                # Tuned for nozzle inspection — print failure detection scaffold;
-                # add custom model + zone in a later commit
-                objects:
-                  track: [person]
-              front:
-                ffmpeg:
-                  inputs:
-                    - path: rtsp://127.0.0.1:8554/front
+                      roles: [record]
+                    - path: rtsp://127.0.0.1:8554/cam02_sub
                       input_args: preset-rtsp-restream
-                      roles: [detect, record]
+                      roles: [detect]
                 detect:
-                  width: 1920
-                  height: 1080
+                  enabled: true
                   fps: 5
-              rear:
-                ffmpeg:
-                  inputs:
-                    - path: rtsp://127.0.0.1:8554/rear
-                      input_args: preset-rtsp-restream
-                      roles: [detect, record]
-                detect:
-                  width: 1920
-                  height: 1080
-                  fps: 5
+            # cam03 (192.168.70.73): PoE link up but no IP yet — likely a hard-coded
+            #   static IP on the camera. Add a stream+camera block once it's reachable
+            #   on :554 (probe currently fails).
+            # cam04 (192.168.70.74): still boxed / not deployed.
             version: 0.17-0
