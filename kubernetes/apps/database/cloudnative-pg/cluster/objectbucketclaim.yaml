@@ -1,0 +1,11 @@
+---
+# Bucket for CNPG barman backups, served by the in-cluster Rook-Ceph RGW.
+# Rook provisions the bucket + creates a Secret and ConfigMap (both named
+# `cnpg-postgres16`) in this namespace holding the S3 credentials + endpoint.
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: cnpg-postgres16
+spec:
+  bucketName: cnpg-postgres16
+  storageClassName: ceph-bucket

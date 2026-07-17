@@ -6,7 +6,7 @@ metadata:
 spec:
   schedule: "@daily"
   immediate: true
-  suspend: true
+  suspend: false
   backupOwnerReference: self
   cluster:
     name: postgres16

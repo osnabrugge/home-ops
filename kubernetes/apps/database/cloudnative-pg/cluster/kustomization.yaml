@@ -9,4 +9,5 @@ resources:
   - ./diode-databases.yaml
   - ./dispatcharr-database.yaml
   - ./spoolman-database.yaml
+  - ./objectbucketclaim.yaml
   - ./scheduledbackup.yaml

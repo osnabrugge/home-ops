@@ -19,6 +19,25 @@ spec:
   superuserSecret:
     name: cloudnative-pg-secret
   enableSuperuserAccess: true
+  backup:
+    # Off-cluster logical + WAL backups to the Rook-Ceph RGW S3 store
+    # (bucket cnpg-postgres16, creds from the OBC-generated secret). Enables PITR.
+    retentionPolicy: 30d
+    barmanObjectStore:
+      destinationPath: s3://cnpg-postgres16/
+      endpointURL: http://rook-ceph-rgw-ceph-objectstore.rook-ceph.svc:80
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-postgres16
+          key: AWS_ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-postgres16
+          key: AWS_SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+        maxParallel: 2
+      data:
+        compression: gzip
   postgresql:
     parameters:
       max_connections: "400"
