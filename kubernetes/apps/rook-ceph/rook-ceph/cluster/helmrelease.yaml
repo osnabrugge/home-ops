@@ -174,4 +174,35 @@ spec:
       name: csi-ceph-filesystem
       deletionPolicy: Delete
       isDefault: false
-    cephObjectStores: []
+    cephObjectStores:
+      # S3-compatible object store (RGW). Primary use: CNPG barman backups for
+      # postgres16 (see kubernetes/apps/database/cloudnative-pg). Replicated x3
+      # pools, host failure domain — mirrors the cephFilesystem layout.
+      - name: ceph-objectstore
+        spec:
+          metadataPool:
+            failureDomain: host
+            replicated:
+              size: 3
+          dataPool:
+            failureDomain: host
+            replicated:
+              size: 3
+          preservePoolsOnDelete: true
+          gateway:
+            port: 80
+            instances: 1
+            priorityClassName: system-cluster-critical
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+        storageClass:
+          enabled: true
+          name: ceph-bucket
+          reclaimPolicy: Retain
+          volumeBindingMode: Immediate
+          parameters:
+            region: us-east-1
