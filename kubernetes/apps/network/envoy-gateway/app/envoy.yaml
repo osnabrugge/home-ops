@@ -85,7 +85,8 @@ kind: Gateway
 metadata:
   name: envoy-internal
   annotations:
-    external-dns.alpha.kubernetes.io/target: &hostname internal.homeops.ca
+    # A-record target (not CNAME): OPNsense Unbound won't chase CNAME->internal.homeops.ca for strict clients.
+    external-dns.alpha.kubernetes.io/target: 192.168.69.121
     gatus.home-operations.com/endpoint: |-
       group: internal
       guarded: true
@@ -105,7 +106,7 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: *hostname
+      external-dns.alpha.kubernetes.io/hostname: internal.homeops.ca
       lbipam.cilium.io/ips: 192.168.69.121
   listeners:
     - name: http
