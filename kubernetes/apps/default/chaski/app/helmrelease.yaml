@@ -28,13 +28,13 @@ spec:
       routes:
         radarr-download:
           target: radarr
-          title: "Movie {{ if .payload.isUpgrade }}Upgraded{{ else }}Added{{ end }}"
+          title: Movie {{ if .payload.isUpgrade }}Upgraded{{ else }}Added{{ end }}
           message: |-
-            {{ .payload.movie.title }} ({{ .payload.movie.year }})
-            {{ .payload.movie.overview | ellipsis 300 }}
-
-            Client: {{ .payload.downloadClient | default "unknown" }}
+            <b>{{ .payload.movie.title }} ({{ .payload.movie.year }})</b>
+            <small>{{ .payload.movie.overview | ellipsis 300 }}</small>
+            <small><b>Client:</b> {{ .payload.downloadClient | default "unknown" }}</small>
           params:
+            format: html
             priority: low
             url: "{{ .payload.applicationUrl }}/movie/{{ .payload.movie.tmdbId }}"
             url_title: View Movie
@@ -43,22 +43,23 @@ spec:
           target: radarr
           title: Movie Requires Manual Interaction
           message: |-
-            {{ .payload.movie.title }} ({{ .payload.movie.year }})
-            Client: {{ .payload.downloadClient | default "unknown" }}
+            <b>{{ .payload.movie.title }} ({{ .payload.movie.year }})</b>
+            <small><b>Client:</b> {{ .payload.downloadClient | default "unknown" }}</small>
           params:
+            format: html
             priority: high
             url: "{{ .payload.applicationUrl }}/activity/queue"
             url_title: View Queue
           whenExpr: payload.eventType == "ManualInteractionRequired"
         sonarr-download:
           target: sonarr
-          title: "Episode {{ if .payload.isUpgrade }}Upgraded{{ else }}Added{{ end }}"
+          title: Episode {{ if .payload.isUpgrade }}Upgraded{{ else }}Added{{ end }}
           message: |-
-            {{ .payload.series.title }} ({{ printf "S%02dE%02d" (toInt (index .payload.episodes 0).seasonNumber) (toInt (index .payload.episodes 0).episodeNumber) }})
-            {{ (index .payload.episodes 0).title }}
-
-            Client: {{ .payload.downloadClient | default "unknown" }}
+            <b>{{ .payload.series.title }} ({{ printf "S%02dE%02d" (toInt (index .payload.episodes 0).seasonNumber) (toInt (index .payload.episodes 0).episodeNumber) }})</b>
+            <small>{{ (index .payload.episodes 0).title }}</small>
+            <small><b>Client:</b> {{ .payload.downloadClient | default "unknown" }}</small>
           params:
+            format: html
             priority: low
             url: "{{ .payload.applicationUrl }}/series/{{ .payload.series.titleSlug }}"
             url_title: View Series
@@ -67,9 +68,10 @@ spec:
           target: sonarr
           title: Episode Requires Manual Interaction
           message: |-
-            {{ .payload.series.title }}
-            Client: {{ .payload.downloadClient | default "unknown" }}
+            <b>{{ .payload.series.title }}</b>
+            <small><b>Client:</b> {{ .payload.downloadClient | default "unknown" }}</small>
           params:
+            format: html
             priority: high
             url: "{{ .payload.applicationUrl }}/activity/queue"
             url_title: View Queue

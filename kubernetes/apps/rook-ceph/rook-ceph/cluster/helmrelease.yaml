@@ -9,6 +9,7 @@ spec:
     kind: OCIRepository
     name: rook-ceph-cluster
   interval: 1h
+  timeout: 10m
   values:
     # Pin the Ceph image FORWARD at v20.2.2. On 2026-07-08 the rook chart bump
     # v1.20.1->v1.20.2 started a Ceph 20.2.1->20.2.2 upgrade (mons/mgr/mds reached

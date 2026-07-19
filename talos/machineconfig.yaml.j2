@@ -54,12 +54,19 @@ machine:
     wipe: false
   kernel:
     modules:
+      - name: dm_thin_pool
+      - name: drbd
+        parameters:
+          - usermode_helper=disabled
+      - name: drbd_transport_tcp
       - name: nbd
   kubelet:
     defaultRuntimeSeccompProfileEnabled: true
     disableManifestsDirectory: true
     extraConfig:
       serializeImagePulls: false
+      shutdownGracePeriod: 90s
+      shutdownGracePeriodCriticalPods: 60s
     image: ghcr.io/siderolabs/kubelet:v1.36.2
     nodeIP:
       validSubnets:
@@ -155,14 +162,23 @@ cluster:
     disabled: true
     image: registry.k8s.io/kube-proxy:v1.36.2
   scheduler:
-    # NOTE (2026-06-09): cluster.scheduler.config removed. Talos v1.13.3's
-    # RenderConfigsStaticPodController panics with "cannot deep copy int"
-    # (apimachinery DeepCopyJSONValue) on the bare integer maxSkew: 1 in the
-    # embedded KubeSchedulerConfiguration. This prevented the kube-apiserver
-    # static pod from rendering on ALL control-plane nodes -> cluster-wide
-    # API outage. v1.13.2 tolerated it; v1.13.3 does not, and maxSkew must be
-    # an int (cannot be quoted) for the scheduler. Re-add only with a
-    # v1.13.3-safe encoding once the upstream regression is resolved.
+    config:
+      apiVersion: kubescheduler.config.k8s.io/v1
+      kind: KubeSchedulerConfiguration
+      profiles:
+        - schedulerName: default-scheduler
+          plugins:
+            score:
+              disabled:
+                - name: ImageLocality
+          pluginConfig:
+            - name: PodTopologySpread
+              args:
+                defaultingType: List
+                defaultConstraints:
+                  - maxSkew: 1
+                    topologyKey: kubernetes.io/hostname
+                    whenUnsatisfiable: ScheduleAnyway
     extraArgs:
       bind-address: 0.0.0.0
     image: registry.k8s.io/kube-scheduler:v1.36.2
@@ -203,10 +219,6 @@ features:
   rx-gro-list: off
   rx-udp-gro-forwarding: on
 ---
-# NOTE: the `local-hostpath` UserVolume (Samsung 970 → OpenEBS) was removed in the
-# 3->6 OSD migration (docs/CEPH-6OSD-MIGRATION.md). All Samsung 970 NVMe are now raw
-# Ceph OSDs; Postgres moved to ceph-block. Per node: apply this config (releases the
-# volume), then `talosctl wipe disk nvme0n1`, and Rook claims the disk as an OSD.
 apiVersion: v1alpha1
 kind: WatchdogTimerConfig
 device: /dev/watchdog0

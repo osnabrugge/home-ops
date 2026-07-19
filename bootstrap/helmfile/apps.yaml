@@ -68,12 +68,6 @@ releases:
     needs:
       - cert-manager/cert-manager
 
-  # NOTE: no onepassword-connect — this cluster uses Azure Key Vault. The
-  # azurekv-secret (service-principal creds) is bootstrapped via
-  # bootstrap/kustomize/apps/external-secrets/secret.yaml (azkv:// refs resolved
-  # by akv-inject in the `base` step), and the azurekv ClusterSecretStore is
-  # applied by Flux (kubernetes/apps/external-secrets/azurekv). ExternalSecrets
-  # talk to Azure KV directly, so no 1Password Connect server is needed.
   - name: flux-operator
     namespace: flux-system
     needs:

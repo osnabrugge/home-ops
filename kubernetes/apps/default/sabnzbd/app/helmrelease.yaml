@@ -53,8 +53,6 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                # 7d peak ~60Mi; the old 12Gi limit reserved a whole node's worth of RAM
-                memory: 512Mi
               limits:
                 memory: 4Gi
     defaultPodOptions:

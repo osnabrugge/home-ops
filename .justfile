@@ -27,10 +27,6 @@ mod kube "kubernetes"
 mod talos "talos"
 
 [private]
-default:
-    just -l
-
-[private]
 log lvl msg *args:
     gum log -t rfc3339 -s -l "{{ lvl }}" "{{ msg }}" {{ args }}
 

@@ -22,9 +22,10 @@
   },
   "material-icon-theme.folders.associations": {
     // top level
-    ".github/workflows": "ci",
-    ".private": "archive",
+    ".github/workflows": "gh-workflows",
+    ".private": "private",
     ".renovate": "robot",
+    "akv": "keys",
     "bootstrap": "seeders",
     "bootstrap/helmfile.d": "helm",
     "flux": "pipe",
@@ -33,15 +34,17 @@
     "actions-runner-system": "github",
     "cert-manager": "guard",
     "default": "home",
+    "database": "database",
     "external-secrets": "secure",
     "flux-system": "pipe",
+    "kopiur-system": "backup",
     "kube-system": "kubernetes",
     "network": "connection",
     "observability": "event",
     "openebs-system": "base",
+    "printing": "tools",
     "rook-ceph": "dump",
-    "system-upgrade": "update",
-    "volsync-system": "aws"
+    "system-upgrade": "update"
   },
   "terminal.integrated.fontSize": 14,
   "vs-kubernetes": {
@@ -114,7 +117,13 @@
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
         "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker"
+        "copilot/mai-code-1-flash-picker",
+        "copilotcli/gpt-5.6-luna",
+        "copilot/gpt-5.6-luna",
+        "copilotcli/gpt-5.6-sol",
+        "copilot/gpt-5.6-sol",
+        "copilotcli/gpt-5.6-terra",
+        "copilot/gpt-5.6-terra"
       ]
     },
     "home-ops/.vscode/mcp.json: opnsense": {
@@ -159,7 +168,13 @@
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
         "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker"
+        "copilot/mai-code-1-flash-picker",
+        "copilotcli/gpt-5.6-luna",
+        "copilot/gpt-5.6-luna",
+        "copilotcli/gpt-5.6-sol",
+        "copilot/gpt-5.6-sol",
+        "copilotcli/gpt-5.6-terra",
+        "copilot/gpt-5.6-terra"
       ]
     },
     "home-ops/.vscode/mcp.json: talos": {
@@ -204,7 +219,13 @@
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
         "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker"
+        "copilot/mai-code-1-flash-picker",
+        "copilotcli/gpt-5.6-luna",
+        "copilot/gpt-5.6-luna",
+        "copilotcli/gpt-5.6-sol",
+        "copilot/gpt-5.6-sol",
+        "copilotcli/gpt-5.6-terra",
+        "copilot/gpt-5.6-terra"
       ]
     },
     "home-ops/.vscode/mcp.json: cloudflare-observability": {
@@ -249,7 +270,13 @@
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
         "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker"
+        "copilot/mai-code-1-flash-picker",
+        "copilotcli/gpt-5.6-luna",
+        "copilot/gpt-5.6-luna",
+        "copilotcli/gpt-5.6-sol",
+        "copilot/gpt-5.6-sol",
+        "copilotcli/gpt-5.6-terra",
+        "copilot/gpt-5.6-terra"
       ]
     },
     "home-ops/.vscode/mcp.json: cloudflare-dns-analytics": {
@@ -294,7 +321,13 @@
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
         "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker"
+        "copilot/mai-code-1-flash-picker",
+        "copilotcli/gpt-5.6-luna",
+        "copilot/gpt-5.6-luna",
+        "copilotcli/gpt-5.6-sol",
+        "copilot/gpt-5.6-sol",
+        "copilotcli/gpt-5.6-terra",
+        "copilot/gpt-5.6-terra"
       ]
     },
     "home-ops/.vscode/mcp.json: cloudflare-api": {
@@ -339,7 +372,13 @@
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
         "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker"
+        "copilot/mai-code-1-flash-picker",
+        "copilotcli/gpt-5.6-luna",
+        "copilot/gpt-5.6-luna",
+        "copilotcli/gpt-5.6-sol",
+        "copilot/gpt-5.6-sol",
+        "copilotcli/gpt-5.6-terra",
+        "copilot/gpt-5.6-terra"
       ]
     }
   },

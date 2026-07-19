@@ -77,7 +77,6 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 2Gi
               limits:
                 memory: 16Gi
           metrics:
@@ -131,8 +130,6 @@ spec:
         ports:
           http:
             port: *port
-          metrics:
-            port: *metricsPort
       bittorrent:
         type: LoadBalancer
         annotations:
