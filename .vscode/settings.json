@@ -116,14 +116,14 @@
         "copilot/gpt-5.4-mini",
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
-        "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker",
         "copilotcli/gpt-5.6-luna",
         "copilot/gpt-5.6-luna",
         "copilotcli/gpt-5.6-sol",
         "copilot/gpt-5.6-sol",
         "copilotcli/gpt-5.6-terra",
-        "copilot/gpt-5.6-terra"
+        "copilot/gpt-5.6-terra",
+        "copilotcli/mai-code-1-flash-picker",
+        "copilot/mai-code-1-flash-picker"
       ]
     },
     "home-ops/.vscode/mcp.json: opnsense": {
@@ -371,14 +371,14 @@
         "copilot/gpt-5.4-mini",
         "copilotcli/gpt-5.5",
         "copilot/gpt-5.5",
-        "copilotcli/mai-code-1-flash-picker",
-        "copilot/mai-code-1-flash-picker",
         "copilotcli/gpt-5.6-luna",
         "copilot/gpt-5.6-luna",
         "copilotcli/gpt-5.6-sol",
         "copilot/gpt-5.6-sol",
         "copilotcli/gpt-5.6-terra",
-        "copilot/gpt-5.6-terra"
+        "copilot/gpt-5.6-terra",
+        "copilotcli/mai-code-1-flash-picker",
+        "copilot/mai-code-1-flash-picker"
       ]
     }
   },
