@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/fluidd-core/fluidd
-              tag: v1.37.2
+              tag: v1.37.3
             probes:
               liveness:
                 enabled: true
