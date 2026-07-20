@@ -25,7 +25,7 @@ spec:
     # every 15m since 2026-07-08), cascading "dependency not ready" to ~40 apps.
     cephImage:
       repository: quay.io/ceph/ceph
-      tag: v21.1.0
+      tag: v20.2.2
       allowUnsupported: false
     cephClusterSpec:
       cleanupPolicy:
