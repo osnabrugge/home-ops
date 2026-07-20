@@ -8,6 +8,12 @@
       matchPackageNames: ["ghcr.io/foxcpp/maddy"],
       enabled: false,
     },
+    {
+      description: "Pin quay.io/ceph/ceph: Ceph major upgrades must be co-ordinated with a Rook operator release that explicitly supports the new Ceph major. Re-enable once Rook v1.21 ships with Ceph v21 support.",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["quay.io/ceph/ceph"],
+      enabled: false,
+    },
     // Auto-merge rules
     {
       description: "Auto-merge trusted OCI digests",
