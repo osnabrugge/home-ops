@@ -14,11 +14,15 @@ spec:
       matter-server:
         annotations:
           reloader.stakater.com/auto: "true"
+        strategy: Recreate
         containers:
           app:
             image:
-              repository: ghcr.io/matter-js/python-matter-server
-              tag: 8.1.2
+              repository: ghcr.io/matter-js/matterjs-server
+              tag: 1.2.8@sha256:cb5696f5d5584d63bcc22eea1565e21d0de9c41e86f212bf2fe5bce21f95897d
+            env:
+              # Node.js image: cap the V8 heap below the 1Gi limit to avoid OOM-kill.
+              NODE_OPTIONS: --max-old-space-size=768
             args:
               - --storage-path
               - /data
@@ -33,13 +37,13 @@ spec:
               limits:
                 memory: 1Gi
             securityContext:
-              # The upstream image runs as root; the CHIP stack needs raw sockets
-              # for Matter device discovery on the IoT network.
+              # matterjs-server defaults to UID 1000; kept as root so the root-owned /data
+              # from the old python image stays writable (drop-in migration) + NET_RAW ping.
               runAsUser: 0
               runAsGroup: 0
               allowPrivilegeEscalation: false
               capabilities:
-                add: ["NET_ADMIN", "NET_RAW", "NET_BIND_SERVICE"]
+                add: ["NET_ADMIN", "NET_RAW"]
                 drop: ["ALL"]
     defaultPodOptions:
       # Attach to the IoT VLAN (VLAN70) so the Matter stack shares L2 with the
