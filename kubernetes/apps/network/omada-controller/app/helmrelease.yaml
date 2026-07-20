@@ -20,11 +20,28 @@ spec:
               repository: docker.io/mbentley/omada-controller
               tag: "6.2"
             env:
+              ROOTLESS: "true"
               MANAGE_HTTP_PORT: &http_port "8088"
               MANAGE_HTTPS_PORT: &https_port "8043"
+              PORTAL_HTTP_PORT: "8080"
+              PORTAL_HTTPS_PORT: "8843"
+              UPGRADE_HTTPS_PORT: "8043"
+              PORT_APP_DISCOVERY: "27001"
+              PORT_ADOPT_V1: "29812"
+              PORT_UPGRADE_V1: "29813"
+              PORT_MANAGER_V1: "29811"
+              PORT_MANAGER_V2: "29814"
+              PORT_DISCOVERY: "29810"
+              PORT_TRANSFER_V2: "29815"
+              PORT_RTTY: "29816"
+              PORT_DEVICE_MONITOR: "29817"
+              WEB_CONFIG_OVERRIDE: "false"
+              SHOW_SERVER_LOGS: "true"
+              SHOW_MONGODB_LOGS: "false"
+              SKIP_USERMOD: "true"
               MONGO_EXTERNAL: "true"
-              PGID: "1000"
-              PUID: "1000"
+              # honor envoy X-Forwarded-Proto so the 443 route serves instead of 302 -> :8043
+              APPLICATION_PROPERTIES: server.forward-headers-strategy=framework
               TZ: America/Toronto
             envFrom:
               - secretRef:
@@ -52,11 +69,10 @@ spec:
                   failureThreshold: 60
                   periodSeconds: 10
             securityContext:
-              allowPrivilegeEscalation: true
+              allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
               capabilities:
                 drop: ["ALL"]
-                add: ["NET_BIND_SERVICE", "CHOWN", "SETUID", "SETGID", "FOWNER", "DAC_OVERRIDE"]
             resources:
               requests:
                 cpu: 100m
@@ -65,13 +81,13 @@ spec:
     defaultPodOptions:
       terminationGracePeriodSeconds: 60
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
-        seccompProfile:
-          type: Unconfined
+        runAsNonRoot: true
+        runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
     service:
       app:
         type: LoadBalancer
@@ -114,5 +130,9 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /opt/tplink/EAPController/data
       logs:
         type: emptyDir
+        globalMounts:
+          - path: /opt/tplink/EAPController/logs
