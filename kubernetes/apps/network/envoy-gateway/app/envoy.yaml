@@ -85,20 +85,10 @@ kind: Gateway
 metadata:
   name: envoy-internal
   annotations:
-    # A-record target (not CNAME): OPNsense Unbound won't chase CNAME->internal.homeops.ca for strict clients.
-    external-dns.alpha.kubernetes.io/target: 192.168.69.121
+    external-dns.alpha.kubernetes.io/target: &hostname internal.homeops.ca
     gatus.home-operations.com/endpoint: |-
       group: internal
       guarded: true
-      # WORKAROUND: the default guarded condition is `len([BODY]) == 0` — it only
-      # passes when the hostname does NOT resolve on public DNS (1.1.1.1), i.e. an
-      # "internal name is not publicly exposed" guard. This homelab has a public
-      # WILDCARD `*.homeops.ca -> Cloudflare`, so every internal name resolves
-      # publicly and all 45 internal checks fail (onedr0p has no wildcard -> 0
-      # alerts). Until the wildcard is removed in Cloudflare (the real fix), assert
-      # the name simply resolves so the guard stops false-firing.
-      conditions:
-        - "len([BODY]) > 0"
       ui:
         hide-hostname: true
         hide-url: true
@@ -106,7 +96,7 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: internal.homeops.ca
+      external-dns.alpha.kubernetes.io/hostname: *hostname
       lbipam.cilium.io/ips: 192.168.69.121
   listeners:
     - name: http
