@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/backendtlspolicy_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: omada-controller
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: omada-controller
+      sectionName: https
+  validation:
+    # Omada serves the LE wildcard (*.homeops.ca) mounted via /cert; validate it
+    # against the system trust bundle with the external hostname as SNI/SAN.
+    wellKnownCACertificates: System
+    hostname: omada-controller.homeops.ca

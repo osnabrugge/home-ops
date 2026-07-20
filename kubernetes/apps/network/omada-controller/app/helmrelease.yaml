@@ -126,7 +126,7 @@ spec:
         rules:
           - backendRefs:
               - identifier: app
-                port: http
+                port: https
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
@@ -136,3 +136,11 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /opt/tplink/EAPController/logs
+      # mbentley entrypoint imports /cert/tls.{crt,key} into the Jetty keystore so
+      # 8043 serves the LE wildcard cert Envoy can validate (see BackendTLSPolicy).
+      cert:
+        type: secret
+        name: homeops-ca-tls
+        globalMounts:
+          - path: /cert
+            readOnly: true
