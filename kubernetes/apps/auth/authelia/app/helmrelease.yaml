@@ -92,9 +92,11 @@ spec:
             conditions: ["len([BODY]) > 0"]
         hostnames:
           - auth.homeops.ca
+        # External-only: dual-gateway gave auth TWO conflicting DNS records
+        # (unbound CNAME -> internal.homeops.ca vs cloudflare -> external.homeops.ca),
+        # so split-horizon clients raced and failed to resolve. Internal apps reach
+        # Authelia via its cluster Service (forward-auth), not this public hostname.
         parentRefs:
-          - name: envoy-internal
-            namespace: network
           - name: envoy-external
             namespace: network
         rules:
