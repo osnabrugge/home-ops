@@ -17,7 +17,6 @@ resources:
   - ./beets/ks.yaml
   - ./brrpolice/ks.yaml
   - ./chaski/ks.yaml
-  - ./dashbrr/ks.yaml
   - ./deduparr/ks.yaml
   - ./dispatcharr/ks.yaml
   - ./frigate/ks.yaml
