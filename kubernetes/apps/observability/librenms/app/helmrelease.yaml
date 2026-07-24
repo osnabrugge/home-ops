@@ -39,7 +39,7 @@ spec:
           app:
             image:
               repository: librenms/librenms
-              tag: 26.6.1
+              tag: 26.7.0
             env:
               TZ: America/Toronto
               APP_URL: https://librenms.homeops.ca
