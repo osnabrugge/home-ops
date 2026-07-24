@@ -11,11 +11,27 @@ data:
   # RADIUS NAS clients allowed to send auth requests.
   # Shared secrets use FreeRADIUS env-var expansion ($ENV{...}).
   clients.conf: |
-    # OPNsense firewall — admin authentication
-    client opnsense {
-      ipaddr    = 192.168.42.1
-      secret    = "$ENV{NAS_SECRET_OPNSENSE}"
-      shortname = opnsense
+    # gw01 firewall — admin authentication
+    client gw01 {
+      ipaddr    = 192.168.42.2
+      secret    = "$ENV{NAS_SECRET_GW01}"
+      shortname = gw01
+      nastype   = other
+    }
+
+    # gw02 firewall — admin authentication
+    client gw02 {
+      ipaddr    = 192.168.42.3
+      secret    = "$ENV{NAS_SECRET_GW02}"
+      shortname = gw02
+      nastype   = other
+    }
+
+    # Core switch — admin authentication
+    client core01 {
+      ipaddr    = 192.168.42.4
+      secret    = "$ENV{NAS_SECRET_CORE01}"
+      shortname = core01
       nastype   = other
     }
 
