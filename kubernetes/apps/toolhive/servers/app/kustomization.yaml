@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./mcpgroup.yaml
+  - ./kubectl-rbac.yaml
+  - ./kubectl-mcpserver.yaml
+  - ./flux-rbac.yaml
+  - ./flux-mcpserver.yaml
+  - ./brocade-externalsecret.yaml
+  - ./brocade-mcpserver.yaml

@@ -1,0 +1,43 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: brocade
+spec:
+  # Built from vespo92/BrocadeICXMCP by .github/workflows/brocade-mcp-image.yaml
+  image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  env:
+    - name: BROCADE_HOST
+      value: "192.168.99.4"
+    - name: BROCADE_PORT
+      value: "22"
+    - name: LOG_LEVEL
+      value: info
+  secrets:
+    - name: brocade-secret
+      key: BROCADE_USERNAME
+      targetEnvName: BROCADE_USERNAME
+    - name: brocade-secret
+      key: BROCADE_PASSWORD
+      targetEnvName: BROCADE_PASSWORD
+    - name: brocade-secret
+      key: BROCADE_ENABLE_USERNAME
+      targetEnvName: BROCADE_ENABLE_USERNAME
+    - name: brocade-secret
+      key: BROCADE_ENABLE_PASSWORD
+      targetEnvName: BROCADE_ENABLE_PASSWORD
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+  groupRef:
+    name: mcp-tools
