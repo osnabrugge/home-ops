@@ -9,6 +9,7 @@ metadata:
 spec:
   hostnames:
     - authentik.homeops.ca
+    - ldap.homeops.ca
   parentRefs:
     - name: envoy-internal
       namespace: network
