@@ -18,13 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/oliverbravery/printguard
-              tag: 2.3.7
-            # PrintGuard v2 serves plain HTTP on :8000 by default (the entrypoint no
-            # longer wraps uvicorn in self-signed HTTPS, so the old /.dockerenv +
-            # uvicorn-override hack is gone). Envoy terminates TLS at the edge;
-            # PRINTGUARD_ORIGINS lets the app trust its public origin for the
-            # WebSocket origin check. The vision model is baked into the image at
-            # /app/models and config/secrets live under DATA_DIR=/data.
+              tag: 2.3.7@sha256:cd77aee4da6be5730c68624f89b0f199d642540c4c132e157783118a9312ebee
             env:
               TZ: America/Toronto
               DATA_DIR: /data
@@ -79,7 +73,7 @@ spec:
           mediamtx:
             image:
               repository: docker.io/bluenviron/mediamtx
-              tag: 1.19.3
+              tag: 1.19.3@sha256:7797ed3df88df21e8c04ecd0aff08ce49a5232d1db453e51f5480ef36bc80865
             env:
               TZ: America/Toronto
             probes:
