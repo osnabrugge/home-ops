@@ -18,7 +18,7 @@ spec:
           frontend:
             image:
               repository: ghcr.io/xiao-villamor/printstash-frontend
-              tag: "v0.11.0"
+              tag: "v0.11.1"
             env:
               TZ: America/Toronto
               NGINX_CLIENT_MAX_BODY_SIZE: 512m
