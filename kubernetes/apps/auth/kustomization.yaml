@@ -12,4 +12,5 @@ resources:
   - ./namespace.yaml
   - ./lldap/ks.yaml
   - ./authelia/ks.yaml
+  - ./authentik/ks.yaml
   - ./freeradius/ks.yaml

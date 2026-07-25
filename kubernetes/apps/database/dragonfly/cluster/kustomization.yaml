@@ -7,5 +7,6 @@ resources:
   - ./dragonfly.yaml
   - ./networkpolicy.yaml
   - ./podmonitor.yaml
+  - ./service-authentik.yaml
   - ./service-diode.yaml
   - ./service-netbox.yaml

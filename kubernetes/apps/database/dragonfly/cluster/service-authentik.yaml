@@ -1,0 +1,16 @@
+---
+# Stable Redis endpoint for Authentik — targets only the Dragonfly master to avoid read-only replica errors.
+apiVersion: v1
+kind: Service
+metadata:
+  name: dragonfly-authentik
+spec:
+  selector:
+    app: dragonfly
+    app.kubernetes.io/name: dragonfly
+    role: master
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP

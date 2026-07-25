@@ -1,0 +1,18 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+# INTERNAL ONLY during evaluation. At cutover, Authentik takes over auth.homeops.ca
+# (envoy-external) from Authelia.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: authentik
+spec:
+  hostnames:
+    - authentik.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: authentik-server
+          port: 80

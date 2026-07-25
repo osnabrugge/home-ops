@@ -1,0 +1,51 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authentik
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: authentik
+  interval: 1h
+  values:
+    global:
+      # Injects AUTHENTIK_SECRET_KEY + AUTHENTIK_POSTGRESQL__PASSWORD +
+      # AUTHENTIK_BOOTSTRAP_PASSWORD/TOKEN into both server and worker.
+      envFrom:
+        - secretRef:
+            name: authentik-secret
+      env:
+        - name: AUTHENTIK_REDIS__DB
+          value: "3"
+    authentik:
+      log_level: info
+      postgresql:
+        host: postgres16-rw.database.svc.cluster.local
+        name: authentik
+        user: authentik
+        port: 5432
+      redis:
+        host: dragonfly-authentik.database.svc.cluster.local
+    # Use the shared postgres16 (CNPG) + dragonfly (Redis) instead of bundled subcharts
+    postgresql:
+      enabled: false
+    redis:
+      enabled: false
+    server:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 50m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+    worker:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 50m
+          memory: 512Mi
+        limits:
+          memory: 1Gi

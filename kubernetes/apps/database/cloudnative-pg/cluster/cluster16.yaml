@@ -85,3 +85,8 @@ spec:
         superuser: false
         passwordSecret:
           name: spoolman-db-user
+      - name: authentik
+        login: true
+        superuser: false
+        passwordSecret:
+          name: authentik-db-user

@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: database
 resources:
   - ./authelia-db-externalsecret.yaml
+  - ./authentik-db-externalsecret.yaml
   - ./diode-db-externalsecret.yaml
   - ./dispatcharr-db-externalsecret.yaml
   - ./externalsecret.yaml
