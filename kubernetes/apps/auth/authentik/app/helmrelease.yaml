@@ -15,8 +15,10 @@ spec:
         name: authentik
   values:
     global:
-      # Injects AUTHENTIK_SECRET_KEY + AUTHENTIK_POSTGRESQL__PASSWORD +
-      # AUTHENTIK_BOOTSTRAP_PASSWORD/TOKEN into both server and worker.
+      podAnnotations:
+        reloader.stakater.com/auto: "true"
+      deploymentStrategy:
+        type: RollingUpdate
       envFrom:
         - secretRef:
             name: authentik-secret
@@ -32,11 +34,19 @@ spec:
         port: 5432
       redis:
         host: dragonfly-authentik.database.svc.cluster.local
+      email:
+        host: smtp-relay.default.svc.cluster.local
+        from: notifications@homeops.ca
+        port: 25
+        use_tls: false
     # Use the shared postgres16 (CNPG) + dragonfly (Redis) instead of bundled subcharts
     postgresql:
       enabled: false
     redis:
       enabled: false
+    prometheus:
+      rules:
+        enabled: true
     server:
       replicas: 1
       resources:
@@ -45,6 +55,10 @@ spec:
           memory: 512Mi
         limits:
           memory: 1Gi
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
     worker:
       replicas: 1
       resources:
