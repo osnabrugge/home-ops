@@ -12,6 +12,8 @@ spec:
       namespace: rook-ceph
     - name: omada-db
       namespace: database
+    - name: multus-networks
+      namespace: kube-system
   interval: 1h
   path: ./kubernetes/apps/network/omada-controller/app
   postBuild:

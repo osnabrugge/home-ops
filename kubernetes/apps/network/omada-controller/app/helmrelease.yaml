@@ -79,6 +79,11 @@ spec:
               limits:
                 memory: 2Gi
     defaultPodOptions:
+      annotations:
+        # LAN attach (bond0.1 / VLAN1) so Omada is L2-reachable for device discovery + adoption.
+        # Management (bond0.99 / VLAN99) is pending: needs the Talos VLAN iface + core01 port tagging.
+        k8s.v1.cni.cncf.io/networks: |-
+          [{"name": "lan", "namespace": "kube-system", "ips": ["192.168.0.30/24"]}]
       terminationGracePeriodSeconds: 60
       securityContext:
         runAsNonRoot: true
