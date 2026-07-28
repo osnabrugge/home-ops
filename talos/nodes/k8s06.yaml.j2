@@ -40,6 +40,11 @@ machine:
             addresses:
               - 192.168.90.16/24
             mtu: 1500
+          - vlanId: 99
+            dhcp: false
+            addresses:
+              - 192.168.99.56/24
+            mtu: 1500
   nodeLabels:
     topology.kubernetes.io/zone: w
   type: worker
