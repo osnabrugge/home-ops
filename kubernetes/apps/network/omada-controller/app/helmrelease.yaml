@@ -84,7 +84,6 @@ spec:
         # Management (bond0.99 / VLAN99) is pending: needs the Talos VLAN iface + core01 port tagging.
         k8s.v1.cni.cncf.io/networks: |-
           [{"name": "lan", "namespace": "kube-system", "ips": ["192.168.0.30/24"]}]
-          [{"name": "management", "namespace": "kube-system", "ips": ["192.168.99.30/24"]}]
       terminationGracePeriodSeconds: 60
       securityContext:
         runAsNonRoot: true
