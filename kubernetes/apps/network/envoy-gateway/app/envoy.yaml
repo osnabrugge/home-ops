@@ -90,15 +90,13 @@ metadata:
     gatus.home-operations.com/endpoint: |-
       group: internal
       guarded: true
-      # WORKAROUND: the default guarded condition is `len([BODY]) == 0` — it only
-      # passes when the hostname does NOT resolve on public DNS (1.1.1.1), i.e. an
-      # "internal name is not publicly exposed" guard. This homelab has a public
-      # WILDCARD `*.homeops.ca -> Cloudflare`, so every internal name resolves
-      # publicly and all 45 internal checks fail (onedr0p has no wildcard -> 0
-      # alerts). Until the wildcard is removed in Cloudflare (the real fix), assert
-      # the name simply resolves so the guard stops false-firing.
+      # The public `*.homeops.ca` wildcard has been removed, so internal names no
+      # longer resolve on public DNS (1.1.1.1). Use the default guarded semantics:
+      # the DNS probe must get NO answer, asserting the internal name is not
+      # publicly exposed. (The old `len([BODY]) > 0` workaround was for when the
+      # wildcard still existed; it now inverts and false-fires all internal checks.)
       conditions:
-        - "len([BODY]) > 0"
+        - "len([BODY]) == 0"
       ui:
         hide-hostname: true
         hide-url: true
