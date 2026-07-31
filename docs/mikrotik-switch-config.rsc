@@ -94,6 +94,17 @@ set enabled=yes
 /system ntp client servers
 add address=ntp.in.homeops.ca
 
+# --- SNMP (read-only, v2c, management VLAN only) ---
+# Scraped by prometheus snmp-exporter in the cluster (observability namespace).
+# The community must match the `public_v2` auth in the snmp-exporter config.
+# addresses= restricts polling to the k8s node subnet + management VLAN so the
+# community string is not exposed to the WAN-transit side of this switch.
+/snmp community
+set [ find default=yes ] addresses=192.168.42.0/24,192.168.99.0/24 name=public read-access=yes write-access=no
+
+/snmp
+set enabled=yes contact="ops@homeops.ca" location="rack — WAN side" trap-version=2
+
 # --- Disable discovery on non-management ports ---
 /ip neighbor discovery-settings
 set discover-interface-list=none
