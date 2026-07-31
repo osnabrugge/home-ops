@@ -19,6 +19,10 @@ spec:
   postBuild:
     substitute:
       APP: frigate
+      # Frigate writes .jwt_secret as root:1000 mode 0600, so a uid-1000 mover
+      # cannot read it and the whole snapshot fails. Back up as root instead.
+      KOPIUR_PUID: "0"
+      KOPIUR_PGID: "0"
       KOPIUR_SUSPEND: "true"
       KOPIUR_CAPACITY: 5Gi
   prune: true
