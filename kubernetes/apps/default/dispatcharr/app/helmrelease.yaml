@@ -110,7 +110,7 @@ spec:
           - name: envoy-internal
             namespace: network
     persistence:
-      # Single 10Gi config PVC (volsync-backed) holds both /data and /app/media.
+      # Single 10Gi config PVC (kopiur-backed) holds both /data and /app/media.
       # dispatcharr writes channel logos / cached media to /app/media from both the app
       # and celery containers; mounting it here (a volume) keeps it writable even though
       # celery has a read-only root fs, shared between containers, and backed up.
