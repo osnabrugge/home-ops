@@ -37,8 +37,10 @@ API = "https://api.github.com"
 
 def http(url, method="GET", body=None, headers=None, token=False):
     data = json.dumps(body).encode() if body is not None else None
-    hdrs = {"Accept": "application/vnd.github+json", "User-Agent": "alert-triage"}
+    hdrs = {"Accept": "application/json", "User-Agent": "alert-triage"}
     if token:
+        # GitHub-specific headers; Alertmanager rejects the vnd.github Accept type.
+        hdrs["Accept"] = "application/vnd.github+json"
         hdrs["Authorization"] = f"Bearer {TOKEN}"
         hdrs["X-GitHub-Api-Version"] = "2022-11-28"
     if data:
