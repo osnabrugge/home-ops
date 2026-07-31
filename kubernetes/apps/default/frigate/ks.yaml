@@ -19,10 +19,12 @@ spec:
   postBuild:
     substitute:
       APP: frigate
-      # Frigate writes .jwt_secret as root:1000 mode 0600, so a uid-1000 mover
-      # cannot read it and the whole snapshot fails. Back up as root instead.
-      KOPIUR_PUID: "0"
-      KOPIUR_PGID: "0"
+      # Frigate writes .jwt_secret as root:1000 mode 0600, so the uid-1000 mover
+      # cannot read that one file. Backing up as root does NOT work: the nas02 NFS
+      # export uses root_squash, so a uid-0 mover gets "permission denied" on /repo
+      # itself. Instead keep the default uid-1000 mover and let kopia skip the file
+      # it cannot read -- frigate regenerates .jwt_secret on start if it is missing.
+      KOPIUR_IGNORE_FILE_ERRORS: "true"
       KOPIUR_SUSPEND: "true"
       KOPIUR_CAPACITY: 5Gi
   prune: true

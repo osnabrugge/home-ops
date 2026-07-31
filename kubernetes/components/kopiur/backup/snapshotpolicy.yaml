@@ -7,6 +7,12 @@ metadata:
 spec:
   compression:
     compressor: zstd
+  errorHandling:
+    # Opt-in per app. Lets a snapshot complete-with-errors instead of failing outright
+    # when a single file is unreadable by the uid-1000 mover (e.g. frigate's .jwt_secret,
+    # written root:1000 mode 0600). Running the mover as root is NOT an alternative here:
+    # the nas02 NFS export uses root_squash, so a uid-0 mover cannot read /repo at all.
+    ignoreFileErrors: ${KOPIUR_IGNORE_FILE_ERRORS:=false}
   mover:
     cache:
       capacity: ${KOPIUR_CAPACITY:=5Gi}

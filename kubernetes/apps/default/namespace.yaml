@@ -5,11 +5,5 @@ metadata:
   name: _
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
-    # frigate writes .jwt_secret as root:1000 mode 0600, so its kopiur mover must
-    # run as uid 0 to read it (see frigate/ks.yaml KOPIUR_PUID). kopiur requires an
-    # explicit per-namespace opt-in before it will mint a privileged mover, otherwise
-    # every frigate snapshot fails with PrivilegedMoverNotPermitted.
-    # Safe here: this is a single-tenant cluster and `default` holds only our own apps.
-    kopiur.home-operations.com/privileged-movers: "true"
   labels:
     resource.kubernetes.io/admin-access: "true"
