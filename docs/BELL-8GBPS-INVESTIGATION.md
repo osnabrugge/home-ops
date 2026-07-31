@@ -88,20 +88,76 @@ Only 0.008% of packets, but it is **not zero**, and `queue-limit` is at the
 default `1000`. Under burst these drops trigger TCP backoff, which caps
 throughput harder than the raw drop rate suggests.
 
-## The decisive test (needs your go-ahead — gw01 is on the read-only list)
+## The decisive test (corrected methodology)
 
 Everything above is strong circumstantial evidence. To *prove* PPPoE is the
-ceiling, measure gw01 moving traffic that does **not** traverse PPPoE:
+ceiling, measure gw01 moving traffic that does **not** traverse PPPoE.
 
-1. Enable the **iperf plugin** on gw01 (OPNsense ships it).
-2. Run iperf3 from a cluster node to gw01 across a VLAN boundary (forces routing
-   through gw01, no PPPoE involved).
-3. Compare:
+> ### ⚠️ Do NOT run iperf3 on gw01 itself
+>
+> An earlier revision of this document proposed enabling the OPNsense **iperf
+> plugin** and running gw01 as the iperf client or server. **That test is
+> invalid.** The hypothesis under test is "gw01's packet-forwarding path is the
+> bottleneck." Running the load generator *on gw01* adds userland TCP, buffer
+> copies, and scheduler contention to the very CPU whose forwarding capacity you
+> are trying to measure. You would be measuring gw01's ability to *terminate*
+> traffic, not to *route* it — and the added overhead depresses the number, so a
+> low result proves nothing.
+
+**Correct method — both endpoints off-box, gw01 only forwards:**
+
+1. Schedule two pods on **two different cluster nodes** (`podAntiAffinity` on
+   `topologyKey: kubernetes.io/hostname`).
+2. Attach each to a **different VLAN** via Multus, so the only path between them
+   is *through* gw01:
+   - server → `lan` NAD (`bond0.1`, 192.168.0.0/24)
+   - client → `iot` NAD (`bond0.70`, 192.168.70.0/24)
+   - Both NADs use **static IPAM**, so the `ips` field is mandatory:
+     ```yaml
+     k8s.v1.cni.cncf.io/networks: |
+       [{"name":"lan","namespace":"kube-system","ips":["192.168.0.240/24"]}]
+     ```
+3. Run `iperf3 -c <server-vlan-ip> -P 8 -t 30`. gw01 does pure routing; neither
+   endpoint runs on it.
+4. Compare:
    - **~9 Gbps routed but 3.2 Gbps via WAN** → PPPoE confirmed. Fix = item A below.
    - **~3.2 Gbps both ways** → the VM/virtio path is the ceiling. Fix = item B.
 
-This requires starting a service on gw01, which is a config change on a
-read-only host — **say the word and I will do it in a maintenance window.**
+Keep `numjobs`/`-P` above 1 — a single stream measures single-core latency, not
+forwarding capacity.
+
+### Status: BLOCKED — inter-VLAN traffic is firewalled
+
+The pods were built and correctly scheduled on separate nodes and VLANs, but
+**every routed pair is denied by gw01**:
+
+| Client | Server | Result |
+|---|---|---|
+| VLAN70 `192.168.70.240` | VLAN1 `192.168.0.240` | TCP timeout; ICMP 100% loss; traceroute all `* * *` |
+| VLAN70 `192.168.70.240` | VLAN42 `192.168.42.54` | TCP timeout |
+| VLAN1 `192.168.0.240` | VLAN42 `192.168.42.54` | ICMP host unreachable |
+| VLAN1 `192.168.0.240` | VLAN70 `192.168.70.240` | ICMP host unreachable |
+
+Both directions were tested deliberately — firewall rules are directional, and
+LAN→IOT is often permitted where IOT→LAN is denied. Here neither direction passes.
+
+Note also that the `management` NAD (`bond0.99`) is **unusable**: no tested node
+has that link, so the CNI fails with `macvlan failed (add): Link not found`.
+
+**Unblocking requires one temporary gw01 rule** (gw01 is a read-only host, so
+this needs explicit sign-off; no rule has been added):
+
+```
+Interface:   LAN (VLAN1)
+Action:      Pass
+Protocol:    TCP
+Source:      192.168.0.240/32
+Destination: 192.168.42.0/24
+Port:        5201-5203
+```
+
+The manifests are staged and the run takes under a minute; remove the rule
+immediately afterward.
 
 ## Also worth verifying (cheap, and I have already staged it)
 
