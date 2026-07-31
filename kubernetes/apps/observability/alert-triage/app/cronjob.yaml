@@ -1,0 +1,74 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/batch/cronjob_v1.json
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: alert-triage
+spec:
+  # Twice daily. Alerts must be firing for MIN_FIRING_MINUTES before they are
+  # eligible, so this never reacts to transient blips.
+  schedule: "0 9,21 * * *"
+  timeZone: America/Toronto
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: triage
+              image: docker.io/library/python:3.13-alpine
+              command: ["python3", "/opt/triage/triage.py"]
+              env:
+                - name: ALERTMANAGER_URL
+                  value: http://kube-prometheus-stack-alertmanager.observability.svc.cluster.local:9093
+                - name: GITHUB_REPOSITORY
+                  value: osnabrugge/home-ops
+                - name: MIN_FIRING_MINUTES
+                  value: "180"
+                - name: MAX_NEW_ISSUES
+                  value: "3"
+                - name: SEVERITIES
+                  value: critical,warning
+                # Known-noisy or physical-action alerts that must not create issues.
+                - name: IGNORE_ALERTS
+                  value: >-
+                    Watchdog,InfoInhibitor,UPSBatteryNeedsReplacement,
+                    TalosUpgradeStuck
+                - name: DRY_RUN
+                  value: "false"
+              envFrom:
+                - secretRef:
+                    name: alert-triage-secret
+              volumeMounts:
+                - name: script
+                  mountPath: /opt/triage
+                  readOnly: true
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+          volumes:
+            - name: script
+              configMap:
+                name: alert-triage-script
+                defaultMode: 0555

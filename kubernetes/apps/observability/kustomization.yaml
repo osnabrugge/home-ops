@@ -10,6 +10,7 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./alert-triage/ks.yaml
   - ./blackbox-exporter/ks.yaml
   - ./gatus-sidecar/ks.yaml
   - ./grafana-operator/ks.yaml
