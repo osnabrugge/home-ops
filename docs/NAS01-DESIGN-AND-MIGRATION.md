@@ -1,5 +1,21 @@
 # nas01 — design rationale, benchmarks, and migration roadmap
 
+> ## ⚠️ SUPERSEDED — DO NOT USE
+>
+> This document contains **verified factual errors** and an inadequate dataset
+> design. It is retained only for history. Use
+> [NAS01-STORAGE-ARCHITECTURE.md](NAS01-STORAGE-ARCHITECTURE.md) instead.
+>
+> Known errors:
+> - Claims `boot-pool` is a 2-device mirror. It is a **single device (`sdm3`)**.
+> - Fails to note that the second SATADOM (`sdn`) is healthy but holds a foreign
+>   Proxmox `rpool`.
+> - Fails to flag that only **1 of 4** Crucial CT1000P3SSD8 drives is present.
+> - Dataset design covers only `kopiur`/`netboot` — no SMB homes, NFS exports,
+>   Proxmox VM disks/backups/ISOs, app data, or zvols.
+> - Benchmarks were fio-only at QD1, and its recordsize guidance was later
+>   **disproven by measurement** (16K is ~5× slower than 128K on this pool).
+
 Written in response to: *"I don't see any sort of report as to why you decided to
 implement the vdev's and datasets with the settings you decided on and if those
 are ideal or not? I also don't see the results of whatever performance testing you
