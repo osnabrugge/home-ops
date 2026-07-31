@@ -64,6 +64,13 @@ machine:
     defaultRuntimeSeccompProfileEnabled: true
     disableManifestsDirectory: true
     extraConfig:
+      # Image GC must free space BEFORE the Ceph mon complains. A mon warns at
+      # <30% avail (i.e. 70% used); kubelet's default high threshold of 85% meant
+      # images grew past the mon warning and never got collected. Age-based GC is
+      # off by default (0s), so stale images accumulated indefinitely.
+      imageGCHighThresholdPercent: 70
+      imageGCLowThresholdPercent: 55
+      imageMaximumGCAge: 168h
       serializeImagePulls: false
       shutdownGracePeriod: 90s
       shutdownGracePeriodCriticalPods: 60s
