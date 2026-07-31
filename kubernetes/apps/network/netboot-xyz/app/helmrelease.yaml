@@ -129,7 +129,7 @@ spec:
       # Ensures ISOs (Windows, Proxmox, custom Talos, etc.) survive pod restarts
       assets:
         type: nfs
-        server: nas02.in.homeops.ca
-        path: /volume1/netboot
+        server: nas01.in.homeops.ca
+        path: /mnt/vault/netboot
         globalMounts:
           - path: /assets
