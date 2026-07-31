@@ -126,38 +126,46 @@ ceiling, measure gw01 moving traffic that does **not** traverse PPPoE.
 Keep `numjobs`/`-P` above 1 — a single stream measures single-core latency, not
 forwarding capacity.
 
-### Status: BLOCKED — inter-VLAN traffic is firewalled
+### Status: BLOCKED — VLAN 1 is not trunked to the Talos nodes
 
-The pods were built and correctly scheduled on separate nodes and VLANs, but
-**every routed pair is denied by gw01**:
+An earlier revision of this document claimed "all inter-VLAN routing is
+firewalled." **That conclusion was wrong**, and it was wrong because the test
+method was wrong twice over:
 
-| Client | Server | Result |
+1. **ICMP is filtered by gw01**, so `ping` was never going to succeed regardless
+   of routing. `arping` (L2) and TCP are the valid probes here.
+2. The NADs include the **`sbr` (source-based routing)** plugin. VLAN routes are
+   installed in **policy table 100, not `main`**, so `ip route show` looks empty
+   and an unbound socket falls through to `main` and leaves via `eth0`/cilium.
+   The client must bind the VLAN source (`iperf3 -B`, `ping -I`).
+
+After correcting both, the real blocker appeared:
+
+| From | To | Result |
 |---|---|---|
-| VLAN70 `192.168.70.240` | VLAN1 `192.168.0.240` | TCP timeout; ICMP 100% loss; traceroute all `* * *` |
-| VLAN70 `192.168.70.240` | VLAN42 `192.168.42.54` | TCP timeout |
-| VLAN1 `192.168.0.240` | VLAN42 `192.168.42.54` | ICMP host unreachable |
-| VLAN1 `192.168.0.240` | VLAN70 `192.168.70.240` | ICMP host unreachable |
+| VLAN70 pod (k8s01) → gw `192.168.70.1` | **reply, 1.17 ms** | VLAN70 L2 OK |
+| VLAN70 pod (k8s01) → k8s06 `192.168.70.16` | **2 replies** | VLAN70 trunks node-to-node |
+| VLAN1 pod (k8s01) → gw `192.168.0.1` | 0 replies | dead |
+| VLAN1 pod (k8s01) → k8s06 `192.168.0.16` | 0 replies | dead |
+| VLAN1 pod (k8s01) → peer pod `192.168.0.240` | 0 replies | dead |
 
-Both directions were tested deliberately — firewall rules are directional, and
-LAN→IOT is often permitted where IOT→LAN is denied. Here neither direction passes.
+**VLAN 1 (`192.168.0.0/24`) carries no traffic to the nodes.** All six nodes have
+an address on `bond0.1` and the link reports `up`, but nothing on that VLAN is
+reachable at layer 2. The most likely cause is that VLAN 1 is the **native /
+untagged** VLAN on the switch trunk, so tagged VID-1 frames are discarded.
 
-Note also that the `management` NAD (`bond0.99`) is **unusable**: no tested node
-has that link, so the CNI fails with `macvlan failed (add): Link not found`.
+Consequences beyond this test:
 
-**Unblocking requires one temporary gw01 rule** (gw01 is a read-only host, so
-this needs explicit sign-off; no rule has been added):
+- **`network/omada-controller` is attached to the `lan` NAD at `192.168.0.30` and
+  therefore has a dead second interface.** Anything relying on L2 discovery or
+  adoption over that interface cannot work.
+- The `management` NAD is separately broken: its master is `bond0.99`, but the
+  nodes actually have **`bond0.90`**.
 
-```
-Interface:   LAN (VLAN1)
-Action:      Pass
-Protocol:    TCP
-Source:      192.168.0.240/32
-Destination: 192.168.42.0/24
-Port:        5201-5203
-```
-
-The manifests are staged and the run takes under a minute; remove the rule
-immediately afterward.
+**Next step is a switch-side fix, not a firewall rule** — either tag VLAN 1 on the
+trunk ports to the nodes, or move the `lan` NAD onto a VLAN that is actually
+tagged. Until then this test cannot run, and no conclusion about PPPoE vs the
+VM/virtio path is supported by measurement.
 
 ## Also worth verifying (cheap, and I have already staged it)
 
