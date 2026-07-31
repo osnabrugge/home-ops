@@ -1,0 +1,38 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: opnsense
+spec:
+  # Built from the upstream npm package by .github/workflows/opnsense-mcp-image.yaml
+  image: ghcr.io/osnabrugge/opnsense-mcp:0.5.3
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  env:
+    - name: OPNSENSE_URL
+      value: "https://gw01.in.homeops.ca"
+    - name: OPNSENSE_VERIFY_SSL
+      value: "true"
+    - name: INCLUDE_PLUGINS
+      value: "true"
+  # spec.secrets is keyed by secret name, so both API creds come in via envFrom.
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          envFrom:
+            - secretRef:
+                name: opnsense-secret
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+  groupRef:
+    name: mcp-tools

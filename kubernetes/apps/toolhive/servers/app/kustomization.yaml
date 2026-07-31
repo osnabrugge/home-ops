@@ -10,3 +10,5 @@ resources:
   - ./flux-mcpserver.yaml
   - ./brocade-externalsecret.yaml
   - ./brocade-mcpserver.yaml
+  - ./opnsense-externalsecret.yaml
+  - ./opnsense-mcpserver.yaml
