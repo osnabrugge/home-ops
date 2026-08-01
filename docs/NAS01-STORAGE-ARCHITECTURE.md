@@ -77,23 +77,38 @@ graph LR
 
 ## 3. Open hardware issues (require your decision)
 
-### 3.1 The 3 missing Crucial CT1000P3SSD8 drives
+### 3.1 The 3 "missing" Crucial CT1000P3SSD8 drives — CONFIRMED: bifurcation is off
 
-They are **not present in nas01**, and were never in this pool. Three independent proofs:
+**They are physically installed.** All 4 sit on an M.2 carrier in `CPU2 SLOT 5`;
+only the first one enumerates because BIOS PCIe bifurcation is not set to
+`x4x4x4x4` for that slot. Diagnosis confirmed 2026-08-01:
 
-1. `lspci` enumerates exactly **three** non-volatile controllers (§2.3).
-2. `/sys/class/nvme/` contains only `nvme0`, `nvme1`, `nvme2`.
-3. `zpool history vault` shows the pool was created `2026-07-29.13:02:17` with a
-   **single `cache` device** and a **2-device `log mirror`** — there was never a
-   4-drive L2ARC in `vault`.
+```console
+$ sudo lspci -vv -s ae:00.0 | grep -E "Physical Slot|LnkCap:|LnkSta:"
+        Physical Slot: 0-5
+        LnkCap: Port #5, Speed 8GT/s, Width x16        <-- slot is x16
+        LnkSta: Speed 8GT/s, Width x4                  <-- only x4 trained
+```
 
-Possible locations: the desktop, pve01, or an M.2 carrier card whose slots are
-not enumerating. Note PCIe root port `3a:02.0` is present with no device behind
-it, which is consistent with an under-populated or non-bifurcated carrier.
+`dmidecode -t slot` reports `CPU2 SLOT 5 PCI-E 3.0 X16` as *In Use*. An x16 slot
+training at x4 with a passive carrier means lanes 4–15 are idle and M.2 sockets
+2–4 are invisible to the OS.
 
-> **If they are meant to be here:** check physical seating, and check BIOS PCIe
-> bifurcation (`x4x4x4x4`) for the carrier slot. Without bifurcation only the
-> first M.2 on a passive carrier enumerates.
+> **Do not test this by looking for "empty" PCIe bridges.** Without bifurcation
+> the extra root ports do not enumerate at all, so there is nothing empty to find.
+> Compare `LnkCap` width against `LnkSta` width instead.
+
+Because only 1 drive was visible on `2026-07-29`, `zpool create vault` baked in a
+**single `cache` device**. That is a consequence of the BIOS setting, not evidence
+the other drives never existed.
+
+**Fix (requires a reboot — schedule a window):** BIOS → Advanced → Chipset
+Configuration → North Bridge → IIO Configuration → CPU2 Configuration → set the
+IOU serving SLOT 5 to `x4x4x4x4`, then reboot and confirm 4 NVMe in
+`/sys/class/nvme/`. No BMC/Redfish credentials are stored in this repo, so this is
+currently a manual change via the Supermicro iKVM at `192.168.99.45`.
+
+**Then decide placement — do NOT reflexively put all 4 in L2ARC** (see §3.3).
 
 ### 3.2 `boot-pool` has no redundancy — recommended fix
 
@@ -118,6 +133,38 @@ zpool status boot-pool                          # expect mirror-0, resilvered
 ```
 
 **Rollback:** `sudo zpool detach boot-pool sdn3`.
+
+### 3.3 Where the 4 NVMe should actually go — measured 2026-08-01
+
+Once bifurcation is fixed you get 4 × 931 GB. Measurements taken while the pool
+was still nearly empty (migration from nas02 incomplete):
+
+| Metric | Value | Reading |
+|---|---|---|
+| Host RAM | 251 GB (242 GB **free**) | ARC is nowhere near pressured |
+| ARC hit ratio | **97.3 %** (86.3M accesses) | working set already fits in RAM |
+| L2ARC hit ratio | **13.5 %** (86.5 % miss) | cache is barely being used |
+| L2ARC size | **4.3 MiB** | it holds essentially nothing |
+| L2ARC I/O | 224.5 GiB written / 30.7 GiB read | ~7:1 write amplification for no gain |
+
+A 97.3 % ARC hit rate with 242 GB of RAM free means L2ARC has nothing useful left
+to serve; it is currently just consuming NVMe write endurance. Scaling it to 4
+drives would also grow the in-RAM L2ARC headers, displacing real cached data.
+
+> **Caveat — do not over-read this.** The pool is nearly empty and the
+> nas02 → nas01 migration is unfinished, so this is not the steady-state workload.
+> Re-measure with `arc_summary` after migration before committing.
+
+**Preferred use on a 12-spindle mirror pool:** a **mirrored `special` vdev** for
+metadata and small blocks. On spinning rust this transforms directory traversal
+and small-file reads far more than L2ARC ever will.
+
+> ⚠️ **A `special` vdev is part of the pool: if it dies, the pool dies.** It must
+> be mirrored (2- or 3-way), never single. This is a bigger commitment than L2ARC,
+> which is safely removable at any time.
+
+Alternative: keep them out of `vault` entirely and build a separate NVMe pool for
+VM/app workloads that genuinely need low latency.
 
 ---
 
