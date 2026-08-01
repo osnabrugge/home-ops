@@ -79,6 +79,29 @@ graph LR
 
 ### 3.1 The 3 "missing" Crucial CT1000P3SSD8 drives — CONFIRMED: bifurcation is off
 
+#### Prior pool `testpool` — destroyed 2026-07-29, recorded here for the record
+
+`vault` was not built on bare metal. It replaced `testpool`, which was destroyed
+at `2026-07-29 12:51:09` via
+`midclt call -j pool.export 1 '{"destroy": true, "cascade": true}'`.
+**This was done by an AI agent session running as `sean-admin`.** Its topology:
+
+| Property | Value |
+|---|---|
+| Capacity | 50.9 T raw / 38.1 T usable, ~317 G used |
+| Data vdevs | 2 × **mismatched RAIDZ1** (6-wide + 4-wide) |
+| SLOG | mirrored Intel Optane P1600X |
+| **L2ARC** | **4 × Crucial P3 1 TB NVMe** |
+| Datasets | `apps`, `data`, `home` (316 G), `ix-apps`, `.ix-virt` (incus VMs), `.system` |
+
+> **The mistake to learn from:** `testpool` was recorded as having a **4-drive**
+> L2ARC, but by then only **1** NVMe enumerated. That 3-drive discrepancy was not
+> investigated before the pool was destroyed, so "1 cache device" was carried
+> forward into `vault` as if it were normal — and then written into this document
+> as "the drives were never here." Always reconcile recorded topology against
+> live device enumeration *before* destroying a pool.
+
+
 **They are physically installed.** All 4 sit on an M.2 carrier in `CPU2 SLOT 5`;
 only the first one enumerates because BIOS PCIe bifurcation is not set to
 `x4x4x4x4` for that slot. Diagnosis confirmed 2026-08-01:
