@@ -16,7 +16,6 @@ spec:
     substitute:
       APP: printguard
       KOPIUR_CAPACITY: 10Gi
-      KOPIUR_SUSPEND: "true"
   prune: true
   sourceRef:
     kind: GitRepository

@@ -25,7 +25,6 @@ spec:
       # itself. Instead keep the default uid-1000 mover and let kopia skip the file
       # it cannot read -- frigate regenerates .jwt_secret on start if it is missing.
       KOPIUR_IGNORE_FILE_ERRORS: "true"
-      KOPIUR_SUSPEND: "true"
       KOPIUR_CAPACITY: 5Gi
   prune: true
   sourceRef:

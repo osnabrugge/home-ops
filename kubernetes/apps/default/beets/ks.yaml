@@ -15,7 +15,6 @@ spec:
   postBuild:
     substitute:
       APP: beets
-      KOPIUR_SUSPEND: "true"
   prune: true
   sourceRef:
     kind: GitRepository

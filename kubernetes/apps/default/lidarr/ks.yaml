@@ -17,7 +17,6 @@ spec:
     substitute:
       APP: lidarr
       KOPIUR_CAPACITY: "15Gi"
-      KOPIUR_SUSPEND: "true"
   prune: true
   sourceRef:
     kind: GitRepository

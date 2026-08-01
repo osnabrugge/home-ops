@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: brrpolice
-      KOPIUR_SUSPEND: "true"
   prune: true
   sourceRef:
     kind: GitRepository

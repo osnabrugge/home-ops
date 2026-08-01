@@ -19,7 +19,6 @@ spec:
   postBuild:
     substitute:
       APP: omada-controller
-      KOPIUR_SUSPEND: "true"
   prune: true
   sourceRef:
     kind: GitRepository
