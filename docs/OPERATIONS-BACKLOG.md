@@ -32,9 +32,18 @@ rationale. This section is the redo.
 
 ### A.1 What currently depends on nas01 (must not break)
 
-- [ ] P0: Confirm exact list. Believed to be only **kopiur backups** + **netboot**
-      (netboot unconfigured). If so, nas01 can be rebuilt freely.
-- [ ] P0: Document the "temporarily point kopiur back to nas02" fallback + how to revert
+- [x] P0: **ANSWERED 2026-08-03 — nas01 holds ZERO data and can be rebuilt freely.**
+      Evidence:
+      - Exactly **one** reference to nas01 in all of `kubernetes/`: netboot-xyz mounts
+        `nas01.in.homeops.ca:/mnt/vault/netboot` for ISO assets.
+      - That directory is **empty** (no ISOs were ever placed there).
+      - kopiur's only `ClusterRepository` is **`nas02`** — backups do **not** go to nas01.
+        The `vault/kopiur` dataset exists but is unused (96 K).
+      - `vault` total allocated: **1.96 MB** across `vault/kopiur` + `vault/netboot`.
+      **Implication: no cutover, no fallback, no data preservation required.** The pool
+      can be destroyed and rebuilt to whatever design we choose. The only cleanup is
+      recreating a `netboot` dataset afterwards (or repointing netboot-xyz).
+
 
 ### A.2 Drive inventory available to the design
 
