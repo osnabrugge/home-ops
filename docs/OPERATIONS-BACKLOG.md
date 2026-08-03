@@ -69,15 +69,43 @@ rationale. This section is the redo.
 
 ## B. Cluster bugs (reported 2026-08-03)
 
-- [ ] P0: **frigate ↔ cam03 auth failure** — frigate reports wrong password. cam03 was
-      hard-reset, reconfigured, and matched to cam02 as closely as possible.
-- [ ] P1: **printguard** — Sean added an iGPU + switched to the `-intel` image.
-      Verify the change was made correctly.
-- [ ] P1: printguard — benchmark **GPU vs CPU** and recommend which detection model
-      performs best; decide whether to keep the GPU.
+- [~] P0: **frigate ↔ cam03 auth failure** — ROOT-CAUSED, needs a change **on the camera**.
+      Not a frigate bug: **go2rtc** cannot authenticate upstream, so frigate's ffmpeg
+      gets a 404 from the local restream (`rtsp://127.0.0.1:8554/cam03`).
+      Proof (from inside the frigate pod, same URL/user/password):
+      `cam02 -> h264,2560,1440` · `cam03 -> 401 Unauthorized`.
+      All 3 cams share one credential, so the hard reset wiped cam03's `viewer` account.
+      **Action (Sean):** recreate user `viewer` on cam03 with the shared password and
+      media/RTSP permission — on Dahua-style firmware the account usually must be in the
+      right *group*, matching UI fields alone is not always enough.
+- [ ] P0: **ROTATE `FRIGATE_RTSP_PASSWORD`** — it was leaked in plaintext into a chat
+      transcript on 2026-08-03 (ffprobe echoes the full RTSP URL in its error output).
+      Update AKV + the `viewer` account on cam01/02/03.
+- [x] P1: **printguard iGPU** — the update had **silently failed**. Container declared
+      `resources.claims[gpu]` + `defaultPodOptions.resourceClaims[gpu]`, but no
+      `ResourceClaimTemplate` named `printguard` existed → pods unschedulable → Helm
+      timed out → **rolled back to the CPU-only spec** while showing `2/2 Running`.
+      Fixed by adding the RCT + `intel-gpu-resource-driver` dependency (`06c4038be`).
+      Verified: claim `allocated,reserved`, `/dev/dri` → `card0`, `renderD128`.
+- [x] P1: **printguard GPU vs CPU — measured.** printguard self-benchmarks at startup:
+      | Backend | Result |
+      |---|---|
+      | Intel OpenVINO (iGPU) | **234.0 fps** (1 worker) |
+      | LiteRT CPU + XNNPACK | **349.8 fps** (2 workers) |
+      **CPU wins by ~50 %** and printguard auto-selects it. Expected: k8s01 is an
+      **i5-9600T / UHD 630** (24 EU) — a weak iGPU, and small quantised models pay
+      per-inference kernel-launch overhead on GPU.
+      **Recommendation: leave the GPU claim attached.** Devices are shareable (every
+      node advertises 1 device and `drm-exporter` already claims all 6), GPU consumers
+      sit on different nodes (plex k8s03, frigate k8s06, dispatcharr k8s04,
+      printguard k8s01), so there is no contention — and the startup benchmark will
+      automatically switch to GPU if a future model favours it.
 - [ ] P2: printguard — Sean tried publishing ports so IP cams could **push** streams;
-      the Dahua-knockoff cams appear to have no RTSP-push option. Confirm and advise
-      (pull vs push, go2rtc restream, ONVIF).
+      the Dahua-knockoff cams appear to have no RTSP-push option. The `mediamtx`
+      sidecar already in the pod is the correct receiver for a push model. Confirm
+      whether the cams support ONVIF/RTSP push at all; if not, pull + go2rtc restream
+      is the right architecture and no port publishing is needed.
+
 
 ---
 
