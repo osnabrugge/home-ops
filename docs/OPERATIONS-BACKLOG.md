@@ -1,8 +1,163 @@
 # Operations Backlog
 
-This file is the persistent task tracker for post-rebuild and reliability work.
+This file is the persistent task tracker. **It is the source of truth, not the chat.**
 
-## Current Priority
+> **Working rule (added 2026-08-03, after repeatedly losing scope):**
+> Any multi-part request gets written here *before* work starts. When a request is
+> answered only partially, the untouched parts stay listed here as `[ ]` — they are
+> never silently dropped because the conversation moved on. Every session should
+> start by reading this file and end by updating it. Long term this moves into
+> NetBox so inventory + tasks live in one queryable place.
+
+Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs a decision from Sean
+
+---
+
+## A. Active program — nas01 storage design (requested 2026-08-03)
+
+**Context Sean gave:** nas01 is greenfield, no data needed preserving. The ask was
+never "just build a pool" — it was **design options → benchmarks → optimization →
+baseline**, chosen against his actual workloads and the hardware present. That did
+not happen; `vault` was created unilaterally with one `kopiur` dataset and no
+rationale. This section is the redo.
+
+- [ ] P0: Write up **why the current `vault` layout exists** (6× 2-way mirror + mirrored
+      Optane SLOG + 1 L2ARC) and its trade-offs — Sean never got an explanation
+- [ ] P0: Produce **≥3 design options** with explicit trade-offs (capacity vs IOPS vs
+      resilience vs rebuild risk), costed against hardware actually on hand
+- [ ] P0: Benchmark plan + **baseline numbers** (only `seqwrite1m = 788.3 MB/s` exists so far)
+- [ ] P0: Post-design optimization pass (recordsize per dataset, ashift, compression,
+      special vdev, ARC/L2ARC decision) — all measured, not folklore
+- [ ] P1: Charts/graphs of results, not just tables (Sean asked for this explicitly)
+
+### A.1 What currently depends on nas01 (must not break)
+
+- [ ] P0: Confirm exact list. Believed to be only **kopiur backups** + **netboot**
+      (netboot unconfigured). If so, nas01 can be rebuilt freely.
+- [ ] P0: Document the "temporarily point kopiur back to nas02" fallback + how to revert
+
+### A.2 Drive inventory available to the design
+
+| Qty | Device | Where | Notes |
+|---|---|---|---|
+| 12 | mixed HDD (6×4TB, 4×8TB, 2×10TB) | in nas01 `vault` | current pool |
+| 4 | 12TB Ironwolf | **in nas02** | free after migration completes |
+| 1 | 12TB Ironwolf | **on desk, new spare** | → 5× 12TB total |
+| 4 | 20TB Ironwolf | ? confirm location | |
+| 4 | Crucial P3 1TB NVMe | nas01 carrier, `CPU2 SLOT 5` | **3 stranded — bifurcation off** |
+| 2 | Intel Optane P1600X 118G | nas01 M.2-C1/C2 | SLOG mirror |
+| 2 | SATADOM 60G | nas01 | boot-pool (currently **no redundancy**) |
+| 3 | 2.5" SATA SSD | spare | Sean suggests → pve01 instead |
+
+- [ ] P0: **Fix PCIe bifurcation** (`CPU2 SLOT 5` → `x4x4x4x4`) to recover 3 NVMe.
+      Needs reboot window. No BMC creds stored — iKVM at `192.168.99.45` or `sum`.
+- [ ] P1: Confirm location/count of the 4× 20TB Ironwolf
+- [ ] P1: Chassis: 36 front bays (12 used) + 24 rear bays — rear needs **3D-printed trays**
+- [ ] P2: `boot-pool` redundancy — `sdn` is healthy+idle, can mirror (destroys old `rpool`)
+
+### A.3 Networking for nas01
+
+- [ ] P1: Decide NIC. Options:
+      (a) **Silicom PE310G4i71LB-XR** quad SFP+ — on hand, but full-height bracket,
+          needs a 3D-printed half-height bracket designed
+      (b) **ConnectX-3/4 dual SFP+** from eBay — cheap, but need guidance on which
+          models cross-flash and which genuinely support **RDMA**
+- [ ] P1: Produce a "what to look for on eBay" note for CX3/CX4 (model numbers,
+      OEM-branded vs retail, firmware cross-flashing, RoCE support caveats)
+
+---
+
+## B. Cluster bugs (reported 2026-08-03)
+
+- [ ] P0: **frigate ↔ cam03 auth failure** — frigate reports wrong password. cam03 was
+      hard-reset, reconfigured, and matched to cam02 as closely as possible.
+- [ ] P1: **printguard** — Sean added an iGPU + switched to the `-intel` image.
+      Verify the change was made correctly.
+- [ ] P1: printguard — benchmark **GPU vs CPU** and recommend which detection model
+      performs best; decide whether to keep the GPU.
+- [ ] P2: printguard — Sean tried publishing ports so IP cams could **push** streams;
+      the Dahua-knockoff cams appear to have no RTSP-push option. Confirm and advise
+      (pull vs push, go2rtc restream, ONVIF).
+
+---
+
+## C. pve01
+
+- [ ] P0: **Zero drive redundancy.** One NVMe slot was consumed by an NVMe→10GbE SFP+
+      adapter (needed to exceed 1 Gbps). Propose a redundancy plan — possibly the
+      3× spare 2.5" SATA SSD.
+- [ ] P1: Document pve01's current disk/NIC layout in NetBox.
+
+---
+
+## D. WAN / Bell (8 Gbps not delivered)
+
+- [ ] P0: Bell is contracted for ~8 Gbps; speedtest history shows ~3 Gbps. We have
+      demonstrated ≥5 Gbps is achievable, so the ceiling is not purely CPE.
+- [ ] P0: **Test upstream of gw01/pve01** to isolate: run iperf/speedtest directly from
+      the **MikroTik (`ext01.in.homeops.ca`)** and/or the **XPS-GPON (`192.168.11.1`)**.
+- [ ] P1: Read the ONT's OLT-provisioned DBA/T-CONT profile if reachable.
+- [ ] P1: Build the evidence pack Sean can take to Bell (charts, methodology, dates).
+
+---
+
+## E. NetBox — single source of truth + automation
+
+Sean's months of prior work were re-imported: images, device types, module types,
+expansion slots. Out of date but structurally valuable.
+
+- [ ] P0: Clean up + update the imported data against reality
+- [ ] P1: Automate the **network** side via **Diode** + **netbox-operator**
+- [ ] P1: Evaluate **hardware lifecycle management** plugins
+- [ ] P1: Expose NetBox through **MCP** so it is a real-time, single-pane inventory
+- [ ] P2: Long-term — drive this backlog from NetBox rather than a markdown file
+- [x] netbox-operator fixed (API token restored + `netboxOperatorRestorationHash`
+      custom field recreated) — 2026-08-01
+- [ ] P1: `API_TOKEN_PEPPERS` is unset → v2 API tokens unusable. Add JSON to secret
+      key `api_token_peppers` (int keys, ≥50-char values).
+
+---
+
+## F. Fleet consolidation / spare build
+
+Goal Sean stated: get **everything** online and inventoried so we can run as lean as
+possible and **sell off surplus**.
+
+- [?] P1: ASRock Rack **X570D4U-2L2T** + **128 GB ECC** idle ~2 years. Needs a CPU and
+      a case. Ryzen Pro 5000-series (e.g. **5600G**, ~$120–150) suggested. Spare ATX
+      PSUs available.
+- [?] P1: Case — mATX rackmount options are poor. Sean is considering a **3U/4U** that
+      fits a spare **360 mm AIO**, with room for more HDDs/GPUs later.
+- [ ] P2: Decide whether this box becomes a second NAS, a second PVE node, or is sold.
+- [ ] P2: Produce a sell/keep list once inventory is complete.
+
+---
+
+## G. Standing infrastructure work
+
+- [ ] P0: Deep full-infrastructure health sweep (go wide across supporting infra AND
+      deep into each app) — Sean wants issues found before he finds them
+- [ ] P1: Audit/propose MCP servers (Proxmox, MikroTik, GPON, TrueNAS, Synology,
+      Supermicro BMC/IPMI, NetBox, Spoolman, Klipper/Mainsail, Cloudflare, Azure,
+      GitHub, Talos, memory/RAG) — reduce firefighting, enable proactive work
+- [ ] P1: NFS 4.2 + optimizations — can be scoped per-PV via `spec.mountOptions`
+      (does NOT have to wait for the whole nas02→nas01 migration)
+- [ ] P1: Radar: 5 open issues, large warning-event volume — drive to zero
+- [ ] P2: gw02 deployment strategy — clone gw01 config (interfaces/rules must match for
+      CARP/pfsync) without the painful manual console bootstrap
+- [ ] P2: Omada adoption end-to-end verification (VLAN99 path proven; adoption untested)
+- [ ] P2: Identity: one-pane identity lifecycle (users, groups, systems, devices, SSH,
+      RADIUS, MFA, OAuth). Authentik feasibility gate still undecided.
+
+---
+
+## H. Legacy items (pre-2026-08, triage before trusting)
+
+Much of the section below predates the kopiur migration and the app rebuilds; several
+entries are stale (e.g. `volsync-system/kopia` no longer exists). Re-verify before
+acting on any of it.
+
+## Current Priority (legacy)
 
 - [ ] P0: Open PR for smtp-relay LOGIN fix and merge after review
 - [ ] P0: Verify Flux reconciles smtp-relay with no drift after merge
