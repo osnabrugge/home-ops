@@ -18,12 +18,11 @@ spec:
           app:
             image:
               repository: ghcr.io/oliverbravery/printguard
-              tag: 2.3.8@sha256:44cade28027772508f2e0a35fac8d82579fb97bf0000fad782205b1b5118a1cf
+              tag: 2.3.8-intel@sha256:3e3d8cac125c4b08f48e522638845a786578c6f96c791f23139fe32d36519116
             env:
               TZ: America/Toronto
               DATA_DIR: /data
               PRINTGUARD_ORIGINS: "https://{{ .Release.Name }}.homeops.ca"
-              # MediaMTX runs as a sidecar in this pod, reachable over localhost.
               MEDIAMTX_API: http://localhost:9997
               MEDIAMTX_RTSP: rtsp://localhost:8554
               MEDIAMTX_HLS: http://localhost:8888
@@ -64,11 +63,12 @@ spec:
               readOnlyRootFilesystem: false
               capabilities: {drop: ["ALL"]}
             resources:
+              claims:
+                - name: gpu
               requests:
                 cpu: 50m
                 memory: 512Mi
               limits:
-                # peak ~1.7Gi (was 85% of 2Gi); headroom to avoid OOM
                 memory: 3Gi
           mediamtx:
             image:
@@ -106,8 +106,9 @@ spec:
               limits:
                 memory: 256Mi
     defaultPodOptions:
-      # PrintGuard (pre-release) writes its ML model into its own site-packages dir
-      # and expects to run as root like its upstream Docker image.
+      resourceClaims:
+        - name: gpu
+          resourceClaimTemplateName: *app
       securityContext:
         runAsNonRoot: false
         runAsUser: 0
@@ -118,11 +119,15 @@ spec:
       app:
         controller: *app
         ports:
-          # PrintGuard serves plain HTTP on this port (see container command);
-          # Envoy terminates TLS at the edge, so no BackendTLSPolicy is needed.
           http:
             port: *port
             appProtocol: http
+          rtsp:
+            port: 8554
+            appProtocol: rtsp
+          rtmp:
+            port: 1935
+            appProtocol: rtmp
     route:
       app:
         hostnames:
@@ -149,9 +154,6 @@ spec:
     configMaps:
       mediamtx:
         data:
-          # Mirrors PrintGuard's upstream mediamtx.yml. The API (:9997) and HLS
-          # muxer (:8888) stay pod-internal; RTSP/RTMP listeners accept LAN camera
-          # pushes, and "Stream URL" cameras (e.g. Dahua RTSP) are pulled by MediaMTX.
           mediamtx.yml: |
             api: yes
             apiAddress: :9997

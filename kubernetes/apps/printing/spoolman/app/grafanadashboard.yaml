@@ -4,7 +4,6 @@ kind: GrafanaDashboard
 metadata:
   name: spoolman
   annotations:
-    # Dashboard JSON uses ${DS_PROMETHEUS}/${__*} template vars; skip Flux envsubst.
     kustomize.toolkit.fluxcd.io/substitute: disabled
 spec:
   allowCrossNamespaceImport: true
