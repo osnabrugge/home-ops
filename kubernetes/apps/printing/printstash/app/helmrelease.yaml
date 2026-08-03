@@ -58,7 +58,7 @@ spec:
           api:
             image:
               repository: ghcr.io/xiao-villamor/printstash-api
-              tag: "v0.11.1"
+              tag: "v0.11.2"
             command:
               - /bin/sh
               - -c
