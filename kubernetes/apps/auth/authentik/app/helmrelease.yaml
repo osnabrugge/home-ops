@@ -39,7 +39,6 @@ spec:
         from: notifications@homeops.ca
         port: 25
         use_tls: false
-    # Use the shared postgres16 (CNPG) + dragonfly (Redis) instead of bundled subcharts
     postgresql:
       enabled: false
     redis:
