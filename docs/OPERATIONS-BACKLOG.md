@@ -76,6 +76,89 @@ rationale. This section is the redo.
 
 ---
 
+## A0. NETWORK — VLAN1 tagging broken (raised 2026-08-05, HIGH PRIORITY)
+
+Sean's finding: traffic from his workstation `192.168.10.115` (should be **VLAN10**)
+is **arriving on gw01 as VLAN1** and being denied, because the "allow all private"
+rule was never applied to the LAN (VLAN0.1) interface. He only caught this by chance
+while trying to reach the local switch at `192.168.0.176`.
+
+**Blast radius unknown.** This may explain a whole class of unexplained failures.
+
+Root-cause hypothesis (Sean's, and it is sound): OPNsense on FreeBSD is **not a
+switch**. A given interface should carry either tagged or untagged traffic, not both.
+Proxmox trunking + VLAN1 (the native/untagged VLAN) is where it breaks.
+
+- [ ] P0: Map where VLAN1 tagging breaks — pve01 bridge/trunk config vs gw01 interfaces
+      vs core01 (Brocade) port config
+- [ ] P0: Determine blast radius — what else is silently landing on the wrong VLAN
+- [ ] P1: Decide: fix VLAN1, or **abandon VLAN1 entirely** and move everything to
+      explicitly-tagged VLANs (Sean is open to dumping it)
+- [ ] P1: This is very likely the reason **Omada device adoption fails** (see F1)
+- [ ] P2: MCP servers wanted for: **Omada**, **Proxmox**, **MikroTik** (`ext01`,
+      management-only so lower value), **XGS-PON** (`xgspon01.in.homeops.ca` — the
+      Bell Fibre demarc, relevant to the 8 Gbps dispute)
+
+---
+
+## A1. STORAGE CAPACITY — cost-effective expansion (raised 2026-08-05)
+
+**Correction to `NAS01-DESIGN-OPTIONS.md`:** it treated 5× 12 TB as available. There
+are **5 in total**, but only **ONE is free today** (new, unused RMA replacement). The
+other **4× 12 TB and 4× 20 TB are IN USE in nas02** and only free *after* migration —
+which is circular, since migration is what needs the space.
+
+### Real disk economics (Sean's eBay research)
+
+| Size | Used price | $/TB | Notes |
+|---|---|---|---|
+| 4 TB SATA/SAS | ~$40 | **$10/TB** | cheapest per TB |
+| 8 TB | $100–200 | $12–25/TB | |
+| 12 TB Ironwolf | **>$400 new (US)** | $33/TB | + shipping + duties — poor value |
+
+- [ ] P0: **Data reduction first — it is cheaper than any disk.** Sean is confident
+      there are large duplicates, obsolete app data, old installs, logs.
+      Measure `crossseed-data` with `du --count-links=no` (hardlinks inflate `du`).
+- [ ] P0: Produce a duplicate/waste report for nas02 before buying anything
+- [ ] P1: Costed expansion options. Key insight: **mirrors do not require matched
+      sizes across vdevs** — a 2× 4 TB mirror vdev can join a pool of 8/10 TB mirrors.
+      So cheap 4 TB pairs at ~$10/TB may beat one 12 TB at $33/TB.
+- [ ] P2: Other media on hand — 2.5" SSD (1× 1 TB, 2× 250 GB), older NVMe (128–250 GB).
+      Low capacity; likely only useful for pve01 boot redundancy, not bulk.
+
+### Desktop 990 Pro question (needs a decision, not a rush)
+
+4× 2 TB Samsung 990 Pro sit in the desktop. Cannibalising leaves a single 1 TB 980 Pro
+with **no redundancy**. Also: enabling the extra M.2 slots drops the RTX 3090 from
+x16 to x8. Sean's workloads are inference, streaming w/ AI, video/photo editing.
+
+- [ ] P2: Quantify before touching it — x8 vs x16 impact is small for inference and
+      video work, but this trades *certain* desktop redundancy for *uncertain* NAS gain
+- [ ] P2: Related plan: drop Windows → Ubuntu Studio with ZFS boot
+
+---
+
+## A2. SELL / LIQUIDATE (raised 2026-08-05) — funds the purchases
+
+No budget left this month. Everything below is a candidate.
+
+- [?] P1: **ASRock Rack X570D4U-2L2T + 4× 32 GB DDR4 ECC** (brand new, idle ~2 yrs).
+      Needs a Ryzen Pro (~$120–150) **and** a rack case Sean does not have.
+      **Decision: complete it, or cut losses and sell board+RAM?**
+- [?] P1: **Supermicro X9 dual Xeon + 128 GB DDR3 ECC** (the original nas01) — sell?
+      DDR3 era; power-hungry; likely low resale but zero ongoing value idle.
+- [ ] P1: List old memory + NVMe on eBay/Reddit/Facebook
+- [ ] P2: Rank everything by $/effort so the highest-value listings go first
+
+### Purchases needed (priority order)
+
+1. **Second SATADOM** — `boot-pool` is a single device; the only live SPOF
+2. Storage capacity — but **only after** the data-reduction exercise
+3. 3D printing consumables/parts (see H)
+4. *Not yet:* ConnectX NIC, GPU (T4 ~$800). Neither fixes anything currently broken.
+
+---
+
 ## B. Cluster bugs (reported 2026-08-03)
 
 ### B.0 RBD `emergency_ro` cascade — ROOT CAUSE FOUND 2026-08-04
@@ -220,6 +303,84 @@ possible and **sell off surplus**.
 - [ ] P2: Omada adoption end-to-end verification (VLAN99 path proven; adoption untested)
 - [ ] P2: Identity: one-pane identity lifecycle (users, groups, systems, devices, SSH,
       RADIUS, MFA, OAuth). Authentik feasibility gate still undecided.
+
+---
+
+## I. Apps / identity / home-automation (raised 2026-08-05)
+
+### I1. Omada — still cannot adopt devices
+- [ ] P0: Migration from nas02 (`oc01`) blocked: **no device adoption**.
+      Strongly suspected to be the **VLAN1 tagging fault (§A0)**, not an Omada bug —
+      controller has `net1` on VLAN1 (192.168.0.30) which is exactly the broken VLAN.
+- [ ] P1: Options: (a) fix VLAN1, (b) add a VLAN99 interface on the local switch,
+      (c) **abandon VLAN1** and adopt over an explicitly-tagged VLAN.
+
+### I2. Identity — nothing centralised
+- [ ] P0: Everything is scattered (users, groups, systems, devices, SSH, RADIUS, MFA,
+      OAuth). Goal is one pane of glass with real lifecycle management.
+- [ ] P0: **Authentik was gated on one item Sean had to do — neither of us can recall
+      what it was. Re-derive it from the current state before proposing more work.**
+- [ ] P1: Authentik is a lot of manual learning/config for Sean. Evaluate honestly
+      whether it is the right cost/benefit vs alternatives, given lldap already exists.
+- Motivating pain: the IP cameras have no copy/paste, so any password rotation is
+  manual and error-prone (§I3). Centralised identity directly reduces that pain.
+
+### I3. Camera credentials + frigate/cam03
+- [ ] P0: **Rotate `FRIGATE_RTSP_PASSWORD`** — leaked in a chat transcript 2026-08-03
+      by ffprobe echoing the RTSP URL on error. **Identify the exact AKV secret name**
+      (ExternalSecret `frigate` → key used for `FRIGATE_RTSP_PASSWORD`).
+- [ ] P0: **cam03 still fails even after Sean set a matching password on all 3 accounts.**
+      Earlier proof: cam02 `h264,2560,1440` vs cam03 `401 Unauthorized`, same URL/user.
+      Next checks: is `viewer` in the right *group/role* on cam03; does the Dahua-clone
+      firmware use separate "ONVIF user" vs "system user" tables; is there a leading/
+      trailing space or a char the camera silently truncates (no copy/paste = high risk).
+
+### I4. Matter / Thread
+- [ ] P1: `matter-server` not set up and not connected to **OTBR01**.
+
+---
+
+## J. 3D printing + AI/MCP integration (raised 2026-08-05)
+
+Real, blocking pain — Sean cannot print anything beyond PLA (HT-PLA-GF works well).
+
+### J1. ABS/ASA first-layer adhesion failure
+Already tried: very slow first layer, large brim, bed **105 °C**, heat-soaking,
+stock SV08 PEI, BIQU Glacier, hairspray on the stock PEI.
+Hardware: SV08, mainline Klipper, Microswiss FlowTech plated brass 0.4, BTT Eddy Duo,
+BTT SFS 2.0. PID tuned, QGL, bed mesh, Tap all fine. PolyLite ABS dried in a PolyDryer.
+
+- [ ] P0: Diagnose properly. Key signal: **the hottest band of a temp tower also fails**,
+      so it is not a nozzle-temperature problem — nozzle temp affects layer bonding,
+      not bed adhesion.
+- [ ] P1: Highest-probability causes, in order: (1) plate contamination — IPA smears
+      finger oils and mould-release; needs **hot water + dish soap**; (2) no enclosure
+      heat / draughts on an open-frame SV08; (3) insufficient first-layer squish —
+      verify Z-offset **hot**, at bed temp, since Eddy readings shift thermally.
+- [ ] P1: Consider **ASA instead of ABS** — similar temps, markedly less warping.
+      Sean also has PETG unused, which is far easier and may cover many use cases.
+- [ ] P2: Incoming upgrades that help *later* (not the current blocker): Ram3n graphite
+      bed, pico chamber thermistor, wall insulation, chamber heating, replace the Sovol
+      exhaust fan and duct into the AC Infinity 6".
+- ⚠️ Safety: ABS/ASA emit styrene + UFPs. Enclosing concentrates them — vent outside
+  or run activated carbon before sealing the chamber.
+
+### J2. CAD / modelling capability gap
+- [ ] P1: Sean cannot do meaningful 3D editing (customising others' models, or designing
+      new). Fusion is too expensive. TinkerCAD is easy but limited. Currently learning
+      Onshape (free tier is public-documents-only — flag that).
+- [ ] P1: Live project with a deadline: **digital picture frame for his grandmother's
+      birthday** — needs a different frame + touchscreen than the source model. He
+      printed a modified version but it is "not close" to what is needed.
+- [ ] P2: Evaluate free/cheap options honestly: Onshape (free = public), FreeCAD
+      (capable, steep), Plasticity (cheap, not parametric), OpenSCAD (code-driven).
+
+### J3. Print ecosystem / MCP
+- [ ] P2: MCP integration for the print stack — Klipper/Moonraker, Mainsail/Fluidd,
+      Spoolman, printguard. Would let filament, print state and failures surface
+      alongside the rest of the estate.
+- [ ] P2: Anycubic Kobra 2 (lightly modified) is offline. Deliberately deferred until
+      ABS/ASA prints reliably on the SV08.
 
 ---
 
