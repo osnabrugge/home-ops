@@ -78,6 +78,41 @@ rationale. This section is the redo.
 
 ## B. Cluster bugs (reported 2026-08-03)
 
+### B.0 RBD `emergency_ro` cascade — ROOT CAUSE FOUND 2026-08-04
+
+Recurred 4 times (Jul 31, Aug 1, Aug 3, Aug 4) because the fix was wrong, not because
+the fault kept re-firing.
+
+**Mechanism:** an ext4 journal abort (`ext4_journal_check_start`) from a transient I/O
+error flips the filesystem to `emergency_ro`. The mount still *reports* `rw`:
+`/dev/rbd2 on /config type ext4 (rw,...,emergency_ro)` — so it looks fine.
+**`kubectl rollout restart` CANNOT clear it.** The CSI driver keeps the device staged
+at a **globalmount**; the replacement pod lands on the same node, bind-mounts the same
+read-only globalmount, and inherits RO. It looks fixed, then fails again.
+
+**Correct procedure:**
+1. Scope it: `for ip in 51..56; do talosctl -n 192.168.42.$ip read /proc/mounts | grep -c emergency_ro; done`
+2. Map volumes to apps: extract `pvc-<uuid>`, then
+   `kubectl get pv <pv> -o jsonpath='{.spec.claimRef.namespace}/{.spec.claimRef.name}'`
+3. **Scale EVERY consumer of that PVC on that node to 0 simultaneously** (shared PVCs
+   need all of them, e.g. `netbox` + `netbox-worker`)
+4. Wait for full pod termination so `NodeUnstageVolume` runs; confirm the node's
+   `emergency_ro` count is **0**
+5. Scale back up, then **verify with an actual write**, not pod status
+
+Verified 2026-08-04: all 6 nodes at `emergency_ro=0`; agregarr/sonarr/lidarr all
+`WRITE OK`. Note agregarr's data path is `/app/config`, not `/config` — testing the
+wrong path produces a false "still read-only".
+
+- [ ] P0: **Add detection.** The trigger rotates out of `dmesg` within ~2 days and Ceph
+      returns to `HEALTH_OK`, so post-hoc diagnosis is impossible. Need an alert on
+      `emergency_ro` present in any node's `/proc/mounts` (and ideally on
+      `EXT4-fs error` in kernel logs) so the next occurrence is caught live with cause.
+- [ ] P1: Root cause of the *original* I/O error is still unknown. Suspicion: RBD
+      map/unmap churn from kopiur backup movers on k8s05/k8s06 (the two nodes hit).
+      Unproven — needs the detection above to catch it in the act.
+
+
 - [~] P0: **frigate ↔ cam03 auth failure** — ROOT-CAUSED, needs a change **on the camera**.
       Not a frigate bug: **go2rtc** cannot authenticate upstream, so frigate's ffmpeg
       gets a 404 from the local restream (`rtsp://127.0.0.1:8554/cam03`).
