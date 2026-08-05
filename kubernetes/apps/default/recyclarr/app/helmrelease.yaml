@@ -15,7 +15,9 @@ spec:
         type: cronjob
         cronjob:
           schedule: 0 0 * * *
-          backoffLimit: 0
+          # radarr/sonarr are zeroscaler-gated on a storage probe, so they can be at
+          # 0 replicas at 00:00. Retry instead of failing the whole day's run.
+          backoffLimit: 3
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
