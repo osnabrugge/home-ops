@@ -213,6 +213,15 @@ The k8s controller pod carries **three** interfaces — `eth0` cilium, `net1` 19
 (VLAN1), `net2` 192.168.99.30 (VLAN99) — and binds discovery on `udp6 :::29810`.
 So it can talk to factory-default gear on VLAN1 *and* provisioned gear on VLAN99.
 
+> ⚠️ **Correction (2026-08-05): the multus interfaces are NOT missing routes.**
+> `cat /proc/net/route` inside the pod shows only `eth0` entries, which looks like the
+> VLAN legs have no connected route. They do. Both NADs chain the **`sbr`
+> (source-based routing)** plugin after `macvlan`, which by design moves each
+> interface's routes into its own policy-routing table with matching `ip rule`
+> entries — `/proc/net/route` only ever shows the *main* table. Verified working:
+> `wget` from the pod reaches both 192.168.99.21 and 192.168.99.22.
+> **Do not "fix" this** by adding connected routes; it is correct as-is.
+
 **Correct inform URL for the new controller:**
 
 ```
