@@ -254,6 +254,31 @@ The controller was sending adopt commands to the stale `192.168.0.176`. Fixed by
   `sockstat -4 -l | grep -w 67` (runs as `nobody`).
 - dnsmasq listens on `vlan0.1,vlan0.10,vlan0.42,vlan0.50,vlan0.70,vlan0.99,wg0` and has
   a `dhcp-range` on **every** VLAN — so "no DHCP on VLAN42" is *not* a thing.
+
+#### Default-gateway design (deliberate — do not "fix")
+
+| VLAN | DHCP router (opt 3) | Via |
+|---|---|---|
+| 10 Trusted | 192.168.10.4 | **core01** |
+| 42 Servers | 192.168.42.4 | **core01** |
+| 99 Mgmt | 192.168.99.4 | **core01** |
+| 1 LAN | 192.168.0.1 | gw01 |
+| 70 IoT | 192.168.70.1 | gw01 |
+
+Trusted VLANs route via core01 so inter-VLAN traffic bypasses the firewall; core01's own
+default is `ip route 0.0.0.0/0 192.168.99.1` (gw01), and core01 runs BGP with the k8s
+nodes so it holds the `192.168.69.0/24` LoadBalancer routes. gw01 reaches VLAN69 only
+*through* core01 (`192.168.69.0/24 via 192.168.42.4`) — so pointing a management device
+at gw01 instead of core01 causes a hairpin for anything in the LB range.
+
+> A device that changes interfaces keeps its old lease until it re-leases, and will be
+> missing option 3 until then. Prefer adding `ip route 0.0.0.0/0 192.168.99.4` over
+> toggling the VLAN99 interface — losing VLAN99 on a single-homed switch is a serial
+> console recovery.
+
+> `192.168.69.x` LoadBalancer VIPs do **not** answer ICMP (not even from gw01). Test
+> them on their service port, never with ping.
+
 - ⚠️ **Unknown / not yet verified:** the OPNsense firewall rules could not be read —
   parsing `filter/rule` out of `/conf/config.xml` returned empty, so the rule set is
   *not* where expected. The `High_Trust`/`Low_Trust` analysis in A0 above is therefore
