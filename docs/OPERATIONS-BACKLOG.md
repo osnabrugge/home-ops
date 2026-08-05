@@ -76,32 +76,222 @@ rationale. This section is the redo.
 
 ---
 
-## A0. NETWORK — VLAN1 tagging broken (raised 2026-08-05, HIGH PRIORITY)
+## A0-mcp. MCP coverage gaps (raised 2026-08-05)
 
-Sean's finding: traffic from his workstation `192.168.10.115` (should be **VLAN10**)
-is **arriving on gw01 as VLAN1** and being denied, because the "allow all private"
-rule was never applied to the LAN (VLAN0.1) interface. He only caught this by chance
-while trying to reach the local switch at `192.168.0.176`.
-
-**Blast radius unknown.** This may explain a whole class of unexplained failures.
-
-Root-cause hypothesis (Sean's, and it is sound): OPNsense on FreeBSD is **not a
-switch**. A given interface should carry either tagged or untagged traffic, not both.
-Proxmox trunking + VLAN1 (the native/untagged VLAN) is where it breaks.
-
-- [ ] P0: Map where VLAN1 tagging breaks — pve01 bridge/trunk config vs gw01 interfaces
-      vs core01 (Brocade) port config
-- [ ] P0: Determine blast radius — what else is silently landing on the wrong VLAN
-- [ ] P1: Decide: fix VLAN1, or **abandon VLAN1 entirely** and move everything to
-      explicitly-tagged VLANs (Sean is open to dumping it)
-- [ ] P1: This is very likely the reason **Omada device adoption fails** (see F1)
 - [ ] P2: MCP servers wanted for: **Omada**, **Proxmox**, **MikroTik** (`ext01`,
       management-only so lower value), **XGS-PON** (`xgspon01.in.homeops.ca` — the
       Bell Fibre demarc, relevant to the 8 Gbps dispute)
+- [ ] P1: The 4 existing ToolHive MCP servers (kubectl, flux, brocade, opnsense) are
+      **Ready and Running but only on ClusterIP** — no HTTPRoutes, and no entries in
+      `.vscode/mcp.json`. They are unreachable from the editor. Expose them like radar
+      (`https://radar.homeops.ca/mcp`) and register them.
+
+---
+
+## A0. NETWORK — VLAN1 cannot be tagged (raised 2026-08-05, HIGH PRIORITY)
+
+### Root cause (Sean's diagnosis — correct)
+
+On Brocade ICX (FastIron), **VLAN 1 is the DEFAULT-VLAN and cannot be tagged** while it
+holds that role. Ports are untagged members of it; trunks carry it as native/untagged
+only. Same historically true on Omada.
+
+**The fix Sean used before and removed:** set the default VLAN to an unused dummy id
+(e.g. **4090**), which frees VLAN 1 to behave as an ordinary taggable VLAN. OPNsense
+never needs to know 4090 exists. Sean dropped this when upgrading to ICX6610-48P and
+also removed it from Omada (`oc01`) — the problem likely returned then.
+
+- [ ] P0: Verify `default-vlan-id` on **core01** (and any second ICX) and whether it is
+      still 1
+- [ ] P0: Plan the change to `default-vlan-id 4090` — **disruptive**: it re-homes every
+      untagged port, needs a maintenance window and console/OOB access as fallback
+- [ ] P0: Re-apply the same dummy-default-VLAN trick on **Omada (`oc01`)**
+- [ ] P1: Verify pve01 then receives VLAN1 **tagged** cleanly to/from OPNsense
+- [ ] P1: Re-test Omada device adoption afterwards (likely the same root cause)
+
+> ❌ **Rejected as bandaids (2026-08-05):** adding `opt2` to the `High_Trust` interface
+> group, or adding a targeted LAN pass rule. Both mask a layer-2 tagging fault with a
+> layer-3 permit and would leave the real defect in place.
+
+### Keep VLAN1 — decided
+
+VLAN1 stays. It is the vendor dumping ground for factory-default devices and is worth
+having **precisely so it can be monitored and restricted**. The goal is: everything real
+runs on explicit tagged VLANs; VLAN1 exists, is contained, and is watched.
+
+### Verified facts (2026-08-05)
+
+- `core01` VLANs configured: **1 10 42 50 70 99** (VLAN 90 is NOT on the switch)
+- VLAN 10 has **no untagged ports**; only tagged on the trunk/DualMode uplinks
+- gw01 interface map: `opt2`=vlan0.1 LAN · `opt3`=vlan0.10 Trusted · `opt4`=vlan0.42
+  Servers · `opt5`=vlan0.50 Guests · `opt6`=vlan0.70 IoT · `opt7`=vlan0.99 Mgmt
+- Interface groups: `High_Trust`=opt3,opt4,opt7,opt8 · `Low_Trust`=opt2,opt5,opt6 ·
+  `Untrust`=opt1,opt9
+- `mgmt_hosts` alias contains **both** 192.168.0.115 and 192.168.10.115 — the
+  workstation has a presence on VLAN1 *and* VLAN10
+- pve01 OVS: `bond0` has `tag=1 vlan_mode=native-untagged`; `tap100i0` (gw01 net0) is an
+  untagged **trunk** port
+- ✅ `iperf3 testing` rule (seq=1000, opt6/opt2/opt4 wide open) — **disabled by Sean**
+
+### A0-c. access02 unreachable / un-adoptable — ROOT CAUSED + FIXED 2026-08-05
+
+**Symptom:** Omada showed access02 at `192.168.0.176`; that address was dead; the switch
+could not be adopted and its web UI appeared unreachable. Suspicion fell on VLAN tagging
+on access02. **access02 was not at fault.**
+
+**Root cause — one DHCP lease slot, two claimants.** access02 ran DHCP on *both*
+`interface vlan 1` and `interface vlan 99`, from the **same chassis MAC and the same
+client-id** (`01:5c:a6:e6:b6:b4:44`). dnsmasq keys leases by client-id, so it can hold
+only **one lease per switch**. The two interfaces fought over that slot, the VLAN1 client
+won, and the address silently drifted `.176 → .177` while the controller kept the stale
+value and kept trying to manage a dead IP.
+
+Evidence that isolated it (all from gw01, which is L2-adjacent on `vlan0.99`):
+
+| Probe | Result |
+|---|---|
+| `http 192.168.99.22` from src .99.1/.99.2/.42.1/.10.1/.0.1 | **200 from every subnet** → no management ACL |
+| `http 192.168.0.176` from src .0.1 and .99.1 | **000 / no response** → address is dead |
+| `arp` for chassis MAC | `.0.177` on vlan0.1 **and** `.99.22` on vlan0.99 |
+| dnsmasq leases | single entry `5c:a6:e6:b6:b4:44 → 192.168.0.177` |
+
+**Fix applied (Sean, via web UI):** VLAN1 interface → *IP Address Mode: None*. Switch is
+now single-homed:
+
+```
+access02# sh ip route
+C  192.168.99.0/24 is directly connected, VLAN99
+```
+
+Releasing the VLAN1 address deleted the *only* lease record for that client-id — taking
+VLAN99's record with it — which confirms the shared-slot diagnosis. Reservations already
+pin both switches, so `.22` survives renewal:
+
+```
+dhcp-host=5c:a6:e6:b6:b4:66,192.168.99.21,access01
+dhcp-host=5c:a6:e6:b6:b4:44,192.168.99.22,access02
+```
+
+> **Do not delete VLAN 1 on JetStream switches** — it is the system default VLAN and
+> `no vlan 1` is rejected. Setting the *interface* to IP Address Mode: None is the
+> supported way to remove the address. Never touch the VLAN99 interface's admin status;
+> that is a console-recovery event.
+
+**Emergency access pattern (reusable).** When a device's web UI is unreachable from the
+workstation but gw01 can see it, tunnel rather than factory-reset:
+
+```sh
+ssh -f -N -L 18022:<device-ip>:80 -L 18443:<device-ip>:443 sean-admin@gw01.in.homeops.ca
+# then browse http://localhost:18022  (VS Code auto-forwards the remote port)
+```
+
+### A0-d. Why cross-VLAN Omada adoption has never worked
+
+**DHCP option 138 is emitted on exactly one VLAN, and is double-gated.**
+
+```
+dhcp-option=tag:b16ad63f…,tag:vlan0.1,138,192.168.99.240   ← only vlan0.1
+dhcp-range=tag:vlan0.1,set:b16ad63f…,192.168.0.100,192.168.0.199,86400
+dhcp-range=tag:vlan0.99,192.168.99.100,192.168.99.199,86400 ← no set: tag, no option 138
+```
+
+The `b16ad63f` tag is set only for clients that take an address **from the VLAN1 pool**.
+Devices with `dhcp-host` reservations (access01/access02) get their address outside the
+pool, so they likely never receive option 138 *even on VLAN1*. This is why firewall
+rules, `udpbroadcastrelay` and DHCP options all appeared to do nothing — the option was
+never reaching the devices.
+
+**Two controllers are live simultaneously** — a strong candidate for historical adoption
+thrash:
+
+| Controller | Address | omadacId | Ver | Ports verified 2026-08-05 |
+|---|---|---|---|---|
+| Synology (`oc01`, nas02-bond0) — **old** | 192.168.99.240 | `5ab5f216de322fbb7001176694c5c6ed` | 6.3.0.36 | 8043, 29814 OPEN |
+| Kubernetes (multus) — **new** | 192.168.99.30 | `4963024d89365c3635a5069d5fcc84fe` | 6.3.0.32 | 8043, 8088, 29811-29814 OPEN, https 200 |
+
+The k8s controller pod carries **three** interfaces — `eth0` cilium, `net1` 192.168.0.30
+(VLAN1), `net2` 192.168.99.30 (VLAN99) — and binds discovery on `udp6 :::29810`.
+So it can talk to factory-default gear on VLAN1 *and* provisioned gear on VLAN99.
+
+**Correct inform URL for the new controller:**
+
+```
+omada://192.168.99.30?dPort=29810&mPort=29814&omadacId=4963024d89365c3635a5069d5fcc84fe
+```
+
+> ⚠️ `6a019344fa47ff44e14dc383` was tried first and is **wrong** — 24 hex chars is a
+> MongoDB ObjectId, not an omadacId (32 hex). A device informing an unknown omadacId
+> never appears in the controller at all. Always read the real value from
+> `curl -sk https://<controller>:8043/api/info`.
+
+> ⚠️ **Migration blocker:** the new controller (6.3.0.32) is *older* than the Synology
+> one (6.3.0.36). Omada refuses to restore a backup into an older controller. Bump the
+> k8s image to ≥ 6.3.0.36 before attempting a site migration, or rebuild config by hand.
+
+Why the earlier adopt attempt failed (controller log, 2026-08-05 05:30):
+
+```
+errorCode=-39002  "Device adoption failed because the device does not respond to adopt commands."
+AdoptOneDeviceStatusResultVO(mac=5C-A6-E6-B6-B4-44, status=22)
+```
+
+The controller was sending adopt commands to the stale `192.168.0.176`. Fixed by A0-c.
+
+- [ ] P1: Add **option 138 → 192.168.99.30** on the VLAN99 scope, **ungated by any tag**
+- [ ] P1: Re-point the existing VLAN1 option 138 from `.240` → `.30`
+- [ ] P1: Stop the Omada package on nas02 once `.30` has adopted everything
+- [ ] P1: Upgrade k8s omada-controller to ≥ 6.3.0.36 if the site config is to be migrated
+      rather than rebuilt
+- [ ] P2: Set the inform URL on remaining devices (APs — method unproven; switches OK)
+- [ ] P2: Decide the standing provisioning procedure for factory-default gear
+      (land on VLAN1 → set VLAN99 IP + inform URL → move off VLAN1)
+
+### Environment facts corrected 2026-08-05
+
+- **dnsmasq is the DHCP server** on gw01 — *not* Kea (`kea enabled=0`) and *not* ISC
+  (`no <dhcpd> section`). Config: `/usr/local/etc/dnsmasq.conf`;
+  leases: `/var/db/dnsmasq.leases`. `pgrep` misses it; confirm with
+  `sockstat -4 -l | grep -w 67` (runs as `nobody`).
+- dnsmasq listens on `vlan0.1,vlan0.10,vlan0.42,vlan0.50,vlan0.70,vlan0.99,wg0` and has
+  a `dhcp-range` on **every** VLAN — so "no DHCP on VLAN42" is *not* a thing.
+- ⚠️ **Unknown / not yet verified:** the OPNsense firewall rules could not be read —
+  parsing `filter/rule` out of `/conf/config.xml` returned empty, so the rule set is
+  *not* where expected. The `High_Trust`/`Low_Trust` analysis in A0 above is therefore
+  still **unconfirmed**. Do not act on it until the rules are actually read.
+
+### ⚠️ Correction: VLAN 90 is NOT dead config
+
+Previously flagged for removal from `talos/nodes/*.yaml.j2`. **Wrong.** VLAN 90 is
+intended for **WireGuard remote-access**; it is simply not implemented yet. **Do not
+remove it.**
+
+- [ ] P2: Implement VLAN 90 / WireGuard remote access properly
+
+---
+
+## A0b. Infrastructure-as-Code via device APIs (raised 2026-08-05) — THE BIG ONE
+
+> Sean: *"if this truly was implemented correctly, my entire infrastructure could become
+> exactly what the purpose of this repository is for. A single source of truth and
+> preventing a lot of the fuck ups between me needing to manually configure things."*
+
+The cluster already self-provisions Service IPs, HTTPRoutes, DNS and certs. Extend that
+model **outward to the physical estate** so infrastructure is declared in git, not typed
+into web UIs.
+
+- [ ] P1: **OPNsense API** integration — provision/deprovision firewall rules, internal
+      IPs, DNS entries, ACME public certs from cluster state
+- [ ] P2: Extend to the **Omada API** (network/device config)
+- [ ] P2: Extend to the **TrueNAS API** (datasets, shares, snapshot tasks)
+- [ ] P2: Design note — needs an operator/controller pattern with reconciliation and
+      drift detection, not one-shot scripts, or it rots like any manual config
+- ⚠️ Blocker found: the current OPNsense API key returns **403 on `firewall/filter`** —
+      it is scoped for diagnostics/read only. Any automation needs a properly scoped key.
 
 ---
 
 ## A1. STORAGE CAPACITY — cost-effective expansion (raised 2026-08-05)
+
 
 **Correction to `NAS01-DESIGN-OPTIONS.md`:** it treated 5× 12 TB as available. There
 are **5 in total**, but only **ONE is free today** (new, unused RMA replacement). The
