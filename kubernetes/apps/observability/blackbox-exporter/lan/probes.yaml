@@ -67,3 +67,27 @@ spec:
     - targetLabel: service
       replacement: blackbox-exporter-lan
       action: replace
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/probe_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: lan-zig01
+spec:
+  # Feeds the zigbee zeroscaler HPA (ZEROSCALER_JOB_NAME: zig01_probe). Must stay a
+  # dedicated Probe: the HPA selects on the job label alone, so folding zig01 into a
+  # shared job would average probe_success across every target in it.
+  jobName: zig01_probe
+  # tcp_connect on 6638 rather than icmp - that is the serial-over-TCP port zigbee
+  # actually opens, so the gate tracks the real dependency, not just link liveness.
+  module: tcp_connect
+  prober:
+    url: blackbox-exporter-lan.observability.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - zig01.in.homeops.ca:6638
+  metricRelabelings:
+    - targetLabel: service
+      replacement: blackbox-exporter-lan
+      action: replace
