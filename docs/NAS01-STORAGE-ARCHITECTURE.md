@@ -133,29 +133,49 @@ currently a manual change via the Supermicro iKVM at `192.168.99.45`.
 
 **Then decide placement — do NOT reflexively put all 4 in L2ARC** (see §3.3).
 
-### 3.2 `boot-pool` has no redundancy — recommended fix
+### 3.2 `boot-pool` has no redundancy
 
-`sdn` is healthy and idle. Wiping it and attaching it makes boot resilient to a
-single SATADOM failure. **Destructive to the old `rpool`; not executed without sign-off.**
+> ### ☠️ THE PREVIOUS FIX IN THIS SECTION WAS DELETED — IT WOULD NOW DESTROY DATA
+>
+> This section used to say `sdn` was "healthy and idle" and gave commands to
+> `sgdisk --zap-all /dev/sdn` and attach it to `boot-pool`.
+> **Device letters changed when TrueNAS was reinstalled (2026-08-04).**
+> `sdn` is now a **live member of `vault` mirror-2**:
+>
+> ```console
+> $ sudo blkid -s PARTUUID -o value /dev/sdn1
+> 51b90283-4a0a-4618-926e-e974b47379f2      # <-- ONLINE in vault mirror-2
+> ```
+>
+> Running the old commands today would wipe a mirror leg and degrade the pool.
+> **Never target a bare `/dev/sdX` in this machine.** Always resolve by
+> `PARTUUID`/serial and confirm against `zpool status -P` first.
 
-```bash
-# 1. INSPECT FIRST — see what the old Proxmox rpool contains
-sudo zpool import -o readonly=on -R /mnt/oldrpool rpool
-sudo ls -la /mnt/oldrpool
-sudo zpool export rpool
+**Verified state 2026-08-04** (`lsblk -d -o NAME,SIZE,TRAN,MODEL,SERIAL`):
 
-# 2. Wipe and mirror (DESTRUCTIVE)
-sudo zpool labelclear -f /dev/sdn2
-sudo sgdisk --zap-all /dev/sdn
-sudo sgdisk --replicate=/dev/sdn /dev/sdm      # clone partition table
-sudo sgdisk -G /dev/sdn                        # new GUIDs
-sudo zpool attach boot-pool sdm3 /dev/sdn3
+| Device | Size | Transport | Model | Role |
+|---|---|---|---|---|
+| `sdl` | 59.6G | sata | SATADOM-MV 3IE | **`boot-pool` — single device, NO redundancy** |
+| `sdm` | 0B | **usb** | BR25 UDISK | phantom / empty virtual media |
+| `sdo` | 0B | **usb** | **PiKVM Flash Drive** (`CAFEBABE`) | PiKVM virtual media — **not a real disk** |
+| `sda`–`sdk`, `sdn` | 3.6–9.1T | sas | Seagate | the 12 `vault` data disks |
 
-# 3. Verify
-zpool status boot-pool                          # expect mirror-0, resilvered
-```
+There is now **only one SATADOM**. The second one referenced in the old inventory
+(serial `20150203AAAA94508408`, described as holding a foreign `rpool`) is **no longer
+present in the machine**.
 
-**Rollback:** `sudo zpool detach boot-pool sdn3`.
+**Consequences:**
+
+- `boot-pool` redundancy **cannot** be fixed with existing hardware. It needs a
+  **second physical SATADOM** — this justifies the eBay purchase, and it is the one
+  hardware buy that fixes a real single point of failure today.
+- **Do not** mirror `boot-pool` onto a USB device. `sdm`/`sdo` are 0-byte virtual
+  media; PiKVM media disappears when the session detaches, which would break boot.
+- Until a second SATADOM exists, mitigate by keeping a current TrueNAS **config
+  backup** off-box — the pool survives a boot device failure, but the configuration
+  does not (proven by the 2026-08-04 reinstall, which lost shares/users/tasks while
+  `vault` imported cleanly).
+
 
 ### 3.3 Where the 4 NVMe should actually go — measured 2026-08-01
 
