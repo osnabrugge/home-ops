@@ -1,0 +1,68 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-kubectl
+spec:
+  # INTERNAL ONLY. The ToolHive proxies carry no auth of their own, so every
+  # caller inherits the server's ServiceAccount. kubectl's SA can read cluster
+  # state - never place this on envoy-external. Same rule as radar.
+  hostnames:
+    - mcp-kubectl.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-kubectl-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-flux
+spec:
+  # INTERNAL ONLY - see mcp-kubectl above.
+  hostnames:
+    - mcp-flux.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-flux-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-brocade
+spec:
+  # INTERNAL ONLY. This one reaches core01 with stored credentials and can change
+  # switch config - exposure would be a full network compromise path.
+  hostnames:
+    - mcp-brocade.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-brocade-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-opnsense
+spec:
+  # INTERNAL ONLY. Holds the gw01 API key - same reasoning as mcp-brocade.
+  hostnames:
+    - mcp-opnsense.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-opnsense-proxy
+          port: 8080

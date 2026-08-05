@@ -12,3 +12,4 @@ resources:
   - ./brocade-mcpserver.yaml
   - ./opnsense-externalsecret.yaml
   - ./opnsense-mcpserver.yaml
+  - ./httproutes.yaml
