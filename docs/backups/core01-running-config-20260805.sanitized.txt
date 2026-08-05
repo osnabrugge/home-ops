@@ -1,0 +1,517 @@
+Current configuration:
+!
+ver 08.0.30uT7f3
+!
+stack unit 1
+  module 1 icx6610-48p-poe-port-management-module
+  module 2 icx6610-qsfp-10-port-160g-module
+  module 3 icx6610-8-port-10g-dual-mode-module
+  no legacy-inline-power
+  priority 128
+  stack-port 1/2/1 1/2/6
+stack unit 2
+  module 1 icx6610-48p-poe-port-management-module
+  module 2 icx6610-qsfp-10-port-160g-module
+  module 3 icx6610-8-port-10g-dual-mode-module
+  no legacy-inline-power
+  stack-port 2/2/1 2/2/6
+stack enable
+stack mac cc4e.24b6.9e34
+!
+global-stp
+!
+!
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  lag access01 dynamic id 3
+ ports ethernet 1/3/3 ethernet 2/3/3 
+ primary-port 1/3/3
+ lacp-timeout long 
+ deploy
+ port-name access01-1/0/9 ethernet 1/3/3
+ port-name access01-1/0/10 ethernet 2/3/3
+!
+lag access02 dynamic id 4
+ ports ethernet 1/3/4 ethernet 2/3/4 
+ primary-port 1/3/4
+ lacp-timeout long 
+ deploy
+ port-name access02-1/0/9 ethernet 1/3/4
+ port-name access02-1/0/10 ethernet 2/3/4
+!
+lag pve02 dynamic id 19
+ ports ethernet 1/1/12 ethernet 2/1/12 
+ primary-port 1/1/12
+ lacp-timeout short
+ deploy
+ port-name pve02-enp2s0 ethernet 1/1/12
+ port-name pve02-enp3s0 ethernet 2/1/12
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  !
+lag k8s01 dynamic id 5
+ ports ethernet 1/2/2 ethernet 2/2/2 
+ primary-port 1/2/2
+ force-up ethernet 1/2/2
+ lacp-timeout short
+ deploy
+ port-name k8s01-enp1s0f0 ethernet 1/2/2
+ port-name k8s01-enp1s0f1 ethernet 2/2/2
+!
+lag k8s02 dynamic id 6
+ ports ethernet 1/2/3 ethernet 2/2/3 
+ primary-port 1/2/3
+ force-up ethernet 1/2/3
+ lacp-timeout short
+ deploy
+ port-name k8s02-enp1s0f0 ethernet 1/2/3
+ port-name k8s02-enp1s0f1 ethernet 2/2/3
+!
+lag k8s03 dynamic id 7
+ ports ethernet 1/2/4 ethernet 2/2/4 
+ primary-port 1/2/4
+ force-up ethernet 1/2/4
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   lacp-timeout short
+ deploy
+ port-name k8s03-enp1s0f0 ethernet 1/2/4
+ port-name k8s03-enp1s0f1 ethernet 2/2/4
+!
+lag k8s04 dynamic id 8
+ ports ethernet 1/2/5 ethernet 2/2/5 
+ primary-port 1/2/5
+ force-up ethernet 1/2/5
+ lacp-timeout short
+ deploy
+ port-name k8s04-enp1s0f0 ethernet 1/2/5
+ port-name k8s04-enp1s0f1 ethernet 2/2/5
+!
+lag k8s05 dynamic id 9
+ ports ethernet 1/2/7 ethernet 2/2/7 
+ primary-port 1/2/7
+ force-up ethernet 1/2/7
+ lacp-timeout short
+ deploy
+ port-name k8s05-enp1s0f0 ethernet 1/2/7
+ port-name k8s05-enp1s0f1 ethernet 2/2/7
+!
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  lag k8s06 dynamic id 10
+ ports ethernet 1/2/8 ethernet 2/2/8 
+ primary-port 1/2/8
+ force-up ethernet 1/2/8
+ lacp-timeout short
+ deploy
+ port-name k8s06-enp1s0f0 ethernet 1/2/8
+ port-name k8s06-enp1s0f1 ethernet 2/2/8
+!
+lag nas01 dynamic id 11
+ ports ethernet 1/2/9 ethernet 2/2/9 
+ primary-port 1/2/9
+ force-up ethernet 1/2/9
+ lacp-timeout short
+ deploy
+ port-name nas01-eth0 ethernet 1/2/9
+ port-name nas01-eth1 ethernet 2/2/9
+!
+lag nas02-bond0 dynamic id 13
+ ports ethernet 1/1/14 ethernet 2/1/14 
+ primary-port 1/1/14
+ force-up ethernet 1/1/14
+ lacp-timeout short
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   deploy
+ port-name nas02-eth0 ethernet 1/1/14
+ port-name nas02-eth1 ethernet 2/1/14
+!
+lag nas02-bond1 dynamic id 12
+ ports ethernet 1/2/10 ethernet 2/2/10 
+ primary-port 1/2/10
+ force-up ethernet 1/2/10
+ lacp-timeout short
+ deploy
+ port-name nas02-eth4 ethernet 1/2/10
+ port-name nas02-eth5 ethernet 2/2/10
+!
+lag pve01-bond0 dynamic id 16
+ ports ethernet 1/3/1 ethernet 2/3/1 
+ primary-port 1/3/1
+ force-up ethernet 1/3/1
+ lacp-timeout short
+ deploy
+ port-name pve01-enlan0 ethernet 1/3/1
+ port-name pve01-enlan1 ethernet 2/3/1
+!
+lag pve01-bond1 dynamic id 15
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   ports ethernet 1/1/16 ethernet 2/1/16 
+ primary-port 1/1/16
+ force-up ethernet 1/1/16
+ lacp-timeout short
+ deploy
+ port-name pve01-enlan2 ethernet 1/1/16
+ port-name pve01-enlan3 ethernet 2/1/16
+!
+!
+vlan 1 name DEFAULT-VLAN by port
+ router-interface ve 1
+ spanning-tree 802-1w
+ spanning-tree 802-1w priority 0
+ loop-detection
+!
+vlan 10 name TRUSTED by port
+ tagged ethe 1/1/12 ethe 1/3/1 ethe 1/3/3 to 1/3/5 ethe 2/1/12 ethe 2/3/1 ethe 2/3/3 to 2/3/4 
+ router-interface ve 10
+ spanning-tree 802-1w
+ spanning-tree 802-1w priority 0
+!
+vlan 42 name SERVERS by port
+ tagged ethe 1/1/12 ethe 1/2/2 to 1/2/5 ethe 1/2/7 to 1/2/8 ethe 1/2/10 ethe 1/3/1 ethe 1/3/3 to 1/3/4 ethe 2/1/12 ethe 2/2/2 to 2/2/5 ethe 2/2/7 to 2/2/8 ethe 2/2/10 ethe 2/3/1 ethe 2/3/3 to 2/3/4 
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   untagged ethe 1/1/4 ethe 1/1/6 ethe 1/2/9 ethe 2/1/32 ethe 2/1/34 ethe 2/1/36 ethe 2/1/38 ethe 2/2/9 
+ router-interface ve 42
+ spanning-tree 802-1w
+ spanning-tree 802-1w priority 0
+!
+vlan 50 by port
+ tagged ethe 1/1/12 ethe 1/2/2 to 1/2/5 ethe 1/2/7 to 1/2/8 ethe 1/3/1 ethe 2/1/12 ethe 2/2/2 to 2/2/5 ethe 2/2/7 to 2/2/8 ethe 2/3/1 
+!
+vlan 70 name IOT by port
+ tagged ethe 1/1/12 ethe 1/2/2 to 1/2/5 ethe 1/2/7 to 1/2/8 ethe 1/2/10 ethe 1/3/1 ethe 1/3/3 to 1/3/5 ethe 2/1/12 ethe 2/2/2 to 2/2/5 ethe 2/2/7 to 2/2/8 ethe 2/2/10 ethe 2/3/1 ethe 2/3/3 to 2/3/4 
+ untagged ethe 1/1/1 to 1/1/2 ethe 1/1/22 ethe 2/1/1 to 2/1/2 ethe 2/1/24 ethe 2/1/26 ethe 2/1/28 
+ spanning-tree 802-1w
+ spanning-tree 802-1w priority 0
+!
+vlan 99 name MANAGEMENT by port
+ tagged ethe 1/1/12 ethe 1/2/2 to 1/2/5 ethe 1/2/7 to 1/2/8 ethe 1/2/10 ethe 1/3/1 ethe 1/3/3 to 1/3/5 ethe 2/1/12 ethe 2/2/2 to 2/2/5 ethe 2/2/7 to 2/2/8 ethe 2/2/10 ethe 2/3/1 ethe 2/3/3 to 2/3/4 
+ untagged ethe 1/1/8 ethe 1/1/10 ethe 1/1/14 ethe 1/1/16 ethe 1/1/18 ethe 1/1/20 ethe 1/1/24 ethe 1/1/26 ethe 2/1/10 ethe 2/1/14 ethe 2/1/16 ethe 2/1/18 ethe 2/1/20 ethe 2/1/22 ethe 2/1/30 
+ router-interface ve 99
+ spanning-tree 802-1w
+ spanning-tree 802-1w priority 0
+!
+!
+!
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  !
+!
+optical-monitor
+aaa authentication web-server default radius local
+aaa authentication login default local radius
+enable super-user-password <REDACTED>
+enable aaa console
+fast uplink-span ethe 1/1/12 ethe 1/3/1 ethe 2/1/12 ethe 2/3/1 
+hostname core01
+ip dhcp-client disable
+ip dns domain-list in.homeops.ca
+ip dns server-address 192.168.99.1 1.1.1.1 8.8.8.8
+ip proxy-arp
+ip route 0.0.0.0/0 192.168.99.1
+ip tcp burst-normal 10 burst-max 100 lockup 300
+!
+logging host 192.168.69.125 
+logging buffered 1000
+no telnet server
+username sean-admin password <REDACTED>
+username root password <REDACTED>
+username mcp-server password <REDACTED>
+radius-server host 192.168.69.132 auth-port 1812 acct-port 1813 default key <REDACTED>
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  cdp run
+fdp run
+snmp-server community <REDACTED> ro
+snmp-server contact root@homeops.ca
+snmp-server location TOR-FL01-R01
+snmp-server preserve-statistics
+!
+!
+clock summer-time
+clock timezone gmt GMT-05
+!
+!
+ntp
+ disable serve
+ server 192.168.99.1
+!
+!
+web-management session-timeout 3000
+web-management list-menu
+hitless-failover enable
+!
+!
+!
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  !
+!
+!
+!
+interface ethernet 1/1/1
+ port-name cam02
+ speed-duplex 100-full
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 1/1/2
+ port-name cam01
+ speed-duplex 100-full
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 1/1/4
+ port-name pi02
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  !
+interface ethernet 1/1/6
+ port-name pi01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 1/1/8
+ port-name kvm01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 1/1/10
+ port-name hdmi01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 1/1/12
+ port-name pve02-enp2s0
+ dual-mode
+ no spanning-tree
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  !
+interface ethernet 1/1/14
+ port-name nas02-eth0
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/1/16
+ port-name pve01-enlan2
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/1/18
+ port-name pdu02
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/1/20
+ port-name ups02
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/1/22
+ port-name zig02
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 1/1/24
+ port-name pve02-enp4s0
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/1/26
+ port-name ext01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 1/2/2
+ port-name k8s01-enp1s0f0
+ dual-mode  42
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/2/3
+ port-name k8s02-enp1s0f0
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   dual-mode  42
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/2/4
+ port-name k8s03-enp1s0f0
+ dual-mode  42
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/2/5
+ port-name k8s04-enp1s0f0
+ dual-mode  42
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/2/7
+ port-name k8s05-enp1s0f0
+ dual-mode  42
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/2/8
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   port-name k8s06-enp1s0f0
+ dual-mode  42
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/2/9
+ port-name nas01-eth0
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/2/10
+ port-name nas02-eth4
+ dual-mode  42
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 1/3/1
+ port-name pve01-enlan0
+ no optical-monitor
+ dual-mode
+ speed-duplex 10G-full
+ no spanning-tree
+!
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  interface ethernet 1/3/3
+ port-name access01-1/0/9
+ no optical-monitor
+ dual-mode
+ speed-duplex 10G-full
+ spanning-tree 802-1w admin-pt2pt-mac
+!
+interface ethernet 1/3/4
+ port-name access02-1/0/9
+ no optical-monitor
+ dual-mode
+ speed-duplex 10G-full
+ spanning-tree 802-1w admin-pt2pt-mac
+!
+interface ethernet 1/3/5
+ port-name ap01
+ no optical-monitor
+ dual-mode
+ speed-duplex 10G-full
+ spanning-tree 802-1w admin-pt2pt-mac
+ stp-bpdu-guard
+!
+interface ethernet 2/1/1
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   port-name cam01
+ speed-duplex 100-full
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 2/1/2
+ port-name cam02
+ speed-duplex 100-full
+ no spanning-tree
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 2/1/10
+ port-name nas01-bmc
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 2/1/18
+ port-name pdu01
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                  interface ethernet 2/1/20
+ port-name ups01
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 2/1/22
+ port-name pve02-enp4s0
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 2/1/24
+ port-name aqara01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ broadcast limit 16384
+ multicast limit
+ stp-bpdu-guard
+!
+interface ethernet 2/1/26
+ port-name hue01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   stp-bpdu-guard
+!
+interface ethernet 2/1/28
+ port-name eufy01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 2/1/30
+ port-name nas01-bmc
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ethernet 2/1/32
+ port-name fdm01
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 2/1/34
+ port-name pi04
+ spanning-tree 802-1w admin-edge-port
+ inline power
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   stp-bpdu-guard
+!
+interface ethernet 2/1/36
+ port-name pi03
+ spanning-tree 802-1w admin-edge-port
+ inline power
+ stp-bpdu-guard
+!
+interface ethernet 2/1/38
+ port-name fdm02
+ spanning-tree 802-1w admin-edge-port
+ stp-bpdu-guard
+!
+interface ve 1
+ port-name LAN GW
+ ip address 192.168.0.4 255.255.255.0
+!
+interface ve 10
+ port-name Trusted GW
+ ip address 192.168.10.4 255.255.255.0
+!
+interface ve 42
+ port-name Servers GW
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   ip address 192.168.42.4 255.255.255.0
+!
+interface ve 99
+ port-name Management GW
+ ip address 192.168.99.4 255.255.255.0
+!
+ip syslog source-interface ve 99
+!
+router bgp
+ local-as 64513
+ neighbor k8s01 peer-group
+ neighbor k8s01 remote-as 64514
+ neighbor 192.168.42.51 peer-group k8s01
+ neighbor 192.168.42.52 peer-group k8s01
+ neighbor 192.168.42.53 peer-group k8s01
+ neighbor 192.168.42.54 peer-group k8s01
+ neighbor 192.168.42.55 peer-group k8s01
+ neighbor 192.168.42.56 peer-group k8s01
+ 
+ address-family ipv4 unicast
+ exit-address-family
+ 
+ address-family ipv6 unicast
+--More--, next page: Space, next line: Return key, quit: Control-c                                                                   exit-address-family
+!
+!
+!
+!
+lldp run
+!
+!
+!
+!
+end

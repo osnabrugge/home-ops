@@ -19,3 +19,7 @@ talos/rendered/
 .tmp-*
 # Sensitive credential files
 youtube-cookies.txt
+
+# raw switch configs contain credentials; only sanitized copies are committed
+docs/backups/*-running-config-*.txt
+!docs/backups/*.sanitized.txt
