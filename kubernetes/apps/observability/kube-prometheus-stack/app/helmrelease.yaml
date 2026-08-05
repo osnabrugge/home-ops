@@ -122,3 +122,30 @@ spec:
                 expr: node_zfs_zpool_state{state!="online"} > 0
                 labels:
                   severity: critical
+      rbd-readonly-rules:
+        groups:
+          - name: rbd-readonly
+            rules:
+              # Detects the RBD emergency_ro cascade by its blast radius rather than by the
+              # mount flag. node_filesystem_readonly is useless here: an emergency_ro volume
+              # still reports rw in /proc/mounts, so that gauge stays 0 through the whole
+              # incident. What is actually distinctive is that every consumer pinned to the
+              # affected node fails at once.
+              - alert: NodeMultiPodCrashLoop
+                annotations:
+                  summary: >-
+                    {{ $value }} pods are in CrashLoopBackOff on node {{ $labels.node }}.
+                    If they log "read-only file system" this is the RBD emergency_ro cascade.
+                    A rollout restart will NOT fix it - the replacement pod lands on the same
+                    node and inherits the read-only globalmount. Scale every consumer on that
+                    node to 0 simultaneously (shared PVCs need all of them) so NodeUnstageVolume
+                    runs, then scale back and confirm with a real write. See OPERATIONS-BACKLOG B.0.
+                expr: >-
+                  count by (node) (
+                    max by (namespace, pod) (kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} == 1)
+                    * on (namespace, pod) group_left(node)
+                    max by (namespace, pod, node) (kube_pod_info)
+                  ) >= 3
+                for: 10m
+                labels:
+                  severity: critical
