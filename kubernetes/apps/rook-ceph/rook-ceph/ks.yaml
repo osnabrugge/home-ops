@@ -13,7 +13,15 @@ spec:
     name: flux-system
     namespace: flux-system
   targetNamespace: rook-ceph
-  wait: true
+  # Gate on the operator itself, not on every object in the path. With `wait: true`
+  # Flux waits for all 42 inventory entries, which includes the rook-ceph-dashboard
+  # ExternalSecret - so an unreachable Azure Key Vault wedges the whole storage layer
+  # and everything that depends on it. A dashboard password must not be able to do that.
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: rook-ceph
+      namespace: rook-ceph
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
 apiVersion: kustomize.toolkit.fluxcd.io/v1
