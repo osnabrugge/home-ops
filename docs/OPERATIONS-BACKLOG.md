@@ -514,6 +514,31 @@ possible and **sell off surplus**.
 
 ## G. Standing infrastructure work
 
+### ⚠️ ROLL-BACK OWED: homeops-runner GitHub App scope creep (2026-08-08)
+
+While Azure Key Vault was disabled by the spend cap, Renovate and `tag.yaml` could
+no longer fetch the `github-bot` App credentials from Key Vault. The **only** App
+credential still recoverable was the one in the cluster — `home-ops-runner-secret`,
+client id `Iv23liAXhB7wOa7IDFhY` — which exists to register **ARC runners**, not to
+push code. It was reused as an expedient, and then granted extra permissions to
+make Renovate work.
+
+**This is scope creep that must be undone.** `homeops-runner` now holds
+`contents: write` on the repo, so a compromised runner can push to `main`.
+Registering runners and pushing dependency updates should not share an identity.
+
+- [ ] P1: Restore Key Vault access (or migrate ESO), retrieve the original
+      `github-bot` App credentials, and point `BOT_APP_CLIENT_ID` /
+      `BOT_APP_PRIVATE_KEY` back at that App
+- [ ] P1: Revoke the added permissions from `homeops-runner` — at minimum
+      `contents: write`, `pull-requests: write`, `issues: write` — leaving only what
+      ARC actually needs
+- [ ] P2: If the original App is unrecoverable, register a dedicated Renovate App
+      rather than leaving the runner App dual-purpose
+
+> Repo secrets are write-only in the GitHub UI, so the current values cannot be read
+> back. They are held at `~/secrets-escrow/github-app-repo-secrets.txt` (perms 600).
+
 - [ ] P0: Deep full-infrastructure health sweep (go wide across supporting infra AND
       deep into each app) — Sean wants issues found before he finds them
 - [ ] P1: Audit/propose MCP servers (Proxmox, MikroTik, GPON, TrueNAS, Synology,
