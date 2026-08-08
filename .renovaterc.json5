@@ -12,6 +12,9 @@
     "github>home-operations/renovate-presets//apps/talosFactory.json5#6.0.0",
     ":timezone(America/Toronto)",
   ],
+  // Jinja templates are not valid YAML - the {% if %} blocks make Renovate's YAML
+  // parser throw on every run. They carry no renovatable dependencies anyway.
+  ignorePaths: ["talos/**/*.j2"],
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
