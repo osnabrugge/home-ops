@@ -19,7 +19,7 @@ spec:
           app:
             image:
               repository: ghcr.io/matter-js/matterjs-server
-              tag: 1.3.3@sha256:ac537ba44a2edaaf785b818f8b7ce75cdf736539401462046f0042670bee4063
+              tag: 1.4.0@sha256:54232d0d3e7dff5a54759469d2753399270412b4c30c55b31750a4595e4cb236
             env:
               # Node.js image: cap the V8 heap below the 1Gi limit to avoid OOM-kill.
               NODE_OPTIONS: --max-old-space-size=768
