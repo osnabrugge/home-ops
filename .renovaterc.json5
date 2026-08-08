@@ -1,15 +1,17 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  // 5.0.0 is permanently broken: it carries an UNPINNED nested reference to
-  // //managers/cnpg.json5, which resolves against the preset repo's default branch
-  // where that file has since moved to apps/. Renovate then halts all PRs.
-  // 6.0.0 relocated cnpg/grafanaDashboards/talosFactory to apps/, so they must be
-  // requested explicitly - and pinned, so an upstream move cannot break us again.
+  // Pin 7.0.0. Earlier tags are permanently broken by design: 5.0.0 and 6.0.0 both
+  // carry UNPINNED nested references (//managers/cnpg.json5, //config/baseConfig.json5)
+  // which resolve against the preset repo's default branch rather than the tag. When
+  // upstream restructured - deleting config/, managers/, overrides/ and policies/ from
+  // main - every one of those tags broke retroactively and Renovate halted all PRs.
+  // 7.0.0 consolidated everything into a self-contained default.json with zero
+  // references back to its own repo, so no upstream move can break it.
   extends: [
-    "github>home-operations/renovate-presets#6.0.0",
-    "github>home-operations/renovate-presets//apps/cnpg.json5#6.0.0",
-    "github>home-operations/renovate-presets//apps/grafanaDashboards.json5#6.0.0",
-    "github>home-operations/renovate-presets//apps/talosFactory.json5#6.0.0",
+    "github>home-operations/renovate-presets#7.0.0",
+    "github>home-operations/renovate-presets//apps/cnpg.json5#7.0.0",
+    "github>home-operations/renovate-presets//apps/grafanaDashboards.json5#7.0.0",
+    "github>home-operations/renovate-presets//apps/talosFactory.json5#7.0.0",
     ":timezone(America/Toronto)",
   ],
   // Jinja templates are not valid YAML - the {% if %} blocks make Renovate's YAML
