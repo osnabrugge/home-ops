@@ -31,7 +31,6 @@ jobs:
         with:
           client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          permission-contents: write
 
       - name: Get Previous Tag and Determine Next Tag
         id: determine-next-tag
