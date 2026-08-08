@@ -1,6 +1,17 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["github>home-operations/renovate-presets#5.0.0", ":timezone(America/Toronto)"],
+  // 5.0.0 is permanently broken: it carries an UNPINNED nested reference to
+  // //managers/cnpg.json5, which resolves against the preset repo's default branch
+  // where that file has since moved to apps/. Renovate then halts all PRs.
+  // 6.0.0 relocated cnpg/grafanaDashboards/talosFactory to apps/, so they must be
+  // requested explicitly - and pinned, so an upstream move cannot break us again.
+  extends: [
+    "github>home-operations/renovate-presets#6.0.0",
+    "github>home-operations/renovate-presets//apps/cnpg.json5#6.0.0",
+    "github>home-operations/renovate-presets//apps/grafanaDashboards.json5#6.0.0",
+    "github>home-operations/renovate-presets//apps/talosFactory.json5#6.0.0",
+    ":timezone(America/Toronto)",
+  ],
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
