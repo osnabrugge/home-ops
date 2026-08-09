@@ -1,0 +1,42 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: netbox
+spec:
+  # Fork of netboxlabs/netbox-mcp-server that adds ~50 create/update/delete tools,
+  # so network changes can be written back to NetBox instead of drifting.
+  image: docker.io/skuldgerry/netbox-mcp:1.0.0@sha256:ecf98ed1baf16b093ffd30437159efaca77979a87f58093ba8025730a0baaebd
+  transport: streamable-http
+  mcpPort: 8000
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  env:
+    - name: NETBOX_URL
+      value: http://netbox.observability.svc.cluster.local/
+    - name: TRANSPORT
+      value: http
+    - name: HOST
+      value: 0.0.0.0
+    - name: PORT
+      value: "8000"
+    - name: VERIFY_SSL
+      value: "false"
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          envFrom:
+            - secretRef:
+                name: mcp-tokens-secret
+  resources:
+    requests:
+      cpu: 25m
+      memory: 128Mi
+    limits:
+      memory: 384Mi
+  groupRef:
+    name: mcp-tools

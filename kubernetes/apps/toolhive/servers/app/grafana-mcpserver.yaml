@@ -1,0 +1,41 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: grafana
+spec:
+  image: docker.io/mcp/grafana:latest@sha256:9362bcf6aa0e44e61f645b905cec03fb346a946a34a4dafecd7f3e28d3724014
+  transport: streamable-http
+  mcpPort: 8000
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  args:
+    - -t
+    - streamable-http
+    - --address
+    - :8000
+    # Host/Origin validation defaults to loopback only, which 403s every request
+    # arriving through the ToolHive proxy Service name.
+    - --allowed-hosts
+    - "*"
+  env:
+    - name: GRAFANA_URL
+      value: http://grafana-service.observability.svc.cluster.local:3000
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          envFrom:
+            - secretRef:
+                name: mcp-tokens-secret
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      memory: 384Mi
+  groupRef:
+    name: mcp-tools

@@ -66,3 +66,54 @@ spec:
     - backendRefs:
         - name: mcp-opnsense-proxy
           port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-victorialogs
+spec:
+  # INTERNAL ONLY - reads every log line the cluster and the LAN ship to
+  # VictoriaLogs, which includes secrets that apps log by accident.
+  hostnames:
+    - mcp-victorialogs.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-victorialogs-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-grafana
+spec:
+  # INTERNAL ONLY. Carries an Admin service-account token - it can rewrite
+  # dashboards and alert rules.
+  hostnames:
+    - mcp-grafana.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-grafana-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-netbox
+spec:
+  # INTERNAL ONLY. Write-enabled NetBox token - it is the source of truth for
+  # the whole network inventory.
+  hostnames:
+    - mcp-netbox.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-netbox-proxy
+          port: 8080
