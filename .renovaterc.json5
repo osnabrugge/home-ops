@@ -17,6 +17,10 @@
   // Jinja templates are not valid YAML - the {% if %} blocks make Renovate's YAML
   // parser throw on every run. They carry no renovatable dependencies anyway.
   ignorePaths: ["talos/**/*.j2"],
+  // GitHub's GraphQL API intermittently returns 502s when Renovate fetches PR
+  // changelogs, which causes the workflow to fail with external-host-error.
+  // Disable changelog fetching to keep scheduled runs resilient to that outage.
+  fetchChangeLogs: "off",
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
