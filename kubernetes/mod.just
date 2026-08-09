@@ -72,6 +72,12 @@ seed-sops-key ns:
         | jq 'del(.metadata.namespace, .metadata.uid, .metadata.resourceVersion, .metadata.creationTimestamp, .metadata.managedFields, .metadata.ownerReferences)' \
         | kubectl apply --server-side --field-manager=just-seed-sops-key -n {{ ns }} -f -
 
+[doc('Copy kopiur-repository-secret into a namespace (kopiur mover Jobs load it via envFrom, which is namespace-local)')]
+seed-kopiur-secret ns:
+    kubectl get secret kopiur-repository-secret -n kopiur-system -o json \
+        | jq 'del(.metadata.namespace, .metadata.uid, .metadata.resourceVersion, .metadata.creationTimestamp, .metadata.managedFields, .metadata.ownerReferences, .metadata.labels, .metadata.annotations)' \
+        | kubectl apply --server-side --field-manager=just-seed-kopiur -n {{ ns }} -f -
+
 [private]
 render-local-ks ns ks:
     flate build ks --namespace "{{ ns }}" --output yaml "{{ ks }}"
