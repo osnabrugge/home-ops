@@ -18,8 +18,6 @@ spec:
           app:
             image:
               repository: docker.io/mbentley/omada-controller
-              # Must be >= the Synology controller (6.3.0.42). Omada refuses to migrate
-              # or restore into an older controller, which blocked moving devices off it.
               tag: beta-6.3.0.42@sha256:f8dde1821bf9c862981a423fb34484e748ba280f0e206286de3529dde82cbfb3
             env:
               ROOTLESS: "true"
