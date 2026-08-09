@@ -1,0 +1,72 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/batch/cronjob_v1.json
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: secret-backup
+spec:
+  schedule: "17 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: secret-backup
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          containers:
+            - name: dump
+              image: docker.io/alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
+              env:
+                # Public half of the Flux sops-age key - safe to store in clear.
+                - name: AGE_RECIPIENT
+                  value: age1zq3xj6j6qvfq4x55yzwr67myz0k3j3gjf8amtp3zz7hmxc4daq8qt677g5
+                - name: KEEP
+                  value: "30"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+                  apk add --no-cache age >/dev/null
+                  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+                  out="/data/eso-secrets-${stamp}.json.age"
+
+                  # Azure Key Vault has been returning 403 since the spend cap hit, so
+                  # these 84 Secrets survive only because deletionPolicy is Retain.
+                  # Delete one and it is unrecoverable until Azure is back.
+                  kubectl get secret -A \
+                    -l reconcile.external-secrets.io/managed=true \
+                    -o json > /tmp/dump.json
+
+                  n="$(grep -c '"kind": "Secret"' /tmp/dump.json || true)"
+                  if [ "${n:-0}" -lt 1 ]; then
+                    echo "refusing to write an empty backup (matched ${n:-0} secrets)" >&2
+                    exit 1
+                  fi
+
+                  age -r "${AGE_RECIPIENT}" -o "${out}" /tmp/dump.json
+                  rm -f /tmp/dump.json
+                  chmod 600 "${out}"
+                  echo "wrote ${out} ($(wc -c < "${out}") bytes, ${n} secrets)"
+
+                  ls -1t /data/eso-secrets-*.json.age 2>/dev/null \
+                    | tail -n +"$((KEEP + 1))" | xargs -r rm -f
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 96Mi
+                limits:
+                  memory: 256Mi
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: secret-backup
