@@ -691,26 +691,66 @@ Registering runners and pushing dependency updates should not share an identity.
 
 Real, blocking pain — Sean cannot print anything beyond PLA (HT-PLA-GF works well).
 
-### J1. ABS/ASA first-layer adhesion failure
-Already tried: very slow first layer, large brim, bed **105 °C**, heat-soaking,
-stock SV08 PEI, BIQU Glacier, hairspray on the stock PEI.
-Hardware: SV08, mainline Klipper, Microswiss FlowTech plated brass 0.4, BTT Eddy Duo,
-BTT SFS 2.0. PID tuned, QGL, bed mesh, Tap all fine. PolyLite ABS dried in a PolyDryer.
+### J1. ABS/ASA first-layer adhesion failure — ROOT CAUSED 2026-08-09
 
-- [ ] P0: Diagnose properly. Key signal: **the hottest band of a temp tower also fails**,
-      so it is not a nozzle-temperature problem — nozzle temp affects layer bonding,
-      not bed adhesion.
-- [ ] P1: Highest-probability causes, in order: (1) plate contamination — IPA smears
-      finger oils and mould-release; needs **hot water + dish soap**; (2) no enclosure
-      heat / draughts on an open-frame SV08; (3) insufficient first-layer squish —
-      verify Z-offset **hot**, at bed temp, since Eddy readings shift thermally.
-- [ ] P1: Consider **ASA instead of ABS** — similar temps, markedly less warping.
-      Sean also has PETG unused, which is far easier and may cover many use cases.
-- [ ] P2: Incoming upgrades that help *later* (not the current blocker): Ram3n graphite
-      bed, pico chamber thermistor, wall insulation, chamber heating, replace the Sovol
-      exhaust fan and duct into the AC Infinity 6".
-- ⚠️ Safety: ABS/ASA emit styrene + UFPs. Enclosing concentrates them — vent outside
-  or run activated carbon before sealing the chamber.
+**The BTT Eddy's thermal drift compensation was never calibrated.** Read live from
+fdm02 (the SV08) — `printer/objects/query?temperature_probe btt_eddy`:
+
+```json
+{"temperature": 37.8, "calibration_temp": 39.686469,
+ "max_validation_temp": 60.0, "drift_calibration_min_temp": 0.0,
+ "estimated_expansion": 0, "compensation_enabled": false}
+```
+
+`compensation_enabled: false` and no `drift_calibration` polynomial in
+`[temperature_probe btt_eddy]`. `PROBE_EDDY_CURRENT_CALIBRATE` was run (the
+`calibrate:` table is populated) but `TEMPERATURE_PROBE_CALIBRATE` never was.
+
+**Why this is exactly the observed symptom.** An LDC1612 eddy coil's inductance
+drifts with its own temperature. The probe was calibrated at **39.7 °C**:
+
+| Filament | Bed | Probe soak | Drift | Result |
+|---|---|---|---|---|
+| PLA | 60 °C | ~45 °C | small | sticks |
+| ABS | **105 °C** | 70–90 °C | 0.1–0.3 mm | **nozzle parks too high** |
+
+It is a *first-layer gap* fault, not a heat/chemistry fault. That is why bed
+105 °C, heat-soaking, a big brim, a very slow first layer, hairspray, the stock
+PEI, and the BIQU Glacier all changed nothing — and, decisively, why **the hottest
+band of a temp tower also failed**: nozzle temperature cannot fix a gap.
+
+**Fix (~20 min, on the printer console):**
+
+```gcode
+G28
+TEMPERATURE_PROBE_CALIBRATE PROBE=btt_eddy TARGET=80 STEP=3
+; let it run - it soaks the probe and samples as it climbs, then:
+SAVE_CONFIG
+```
+
+Then re-verify: `compensation_enabled` must read `true` and
+`estimated_expansion` must be non-zero once warm. Also raise
+`max_validation_temp` in `[temperature_probe btt_eddy]` from `60.0` — the probe
+will exceed that during an ABS print and Klipper will complain.
+
+Afterwards, **re-run the bed mesh hot** (bed at 105 °C, soaked 15 min). The
+current `default` mesh spans **0.304 mm** (dished: centre ~0.14, corners
+0.36–0.44) and was probed cold, so it bakes the uncompensated error in:
+
+```
+min +0.131  max +0.435  range 0.304 mm   (15x15, bicubic, mesh 15,18 -> 335,335)
+```
+
+Only after that is it worth revisiting plate prep, enclosure or ASA-vs-ABS.
+
+- [ ] P0: run `TEMPERATURE_PROBE_CALIBRATE`, `SAVE_CONFIG`, re-mesh hot, test print.
+- [ ] P1: plate prep is still worth doing once (hot water + dish soap, not IPA —
+      IPA smears mould release rather than removing it).
+- [ ] P1: ASA over ABS for less warp; PETG covers many use cases and is far easier.
+- [ ] P2: Ram3n graphite bed, chamber thermistor, insulation, exhaust into the
+      AC Infinity 6". These help *later*; they were never the blocker.
+- ⚠️ Safety: ABS/ASA emit styrene + UFPs. Enclosing concentrates them — vent
+  outside or run activated carbon before sealing the chamber.
 
 ### J2. CAD / modelling capability gap
 - [ ] P1: Sean cannot do meaningful 3D editing (customising others' models, or designing
