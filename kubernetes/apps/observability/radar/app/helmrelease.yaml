@@ -36,7 +36,11 @@ spec:
       podLogs: true      # log viewer + MCP get_pod_logs/diagnose
       metrics: true      # top_resources (metrics-server)
       viewRBAC: true     # RBAC blast-radius analysis (internal, trusted)
-      # helm/secrets/podExec/portForward intentionally left at chart defaults (off)
+      viewWebhooks: true # list Mutating/ValidatingWebhookConfiguration
+      # helm stays OFF on purpose: the chart grants create/update/patch/delete on
+      # EVERY resource type, and this endpoint has auth.mode=none.
+      # secrets/podExec/portForward stay off for the same reason - the kubectl MCP
+      # already covers those and is equally internal-only.
     # MCP server (the whole point) — reachable at /mcp on the service port.
     mcp:
       enabled: true
@@ -45,10 +49,21 @@ spec:
       mode: none
     service:
       port: 9280
-    # Recent activity is enough; avoids a PVC. Switch to sqlite+persistence for
-    # a long-lived audit trail later if desired.
+    # Pin the metrics backend rather than relying on auto-discovery.
+    traffic:
+      prometheusUrl: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
+    # Memory storage lost the whole change history on every restart, which is
+    # exactly the window you need after an incident.
     timeline:
-      storage: memory
+      storage: sqlite
+      dbPath: /data/timeline.db
+      retention: 720h
+      maxSize: 800Mi
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 2Gi
+      storageClassName: ceph-block
     resources:
       requests:
         cpu: 50m
