@@ -66,6 +66,12 @@ sync resource:
 view-secret ns secret:
     kubectl view-secret -n {{ ns }} {{ secret }}
 
+[doc('Copy the Flux sops-age key into a namespace so its Kustomizations can decrypt')]
+seed-sops-key ns:
+    kubectl get secret sops-age -n flux-system -o json \
+        | jq 'del(.metadata.namespace, .metadata.uid, .metadata.resourceVersion, .metadata.creationTimestamp, .metadata.managedFields, .metadata.ownerReferences)' \
+        | kubectl apply --server-side --field-manager=just-seed-sops-key -n {{ ns }} -f -
+
 [private]
 render-local-ks ns ks:
     flate build ks --namespace "{{ ns }}" --output yaml "{{ ks }}"

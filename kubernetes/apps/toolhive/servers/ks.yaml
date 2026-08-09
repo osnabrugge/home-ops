@@ -7,6 +7,12 @@ metadata:
 spec:
   dependsOn:
     - name: toolhive-operator
+  # secretRef resolves in this Kustomization's own namespace, so the key has to
+  # be seeded there first: `just kube seed-sops-key toolhive`.
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/app
   prune: true
