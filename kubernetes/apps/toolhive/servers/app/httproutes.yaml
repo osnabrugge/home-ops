@@ -117,3 +117,20 @@ spec:
     - backendRefs:
         - name: mcp-netbox-proxy
           port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-printer
+spec:
+  # INTERNAL ONLY. Can start and cancel prints and set heater temperatures on
+  # fdm01 - this one reaches a machine that gets hot.
+  hostnames:
+    - mcp-printer.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-printer-proxy
+          port: 8080

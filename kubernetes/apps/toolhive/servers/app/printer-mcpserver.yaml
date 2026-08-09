@@ -1,0 +1,47 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: printer
+spec:
+  # Built from the upstream npm package by .github/workflows/printer-mcp-image.yaml
+  image: ghcr.io/osnabrugge/printer-mcp:1.2.5
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  env:
+    # fdm02 = Sovol SV08 (corexy 350^3, BTT Eddy), mainline Klipper + Moonraker.
+    # fdm01 is powered off; point this at whichever is live.
+    - name: PRINTER_TYPE
+      value: klipper
+    - name: PRINTER_HOST
+      value: 192.168.42.26
+    - name: PRINTER_PORT
+      value: "7125"
+    # Moonraker trusts 192.168.42.0/24 without an API key, so none is set here.
+    - name: TEMP_DIR
+      value: /tmp
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 2Gi
+  resources:
+    requests:
+      cpu: 25m
+      memory: 192Mi
+    limits:
+      # STL manipulation loads entire meshes into memory.
+      memory: 2Gi
+  groupRef:
+    name: mcp-tools

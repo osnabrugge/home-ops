@@ -16,4 +16,5 @@ resources:
   - ./victorialogs-mcpserver.yaml
   - ./grafana-mcpserver.yaml
   - ./netbox-mcpserver.yaml
+  - ./printer-mcpserver.yaml
   - ./httproutes.yaml
