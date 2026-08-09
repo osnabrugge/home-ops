@@ -402,7 +402,6 @@ remove it.**
 ---
 
 ## A0b. Infrastructure-as-Code via device APIs (raised 2026-08-05) — THE BIG ONE
-
 > Sean: *"if this truly was implemented correctly, my entire infrastructure could become
 > exactly what the purpose of this repository is for. A single source of truth and
 > preventing a lot of the fuck ups between me needing to manually configure things."*
@@ -419,8 +418,54 @@ into web UIs.
       drift detection, not one-shot scripts, or it rots like any manual config
 - ⚠️ Blocker found: the current OPNsense API key returns **403 on `firewall/filter`** —
       it is scoped for diagnostics/read only. Any automation needs a properly scoped key.
+- ⚠️ Same class of blocker confirmed 2026-08-09: the key also 403s on the **Kea** and
+  **dnsmasq** modules, so DHCP options (like Omada's option 138) cannot be automated
+  either. One properly-scoped key unblocks both.
 
----
+### A0b-1. Managing workloads that run OUTSIDE the cluster — answering Sean's question
+
+> *"how does one manage these types of deployments outside the cluster so that the
+> cluster can interact with it if there are issues like restarting the services? and
+> that includes both containerized and native deployments?"*
+
+The advice Sean got online — *"just GitOps-manage node-exporter and smartctl-exporter"* —
+is half right. Kubernetes cannot schedule a container onto DSM or TrueNAS. But the
+**monitoring** half is already GitOps'd here (`ScrapeConfig` + selector-less
+`Service`/`EndpointSlice`, exactly as done for `moonraker-fdm01`). Only the
+**deployment** half is manual. Options, honestly ranked:
+
+| Approach | Verdict |
+|---|---|
+| Join the NAS to the cluster as a node | ❌ DSM/TrueNAS SCALE won't tolerate it |
+| Ansible/Salt from a laptop | ⚠️ push-based, drifts, nobody runs it |
+| ⭐ Compose file in git + an in-cluster CronJob that applies it over SSH | ✅ reconciled, drift-corrected, works for DSM *and* TrueNAS |
+| Alert-driven remote restart | ⚠️ band-aid — see below |
+
+**Recommended shape.** Both platforms already speak docker-compose — Synology
+*Container Manager → Project*, TrueNAS SCALE 24+ *Apps → Custom App (compose)*. So:
+
+1. Keep `compose.yaml` for the exporters in this repo, mounted into a CronJob as a
+   ConfigMap.
+2. An hourly CronJob in-cluster SSHes to `nas01`/`nas02` and runs
+   `docker compose -f - up -d --remove-orphans`. Idempotent, so it is a true
+   reconcile loop: edit git → next run converges the NAS. Same pattern as
+   `just kube seed-*`, just aimed outward.
+3. `restart: unless-stopped` in the compose file is what actually handles crashes.
+
+**On "restart the service from the cluster":** resist it. A cluster-driven remote
+restart is a band-aid over a supervision gap, and it needs an SSH key with shell
+access to the NAS sitting in the cluster — a much worse blast radius than the problem
+it solves. Fix supervision locally (`restart: unless-stopped`, DSM Task Scheduler
+boot task, TrueNAS app auto-start); let Prometheus alert when it is genuinely down.
+
+This same CronJob is how **Garage** should be deployed on nas01 (see section A), so
+the exporter work and the S3 work share one mechanism rather than two.
+
+- [ ] P1: Build the compose + CronJob reconcile pattern; first target is
+      `node-exporter` + `smartctl-exporter` on nas02 (already running, un-managed).
+- [ ] P1: Fold in the outstanding nas02 item — DSM Task Scheduler boot task for
+      `/usr/local/etc/rc.d/docker-forward-fix.sh` (section G).
+- [ ] P2: Reuse for Garage on nas01 once the pool layout is settled.
 
 ## A1. STORAGE CAPACITY — cost-effective expansion (raised 2026-08-05)
 
@@ -590,8 +635,18 @@ expansion slots. Out of date but structurally valuable.
 - [ ] P2: Long-term — drive this backlog from NetBox rather than a markdown file
 - [x] netbox-operator fixed (API token restored + `netboxOperatorRestorationHash`
       custom field recreated) — 2026-08-01
-- [ ] P1: `API_TOKEN_PEPPERS` is unset → v2 API tokens unusable. Add JSON to secret
-      key `api_token_peppers` (int keys, ≥50-char values).
+- [ ] **P0 (was P1): `API_TOKEN_PEPPERS` is unset, and it blocks creating ANY new API
+      token — including from the web UI.** Confirmed 2026-08-09: `Token.save()` calls
+      `get_current_pepper()`, which raises `ValueError: API_TOKEN_PEPPERS is not
+      defined`. Every existing token is `version=1` (legacy) and keeps working, which
+      is why this stayed invisible.
+      *Workaround used for the toolhive netbox MCP:* create a v1 token explicitly —
+      `Token(user=u, write_enabled=True, version=1)` via `manage.py shell`.
+      *Real fix:* add key `api_token_peppers` to `netbox-secret` holding JSON with
+      integer keys and ≥50-char values, e.g. `{"1": "<50+ random chars>"}`, and
+      reference it from NetBox config. Blocked on Azure Key Vault (403) unless done
+      via SOPS — `just kube seed-sops-key observability` then a `*.sops.yaml`.
+      ⚠️ Losing the pepper invalidates every v2 token minted with it.
 
 ---
 
