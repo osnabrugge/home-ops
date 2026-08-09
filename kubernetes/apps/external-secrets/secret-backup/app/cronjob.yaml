@@ -17,8 +17,11 @@ spec:
           restartPolicy: OnFailure
           serviceAccountName: secret-backup
           securityContext:
+            # root is needed for `apk add age`; the dump is chowned to 1000:1000
+            # afterwards because the kopiur mover reads the PVC as uid/gid 1000.
             runAsNonRoot: false
             runAsUser: 0
+            fsGroup: 1000
           containers:
             - name: dump
               image: docker.io/alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
@@ -53,7 +56,8 @@ spec:
 
                   age -r "$${AGE_RECIPIENT}" -o "$${out}" /tmp/dump.json
                   rm -f /tmp/dump.json
-                  chmod 600 "$${out}"
+                  chown -R 1000:1000 /data
+                  chmod 0640 "$${out}"
                   echo "wrote $${out} ($$(wc -c < "$${out}") bytes, $${n} secrets)"
 
                   ls -1t /data/eso-secrets-*.json.age 2>/dev/null \
