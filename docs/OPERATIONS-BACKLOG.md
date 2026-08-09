@@ -237,6 +237,104 @@ omada://192.168.99.30?dPort=29810&mPort=29814&omadacId=4963024d89365c3635a5069d5
 > one (6.3.0.36). Omada refuses to restore a backup into an older controller. Bump the
 > k8s image to ≥ 6.3.0.36 before attempting a site migration, or rebuild config by hand.
 
+### A0-e. NET-NEW adoption on VLAN99 only — COMPLETE ROOT CAUSE (2026-08-09)
+
+Sean is **cutting over, not migrating** (clean DB — the beta-test junk stays behind).
+So the gate is *"can a factory-default device be adopted with VLAN1 gone?"*, not
+*"can existing devices be moved?"*. Verified state on 2026-08-09:
+
+- New controller is now **6.3.0.42** (image bumped), `device` collection = **0**,
+  no management VLAN configured, no discovery/pending records ever written.
+- Both access switches respond on VLAN99 but **tcp/29812 (adopt) is CLOSED** — they
+  are held by the old controller, not in an adoptable state.
+
+**A factory-default Omada device tags nothing. All its traffic is untagged.** So it
+lands on whatever the switch port's PVID is. Two independent faults both force that
+onto VLAN1:
+
+**Fault 1 — every AP/switch port has PVID 1.** `show interfaces brief`:
+
+```
+1/3/3  access01-1/0/9  Tag Yes  Pvid 1     <- tagged 10,42,70,99 / UNTAGGED vlan1
+1/3/4  access02-1/0/9  Tag Yes  Pvid 1
+1/3/5  ap01            Tag Yes  Pvid 1
+```
+
+VLAN1 is `by port` with no explicit member list, so on FastIron every port not
+untagged elsewhere is implicitly untagged in VLAN1. Ports that *are* moved read
+`Pvid 99` (kvm01, hdmi01, pdu02, ups02, pve02, ext01 on 1/1/8…1/1/26) — proving the
+pattern already works on this switch.
+
+**Fault 2 — option 138 is still only on the VLAN1 scope**, and now points at the new
+controller, so it is right value / wrong VLAN:
+
+```
+dhcp-option=tag:b16ad63f…,tag:vlan0.1,138,192.168.99.30   <- vlan0.1 ONLY
+dhcp-range=tag:vlan0.99,192.168.99.100,192.168.99.199,86400  <- no option 138
+```
+
+A device landing on VLAN99 therefore gets an address but is never told where the
+controller is.
+
+**Fault 3 (access02 only) — the uplink is a dynamic LACP LAG.** A factory-default
+TL-SG3210XHP-M2 does not speak LACP, so resetting it collapses the bundle:
+
+```
+lag access02 dynamic id 4
+ ports ethernet 1/3/4 ethernet 2/3/4
+```
+
+Reset access02 as-is and it comes back with no working uplink. The LAG must be
+undeployed to a single port *before* the reset.
+
+**Fix — no VLAN 4090 native-VLAN migration is required.**
+
+1. **gw01** — add option 138 to the Management scope
+   *Services → Dnsmasq DNS & DHCP → DHCP options → `+`*
+   Interface `Management (opt7)` · Option `138` · Value `192.168.99.30`
+   (Rollback: delete the row. Additive only; existing devices are unaffected because
+   they hold static/reserved addresses and are already adopted.)
+2. **core01** — give the device an untagged-99 port.
+3. Factory-reset the device. It boots untagged → VLAN99 → pool `.100-.199` →
+   option 138 → informs `192.168.99.30` → appears in the new controller.
+4. **Leave "Management VLAN" unset in the new controller.** Devices then stay
+   untagged on VLAN99 permanently, which is what makes VLAN1 deletable and what
+   makes every *future* device (new switch, new EAP, RMA swap) adopt with zero
+   manual steps.
+
+**Zero-risk proof first — spare EAP650-Wall, no live device touched.**
+`1/1/44`–`1/1/48` are free, unnamed, link-down, PoE-capable. Use `1/1/48`:
+
+```
+conf t
+vlan 99
+ untagged ethernet 1/1/48
+exit
+interface ethernet 1/1/48
+ port-name eap-adopt-test
+ inline power
+exit
+write memory
+```
+
+Rollback: `vlan 1 / untagged ethernet 1/1/48`.
+Plug the EAP650-Wall into 1/1/48 (factory-reset it first — hold Reset ~10 s).
+Pass = it appears under *Devices → Pending* in the k8s controller within ~2 min.
+
+**Then access02**, in this order (step 1 drops access02 and everything behind it):
+
+```
+conf t
+no lag access02          # or: lag access02 dynamic id 4 / no ports ethernet 2/3/4
+vlan 99
+ untagged ethernet 1/3/4
+exit
+write memory
+```
+
+then factory-reset access02, adopt it, re-create the LAG from the Omada side first
+and the Brocade side second.
+
 Why the earlier adopt attempt failed (controller log, 2026-08-05 05:30):
 
 ```
