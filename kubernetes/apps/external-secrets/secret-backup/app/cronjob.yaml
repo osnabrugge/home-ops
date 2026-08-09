@@ -31,11 +31,12 @@ spec:
               command:
                 - /bin/sh
                 - -c
+                # $$ escapes Flux postBuild envsubst so the shell sees a single $.
                 - |
                   set -euo pipefail
                   apk add --no-cache age >/dev/null
-                  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-                  out="/data/eso-secrets-${stamp}.json.age"
+                  stamp="$$(date -u +%Y%m%dT%H%M%SZ)"
+                  out="/data/eso-secrets-$${stamp}.json.age"
 
                   # Azure Key Vault has been returning 403 since the spend cap hit, so
                   # these 84 Secrets survive only because deletionPolicy is Retain.
@@ -44,19 +45,19 @@ spec:
                     -l reconcile.external-secrets.io/managed=true \
                     -o json > /tmp/dump.json
 
-                  n="$(grep -c '"kind": "Secret"' /tmp/dump.json || true)"
-                  if [ "${n:-0}" -lt 1 ]; then
-                    echo "refusing to write an empty backup (matched ${n:-0} secrets)" >&2
+                  n="$$(grep -c '"kind": "Secret"' /tmp/dump.json || true)"
+                  if [ "$${n:-0}" -lt 1 ]; then
+                    echo "refusing to write an empty backup (matched $${n:-0} secrets)" >&2
                     exit 1
                   fi
 
-                  age -r "${AGE_RECIPIENT}" -o "${out}" /tmp/dump.json
+                  age -r "$${AGE_RECIPIENT}" -o "$${out}" /tmp/dump.json
                   rm -f /tmp/dump.json
-                  chmod 600 "${out}"
-                  echo "wrote ${out} ($(wc -c < "${out}") bytes, ${n} secrets)"
+                  chmod 600 "$${out}"
+                  echo "wrote $${out} ($$(wc -c < "$${out}") bytes, $${n} secrets)"
 
                   ls -1t /data/eso-secrets-*.json.age 2>/dev/null \
-                    | tail -n +"$((KEEP + 1))" | xargs -r rm -f
+                    | tail -n +"$$((KEEP + 1))" | xargs -r rm -f
               volumeMounts:
                 - name: data
                   mountPath: /data
