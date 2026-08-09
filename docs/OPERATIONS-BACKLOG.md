@@ -667,6 +667,56 @@ possible and **sell off surplus**.
 
 ## G. Standing infrastructure work
 
+### 💸 Azure credit exhaustion — MEASURED 2026-08-09
+
+The VS-Enterprise credit is ~$150/mo. Actual spend 2026-07-10 → 08-09 was
+**$238.35**, which disabled the subscription → Key Vault 403 → 84 ExternalSecrets
+stopped syncing → the `wait: true` cascade → 47 alerts.
+
+| Meter | 30d | Owner |
+|---|---|---|
+| Azure Monitor :: **Standard Web Test Execution** | **$128.53** | agent-created synthetics |
+| Storage :: **LRS List and Create Container Operations** | **$87.96** | nas02 → Azure Blob |
+| Bandwidth :: Standard Data Transfer Out | $10.86 | |
+| Azure Monitor :: Alerts Metric Monitored | $3.00 | |
+| Metrics Export / Log ingestion / Key Vault ops / storage | $8.00 | |
+| **TOTAL** | **$238.35** | |
+
+Check any time with `just infra azure-cost`.
+
+**Driver 1 — synthetic web tests ($128.53). FIXED in git, deploy after reset.**
+7 endpoints × 4 locations × every 300 s = **8,064 executions/day**. Standard web
+tests bill *per execution*. Now 2 locations × 900 s = **1,344/day (−83 %)**, plus
+`workspaceCapping.dailyQuotaGb` (was `-1` — literally no cap, which is what let it
+run away), App Insights retention 90 → 30 d, and a PT15M alert window.
+⚠️ Subscription is `ReadOnlyDisabledSubscription` until the credit resets, so
+`just infra azure-synthetic-deploy` must be run **after Friday**.
+
+**Driver 2 — nas02 is enumerating Azure Blob in a loop ($87.96). NEEDS SEAN.**
+Evidence:
+
+```
+storage account   synobackupstoresean1  (rg-synology-backups)
+blob transactions 2,266,131 in 7 days   (homeopstalos: 259, cloudshell: 1)
+by API (3 days)   ListBlobs 438,109 | GetBlob 2 | GetBlobProperties 1
+source            192.168.42.10 (nas02) -> 57.150.1.33:443
+                  = synobackupstoresean1.blob.core.windows.net
+socket state      all TIME_WAIT -> rapid connect/request/close churn
+```
+
+**146,000 ListBlobs/day and essentially zero data transfer** — it is scanning, not
+backing up. Paying ~$88/month for nothing. The account is disabled right now so it
+is quiet, but **it will resume the moment the credit resets**.
+
+- [ ] P0 (Sean, ~1 min): DSM on nas02 → **Hyper Backup** *and* **Cloud Sync** → find
+      the task whose destination is `synobackupstoresean1` / Azure Blob. Report
+      whether it shows as running, erroring, or "scanning". Most likely a task that
+      lost its state and rescans the whole container every cycle.
+- [ ] P0: once identified — either fix the schedule/state or delete it. nas02 is
+      being retired to nas01 anyway, so deleting is probably right.
+- [ ] P1: after Friday, add a **subscription budget alert** at $100 and $130 so
+      this can never silently exhaust again (needs write access; blocked now).
+
 ### Secret store — plan of record (decided 2026-08-09)
 
 **Two layers, not one.** "The backup until Friday" is not just SOPS:
@@ -677,7 +727,21 @@ possible and **sell off surplus**.
 | Nightly backup CronJob | age-encrypted dump of all 84 to a kopiur PVC | ✅ proven (84 secrets, 160 KB) |
 | Azure Key Vault | the 84 existing secrets | ⛔ 403 until Friday |
 
-**Target: Bitwarden Secrets Manager via the native ESO provider — but AFTER Friday.**
+**Azure stays** (it is credit-funded, and the cost is now understood — see above).
+Bitwarden Secrets Manager becomes a **second, independent store**, not a replacement.
+
+> ⚠️ **Vaultwarden cannot do this.** Vaultwarden implements the *Password Manager*
+> API only; it does **not** implement Bitwarden **Secrets Manager**, so ESO's
+> native `bitwardensecretsmanager` provider cannot talk to it. If the goal is a
+> fully self-hosted second store, the real options are:
+> (a) ESO **webhook** provider in front of a `bw` CLI container against Vaultwarden
+>     — this is the Home-Operations Discord approach; no auth on the serve API, so
+>     it needs a NetworkPolicy;
+> (b) **Infisical** or **OpenBao**, both of which have first-class ESO providers
+>     and can run in-cluster;
+> (c) Bitwarden Secrets Manager **cloud** free tier (below) — least work.
+
+**Bitwarden Secrets Manager (cloud) — after Friday.**
 
 Verified facts (don't re-research these):
 
