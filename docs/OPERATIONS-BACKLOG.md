@@ -667,6 +667,57 @@ possible and **sell off surplus**.
 
 ## G. Standing infrastructure work
 
+### Secret store — plan of record (decided 2026-08-09)
+
+**Two layers, not one.** "The backup until Friday" is not just SOPS:
+
+| Layer | Purpose | Status |
+|---|---|---|
+| SOPS/age | create **new** secrets while Azure is 403 | ✅ working |
+| Nightly backup CronJob | age-encrypted dump of all 84 to a kopiur PVC | ✅ proven (84 secrets, 160 KB) |
+| Azure Key Vault | the 84 existing secrets | ⛔ 403 until Friday |
+
+**Target: Bitwarden Secrets Manager via the native ESO provider — but AFTER Friday.**
+
+Verified facts (don't re-research these):
+
+- Secrets Manager is a **different product from Password Manager**. The $20/yr
+  Premium does **not** include it. It doesn't need to — the **free tier is
+  sufficient**: unlimited secrets, up to 3 machine accounts, projects. It does
+  require creating a (free) *organization*.
+- ESO ships a native `bitwardensecretsmanager` provider.
+- ⚠️ It needs a **second service**, `bitwarden-sdk-server` — the Bitwarden Rust SDK
+  is ~150 MB and needs CGO, so ESO wraps it behind a small REST service. It is a
+  dependency in the ESO chart: `--set bitwarden-sdk-server.enabled=true`.
+- ⚠️ That service **must serve HTTPS**, so it needs a cert-manager certificate and
+  the `caBundle` pasted into the SecretStore. This is the real added complexity
+  versus Azure — budget for it.
+- A SecretStore is **1 store == 1 organization/project**.
+- ⚠️ `dataFrom.find` is broken upstream ([ESO #6550]) — it ignores
+  `name.regexp`/`tags`/`path` and returns every org secret keyed by UUID. Avoid it.
+  `dataFrom.extract` and explicit `data[]` are unaffected.
+- The machine-account token is itself a k8s Secret → chicken-and-egg → **SOPS**
+  covers the bootstrap.
+
+**Why the migration is tractable.** The repo uses ~40 distinct Key Vault keys, each
+a JSON blob, consumed by `dataFrom.extract`; only 3 ExternalSecrets use explicit
+`data[].remoteRef`. Bitwarden stores flat string values and ESO's `extract` parses
+a JSON *value*, so one Bitwarden secret per KV key with the identical JSON body is
+a 1:1 mapping. The repo change is then a single `secretStoreRef.name` swap.
+
+**Why wait for Friday.** Migration needs the *source* JSON blobs out of Key Vault.
+The escrow holds the **rendered** Secrets, not the KV blobs, so doing it now means
+hand-reconstructing 40 JSON documents — slow and easy to get wrong. Friday: Azure
+returns → dump the blobs → push to Bitwarden → flip the store ref → decommission.
+
+- [ ] P1: Friday — create the Bitwarden org + `homeops` project + machine account.
+- [ ] P1: Enable `bitwarden-sdk-server` in the ESO HelmRelease + cert-manager cert.
+- [ ] P1: SOPS-encrypt the machine-account token as the bootstrap credential.
+- [ ] P1: Script the KV→Bitwarden blob copy, then swap `secretStoreRef.name`.
+- [ ] P2: Keep Azure as a warm second store for a couple of weeks, then retire.
+
+[ESO #6550]: https://github.com/external-secrets/external-secrets/issues/6550
+
 ### ⚠️ ROLL-BACK OWED: homeops-runner GitHub App scope creep (2026-08-08)
 
 While Azure Key Vault was disabled by the spend cap, Renovate and `tag.yaml` could
