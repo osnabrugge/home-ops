@@ -27,10 +27,6 @@ spec:
         metadata:
           name: _
         spec:
-          decryption:
-            provider: sops
-            secretRef:
-              name: sops-age
           patches:
             - patch: |-
                 apiVersion: helm.toolkit.fluxcd.io/v2
