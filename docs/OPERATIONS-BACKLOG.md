@@ -808,17 +808,70 @@ Only after that is it worth revisiting plate prep, enclosure or ASA-vs-ABS.
   outside or run activated carbon before sealing the chamber.
 
 ### J2. CAD / modelling capability gap
-- [ ] P1: Sean cannot do meaningful 3D editing (customising others' models, or designing
-      new). Fusion is too expensive. TinkerCAD is easy but limited. Currently learning
-      Onshape (free tier is public-documents-only — flag that).
-- [ ] P1: Live project with a deadline: **digital picture frame for his grandmother's
-      birthday** — needs a different frame + touchscreen than the source model. He
-      printed a modified version but it is "not close" to what is needed.
+
+> ⏰ **Deadline: grandmother's birthday, ~2 weeks from 2026-08-09.**
+> **Decouple the gift from the ABS problem — print the bezel in PLA or PETG.**
+> It is an indoor picture frame; it will never see heat or load. Do not let a
+> calibration project hold a birthday hostage.
+
+**Do not try to edit the downloaded STL.** This is the thing that has been making
+Onshape feel impossible. Onshape imports an STL as a *mesh*, not a parametric solid —
+you cannot grab a face and change a dimension, and mesh→BRep conversion on a model
+like this produces garbage. Everyone who says "just import it" has not tried it.
+
+**Re-model the bezel instead.** For [model 1588842](https://www.printables.com/model/1588842-e-ink-digital-picture-frame)
+the part is genuinely simple geometry — a plate, a window, a recessed pocket, and a
+lip — and modelling it from scratch is *faster* than fighting the mesh, and stays
+editable when the next screen changes.
+
+Measure first (calipers, write them down):
+
+| Value | Why |
+|---|---|
+| IKEA frame inner opening W × H | sets the plate outline |
+| Screen **active area** W × H | sets the window cut-out |
+| Screen **module/PCB outline** W × H | sets the pocket |
+| Screen module thickness | pocket depth |
+| Ribbon cable exit position + width | escape slot |
+
+Then, in Onshape — Variable Studio first, so refitting is one number:
+
+```
+#frame_w = 150 mm     #screen_w = 120 mm     #lip = 2 mm
+#frame_h = 200 mm     #screen_h = 90 mm      #fit = 0.35 mm
+#plate_t = 3 mm       #screen_t = 2.5 mm
+```
+
+1. Part Studio → sketch on Top plane → **centre-point rectangle** `#frame_w × #frame_h`
+   → Extrude `#plate_t`.
+2. Sketch on the top face → centre-point rectangle `#screen_w × #screen_h`
+   → **Extrude / Remove / Through all**. That is the window.
+3. Sketch on the top face → centre-point rectangle
+   `(#screen_w + 2*#lip + #fit) × (#screen_h + 2*#lip + #fit)`
+   → **Extrude / Remove**, depth `#screen_t`. That is the pocket the screen drops into.
+
+**The "ridge" in the original is just step 2 being smaller than step 3** — the leftover
+material between window and pocket is the lip that overlaps the screen bezel and hides
+its edge. Keep `#lip` ≥ 1.5 mm or it snaps.
+
+4. Sketch on the pocket floor → slot for the ribbon → Remove / Through all.
+5. Optional: `#fit` of 0.3–0.4 mm total is right for FDM; print a 20 mm test square of
+   just the pocket corner before committing to a 3-hour print.
+
+- [ ] P0: measure the frame + screen, build the parametric bezel above, test-fit the
+      pocket corner, print the real one **in PLA/PETG**.
+- [ ] P1: Onshape free tier makes documents **public** — fine for a remix of a
+      published model, but never put anything private in it.
 - [ ] P2: Evaluate free/cheap options honestly: Onshape (free = public), FreeCAD
-      (capable, steep), Plasticity (cheap, not parametric), OpenSCAD (code-driven).
+      (capable, steep), Plasticity (cheap, not parametric), OpenSCAD (code-driven —
+      arguably the best fit for a parametric bezel if code feels easier than sketching).
+- [ ] P2: The toolhive `printer` MCP exposes `get_stl_info`, `scale_stl`, `rotate_stl`,
+      `translate_stl`, `modify_stl_section` and `generate_stl_visualization` — enough to
+      measure and sanity-check the downloaded STL without opening any CAD at all.
+
 
 ### J3. Print ecosystem / MCP
-- [ ] P2: MCP integration for the print stack — Klipper/Moonraker, Mainsail/Fluidd,
+- [x] MCP integration for the print stack — `printer` MCP live at mcp-printer.homeops.ca (2026-08-09)
       Spoolman, printguard. Would let filament, print state and failures surface
       alongside the rest of the estate.
 - [ ] P2: Anycubic Kobra 2 (lightly modified) is offline. Deliberately deferred until
