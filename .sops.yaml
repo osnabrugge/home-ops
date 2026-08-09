@@ -1,0 +1,7 @@
+# Secrets encrypted with the cluster's age key, which Flux already holds as the
+# `sops-age` Secret in flux-system. Only data/stringData values are encrypted so
+# manifests stay readable and diffable in git.
+creationRules:
+  - path_regex: kubernetes/.*\.sops\.ya?ml$
+    encrypted_regex: ^(data|stringData)$
+    age: age1zq3xj6j6qvfq4x55yzwr67myz0k3j3gjf8amtp3zz7hmxc4daq8qt677g5

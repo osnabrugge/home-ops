@@ -35,11 +35,19 @@ data:
       nastype   = other
     }
 
-    # Omada controller — WiFi 802.1X / WPA-Enterprise
+    # Omada controller (Prod) — WiFi 802.1X / WPA-Enterprise
     client omada {
-      ipaddr    = 192.168.69.130
+      ipaddr    = 192.168.99.240
       secret    = "$ENV{NAS_SECRET_OMADA}"
       shortname = omada
+      nastype   = other
+    }
+
+    # Omada controller (Test) — WiFi 802.1X / WPA-Enterprise
+    client omada-controller {
+      ipaddr    = 192.168.69.130
+      secret    = "$ENV{NAS_SECRET_OMADA}"
+      shortname = omada-controller
       nastype   = other
     }
 
