@@ -667,7 +667,26 @@ possible and **sell off surplus**.
 
 ## G. Standing infrastructure work
 
-### 💸 Azure credit exhaustion — MEASURED 2026-08-09
+### � Kopia repository needs maintenance (found 2026-08-09)
+
+Every kopiur mover run is printing this before it does anything else:
+
+```
+Found too many index blobs (6388), this may result in degraded performance.
+Please ensure periodic repository maintenance is enabled or run 'kopia maintenance'.
+```
+
+6,388 index blobs on the `nas02` ClusterRepository. This is not specific to one
+app — it slows **every** backup and restore in the cluster, and it grows. Kopia
+normally compacts indexes during scheduled maintenance, so either maintenance was
+never enabled on this repository or its owner never runs.
+
+- [ ] P1: check `kopia maintenance info` on the repo; enable full+quick maintenance
+      with an owner that actually runs (a CronJob if kopiur does not own it).
+- [ ] P2: fold this into the nas02 → nas01 migration — do not carry 6k index blobs
+      across to the new repository.
+
+### �💸 Azure credit exhaustion — MEASURED 2026-08-09
 
 The VS-Enterprise credit is ~$150/mo. Actual spend 2026-07-10 → 08-09 was
 **$238.35**, which disabled the subscription → Key Vault 403 → 84 ExternalSecrets
