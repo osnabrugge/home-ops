@@ -2,7 +2,13 @@
 //
 // Runs Application Insights *standard* availability tests from Azure regions
 // OUTSIDE the home network, validating the full public path
-// (Cloudflare tunnel -> envoy-external -> app) every 5 minutes.
+// (Cloudflare tunnel -> envoy-external -> app).
+//
+// COST: standard web tests bill PER EXECUTION and are the single largest line
+// item in the subscription. 4 locations x 300s was 8,064 executions/day =
+// $128/mo, which exhausted the monthly credit, disabled Key Vault and took ESO
+// down with it. 2 locations x 900s is 1,344/day (-83%). Before raising either:
+//   executions/day = count(endpoints) * (86400 / Frequency) * count(testLocations)
 //
 // Deploy:
 //   az deployment group create -g rg-homeops-prod \
@@ -25,13 +31,17 @@ param endpoints array = [
   { name: 'auth', url: 'https://auth.homeops.ca', expectedStatus: 200 }
 ]
 
-@description('Azure test-runner locations (external vantage points). Geographically diverse.')
+@description('Azure test-runner locations (external vantage points). Each one multiplies cost.')
 param testLocations array = [
-  'us-va-ash-azr'   // East US (Virginia)
-  'us-il-ch1-azr'   // Central US (Chicago)
-  'us-ca-sjc-azr'   // West US (San Jose)
-  'emea-nl-ams-azr' // West Europe (Amsterdam)
+  'us-il-ch1-azr'   // Central US (Chicago) - nearest external path to Toronto
+  'emea-nl-ams-azr' // West Europe (Amsterdam) - true long-haul path
 ]
+
+@description('How often each test runs, in seconds. Directly multiplies cost.')
+param frequencySeconds int = 900
+
+@description('Hard ceiling on daily ingestion. The credit-exhaustion incident had no cap at all.')
+param dailyQuotaGb int = 1
 
 @description('How many test locations must report failure before the test is marked failed.')
 param failedLocationCount int = 2
@@ -46,6 +56,7 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   properties: {
     sku: { name: 'PerGB2018' }
     retentionInDays: 30
+    workspaceCapping: { dailyQuotaGb: dailyQuotaGb }
     features: { enableLogAccessUsingOnlyResourcePermissions: true }
   }
 }
@@ -58,6 +69,8 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
     Application_Type: 'web'
     WorkspaceResourceId: workspace.id
     IngestionMode: 'LogAnalytics'
+    // Defaults to 90d and is billed separately from the workspace's own 30d.
+    RetentionInDays: 30
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
   }
@@ -91,7 +104,7 @@ resource webTests 'Microsoft.Insights/webtests@2022-06-15' = [for ep in endpoint
     SyntheticMonitorId: 'wt-homeops-${ep.name}'
     Name: 'homeops ${ep.name} (external)'
     Enabled: true
-    Frequency: 300
+    Frequency: frequencySeconds
     Timeout: 30
     Kind: 'standard'
     RetryEnabled: true
@@ -117,8 +130,10 @@ resource availabilityAlerts 'Microsoft.Insights/metricAlerts@2018-03-01' = [for 
     severity: 2
     enabled: true
     scopes: [ webTests[i].id, appInsights.id ]
+    // windowSize must span at least one run of every location, so it grows with
+    // frequencySeconds or the window can legitimately contain no data.
     evaluationFrequency: 'PT5M'
-    windowSize: 'PT5M'
+    windowSize: 'PT15M'
     criteria: {
       'odata.type': 'Microsoft.Azure.Monitor.WebtestLocationAvailabilityCriteria'
       webTestId: webTests[i].id

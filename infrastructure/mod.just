@@ -121,3 +121,22 @@ console node:
     mkdir -p "$(dirname "$outfile")"
     {{ scripts_dir }}/infra-pikvm.sh snapshot "$outfile"
     echo "  Screenshot saved: $outfile"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Azure
+# ──────────────────────────────────────────────────────────────────────────────
+[script]
+[doc('Deploy the Azure synthetic monitoring stack (run after the credit resets)')]
+azure-synthetic-deploy:
+    az deployment group create -g rg-homeops-prod \
+        -f {{ justfile_dir() }}/infrastructure/azure/synthetic-monitoring/main.bicep
+
+[script]
+[doc('Show Azure spend for the last 30 days, by meter')]
+azure-cost:
+    sub="$(az account show --query id -o tsv)"
+    az rest --method post \
+        --url "https://management.azure.com/subscriptions/${sub}/providers/Microsoft.CostManagement/query?api-version=2023-11-01" \
+        --body '{"type":"ActualCost","timeframe":"MonthToDate","dataset":{"granularity":"None","aggregation":{"totalCost":{"name":"Cost","function":"Sum"}},"grouping":[{"type":"Dimension","name":"MeterCategory"},{"type":"Dimension","name":"Meter"}]}}' \
+        -o json \
+    | python3 -c 'import json,sys; p=json.load(sys.stdin)["properties"]; rows=sorted(p["rows"],key=lambda r:-float(r[0])); [print(f"  ${float(r[0]):9.2f}  {r[1]} :: {r[2]}") for r in rows[:15]]; print(f"  ---------\n  ${sum(float(r[0]) for r in rows):9.2f}  TOTAL month-to-date")'
