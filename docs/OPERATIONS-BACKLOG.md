@@ -237,6 +237,47 @@ omada://192.168.99.30?dPort=29810&mPort=29814&omadacId=4963024d89365c3635a5069d5
 > one (6.3.0.36). Omada refuses to restore a backup into an older controller. Bump the
 > k8s image to ≥ 6.3.0.36 before attempting a site migration, or rebuild config by hand.
 
+### A0-f. ⭐ Why VLAN99-only adoption has NEVER worked — PROVEN 2026-08-15
+
+**Answer to "is VLAN1 required for provisioning?" — NO. TP-Link is not the problem.
+The dnsmasq config makes option 138 impossible to deliver on VLAN99.**
+
+Sean copied the working LAN option onto the Management interface. It is present:
+
+```
+line  66: dhcp-range =tag:vlan0.1,  set:b16ad63f...,192.168.0.100,192.168.0.199,86400
+line  77: dhcp-range =tag:vlan0.99,                 192.168.99.100,192.168.99.199,86400
+line 142: dhcp-option=tag:b16ad63f...,tag:vlan0.1, 138,192.168.99.30
+line 163: dhcp-option=tag:b16ad63f...,tag:vlan0.99,138,192.168.99.30   <-- copied
+```
+
+**dnsmasq ANDs multiple `tag:` conditions on a `dhcp-option` line.** Line 163 therefore
+fires only for a client that has BOTH `b16ad63f…` AND `vlan0.99`.
+
+`set:b16ad63f…` occurs **exactly once in the whole config — on the VLAN1 range (line 66)**.
+Verified: `grep -c 'set:b16ad63f' = 1`.
+
+So a client on VLAN99 can never hold that tag, and **option 138 has never once been
+emitted on VLAN99**. Every "VLAN99-only" device came up, got an address, and was never
+told where the controller was. Turning VLAN1 back on "fixed" it purely because that is
+the only scope where the tag gets set.
+
+**Fix (gw01, one field):** Services → Dnsmasq DNS & DHCP → DHCP options → the row for
+interface *Management* → **clear the Tag field** (it currently carries the LAN tag).
+Leave interface = Management, option = 138, value = `192.168.99.30`.
+Equivalent CLI shape: `dhcp-option=tag:vlan0.99,138,192.168.99.30`.
+
+Verify after applying:
+```
+grep 'dhcp-option=.*,138,' /usr/local/etc/dnsmasq.conf
+# the vlan0.99 line must NOT contain b16ad63f...
+```
+Then factory-reset the EAP650-Wall on 1/1/48 (already `Pvid 99`, saved to startup-config).
+
+> Also still true from A0-e: a device with a **static** management IP never DHCPs, so it
+> can never receive option 138 regardless. access01/access02 are static — they must be
+> factory-reset (or given the inform URL manually) to adopt.
+
 ### A0-e. NET-NEW adoption on VLAN99 only — COMPLETE ROOT CAUSE (2026-08-09)
 
 Sean is **cutting over, not migrating** (clean DB — the beta-test junk stays behind).
