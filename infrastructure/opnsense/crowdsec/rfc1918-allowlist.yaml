@@ -1,0 +1,8 @@
+name: homeops/rfc1918-allowlist
+description: "Never ban internal hosts. k8s nodes tripped pf-scan-multi_ports (normal kubelet/Cilium/Ceph fan-out looks like a port scan) and k8s06 was banned for 4h, which blocked its DNS replies and stopped it booting."
+whitelist:
+  reason: "internal RFC1918"
+  cidr:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"

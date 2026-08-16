@@ -708,6 +708,61 @@ possible and **sell off surplus**.
 
 ## G. Standing infrastructure work
 
+### 🚨 CrowdSec banned k8s06 and stopped it booting — ROOT CAUSED + FIXED 2026-08-15
+
+**A Kubernetes node's normal traffic looks like a port scan to CrowdSec.**
+
+```
+cscli decisions list --ip 192.168.42.56
+450611 | crowdsec | Ip:192.168.42.56 | firewallservices/pf-scan-multi_ports | ban | 23 events | 4h
+```
+
+`192.168.42.56` was the **only** RFC1918 address in `<crowdsec_blocklists>` (14,911 entries).
+pf rule `@17 block drop out quick inet from any to <crowdsec_blocklists>` then dropped
+every **reply** to it. Result: k8s06 could send but never receive.
+
+Symptom chain: no DNS replies → can't resolve `k8s.in.homeops.ca` →
+`k8s.StaticEndpointController` fails → apid + kubelet never start → node stuck at
+`STAGE: Booting`, `talosctl` refused. It also fenced the kernel RBD client, which
+took mon.i out of quorum and left 78 pods stuck.
+
+**Self-sustaining**: a booting node retries DNS/NTP hard and fans out across many
+ports, which is exactly what re-triggers `pf-scan-multi_ports`. Survived two
+reboots, a PDU power-cycle, and a switch LAG reset.
+
+Why it took a while — every "obvious" cause was ruled out first:
+
+| Checked | Result |
+|---|---|
+| Switch ports 1/2/8 + 2/2/8 | Up 10G, **0 errors**, config identical to k8s05 |
+| ARP / duplicate IP | clean; gw01 even answers k8s06's ARP normally |
+| Destination MAC | correct CARP MAC `00:00:5e:00:01:2a` |
+| MTU | 1500 everywhere |
+| Talos node template | identical to k8s05 |
+| unbound ACL / listen | `0.0.0.0/0 allow`, owns `*:53`; BIND not running |
+| unbound rate limiting | `num.queries_ip_ratelimited=0` |
+| `pflog0` | **0 packets** — the block rule has no `log`, which is why it was invisible |
+
+The tell was `pfctl -s state` = **0 states** for the host while tcpdump showed its
+packets arriving: pf was dropping silently, outbound.
+
+**Fixed:**
+1. `cscli decisions delete --ip 192.168.42.56` + `pfctl -t crowdsec_blocklists -T delete …`
+   → node booted immediately, Ceph back to HEALTH_OK with 6/6 OSDs.
+2. Installed `infrastructure/opnsense/crowdsec/rfc1918-allowlist.yaml` to
+   `/usr/local/etc/crowdsec/parsers/s02-enrich/` on gw01 (10/8, 172.16/12, 192.168/16).
+   `service crowdsec reload` → "Configuration test OK".
+   **Rollback:** delete that file and reload crowdsec.
+
+- [ ] P1: check whether other internal hosts have been silently banned over time —
+      `cscli decisions list | grep -E '192\.168\.|10\.|172\.'`.
+- [ ] P2: enable `log` on the CrowdSec pf block rule so future bans are visible in
+      the firewall log instead of being silent.
+- [ ] P2: this allowlist lives only on gw01. Fold it into whatever config-management
+      covers OPNsense so a restore does not lose it.
+
+
+
 ### � Kopia repository needs maintenance (found 2026-08-09)
 
 Every kopiur mover run is printing this before it does anything else:
