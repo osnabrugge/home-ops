@@ -727,10 +727,25 @@ socket state      all TIME_WAIT -> rapid connect/request/close churn
 backing up. Paying ~$88/month for nothing. The account is disabled right now so it
 is quiet, but **it will resume the moment the credit resets**.
 
-- [ ] P0 (Sean, ~1 min): DSM on nas02 → **Hyper Backup** *and* **Cloud Sync** → find
-      the task whose destination is `synobackupstoresean1` / Azure Blob. Report
-      whether it shows as running, erroring, or "scanning". Most likely a task that
-      lost its state and rescans the whole container every cycle.
+**IDENTIFIED 2026-08-15.** It is **Cloud Sync**, not Hyper Backup:
+
+```
+process        13810/syno-cloud-syncd   (126 ESTABLISHED conns to 57.150.1.33)
+config.sqlite  connection_table id=2
+task_name      "Azure - Sean Personal"
+client_type    27 (Azure Blob)   account synobackupstoresean1   container cloudsync
+history        20,000 actions in 24h, no data transferred
+```
+
+It **resumed the instant the credit reset** — blob transactions went 0/day while the
+account was disabled to **~500,000/day** on 2026-08-15 (91k–139k per 6h block).
+That is *higher* than the 146k/day measured in July.
+
+- [ ] **P0 (Sean, 2 clicks): DSM on nas02 → Cloud Sync → task "Azure - Sean
+      Personal" → Pause (or delete).** It transfers nothing and is pure scan
+      churn. Fully reversible. I did not do it myself because stopping the
+      Cloud Sync *package* would also stop the Dropbox task (connection id 7),
+      and there is no safe per-task CLI.
 - [ ] P0: once identified — either fix the schedule/state or delete it. nas02 is
       being retired to nas01 anyway, so deleting is probably right.
 - [ ] P1: after Friday, add a **subscription budget alert** at $100 and $130 so
