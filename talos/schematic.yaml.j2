@@ -12,6 +12,3 @@ customization:
       - siderolabs/i915                                # Intel iGPU
       - siderolabs/intel-ucode                         # Intel CPU Microcode
       - siderolabs/mei                                 # Intel iGPU
-      # gasket-driver removed: it only serves PCIe/M.2 Coral. Both accelerators
-      # are USB (18d1:9302 on k8s05, 1a6e:089a on k8s06) and frigate runs
-      # detectors.coral.device=usb, which is pure userspace via libedgetpu.
