@@ -126,6 +126,15 @@ def triage_steps(alertname, labels):
     return common
 
 
+def merged_labels(alerts):
+    merged = {}
+    for alert in alerts:
+        for key, value in alert.get("labels", {}).items():
+            if value and key not in merged:
+                merged[key] = value
+    return merged
+
+
 def related_alert_groups(name, alerts, all_alerts):
     related = {}
     selectors = {}
@@ -153,8 +162,19 @@ def firing_window(alerts):
     return times[0].isoformat(), times[-1].isoformat()
 
 
+def sanitize_generator_url(url):
+    parsed = urllib.parse.urlsplit(url)
+    if not parsed.netloc:
+        return url
+    redacted = parsed.path or "/"
+    if parsed.query:
+        redacted = f"{redacted}?{parsed.query}"
+    return redacted
+
+
 def build_issue(name, alerts, all_alerts):
     labels = alerts[0].get("labels", {})
+    routing_labels = merged_labels(alerts)
     ann = alerts[0].get("annotations", {})
     fp = fingerprint(name, labels)
     severity = labels.get("severity", "unknown")
@@ -187,7 +207,13 @@ def build_issue(name, alerts, all_alerts):
             rendered = ", ".join(f"`{v}`" for v in vals[:8])
             extra = f" (+{len(vals) - 8} more)" if len(vals) > 8 else ""
             lines.append(f"- **{key}:** {rendered}{extra}")
-    generators = sorted({a.get("generatorURL") for a in alerts if a.get("generatorURL")})
+    generators = sorted(
+        {
+            sanitize_generator_url(a.get("generatorURL"))
+            for a in alerts
+            if a.get("generatorURL")
+        }
+    )
     if generators:
         lines += ["", "#### Source queries / generators", ""]
         for url in generators[:MAX_GENERATORS]:
@@ -215,7 +241,7 @@ def build_issue(name, alerts, all_alerts):
         "### Required troubleshooting sequence (before hardware assumptions)",
         "",
     ]
-    for idx, step in enumerate(triage_steps(name, labels), start=1):
+    for idx, step in enumerate(triage_steps(name, routing_labels), start=1):
         lines.append(f"{idx}. {step}")
 
     lines += [
