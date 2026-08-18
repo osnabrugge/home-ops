@@ -132,7 +132,7 @@ def diagnostic_bundle(alertname, labels):
     networkish = any(tok in lower for tok in ("bond", "network", "link", "interface", "nic", "lacp")) or any(
         key in labels for key in network_labels
     )
-    has_pvc_context = "persistentvolumeclaim" in labels or any(
+    has_pvc_context = any(k.lower() == "persistentvolumeclaim" for k in labels) or any(
         isinstance(v, str) and "persistentvolumeclaim" in v.lower() for v in labels.values()
     )
     storageish = any(tok in lower for tok in ("ceph", "rbd", "disk", "volume", "storage")) or has_pvc_context
@@ -309,7 +309,7 @@ def build_issue(name, alerts, all_alerts):
             "",
         ]
         for title, cmd in diagnostics:
-            lines += [f"- **{title}**", "```bash", cmd, "```", ""]
+            lines += [f"- **{title}**", "```bash", cmd.rstrip(), "```", ""]
 
     lines += [
         "",
