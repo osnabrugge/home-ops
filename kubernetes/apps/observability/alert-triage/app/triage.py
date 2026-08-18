@@ -126,6 +126,57 @@ def triage_steps(alertname, labels):
     return common
 
 
+def diagnostic_bundle(alertname, labels):
+    lower = alertname.lower()
+    networkish = any(tok in lower for tok in ("bond", "network", "link", "interface", "nic", "lacp")) or labels.get("node")
+    storageish = any(tok in lower for tok in ("ceph", "rbd", "disk", "volume", "storage")) or labels.get(
+        "persistentvolumeclaim"
+    )
+    steps = []
+    if networkish:
+        steps.extend(
+            [
+                (
+                    "Kubernetes symptom timeline",
+                    "kubectl get events -A --sort-by=.lastTimestamp | tail -n 300",
+                ),
+                (
+                    "Affected workloads",
+                    "kubectl get pods -A -o wide | grep -vE 'Running|Completed'",
+                ),
+                (
+                    "Talos link and bond state (replace `<node-ip>`)",
+                    "talosctl --nodes <node-ip> --endpoints <node-ip> get links | grep -E 'bond0|enp'\n"
+                    "talosctl --nodes <node-ip> --endpoints <node-ip> read /proc/net/bonding/bond0\n"
+                    "talosctl --nodes <node-ip> --endpoints <node-ip> dmesg | grep -iE 'bond|link|enp|ixgbe|i40e|mlx|nic'",
+                ),
+                (
+                    "Switch-side member and counter checks (approved operator)",
+                    "show lag <lag-name>\n"
+                    "show interfaces brief ethernet <port>\n"
+                    "show interfaces ethernet <port>\n"
+                    "show logging | include <port>",
+                ),
+            ]
+        )
+    if storageish:
+        steps.extend(
+            [
+                (
+                    "Ceph health and perf",
+                    "kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status\n"
+                    "kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph health detail\n"
+                    "kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd perf",
+                ),
+                (
+                    "Blocklist and client fencing",
+                    "kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd blocklist ls",
+                ),
+            ]
+        )
+    return steps
+
+
 def merged_labels(alerts):
     merged = {}
     for alert in alerts:
@@ -243,6 +294,18 @@ def build_issue(name, alerts, all_alerts):
     ]
     for idx, step in enumerate(triage_steps(name, routing_labels), start=1):
         lines.append(f"{idx}. {step}")
+
+    diagnostics = diagnostic_bundle(name, routing_labels)
+    if diagnostics:
+        lines += [
+            "",
+            "### Approval-gated diagnostic bundle",
+            "",
+            "Run these only after an authorized operator approves access to infra systems.",
+            "",
+        ]
+        for title, cmd in diagnostics:
+            lines += [f"- **{title}**", "```bash", cmd, "```", ""]
 
     lines += [
         "",

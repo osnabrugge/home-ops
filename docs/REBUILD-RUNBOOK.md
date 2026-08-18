@@ -455,6 +455,26 @@ show interfaces ethernet 2/2/8
 show logging | include 2/2/8
 ```
 
+Approval-gated diagnostics workflow (for this issue and future recurrences):
+1. Capture evidence first from Talos + Kubernetes + Ceph (commands above), then paste
+   the outputs into the incident issue before taking manual action.
+2. If the issue still has no clear root cause, request authorized operator approval to
+   run switch-side deep diagnostics for **only** `k8s06` LAG and member port `2/2/8`.
+3. Use time-bounded diagnostics (for example 10-15 minutes), then revert to baseline
+   logging levels and keep all captured output in the issue for future comparison.
+
+Temporary elevated diagnostics (requires explicit approval on core01):
+- Increase logging only for the affected LAG/member path (`k8s06`, `2/2/8`) so we can
+  capture LACP/member flaps, physical layer errors, and state transitions during the
+  incident window.
+- Collect at least three snapshots (`t0`, `t+5m`, `t+15m`) of:
+  - `show lag k8s06`
+  - `show interfaces brief ethernet 2/2/8`
+  - `show interfaces ethernet 2/2/8`
+  - `show logging | include 2/2/8`
+- If no events appear even with temporary increased logging, treat that as evidence
+  and prioritize host-side causes (NIC, PCIe seating/riser, firmware/driver, thermal).
+
 Manual remediation path:
 1. Verify Ceph is healthy before touching the host network path.
 2. Reseat or replace the cable/transceiver between k8s06 `enp1s0f1` and core01
