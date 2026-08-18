@@ -29,6 +29,9 @@ MAX_NEW_ISSUES = int(os.environ.get("MAX_NEW_ISSUES", "3"))
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 SEVERITIES = {s.strip() for s in os.environ.get("SEVERITIES", "critical,warning").split(",") if s.strip()}
 IGNORE = {a.strip() for a in os.environ.get("IGNORE_ALERTS", "").split(",") if a.strip()}
+MAX_AFFECTED = int(os.environ.get("MAX_AFFECTED", "15"))
+MAX_RELATED = int(os.environ.get("MAX_RELATED_ALERT_GROUPS", "8"))
+MAX_GENERATORS = int(os.environ.get("MAX_GENERATOR_URLS", "5"))
 
 MARKER = "alert-triage-fingerprint"
 LABEL = "alert-triage"
@@ -64,6 +67,14 @@ def fetch_alerts():
     return http(url)
 
 
+def parse_alert_time(value):
+    try:
+        ts = re.sub(r"\.\d+", "", value).replace("Z", "+00:00")
+        return datetime.fromisoformat(ts)
+    except (TypeError, ValueError):
+        return None
+
+
 def eligible(alert):
     labels = alert.get("labels", {})
     name = labels.get("alertname", "")
@@ -73,12 +84,8 @@ def eligible(alert):
         return False
     if alert.get("status", {}).get("state") != "active":
         return False
-    started = alert.get("startsAt", "")
-    try:
-        # normalise the fractional-second precision Alertmanager emits
-        ts = re.sub(r"\.\d+", "", started).replace("Z", "+00:00")
-        began = datetime.fromisoformat(ts)
-    except ValueError:
+    began = parse_alert_time(alert.get("startsAt", ""))
+    if not began:
         return False
     age = datetime.now(timezone.utc) - began
     return age >= timedelta(minutes=MIN_FIRING_MINUTES)
@@ -100,11 +107,58 @@ def existing_fingerprints():
     return seen
 
 
-def build_issue(name, alerts):
+def triage_steps(alertname, labels):
+    lower = alertname.lower()
+    common = [
+        "Prove scope first: identify exactly which nodes/pods/instances are affected from this issue's evidence.",
+        "Collect timeline proof from Kubernetes Events and pod logs (`read-only file system`, I/O errors, remount messages).",
+        "Correlate with Ceph state before any intervention (`ceph status`, `ceph health detail`, `ceph osd perf`).",
+        "Only if storage/network evidence remains ambiguous, then request a focused physical check for the specific port/path.",
+    ]
+    if "ceph" in lower or "rbd" in lower or labels.get("persistentvolumeclaim"):
+        return common + [
+            "If Ceph is healthy but pods are still RO, check blocklist (`ceph osd blocklist ls`) and map impacted clients before restarting pods.",
+        ]
+    if "node" in lower or labels.get("node"):
+        return common + [
+            "Check node readiness transitions and kubelet logs around the incident window before proposing hardware action.",
+        ]
+    return common
+
+
+def related_alert_groups(name, alerts, all_alerts):
+    related = {}
+    selectors = {}
+    for key in ("namespace", "node", "pod", "instance", "job", "persistentvolumeclaim"):
+        values = sorted({a.get("labels", {}).get(key) for a in alerts if a.get("labels", {}).get(key)})
+        if values:
+            selectors[key] = values
+    for alert in all_alerts:
+        labels = alert.get("labels", {})
+        other = labels.get("alertname")
+        if not other or other == name:
+            continue
+        for key, values in selectors.items():
+            if labels.get(key) in values:
+                related.setdefault(other, set()).add(f"{key}={labels[key]}")
+    ordered = sorted(related.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+    return ordered[:MAX_RELATED]
+
+
+def firing_window(alerts):
+    parsed = [parse_alert_time(a.get("startsAt")) for a in alerts]
+    times = sorted(t for t in parsed if t is not None)
+    if not times:
+        return "unknown", "unknown"
+    return times[0].isoformat(), times[-1].isoformat()
+
+
+def build_issue(name, alerts, all_alerts):
     labels = alerts[0].get("labels", {})
     ann = alerts[0].get("annotations", {})
     fp = fingerprint(name, labels)
     severity = labels.get("severity", "unknown")
+    oldest, newest = firing_window(alerts)
 
     where = " ".join(
         f"`{k}={labels[k]}`" for k in ("namespace", "node", "pod", "instance", "job") if labels.get(k)
@@ -114,7 +168,8 @@ def build_issue(name, alerts):
         "",
         f"**Severity:** {severity}  ",
         f"**Firing instances:** {len(alerts)}  ",
-        f"**Firing since:** {alerts[0].get('startsAt', 'unknown')}  ",
+        f"**Oldest firing since:** {oldest}  ",
+        f"**Newest firing since:** {newest}  ",
         f"**Scope:** {where or 'cluster-wide'}",
         "",
     ]
@@ -125,22 +180,52 @@ def build_issue(name, alerts):
     if ann.get("runbook_url"):
         lines += [f"**Runbook:** {ann['runbook_url']}", ""]
 
+    lines += ["### Evidence snapshot (from Alertmanager payload)", ""]
+    for key in ("namespace", "node", "pod", "instance", "job", "persistentvolumeclaim"):
+        vals = sorted({a.get("labels", {}).get(key) for a in alerts if a.get("labels", {}).get(key)})
+        if vals:
+            rendered = ", ".join(f"`{v}`" for v in vals[:8])
+            extra = f" (+{len(vals) - 8} more)" if len(vals) > 8 else ""
+            lines.append(f"- **{key}:** {rendered}{extra}")
+    generators = sorted({a.get("generatorURL") for a in alerts if a.get("generatorURL")})
+    if generators:
+        lines += ["", "#### Source queries / generators", ""]
+        for url in generators[:MAX_GENERATORS]:
+            lines.append(f"- {url}")
+        if len(generators) > MAX_GENERATORS:
+            lines.append(f"- …and {len(generators) - MAX_GENERATORS} more")
+
+    related = related_alert_groups(name, alerts, all_alerts)
+    if related:
+        lines += ["", "#### Correlated active alert groups", ""]
+        for alertname, matches in related:
+            hits = ", ".join(f"`{m}`" for m in sorted(matches))
+            lines.append(f"- `{alertname}` via {hits}")
+
     lines += ["### Affected instances", ""]
-    for a in alerts[:15]:
+    for a in alerts[:MAX_AFFECTED]:
         al = a.get("labels", {})
         ident = al.get("pod") or al.get("instance") or al.get("node") or al.get("namespace") or "—"
         lines.append(f"- `{ident}`")
-    if len(alerts) > 15:
-        lines.append(f"- …and {len(alerts) - 15} more")
+    if len(alerts) > MAX_AFFECTED:
+        lines.append(f"- …and {len(alerts) - MAX_AFFECTED} more")
 
     lines += [
         "",
-        "### Requested of the agent",
+        "### Required troubleshooting sequence (before hardware assumptions)",
         "",
-        "1. Determine the **root cause** — do not just silence the alert.",
-        "2. If the fix is a GitOps change, open a PR against `main` under `kubernetes/`.",
-        "3. If it needs physical/manual action, comment with the exact steps and close as `not planned`.",
-        "4. If this alert is pure noise, propose a tuning PR for the alert rule itself.",
+    ]
+    for idx, step in enumerate(triage_steps(name, labels), start=1):
+        lines.append(f"{idx}. {step}")
+
+    lines += [
+        "",
+        "### Resolution path",
+        "",
+        "1. Determine the **root cause** with evidence in this issue — do not just silence the alert.",
+        "2. If the fix is GitOps, open a PR against `main` under `kubernetes/`.",
+        "3. If physical/manual action is required, provide exact validated steps and why software-only triage was insufficient.",
+        "4. If this alert is noise, propose a tuning PR for the alert rule itself.",
         "",
         "> Cluster is Flux-reconciled: changes must be committed to `main`, not applied live.",
         "",
@@ -181,7 +266,7 @@ def main():
         if filed >= MAX_NEW_ISSUES:
             print(f"reached MAX_NEW_ISSUES={MAX_NEW_ISSUES}; deferring the rest to the next run")
             break
-        fp, title, body, severity = build_issue(name, group)
+        fp, title, body, severity = build_issue(name, group, active)
         if fp in known:
             print(f"skip  {name} (already tracked, fp={fp})")
             continue
