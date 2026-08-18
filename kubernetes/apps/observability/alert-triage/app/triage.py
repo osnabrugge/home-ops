@@ -128,10 +128,11 @@ def triage_steps(alertname, labels):
 
 def diagnostic_bundle(alertname, labels):
     lower = alertname.lower()
-    networkish = any(tok in lower for tok in ("bond", "network", "link", "interface", "nic", "lacp")) or labels.get("node")
-    storageish = any(tok in lower for tok in ("ceph", "rbd", "disk", "volume", "storage")) or labels.get(
-        "persistentvolumeclaim"
+    network_labels = {"interface", "network_interface", "device", "bond", "slave", "link"}
+    networkish = any(tok in lower for tok in ("bond", "network", "link", "interface", "nic", "lacp")) or any(
+        key in labels for key in network_labels
     )
+    storageish = any(tok in lower for tok in ("ceph", "rbd", "disk", "volume", "storage")) or "persistentvolumeclaim" in labels
     steps = []
     if networkish:
         steps.extend(
