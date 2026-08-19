@@ -426,6 +426,69 @@ If sub-interfaces are missing after applying config, re-render and re-apply:
 just talos render-config k8s01 | talosctl apply-config --nodes 192.168.42.51 --file /dev/stdin
 ```
 
+### CephNodeNetworkBondDegraded on k8s06 / `enp1s0f1`
+
+Known-good desired state in Git:
+- `talos/nodes/k8s06.yaml.j2` defines `bond0` as 802.3ad/LACP over `enp1s0f0`
+  and `enp1s0f1`.
+- The saved core01 config maps `k8s06-enp1s0f0` to `ethernet 1/2/8` and
+  `k8s06-enp1s0f1` to `ethernet 2/2/8` in dynamic LAG `k8s06`.
+
+If `CephNodeNetworkBondDegraded` fires for `192.168.42.56:9100` and
+`enp1s0f1` is still down after `no deploy` / `deploy` on the core01 LAG, treat
+it as a secondary-path physical/link fault rather than a GitOps drift issue.
+The LACP and VLAN intent in Git is already correct; repeatedly redeploying the
+LAG will not restore carrier if the NIC, cable, transceiver, or `2/2/8` switch
+path is down.
+
+Read-only checks:
+```bash
+# Talos side: confirm bond membership and which slave lacks carrier.
+talosctl --nodes 192.168.42.56 --endpoints 192.168.42.56 read /proc/net/bonding/bond0
+talosctl --nodes 192.168.42.56 --endpoints 192.168.42.56 get links | grep -E 'bond0|enp1s0f[01]'
+talosctl --nodes 192.168.42.56 --endpoints 192.168.42.56 dmesg | grep -iE 'enp1s0f1|igb|ixgbe|i40e|link'
+
+# Switch side: inspect the secondary k8s06 member, not only the LAG summary.
+show lag k8s06
+show interfaces brief ethernet 2/2/8
+show interfaces ethernet 2/2/8
+show logging | include 2/2/8
+```
+
+Approval-gated diagnostics workflow (for this issue and future recurrences):
+1. Capture evidence first from Talos + Kubernetes + Ceph (commands above), then paste
+   the outputs into the incident issue before taking manual action.
+2. If the issue still has no clear root cause, request authorized operator approval to
+   run switch-side deep diagnostics for **only** `k8s06` LAG and member port `2/2/8`.
+3. Use time-bounded diagnostics (for example 10-15 minutes), then revert to baseline
+   logging levels and keep all captured output in the issue for future comparison.
+
+Temporary elevated diagnostics (requires explicit approval on core01):
+- Increase logging only for the affected LAG/member path (`k8s06`, `2/2/8`) so we can
+  capture LACP/member flaps, physical layer errors, and state transitions during the
+  incident window.
+- Collect at least three snapshots (`t0`, `t+5m`, `t+15m`) of:
+  - `show lag k8s06`
+  - `show interfaces brief ethernet 2/2/8`
+  - `show interfaces ethernet 2/2/8`
+  - `show logging | include 2/2/8`
+- If no events appear even with temporary increased logging, treat that as evidence
+  and prioritize host-side causes (NIC, PCIe seating/riser, firmware/driver, thermal).
+
+Manual remediation path:
+1. Verify Ceph is healthy before touching the host network path.
+2. Reseat or replace the cable/transceiver between k8s06 `enp1s0f1` and core01
+   `ethernet 2/2/8`.
+3. If the link still has no carrier, move only that secondary leg to a
+   known-good spare switch port and update the core01 LAG member mapping to the
+   new port.
+4. If the switch port comes up on another device but k8s06 still shows
+   `enp1s0f1` down, schedule k8s06 maintenance for NIC/PCIe inspection or NIC
+   replacement.
+5. Confirm recovery with `/proc/net/bonding/bond0`: both slaves should report
+   `MII Status: up`, and the Prometheus alert should clear after the rule's
+   `for` interval.
+
 ### Cluster resource policy audit
 Use this to find containers missing CPU/memory requests/limits:
 ```bash
