@@ -73,7 +73,7 @@ spec:
           mediamtx:
             image:
               repository: docker.io/bluenviron/mediamtx
-              tag: 1.20.0@sha256:86e63af28616d5e5a18540d7b031b6510bd4cbf1a3c7d224f9e2976f02aefbfb
+              tag: 1.20.1@sha256:1b029d11049be75630e9b73bb0d5f47b08a7db4eaee89a80bf8f53bc40e56414
             env:
               TZ: America/Toronto
             probes:
