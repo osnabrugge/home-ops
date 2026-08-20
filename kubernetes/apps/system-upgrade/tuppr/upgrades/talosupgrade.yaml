@@ -10,6 +10,10 @@ spec:
     version: v1.13.9
   policy:
     rebootMode: powercycle
+    # Without this, nodes power-cycle with krbd sessions still open; the OSD
+    # sockets die mid-IO (-ESHUTDOWN) and ext4 flips every RBD volume on the
+    # node to emergency_ro, which never self-heals across container restarts.
+    waitForVolumeDetach: true
   healthChecks:
     - apiVersion: kopiur.home-operations.com/v1alpha1
       kind: Snapshot
