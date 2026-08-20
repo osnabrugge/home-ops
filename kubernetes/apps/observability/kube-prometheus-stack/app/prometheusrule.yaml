@@ -1,0 +1,62 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: home-ops-selfcheck
+spec:
+  groups:
+    - name: prometheus-selfcheck
+      rules:
+        # The upstream PrometheusNotIngestingSamples uses
+        # rate(prometheus_tsdb_head_samples_appended_total[5m]) <= 0, which needs
+        # stored samples to evaluate. When the TSDB volume goes read-only nothing
+        # is stored, rate() returns empty, and the alert can never fire — which is
+        # how a 18h outage stayed silent. absent() fires precisely because the data
+        # is missing, and alert delivery to Alertmanager does not touch the WAL.
+        - alert: PrometheusIngestionStalled
+          expr: absent(prometheus_tsdb_head_max_time_seconds)
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: Prometheus has stopped ingesting samples
+            description: >-
+              prometheus_tsdb_head_max_time_seconds has disappeared, so the TSDB is
+              no longer accepting writes even though the process may still answer
+              health checks. Check for a read-only volume with `just kube rbd-ro`.
+
+        - alert: PrometheusHeadStale
+          expr: time() - prometheus_tsdb_head_max_time_seconds > 600
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: Prometheus TSDB head has not advanced in 10m
+            description: The head block max time is {{ $value | humanizeDuration }} behind now.
+
+    - name: upgrade-and-backup-stalls
+      rules:
+        # tuppr parks between nodes until its health checks pass, so Pending is
+        # normally seconds-to-minutes. A wedged Kopiur Snapshot keeps a check
+        # failing forever and the rollout sits Pending indefinitely — that is what
+        # left one node cordoned, its OSD down, and RBD volumes read-only.
+        - alert: TalosUpgradeParked
+          expr: tuppr_talos_upgrade_phase{phase="Pending"} == 1
+          for: 6h
+          labels:
+            severity: warning
+          annotations:
+            summary: Talos upgrade has been Pending for 6h — health checks are not clearing
+            description: >-
+              Look for Kopiur Snapshots stuck in phase Running
+              (kubectl get snapshots.kopiur.home-operations.com -A) and for any
+              node left cordoned by the rollout.
+
+        - alert: TalosUpgradeNodeFailed
+          expr: tuppr_talos_upgrade_nodes_failed > 0
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: A Talos node upgrade has failed
