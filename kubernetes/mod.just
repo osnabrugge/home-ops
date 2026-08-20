@@ -31,6 +31,30 @@ prune-pods:
         kubectl delete pods -A --field-selector status.phase="$phase" --ignore-not-found=true
     done
 
+[doc('Find RBD volumes ext4 flipped to emergency_ro and restart the owning pods (pass fix=1 to remediate)')]
+[script]
+rbd-ro fix='0':
+    # /proc/mounts still reports "rw" for these; the only tell is the emergency_ro option.
+    export TALOSCONFIG="{{ justfile_dir() }}/talosconfig"
+    if [[ "{{ fix }}" == "1" ]] && ! kubectl -n rook-ceph exec "$(kubectl -n rook-ceph get pod -l app=rook-ceph-tools -o name | head -1)" -- ceph health 2>/dev/null | grep -q HEALTH_OK; then
+        echo "REFUSING to remediate: ceph is not HEALTH_OK. Re-run without fix=1 to just list."; exit 1
+    fi
+    found=0
+    for n in 51 52 53 54 55 56; do
+        for pv in $(talosctl -n "192.168.42.$n" read /proc/mounts 2>/dev/null | grep -E '^/dev/rbd.*emergency_ro' | grep -oE 'pvc-[0-9a-f-]+' | sort -u); do
+            found=1
+            ref=$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.namespace}/{.spec.claimRef.name}' 2>/dev/null)
+            ns=${ref%%/*}; pvc=${ref##*/}
+            pod=$(kubectl get pods -n "$ns" -o json 2>/dev/null | jq -r --arg p "$pvc" '.items[] | select(.spec.volumes[]?.persistentVolumeClaim?.claimName==$p) | .metadata.name' | head -1)
+            echo "k8s0$((n-50))  $ref  pod=${pod:-<none>}"
+            # A container restart does NOT release the CSI global mount — the pod must be deleted.
+            if [[ "{{ fix }}" == "1" && -n "$pod" ]]; then
+                kubectl delete pod -n "$ns" "$pod" --wait=false
+            fi
+        done
+    done
+    [[ "$found" == "0" ]] && echo "No emergency_ro volumes found." || true
+
 [doc('Quick cluster health sweep focused on workloads and recent warnings')]
 [script]
 health-sweep:
