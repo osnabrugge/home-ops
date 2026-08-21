@@ -8,10 +8,10 @@
   // 7.0.0 consolidated everything into a self-contained default.json with zero
   // references back to its own repo, so no upstream move can break it.
   extends: [
-    "github>home-operations/renovate-presets#8.0.0",
-    "github>home-operations/renovate-presets//apps/cnpg.json5#8.0.0",
-    "github>home-operations/renovate-presets//apps/grafanaDashboards.json5#8.0.0",
-    "github>home-operations/renovate-presets//apps/talosFactory.json5#8.0.0",
+    "github>home-operations/renovate-presets#8.1.0",
+    "github>home-operations/renovate-presets//apps/cnpg.json5#8.1.0",
+    "github>home-operations/renovate-presets//apps/grafanaDashboards.json5#8.1.0",
+    "github>home-operations/renovate-presets//apps/talosFactory.json5#8.1.0",
     ":timezone(America/Toronto)",
   ],
   // Jinja templates are not valid YAML - the {% if %} blocks make Renovate's YAML
