@@ -1,35 +1,11 @@
 ---
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: toolhive-mcp-servers
-spec:
-  dependsOn:
-    - name: toolhive-operator
-  # secretRef resolves in this Kustomization's own namespace, so the key has to
-  # be seeded there first: `just kube seed-sops-key toolhive`.
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-age
-  interval: 1h
-  path: ./kubernetes/apps/toolhive/servers
-  wait: false
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-    namespace: flux-system
-  targetNamespace: toolhive
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: arr-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/arr-mcp
   wait: false
@@ -46,7 +22,7 @@ metadata:
   name: brocade-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/brocade-mcp
   wait: false
@@ -63,7 +39,7 @@ metadata:
   name: flux-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/flux-mcp
   wait: false
@@ -80,7 +56,7 @@ metadata:
   name: github-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/github-mcp
   wait: false
@@ -97,7 +73,7 @@ metadata:
   name: grafana-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/grafana-mcp
   wait: false
@@ -114,7 +90,7 @@ metadata:
   name: hass-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/hass-mcp
   wait: false
@@ -131,7 +107,7 @@ metadata:
   name: kubectl-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/kubectl-mcp
   wait: false
@@ -148,7 +124,7 @@ metadata:
   name: netbox-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/netbox-mcp
   wait: false
@@ -165,7 +141,7 @@ metadata:
   name: opnsense-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/opnsense-mcp
   wait: false
@@ -182,7 +158,7 @@ metadata:
   name: printer-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/printer-mcp
   wait: false
@@ -199,7 +175,7 @@ metadata:
   name: prometheus-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/prometheus-mcp
   wait: false
@@ -216,7 +192,7 @@ metadata:
   name: talos-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/talos-mcp
   wait: false
@@ -233,7 +209,7 @@ metadata:
   name: victorialogs-mcp
 spec:
   dependsOn:
-    - name: toolhive-mcp-servers
+    - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/victorialogs-mcp
   wait: false
