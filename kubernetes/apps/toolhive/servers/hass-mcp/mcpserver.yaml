@@ -3,17 +3,15 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServer
 metadata:
-  name: ha-mcp
+  name: hass-mcp
 spec:
-  image: ghcr.io/homeassistant-ai/ha-mcp:8.3.0
+  image: ghcr.io/homeassistant-ai/ha-mcp:8.3.0@sha256:38b3a0b6b6b69d3fd074f958fbf9653ae2d50c8727b4c0dcde640cfa3a638176
   transport: streamable-http
-  groupRef:
-    name: mcp-tools
   env:
     - name: HOMEASSISTANT_URL
       value: https://hass.homeops.ca
   secrets:
-    - name: toolhive-home-assistant
+    - name: hass-mcp-secret
       key: HOMEASSISTANT_TOKEN
   podTemplateSpec:
     spec:
@@ -27,3 +25,5 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
+  groupRef:
+    name: mcp-tools

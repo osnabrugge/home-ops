@@ -3,10 +3,10 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServer
 metadata:
-  name: brocade
+  name: brocade-mcp
 spec:
   # Built from vespo92/BrocadeICXMCP by .github/workflows/brocade-mcp-image.yaml
-  image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0
+  image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0@sha256:4fc1726c372838b0fb5aad4d173a864595d3c2c7ea1b7ca1581d7ae3dacd91c0
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080
@@ -28,7 +28,7 @@ spec:
         - name: mcp
           envFrom:
             - secretRef:
-                name: brocade-secret
+                name: brocade-mcp-secret
   resources:
     requests:
       cpu: 25m

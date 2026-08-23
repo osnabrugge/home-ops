@@ -3,34 +3,34 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServer
 metadata:
-  name: grafana
+  name: grafana-mcp
 spec:
-  image: docker.io/mcp/grafana:latest@sha256:9362bcf6aa0e44e61f645b905cec03fb346a946a34a4dafecd7f3e28d3724014
+  podTemplateSpec:
+    metadata:
+      annotations:
+        secret.reloader.stakater.com/reload: grafana-mcp-secret
+  image: docker.io/grafana/mcp-grafana:1.1.0@sha256:f21a19cebbfa7c3a76ef1746171e5ffc3601064e432f593e7c6cb526e5216e5f
   transport: streamable-http
-  mcpPort: 8000
   proxyPort: 8080
+  mcpPort: 8000
+  secrets:
+    - name: grafana-mcp-secret
+      key: token
+      targetEnvName: GRAFANA_SERVICE_ACCOUNT_TOKEN
+  env:
+    - name: GRAFANA_URL
+      value: http://grafana-service.monitor.svc.cluster.local:3000
   permissionProfile:
     type: builtin
     name: network
   args:
-    - -t
+    - --transport
     - streamable-http
     - --address
-    - :8000
-    # Host/Origin validation defaults to loopback only, which 403s every request
-    # arriving through the ToolHive proxy Service name.
+    - 0.0.0.0:8000
+    # ToolHive is the trusted reverse proxy and may rewrite the Host header.
     - --allowed-hosts
     - "*"
-  env:
-    - name: GRAFANA_URL
-      value: http://grafana-service.observability.svc.cluster.local:3000
-  podTemplateSpec:
-    spec:
-      containers:
-        - name: mcp
-          envFrom:
-            - secretRef:
-                name: mcp-tokens-secret
   resources:
     requests:
       cpu: 25m

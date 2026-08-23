@@ -3,10 +3,10 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServer
 metadata:
-  name: printer
+  name: printer-mcp
 spec:
   # Built from the upstream npm package by .github/workflows/printer-mcp-image.yaml
-  image: ghcr.io/osnabrugge/printer-mcp:1.2.5
+  image: ghcr.io/osnabrugge/printer-mcp:1.2.5@sha256:ff8e0d7f7b8a55665ec35952ce744f2a08ba45ba1f550ec8979fa02b97ca20df
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080

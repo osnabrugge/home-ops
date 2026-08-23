@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServer
 metadata:
-  name: netbox
+  name: netbox-mcp
 spec:
   # Fork of netboxlabs/netbox-mcp-server that adds ~50 create/update/delete tools,
   # so network changes can be written back to NetBox instead of drifting.
@@ -26,15 +26,15 @@ spec:
     - name: VERIFY_SSL
       value: "false"
   secrets:
-    - name: toolhive-home-assistant
-      key: HOMEASSISTANT_TOKEN
+    - name: netbox-mcp-secret
+      key: NETBOX_TOKEN
   podTemplateSpec:
     spec:
       containers:
         - name: mcp
           envFrom:
             - secretRef:
-                name: mcp-tokens-secret
+                name: netbox-mcp-secret
   resources:
     requests:
       cpu: 25m

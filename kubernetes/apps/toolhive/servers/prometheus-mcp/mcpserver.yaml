@@ -1,11 +1,11 @@
 ---
-# yaml-language-server: $schema=https://crd.movishell.pl/toolhive.stacklok.dev/mcpserver_v1beta1.json
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1beta1.json
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
-  name: prometheus
+  name: prometheus-mcp
 spec:
-  image: ghcr.io/pab1it0/prometheus-mcp-server:1.6.2
+  image: ghcr.io/pab1it0/prometheus-mcp-server:1.6.2@sha256:3c3921301229618d0b00a46a06e3b0c25745b31855f16919cf7b4fa040d47ec6
   transport: streamable-http
   groupRef:
     name: mcp-tools
