@@ -13,7 +13,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # SDKs dropped Server.list_tools() and the server dies on import. Pin the locked
 # version rather than tracking the latest SDK.
 # renovate: datasource=pypi depName=mcp
-ARG MCP_SDK_VERSION=1.17.0
+ARG MCP_SDK_VERSION=1.29.0
 RUN pip install --no-cache-dir \
     "mcp==${MCP_SDK_VERSION}" \
     "onshape-mcp @ git+https://github.com/hedless/onshape-mcp.git@${ONSHAPE_MCP_REF}"
