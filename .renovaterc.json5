@@ -13,15 +13,11 @@
     commitMessageExtra: "({{manager}})",
     additionalBranchPrefix: "{{manager}}-",
   },
-  hostRules: [
-    {
-      description: "Authenticate against the ocharted OCI registry",
-      matchHost: "ocharted.homeops.ca",
-      hostType: "docker",
-      username: "{{ secrets.OCHARTED_USERNAME }}",
-      password: "{{ secrets.OCHARTED_PASSWORD }}",
-    },
-  ],
+  // Re-enable together with RENOVATE_SECRETS in .github/workflows/renovate.yaml
+  // once ocharted is serving AND the OCHARTED_USERNAME/OCHARTED_PASSWORD repo
+  // secrets exist. Referencing a secret that is not supplied makes Renovate fail
+  // config validation and stop opening PRs entirely (issue #3954).
+  hostRules: [],
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
