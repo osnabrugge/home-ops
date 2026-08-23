@@ -82,6 +82,13 @@ jobs:
           RENOVATE_INTERNAL_CHECKS_FILTER: strict
           RENOVATE_PLATFORM: github
           RENOVATE_PLATFORM_COMMIT: true
+          # .renovaterc.json5 hostRules reference these as {{ secrets.* }}; without
+          # RENOVATE_SECRETS they resolve to empty and ocharted auth silently fails.
+          RENOVATE_SECRETS: |-
+            {
+              "OCHARTED_USERNAME": "${{ secrets.OCHARTED_USERNAME }}",
+              "OCHARTED_PASSWORD": "${{ secrets.OCHARTED_PASSWORD }}"
+            }
         with:
           token: ${{ steps.app-token.outputs.token }}
           renovate-version: ${{ inputs.version || 'latest' }}
