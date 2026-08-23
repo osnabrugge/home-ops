@@ -135,7 +135,23 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-netbox-proxy
+        - name: mcp-netbox-mcp-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-onshape
+spec:
+  # INTERNAL ONLY. Holds Onshape API keys with write access to the CAD account.
+  hostnames:
+    - mcp-onshape.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-onshape-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
