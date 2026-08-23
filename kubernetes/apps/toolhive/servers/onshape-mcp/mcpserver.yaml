@@ -14,11 +14,8 @@ spec:
   permissionProfile:
     type: builtin
     name: network
-  secrets:
-    - name: onshape-mcp-secret
-      key: ONSHAPE_ACCESS_KEY
-    - name: onshape-mcp-secret
-      key: ONSHAPE_SECRET_KEY
+  # spec.secrets is keyed by secret name, so it cannot carry both keys from one
+  # secret; envFrom injects ONSHAPE_ACCESS_KEY and ONSHAPE_SECRET_KEY together.
   podTemplateSpec:
     spec:
       containers:
