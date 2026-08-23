@@ -2,7 +2,7 @@
 # The canonical source is a personal Forgejo instance (see go.mod module path);
 # GitHub is a mirror, so we pin a commit from the mirror rather than trusting the
 # author's prebuilt image at registry.erwanleboucher.dev.
-FROM docker.io/library/golang:1.26-bookworm AS build
+FROM docker.io/library/golang:1.27-bookworm AS build
 # renovate: datasource=git-refs depName=talos-mcp packageName=https://github.com/eleboucher/talos-mcp
 ARG TALOS_MCP_REF=018f9c8af22ef6b9538857c0ba8482d75dec6ae7
 WORKDIR /src
