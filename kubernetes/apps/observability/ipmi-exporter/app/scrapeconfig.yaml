@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/scrapeconfig_v1alpha1.json
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: ipmi-exporter
+spec:
+  # Remote mode: Prometheus passes the BMC as ?target= and the exporter talks
+  # IPMI-over-LAN to it, so add further BMCs by listing them here.
+  staticConfigs:
+    - targets:
+        - nas01-bmc.in.homeops.ca
+  metricsPath: /ipmi
+  params:
+    module: [default]
+  scrapeInterval: 60s
+  scrapeTimeout: 30s
+  relabelings:
+    - sourceLabels: [__address__]
+      targetLabel: __param_target
+    - sourceLabels: [__param_target]
+      targetLabel: instance
+    - targetLabel: __address__
+      replacement: ipmi-exporter.observability.svc.cluster.local:9290
+    - action: replace
+      targetLabel: job
+      replacement: ipmi-exporter
