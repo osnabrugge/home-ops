@@ -7,7 +7,7 @@ metadata:
 spec:
   # Upstream ships a Python package only, so this image is built from a pinned
   # commit by .github/workflows/onshape-mcp-image.yaml.
-  image: ghcr.io/osnabrugge/onshape-mcp:0.3.0
+  image: ghcr.io/osnabrugge/onshape-mcp:0.3.1
   # Upstream speaks stdio; toolhive's proxy fronts it with streamable-http.
   transport: stdio
   proxyPort: 8080

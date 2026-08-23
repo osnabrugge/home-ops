@@ -31,5 +31,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/osnabrugge/onshape-mcp:0.3.0
+            ghcr.io/osnabrugge/onshape-mcp:0.3.1
             ghcr.io/osnabrugge/onshape-mcp:latest

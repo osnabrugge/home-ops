@@ -9,7 +9,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+# Upstream declares mcp>=0.1.0 but its code targets the SDK in uv.lock; newer
+# SDKs dropped Server.list_tools() and the server dies on import. Pin the locked
+# version rather than tracking the latest SDK.
+# renovate: datasource=pypi depName=mcp
+ARG MCP_SDK_VERSION=1.17.0
 RUN pip install --no-cache-dir \
+    "mcp==${MCP_SDK_VERSION}" \
     "onshape-mcp @ git+https://github.com/hedless/onshape-mcp.git@${ONSHAPE_MCP_REF}"
 
 FROM docker.io/library/python:3.12-slim-bookworm AS runtime
