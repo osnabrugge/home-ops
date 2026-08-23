@@ -18,6 +18,7 @@ resources:
   - ./metrics-server/ks.yaml
   - ./multus/ks.yaml
   - ./node-feature-discovery/ks.yaml
+  - ./ocharted/ks.yaml
   - ./snapshot-controller/ks.yaml
   - ./reloader/ks.yaml
   - ./spegel/ks.yaml

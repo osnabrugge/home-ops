@@ -3,6 +3,26 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
+  name: mcp-gateway
+  annotations:
+    gatus.home-operations.com/endpoint: |-
+      conditions: ["[STATUS] == 406"]
+spec:
+  hostnames:
+    - mcp.homeops.ca
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  rules:
+    - backendRefs:
+        - name: vmcp-mcp-gateway
+          port: 4483
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
   name: mcp-kubectl
 spec:
   # INTERNAL ONLY. The ToolHive proxies carry no auth of their own, so every
@@ -133,4 +153,84 @@ spec:
   rules:
     - backendRefs:
         - name: mcp-printer-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-arr
+spec:
+  # INTERNAL ONLY - see mcp-kubectl above.
+  hostnames:
+    - mcp-arr.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-arr-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-github
+spec:
+  # INTERNAL ONLY. Carries a GitHub token that can write to this repo.
+  hostnames:
+    - mcp-github.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-github-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-hass
+spec:
+  # INTERNAL ONLY. Can actuate locks, HVAC and every other IoT device.
+  hostnames:
+    - mcp-hass.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-ha-mcp-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-prometheus
+spec:
+  # INTERNAL ONLY - see mcp-kubectl above.
+  hostnames:
+    - mcp-prometheus.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-prometheus-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-talos
+spec:
+  # INTERNAL ONLY. talosctl can reboot and wipe nodes.
+  hostnames:
+    - mcp-talos.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-talos-mcp-proxy
           port: 8080

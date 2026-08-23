@@ -1,0 +1,220 @@
+---
+# yaml-language-server: $schema=https://crd.movishell.pl/toolhive.stacklok.dev/virtualmcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: VirtualMCPServer
+metadata:
+  name: toolhive
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  authServerConfig:
+    issuer: https://mcp.homeops.ca
+    upstreamProviders:
+      - name: entra
+        type: oidc
+        oidcConfig:
+          # OIDC common issuerUrl returns {tenantid} issuer, which toolhive rejects
+          issuerUrl: https://login.microsoftonline.com/2dd2129b-675b-4350-a458-0147ce24617a/v2.0
+          clientId: 3bd36745-d7c4-49c8-912e-b9921f05e485
+          clientSecretRef:
+            name: toolhive
+            key: entra-client-secret
+          scopes:
+            - openid
+            - profile
+            - email
+            - offline_access
+            - https://graph.microsoft.com/User.Read
+            - https://graph.microsoft.com/Calendars.ReadWrite
+            - https://graph.microsoft.com/Mail.ReadWrite
+            - https://graph.microsoft.com/MailboxSettings.Read
+            - https://graph.microsoft.com/Contacts.ReadWrite
+            - https://graph.microsoft.com/Files.ReadWrite
+  incomingAuth:
+    type: oidc
+    oidcConfigRef:
+      name: toolhive
+      audience: https://mcp.homeops.ca/
+      resourceUrl: https://mcp.homeops.ca/
+  outgoingAuth:
+    source: discovered
+  config:
+    operational:
+      logLevel: debug
+    codeMode:
+      enabled: true
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: VirtualMCPServer
+metadata:
+  name: toolhive-safe
+  namespace: toolhive-system
+spec:
+  groupRef:
+    name: toolhive
+  telemetryConfigRef:
+    name: toolhive
+  authServerConfig:
+    issuer: https://mcp-safe.homeops.ca
+    upstreamProviders:
+      - name: entra
+        type: oidc
+        oidcConfig:
+          issuerUrl: https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0
+          clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
+          clientSecretRef:
+            name: toolhive
+            key: entra-client-secret
+          scopes:
+            - openid
+            - profile
+            - email
+            - offline_access
+            - https://graph.microsoft.com/User.Read
+            - https://graph.microsoft.com/Calendars.ReadWrite
+            - https://graph.microsoft.com/Mail.ReadWrite
+            - https://graph.microsoft.com/MailboxSettings.Read
+            - https://graph.microsoft.com/Contacts.ReadWrite
+            - https://graph.microsoft.com/Files.ReadWrite
+  incomingAuth:
+    type: oidc
+    oidcConfigRef:
+      name: toolhive-safe
+      audience: https://mcp-safe.homeops.ca/
+      resourceUrl: https://mcp-safe.homeops.ca/
+  outgoingAuth:
+    source: discovered
+  config:
+    operational:
+      logLevel: debug
+    aggregation:
+      # defaultToolVisibility: deny means any workload in the group with no
+      # entry below contributes no tools, so unsafe workloads just stay
+      # unlisted instead of needing an explicit excludeAll.
+      defaultToolVisibility: deny
+      tools:
+        - workload: calendar
+          filter:
+            - get_event_attachments
+            - get_event_details
+            - list_calendars
+            - list_events
+            - list_events_today
+            - search_events
+        - workload: contact
+          filter:
+            - list_contacts
+            - get_contact
+        - workload: grafana
+          filter:
+            - analyze_loki_labels
+            - check_datasources_health
+            - find_error_pattern_logs
+            - find_slow_requests
+            - generate_deeplink
+            - get_alert_group
+            - get_annotation_tags
+            - get_annotations
+            - get_assertions
+            - get_current_oncall_users
+            - get_dashboard_by_uid
+            - get_dashboard_panel_queries
+            - get_dashboard_property
+            - get_dashboard_summary
+            - get_datasource
+            - get_incident
+            - get_oncall_shift
+            - get_panel_image
+            - get_plugin
+            - get_sift_analysis
+            - get_sift_investigation
+            - get_snapshot
+            - list_alert_groups
+            - list_datasources
+            - list_incidents
+            - list_loki_label_names
+            - list_loki_label_values
+            - list_oncall_schedules
+            - list_oncall_teams
+            - list_oncall_users
+            - list_prometheus_label_names
+            - list_prometheus_label_values
+            - list_prometheus_metric_metadata
+            - list_prometheus_metric_names
+            - list_provisioning_repositories
+            - list_pyroscope_label_names
+            - list_pyroscope_label_values
+            - list_pyroscope_profile_types
+            - list_sift_investigations
+            - list_snapshots
+            - query_loki_logs
+            - query_loki_patterns
+            - query_loki_stats
+            - query_prometheus
+            - query_prometheus_histogram
+            - query_pyroscope
+            - search_dashboards
+            - search_folders
+            - search_plugin_information
+            - suggest_loki_alloy_label_config
+            - tempo_docs-config
+            - tempo_docs-traceql
+            - tempo_get-attribute-names
+            - tempo_get-attribute-values
+            - tempo_get-trace
+            - tempo_traceql-metrics-instant
+            - tempo_traceql-metrics-range
+            - tempo_traceql-search
+            - validate_provisioning_file
+        - workload: kubernetes
+          filter:
+            - configuration_view
+            - events_list
+            - namespaces_list
+            - nodes_log
+            - nodes_stats_summary
+            - nodes_top
+            - pods_get
+            - pods_list
+            - pods_list_in_namespace
+            - pods_log
+            - pods_top
+            - projects_list
+            - resources_get
+            - resources_list
+        - workload: obsidian
+          filter:
+            - get_frontmatter
+            - get_notes_info
+            - get_vault_stats
+            - list_all_tags
+            - list_directory
+            - read_multiple_notes
+            - read_note
+            - search_notes
+        - workload: onedrive
+          filter:
+            - get_drive
+            - get_drive_item
+            - list_all_drives
+            - list_drive_items
+            - list_permissions
+            - list_shared_with_me_items
+        - workload: outlook
+          filter:
+            - get_email_details
+            - get_my_email_address
+            - list_attachments
+            - list_emails
+            - list_group_thread_email_attachments
+            - list_group_thread_posts
+            - list_group_threads
+            - list_groups
+            - list_mail_folders
+            - read_attachment
+            - search_emails
+        - workload: selfhost
+        - workload: google-maps
+        - workload: youtube-transcript

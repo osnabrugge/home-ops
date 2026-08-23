@@ -14,11 +14,232 @@ spec:
     secretRef:
       name: sops-age
   interval: 1h
-  path: ./kubernetes/apps/toolhive/servers/app
+  path: ./kubernetes/apps/toolhive/servers
+  wait: false
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
   targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: arr-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/arr-mcp
   wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: brocade-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/brocade-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/flux-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: github-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/github-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: grafana-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/grafana-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: hass-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/hass-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kubectl-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/kubectl-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: netbox-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/netbox-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: opnsense-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/opnsense-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: printer-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/printer-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: prometheus-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/prometheus-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: talos-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/talos-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: victorialogs-mcp
+spec:
+  dependsOn:
+    - name: toolhive-mcp-servers
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/victorialogs-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive

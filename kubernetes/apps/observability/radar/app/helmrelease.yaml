@@ -5,55 +5,30 @@ kind: HelmRelease
 metadata:
   name: radar
 spec:
+  chartRef:
+    kind: OCIRepository
+    name: radar
   interval: 1h
-  chart:
-    spec:
-      chart: radar
-      version: 1.11.0
-      sourceRef:
-        kind: HelmRepository
-        name: skyhook
-  install:
-    remediation:
-      retries: 3
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      retries: 3
   values:
-    # Radar holds a single in-memory informer cache of the whole cluster, so it
-    # MUST run as a single replica.
     replicaCount: 1
     image:
-      # tag defaults to the chart appVersion (kept in sync by the chart bump)
       pullPolicy: IfNotPresent
     serviceAccount:
       create: true
-    # Read-only, least-privilege RBAC. Write/exec/port-forward/secrets stay OFF;
-    # enable later if Radar should mutate the cluster on our behalf.
     rbac:
       create: true
-      podLogs: true      # log viewer + MCP get_pod_logs/diagnose
-      metrics: true      # top_resources (metrics-server)
-      viewRBAC: true     # RBAC blast-radius analysis (internal, trusted)
-      viewWebhooks: true # list Mutating/ValidatingWebhookConfiguration
-      # helm stays OFF on purpose: the chart grants create/update/patch/delete on
-      # EVERY resource type, and this endpoint has auth.mode=none.
-      # secrets/podExec/portForward stay off for the same reason - the kubectl MCP
-      # already covers those and is equally internal-only.
-    # MCP server (the whole point) — reachable at /mcp on the service port.
+      podLogs: true
+      metrics: true
+      viewRBAC: true
+      viewWebhooks: true
     mcp:
       enabled: true
-    # No auth: this is exposed ONLY on envoy-internal (LAN/trusted boundary).
     auth:
       mode: none
     service:
       port: 9280
-    # Pin the metrics backend rather than relying on auto-discovery.
     traffic:
       prometheusUrl: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
-    # Memory storage lost the whole change history on every restart, which is
-    # exactly the window you need after an incident.
     timeline:
       storage: sqlite
       dbPath: /data/timeline.db
@@ -69,4 +44,5 @@ spec:
         cpu: 50m
         memory: 256Mi
       limits:
+        cpu: 200m
         memory: 1Gi

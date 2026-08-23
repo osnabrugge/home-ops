@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://crd.movishell.pl/toolhive.stacklok.dev/mcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: prometheus
+spec:
+  image: ghcr.io/pab1it0/prometheus-mcp-server:1.6.2
+  transport: streamable-http
+  groupRef:
+    name: mcp-tools
+  env:
+    - name: PROMETHEUS_URL
+      value: http://kube-prometheus-stack-prometheus.monitor.svc.cluster.local:9090
+    - name: PROMETHEUS_DISABLE_LINKS
+      value: "true"
+    - name: PROMETHEUS_MCP_SERVER_TRANSPORT
+      value: http
+    - name: PROMETHEUS_MCP_BIND_HOST
+      value: 0.0.0.0
+    - name: PROMETHEUS_MCP_STATELESS_HTTP
+      value: "true"

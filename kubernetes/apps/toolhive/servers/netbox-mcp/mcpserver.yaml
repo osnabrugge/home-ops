@@ -25,6 +25,9 @@ spec:
       value: "8000"
     - name: VERIFY_SSL
       value: "false"
+  secrets:
+    - name: toolhive-home-assistant
+      key: HOMEASSISTANT_TOKEN
   podTemplateSpec:
     spec:
       containers:

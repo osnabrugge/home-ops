@@ -1,12 +1,5 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  // Pin 7.0.0. Earlier tags are permanently broken by design: 5.0.0 and 6.0.0 both
-  // carry UNPINNED nested references (//managers/cnpg.json5, //config/baseConfig.json5)
-  // which resolve against the preset repo's default branch rather than the tag. When
-  // upstream restructured - deleting config/, managers/, overrides/ and policies/ from
-  // main - every one of those tags broke retroactively and Renovate halted all PRs.
-  // 7.0.0 consolidated everything into a self-contained default.json with zero
-  // references back to its own repo, so no upstream move can break it.
   extends: [
     "github>home-operations/renovate-presets#8.1.0",
     "github>home-operations/renovate-presets//apps/cnpg.json5#8.1.0",
@@ -14,13 +7,21 @@
     "github>home-operations/renovate-presets//apps/talosFactory.json5#8.1.0",
     ":timezone(America/Toronto)",
   ],
-  // Jinja templates are not valid YAML - the {% if %} blocks make Renovate's YAML
-  // parser throw on every run. They carry no renovatable dependencies anyway.
-  ignorePaths: ["talos/**/*.j2"],
-  // GitHub's GraphQL API intermittently returns 502s when Renovate fetches PR
-  // changelogs, which causes the workflow to fail with external-host-error.
-  // Disable changelog fetching to keep scheduled runs resilient to that outage.
-  fetchChangeLogs: "off",
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["before 3am on the first day of the month"],
+    commitMessageExtra: "({{manager}})",
+    additionalBranchPrefix: "{{manager}}-",
+  },
+  hostRules: [
+    {
+      description: "Authenticate against the ocharted OCI registry",
+      matchHost: "ocharted.homeops.ca",
+      hostType: "docker",
+      username: "{{ secrets.OCHARTED_USERNAME }}",
+      password: "{{ secrets.OCHARTED_PASSWORD }}",
+    },
+  ],
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
@@ -127,10 +128,27 @@
       minimumGroupSize: 5,
     },
     {
+      description: "Mise Tools Group",
+      matchManagers: ["mise"],
+      groupName: "mise tools",
+      groupSlug: "mise-tools",
+    },
+    {
       description: "Rook-Ceph Group",
       groupName: "rook-ceph",
       matchDatasources: ["docker"],
       matchPackageNames: ["/rook-ceph/", "/rook-ceph-cluster/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      // After the mise tools catch-all so talos wins its own group; unites the
+      // mise pin, the factory installer image, and the tuppr upgrade version
+      description: "Talos Group",
+      groupName: "talos",
+      matchPackageNames: ["siderolabs/talos"],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },

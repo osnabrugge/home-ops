@@ -8,10 +8,10 @@ spec:
   staticConfigs:
     - targets:
         - kvm01.in.homeops.ca:9100
-       # - nas01.in.homeops.ca:9100
+        # - nas01.in.homeops.ca:9100
         - nas02.in.homeops.ca:9100
         - pve01.in.homeops.ca:9100
-       # - pve02.in.homeops.ca:9100
+        # - pve02.in.homeops.ca:9100
   metricsPath: /metrics
   relabelings:
     - action: replace
@@ -35,10 +35,10 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-       # - nas01.in.homeops.ca:9633
+        # - nas01.in.homeops.ca:9633
         - nas02.in.homeops.ca:9633
         - pve01.in.homeops.ca:9633
-       # - pve02.in.homeops.ca:9633
+        # - pve02.in.homeops.ca:9633
   metricsPath: /metrics
   relabelings:
     - action: replace

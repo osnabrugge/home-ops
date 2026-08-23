@@ -1,6 +1,46 @@
 # kube-prometheus-stack
 
-## NAS Deployments
+## nas01 deployment
+
+### node-exporter
+
+```yaml
+services:
+  node-exporter:
+    command:
+      - '--path.rootfs=/host/root'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.udev.data=/host/root/run/udev/data'
+      - '--web.listen-address=0.0.0.0:9100'
+      - >-
+        --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    image: >-
+      ghcr.io/prometheus/node-exporter:v1.12.1@sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
+    ports:
+      - '9100:9100'
+    restart: always
+    volumes:
+      - /:/host/root:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+```
+
+### smartctl-exporter
+
+```yaml
+services:
+  smartctl-exporter:
+    image: >-
+      quay.io/prometheuscommunity/smartctl-exporter:0.14.0@sha256:cfe22c36d7d2fac48ebf619707305acb65eb0fb670656eb80f356e606d782bc1
+    ports:
+      - '9633:9633'
+    privileged: True
+    restart: always
+    user: root
+```
+
+## nas02 deployment
 
 ### node-exporter
 
@@ -50,3 +90,5 @@ services:
       - '--smartctl.device=/dev/sata7'
       - '--smartctl.device=/dev/sata8'
 ```
+
+
