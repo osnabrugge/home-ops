@@ -21,15 +21,15 @@
 param location string = resourceGroup().location
 
 @description('Public endpoints to probe from outside. Each becomes a standard availability test.')
-param endpoints array = [
-  { name: 'echo', url: 'https://echo.homeops.ca', expectedStatus: 200 }
-  { name: 'status', url: 'https://status.homeops.ca', expectedStatus: 200 }
-  { name: 'plex', url: 'https://plex.homeops.ca/identity', expectedStatus: 200 }
-  { name: 'home-assistant', url: 'https://home-assistant.homeops.ca', expectedStatus: 200 }
-  { name: 'seerr', url: 'https://seerr.homeops.ca', expectedStatus: 200 }
-  { name: 'kromgo', url: 'https://kromgo.homeops.ca', expectedStatus: 200 }
-  { name: 'auth', url: 'https://auth.homeops.ca', expectedStatus: 200 }
-]
+// EMPTIED 2026-08-23. These 7 tests cost $42.84 month-to-date (~$58/mo) on
+// appi-homeops-synthetic — more than the entire $20-30/mo Azure budget, on a
+// shared $210 cap whose exhaustion froze the subscription for a week. External
+// uptime checking now belongs in a GitHub Actions cron, which is free on a
+// public repo. Do not repopulate without doing the cost maths in the comment above.
+param endpoints array = []
+// Retired list, kept so the GitHub Actions replacement can reuse it:
+//   echo.homeops.ca | status.homeops.ca | plex.homeops.ca/identity
+//   home-assistant.homeops.ca | seerr.homeops.ca | kromgo.homeops.ca | auth.homeops.ca
 
 @description('Azure test-runner locations (external vantage points). Each one multiplies cost.')
 param testLocations array = [
