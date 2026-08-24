@@ -9,7 +9,7 @@ spec:
   path: ./kubernetes/apps/observability/mikrotik-exporter/app
   prune: true
   sourceRef:
-    kind: OCIRepository
+    kind: GitRepository
     name: flux-system
     namespace: flux-system
   targetNamespace: observability
