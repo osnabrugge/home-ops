@@ -15,4 +15,4 @@ spec:
   # in via envoy-external, so ocharted's auth bypassNetworks (10.42.0.0/16) never
   # matches the caller and every pull returns 401.
   insecure: true
-  url: oci://ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/radar
+  url: oci://ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/helm-charts/radar
