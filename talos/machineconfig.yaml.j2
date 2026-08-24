@@ -22,8 +22,12 @@ machine:
       allowedKubernetesNamespaces:
         - actions-runner-system
         - system-upgrade
+        - toolhive
       allowedRoles:
         - os:admin
+        # talos-mcp requests os:reader; Talos refuses to mint a cert for a role
+        # that is not listed here, so the ServiceAccount never produces a secret.
+        - os:reader
     {% endif %}
     rbac: true
   files:
