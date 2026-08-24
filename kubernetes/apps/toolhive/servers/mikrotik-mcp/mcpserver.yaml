@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: mikrotik-mcp
+spec:
+  image: ghcr.io/jeff-nasseri/mikrotik-mcp:0.14.10@sha256:7dba0d7e8f187fc1d21ba2e01fc27abfdc3acf0b610a78a99a8bd1df7f057c70
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  env:
+    - name: MIKROTIK_HOST
+      value: "192.168.99.24"
+    - name: MIKROTIK_PORT
+      value: "22"
+    - name: MIKROTIK_MCP__TRANSPORT
+      value: "streamable-http"
+    - name: MIKROTIK_MCP__HOST
+      value: "0.0.0.0"
+    - name: MIKROTIK_MCP__PORT
+      value: "8080"
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          envFrom:
+            - secretRef:
+                name: mikrotik-mcp-secret
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+  groupRef:
+    name: mcp-tools

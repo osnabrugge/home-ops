@@ -19,7 +19,7 @@ spec:
       targetEnvName: GRAFANA_SERVICE_ACCOUNT_TOKEN
   env:
     - name: GRAFANA_URL
-      value: http://grafana-service.monitor.svc.cluster.local:3000
+      value: http://grafana-service.observability.svc.cluster.local:3000
   permissionProfile:
     type: builtin
     name: network
