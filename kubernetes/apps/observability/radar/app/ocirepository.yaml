@@ -11,4 +11,8 @@ spec:
     operation: copy
   ref:
     tag: 1.11.0
-  url: oci://ocharted.homeops.ca/skyhook-io.github.io/radar
+  # In-cluster Service, not ocharted.homeops.ca: the public hostname routes back
+  # in via envoy-external, so ocharted's auth bypassNetworks (10.42.0.0/16) never
+  # matches the caller and every pull returns 401.
+  insecure: true
+  url: oci://ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/radar
