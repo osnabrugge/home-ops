@@ -35,7 +35,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-kubectl-proxy
+        - name: mcp-kubectl-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -51,7 +51,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-flux-proxy
+        - name: mcp-flux-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -68,7 +68,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-brocade-proxy
+        - name: mcp-brocade-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -84,7 +84,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-opnsense-proxy
+        - name: mcp-opnsense-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -101,7 +101,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-victorialogs-proxy
+        - name: mcp-victorialogs-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -118,7 +118,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-grafana-proxy
+        - name: mcp-grafana-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -168,7 +168,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-printer-proxy
+        - name: mcp-printer-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -184,7 +184,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-arr-proxy
+        - name: mcp-arr-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -200,7 +200,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-github-proxy
+        - name: mcp-github-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -216,7 +216,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-ha-mcp-proxy
+        - name: mcp-hass-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -232,7 +232,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-prometheus-proxy
+        - name: mcp-prometheus-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
