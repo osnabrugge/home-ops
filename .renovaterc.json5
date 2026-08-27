@@ -31,6 +31,18 @@
       matchPackageNames: ["quay.io/ceph/ceph"],
       enabled: false,
     },
+    {
+      description: "Pin radar: cluster-local ocharted registry is unreachable from GitHub Actions",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/helm-charts/radar"],
+      enabled: false,
+    },
+    {
+      description: "Pin ceph-csi-drivers: cluster-local ocharted registry is unreachable from GitHub Actions",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ocharted.kube-system.svc.cluster.local:8080/ceph.github.io/ceph-csi-operator/ceph-csi-drivers"],
+      enabled: false,
+    },
     // Auto-merge rules
     {
       description: "Auto-merge trusted OCI digests",
