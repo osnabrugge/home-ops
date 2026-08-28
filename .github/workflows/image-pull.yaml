@@ -37,7 +37,7 @@ jobs:
       }}
     needs: filter
     name: Image Pull - Extract Images
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.repository.name }}-runner
     outputs:
       images: ${{ steps.extract.outputs.images }}
     steps:

@@ -2,7 +2,6 @@
 .copilot/
 .private/
 .pytest_cache/
-.serena/
 .venv/
 .vs/
 *.crt
