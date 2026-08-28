@@ -23,6 +23,12 @@ spec:
       extraArgs:
         syslog.listenAddr.tcp: ":5140"
         syslog.listenAddr.udp: ":5140"
+        # Without this, proc_id (a unique per-message nanosecond timestamp on
+        # these devices) becomes a stream label, so every single line lands in
+        # its own stream and the data is unqueryable. Pin the stream to stable
+        # low-cardinality fields; proc_id is still kept as a regular field.
+        syslog.streamFields.tcp: '["hostname","app_name"]'
+        syslog.streamFields.udp: '["hostname","app_name"]'
       persistentVolume:
         enabled: true
         storageClassName: ceph-block
