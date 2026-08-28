@@ -555,7 +555,7 @@ just kube snapshot <app>  # Trigger restore from Kopia
 
 ### Known blockers to verify before bootstrap
 
-1. **OPNSense BGP:** Cilium peers with `192.168.0.1` (ASN 64513). Verify BGP daemon is running with neighbors for `.42.51-.56`. Without this, LoadBalancer IPs (192.168.69.0/24) won't be reachable.
+1. **Brocade BGP:** Cilium peers with `192.168.42.4` (ASN 64513). Verify BGP daemon is running with neighbors for `.42.51-.56`. Without this, LoadBalancer IPs (192.168.69.0/24) won't be reachable.
 2. **NAS availability:** `nas02.in.homeops.ca` must be online with NFS exports for Kopia backups and NFS mounts.
 3. **AKV secrets:** All ExternalSecrets depend on the `azurekv` ClusterSecretStore. Verify AKV credentials haven't expired.
 4. **Cloudflare Tunnel:** Check tunnel status in Cloudflare dashboard — auth tokens in AKV may need refresh.

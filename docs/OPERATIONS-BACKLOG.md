@@ -414,7 +414,7 @@ The controller was sending adopt commands to the stale `192.168.0.176`. Fixed by
 | 70 IoT | 192.168.70.1 | gw01 |
 
 Trusted VLANs route via core01 so inter-VLAN traffic bypasses the firewall; core01's own
-default is `ip route 0.0.0.0/0 192.168.99.1` (gw01), and core01 runs BGP with the k8s
+default is `ip route 0.0.0.0/0 192.168.42.1` (gw01), and core01 runs BGP with the k8s
 nodes so it holds the `192.168.69.0/24` LoadBalancer routes. gw01 reaches VLAN69 only
 *through* core01 (`192.168.69.0/24 via 192.168.42.4`) — so pointing a management device
 at gw01 instead of core01 causes a hairpin for anything in the LB range.
