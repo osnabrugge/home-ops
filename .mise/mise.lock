@@ -49,14 +49,6 @@ url = "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_
 url_api = "https://api.github.com/repos/rhysd/actionlint/releases/assets/384924919"
 provenance = "github-attestations"
 
-[[tools.azure-cli]]
-version = "2.89.1"
-backend = "pipx:azure-cli"
-specifiers = ["2.89.1"]
-
-[tools.azure-cli.options]
-uvx_args = "--prerelease=allow"
-
 [[tools."github:mitsuhiko/minijinja"]]
 version = "2.24.0"
 backend = "github:mitsuhiko/minijinja"

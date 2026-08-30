@@ -10,7 +10,6 @@ JUST_UNSTABLE = "1"
 postinstall = "lefthook install"
 
 [tools]
-"azure-cli" = { version = "2.89.1", depends = ["uv", "pipx"] }
 actionlint = "1.7.12"
 "github:mitsuhiko/minijinja" = "2.24.0"
 jq = "1.8.2"
