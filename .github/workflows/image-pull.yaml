@@ -51,14 +51,13 @@ jobs:
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           cache: false
-          tool_versions: |
-            github:home-operations/flate 0.4.9
+          install: false
 
       - name: Extract Images
         id: extract
         run: |
           echo 'images<<EOF' >> $GITHUB_OUTPUT
-          flate diff images -p ./kubernetes/flux/cluster -o json >> $GITHUB_OUTPUT
+          mise x github:home-operations/flate@0.4.9 -- flate diff images -p ./kubernetes/flux/cluster -o json >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
 
   pull:
