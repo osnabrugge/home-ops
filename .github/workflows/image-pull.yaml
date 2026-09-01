@@ -28,8 +28,6 @@ jobs:
           patterns: kubernetes/**/*
 
   extract:
-    # Fork guard: the pull job below runs on a self-hosted runner inside the
-    # cluster, so a PR from a fork must never reach it.
     if: >-
       ${{
         needs.filter.outputs.changed-files != '[]' &&
@@ -51,13 +49,13 @@ jobs:
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           cache: false
-          install: false
+          install_args: github:home-operations/flate
 
       - name: Extract Images
         id: extract
         run: |
           echo 'images<<EOF' >> $GITHUB_OUTPUT
-          mise x github:home-operations/flate@0.4.9 -- flate diff images -p ./kubernetes/flux/cluster -o json >> $GITHUB_OUTPUT
+          flate diff images -p ./kubernetes/flux/cluster -o json >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
 
   pull:
