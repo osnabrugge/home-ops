@@ -46,6 +46,11 @@ spec:
                   httpGet:
                     path: /ping
                     port: *port
+                    # Sonarr rejects a bare-IP Host header with 400, and kubelet
+                    # always probes by pod IP, so readiness could never pass.
+                    httpHeaders:
+                      - name: Host
+                        value: localhost
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
