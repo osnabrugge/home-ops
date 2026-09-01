@@ -11,7 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 1.12.2
-    digest: 9fb7598190bd22cac454c0794e319217cdfe7574632a6c21925d080c2456aadd
+    digest: sha256:9fb7598190bd22cac454c0794e319217cdfe7574632a6c21925d080c2456aadd
   # In-cluster Service, not ocharted.homeops.ca: the public hostname routes back
   # in via envoy-external, so ocharted's auth bypassNetworks (10.42.0.0/16) never
   # matches the caller and every pull returns 401.
