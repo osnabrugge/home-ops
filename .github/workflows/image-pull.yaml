@@ -57,6 +57,10 @@ jobs:
         id: extract
         run: |
           images="$(mise x github:home-operations/flate@0.4.9 -- flate diff images -p ./kubernetes/flux/cluster -o json)" || true
+          if [ -z "$images" ]; then
+            echo "flate did not produce image output" >&2
+            exit 1
+          fi
           python3 -m json.tool <<< "$images" >/dev/null
           echo 'images<<EOF' >> $GITHUB_OUTPUT
           echo "$images" >> $GITHUB_OUTPUT
