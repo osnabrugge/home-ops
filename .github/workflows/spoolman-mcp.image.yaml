@@ -1,11 +1,11 @@
 ---
-name: Build 3D printer MCP image
+name: Build Spoolman MCP image
 on:
   push:
     branches: ["main"]
     paths:
-      - docker/printer-mcp/**
-      - .github/workflows/printer-mcp-image.yaml
+      - docker/spoolman-mcp/**
+      - .github/workflows/spoolman-mcp-image.yaml
   workflow_dispatch: {}
 permissions:
   contents: read
@@ -32,9 +32,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
-          context: docker/printer-mcp
+          context: ./docker/spoolman-mcp
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/osnabrugge/printer-mcp:1.2.5
-            ghcr.io/osnabrugge/printer-mcp:latest
+            ghcr.io/osnabrugge/spoolman-mcp:v1.0.1
+            ghcr.io/osnabrugge/spoolman-mcp:latest

@@ -206,6 +206,23 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: spoolman-mcp
+spec:
+  dependsOn:
+    - name: toolhive-operator
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/spoolman-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: talos-mcp
 spec:
   dependsOn:

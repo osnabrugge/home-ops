@@ -50,44 +50,44 @@ url_api = "https://api.github.com/repos/rhysd/actionlint/releases/assets/3849249
 provenance = "github-attestations"
 
 [[tools."github:home-operations/flate"]]
-version = "0.6.1"
+version = "0.6.2"
 backend = "github:home-operations/flate"
-specifiers = ["0.6.1"]
+specifiers = ["v0.6.2"]
 
 [tools."github:home-operations/flate"."platforms.linux-arm64"]
-checksum = "sha256:8ce58ae6f4ca3d609af658c688ea5d01049bfb6dae94a990339e2cb38b19db0f"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_linux_arm64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584321"
+checksum = "sha256:eb55ff9e718327aedbed82bd57eb8694b4dd7dcdf7573b68344bc1b981f7a5d9"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096275"
 
 [tools."github:home-operations/flate"."platforms.linux-arm64-musl"]
-checksum = "sha256:8ce58ae6f4ca3d609af658c688ea5d01049bfb6dae94a990339e2cb38b19db0f"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_linux_arm64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584321"
+checksum = "sha256:eb55ff9e718327aedbed82bd57eb8694b4dd7dcdf7573b68344bc1b981f7a5d9"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096275"
 
 [tools."github:home-operations/flate"."platforms.linux-x64"]
-checksum = "sha256:25de65dd4f4478575768b4c30d6bad4cbb7a75a7a38be5a3cd776ae065fd6631"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584324"
+checksum = "sha256:26475a469ec781c1a4ef4fba715c162c9e480549802cd6639e155cfe0e39f04a"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096274"
 
 [tools."github:home-operations/flate"."platforms.linux-x64-musl"]
-checksum = "sha256:25de65dd4f4478575768b4c30d6bad4cbb7a75a7a38be5a3cd776ae065fd6631"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584324"
+checksum = "sha256:26475a469ec781c1a4ef4fba715c162c9e480549802cd6639e155cfe0e39f04a"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096274"
 
 [tools."github:home-operations/flate"."platforms.macos-arm64"]
-checksum = "sha256:fc41874e4ba03f65d2c78531d629f10b81942ef093bd7e9e224b5731dc043254"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_darwin_arm64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584322"
+checksum = "sha256:21c883ccf9adcf0a6bbb143ad07dcaa1bd96dd230df486f72b7810126467f9b9"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096272"
 
 [tools."github:home-operations/flate"."platforms.macos-x64"]
-checksum = "sha256:6cd4ce1f6e5d0869fdd6050e2fb5a70391b684ceaab78539cb5a9b0a7e1340d1"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_darwin_amd64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584326"
+checksum = "sha256:f5bae9a9fcc0c8aaad11c4e2c07856f92d68d45f23a2d098dd0b3912517eb693"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_darwin_amd64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096273"
 
 [tools."github:home-operations/flate"."platforms.windows-x64"]
-checksum = "sha256:051c7b6b1deba1e73df45a09c9e02f29db7825f47da40db078d92dd519b98563"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_windows_amd64.zip"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584342"
+checksum = "sha256:cbb924aaacb670418a4f61d12292be71c20ccbedfff0ba9897d297bf622f6319"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_windows_amd64.zip"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096298"
 
 [[tools."github:mitsuhiko/minijinja"]]
 version = "2.24.0"
@@ -441,22 +441,37 @@ backend = "aqua:zizmorcore/zizmor"
 specifiers = ["1.30.0"]
 
 [tools.zizmor."platforms.linux-arm64"]
+checksum = "sha256:018a024d6b6d09733b07f6ef42838d984c23ec04bc9b2acd55f7d67826aeafe5"
+url = "https://github.com/zizmorcore/zizmor/releases/download/v1.30.0/zizmor-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/537081734"
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.linux-arm64-musl"]
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.linux-x64"]
+checksum = "sha256:ec8c95cd800845abb9bbc5f377ec7c57d2eb8e2386a00a201d3a74ee4092e5ed"
+url = "https://github.com/zizmorcore/zizmor/releases/download/v1.30.0/zizmor-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/537081732"
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.linux-x64-musl"]
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.macos-arm64"]
+checksum = "sha256:c9c5d83730efb86f2cd71b487605c00a4d63903e4f9458485ed5eac3b1924ab1"
+url = "https://github.com/zizmorcore/zizmor/releases/download/v1.30.0/zizmor-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/537081737"
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.macos-x64"]
+checksum = "sha256:343c85c8f709edf14bf3c8781d53574975ecbb2d23c80ed1eab4932ab0a72343"
+url = "https://github.com/zizmorcore/zizmor/releases/download/v1.30.0/zizmor-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/537081736"
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.windows-x64"]
+checksum = "sha256:a2fcf298b84d3d8498a3d718bb63f0abe26823bf68a11f0f439620f8f2f878f0"
+url = "https://github.com/zizmorcore/zizmor/releases/download/v1.30.0/zizmor-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/537081735"
 provenance = "github-attestations"

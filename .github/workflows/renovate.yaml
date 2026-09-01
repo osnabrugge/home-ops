@@ -51,20 +51,47 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      # App credentials come from repo secrets rather than Key Vault. Sourcing them
-      # from Azure meant a billing event on an unrelated subscription silently broke
-      # every dependency update; CI should not depend on a metered cloud service.
-      # Names cannot start with GITHUB_ - that prefix is reserved by Actions.
-      # No permission-* inputs: requesting a permission the installation lacks fails
-      # token creation outright with 422. Omitting them mints a token carrying exactly
-      # what the installation was granted.
+      - name: Azure login via OIDC
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3.0.2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Load Secrets
+        id: load-secrets
+        run: |
+          SECRET=$(az keyvault secret show \
+            --vault-name ${{ secrets.KEYVAULT_NAME }} \
+            --name github-bot \
+            --query value -o tsv)
+
+          PRIVATE_KEY=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_PRIVATE_KEY_B64' | base64 -d)
+          echo "::add-mask::$PRIVATE_KEY"
+
+          echo "GITHUB_BOT_APP_CLIENT_ID=$(echo "$SECRET" | jq -r '.GITHUB_BOT_APP_CLIENT_ID')" >> $GITHUB_OUTPUT
+          {
+            echo "GITHUB_BOT_APP_PRIVATE_KEY<<PEM_EOF"
+            echo "$PRIVATE_KEY"
+            echo "PEM_EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: Generate Token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
-          client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          client-id: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_CLIENT_ID }}
+          private-key: ${{ steps.load-secrets.outputs.GITHUB_BOT_APP_PRIVATE_KEY }}
+          permission-checks: write
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+          permission-statuses: write
+          permission-vulnerability-alerts: read
+          permission-workflows: write
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -82,14 +109,6 @@ jobs:
           RENOVATE_INTERNAL_CHECKS_FILTER: strict
           RENOVATE_PLATFORM: github
           RENOVATE_PLATFORM_COMMIT: true
-          # Re-enable with the hostRules block in .renovaterc.json5 once ocharted
-          # is serving and both repo secrets exist. Supplying empty values here is
-          # what tripped Renovate's config validation in issue #3954.
-          # RENOVATE_SECRETS: |-
-          #   {
-          #     "OCHARTED_USERNAME": "${{ secrets.OCHARTED_USERNAME }}",
-          #     "OCHARTED_PASSWORD": "${{ secrets.OCHARTED_PASSWORD }}"
-          #   }
         with:
           token: ${{ steps.app-token.outputs.token }}
           renovate-version: ${{ inputs.version || 'latest' }}
