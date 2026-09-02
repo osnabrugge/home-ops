@@ -89,14 +89,14 @@ metadata:
     external-dns.alpha.kubernetes.io/target: 192.168.69.121
     gatus.home-operations.com/endpoint: |-
       group: internal
-      guarded: true
-      # The public `*.homeops.ca` wildcard has been removed, so internal names no
-      # longer resolve on public DNS (1.1.1.1). Use the default guarded semantics:
-      # the DNS probe must get NO answer, asserting the internal name is not
-      # publicly exposed. (The old `len([BODY]) > 0` workaround was for when the
-      # wildcard still existed; it now inverts and false-fires all internal checks.)
+      # No guarded probe here. It queries 1.1.1.1 and requires an EMPTY answer to
+      # assert the name isn't publicly resolvable, but outbound :53 is redirected
+      # to unbound, so the query never reaches Cloudflare and comes back with
+      # 192.168.69.121 - the 14 bytes in "len([BODY]) (14) == 0". It can never
+      # pass. The sidecar reaches these routes fine (a pod gets 200 from
+      # https://sonarr.homeops.ca), so probe them over HTTPS instead.
       conditions:
-        - "len([BODY]) == 0"
+        - "[STATUS] < 400"
       ui:
         hide-hostname: true
         hide-url: true
