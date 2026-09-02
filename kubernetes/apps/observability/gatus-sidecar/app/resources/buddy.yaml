@@ -14,26 +14,13 @@ alerting:
     user-key: ${BUDDY_PUSHOVER_USER_KEY}
 
 endpoints:
-  # ICMP to our own WAN IP can never pass: the firewall drops echo requests and
-  # reaching it from inside would need hairpin NAT. Query the DDNS name against
-  # a public resolver instead -- this proves the DDNS updater is alive and still
-  # publishing an A record, which is what the ping was really watching.
-  - name: DDNS
-    group: buddy
-    url: 1.1.1.1
-    dns:
-      query-name: ${BUDDY_DDNS_HOSTNAME}
-      query-type: A
-    interval: 5m
-    ui:
-      hide-url: true
-      hide-hostname: true
-    conditions:
-      - "[DNS_RCODE] == NOERROR"
-      - "len([BODY]) > 6"
-    alerts:
-      - type: pushover
-
+  # Removed the "Ping" check (icmp://${BUDDY_DDNS_HOSTNAME}). It could never
+  # pass: it targeted our own WAN IP, the firewall drops echo requests, and
+  # reaching it from inside would need hairpin NAT. A DNS-based replacement was
+  # tried and is also permanently red -- as of 2026-09-02 the DDNS hostname has
+  # no A record at all (empty answer from 1.1.1.1, 8.8.8.8 and cluster DNS), so
+  # the DDNS registration itself is dead. Status Page below already covers
+  # reachability. Re-add a DNS check here if the DDNS record is ever restored.
   - name: Status Page
     group: buddy
     url: https://${BUDDY_STATUS_HOSTNAME}
