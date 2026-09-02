@@ -6,8 +6,12 @@ metadata:
   name: kubernetes
 spec:
   kubernetes:
+    # Capped at 1.36.x: Talos 1.13.x (latest stable) only supports Kubernetes up
+    # to 1.36 and its upgrade-k8s validator hard-rejects the 1.36->1.37 path
+    # ("unsupported upgrade path 1.36->1.37"). Lift this once Talos 1.14 ships
+    # stable (1.14.0-rc.2 as of 2026-08-25) and talosupgrade.yaml is on it.
     # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-    version: v1.37.0
+    version: v1.36.4
   healthChecks:
     - apiVersion: kopiur.home-operations.com/v1alpha1
       kind: Snapshot

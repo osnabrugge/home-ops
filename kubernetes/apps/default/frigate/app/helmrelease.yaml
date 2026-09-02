@@ -127,7 +127,7 @@ spec:
       media:
         type: nfs
         server: nas02.in.homeops.ca
-        path: /volume1/data/frigate
+        path: /volume3/frigate
         globalMounts:
           - path: /media/frigate
       usb:

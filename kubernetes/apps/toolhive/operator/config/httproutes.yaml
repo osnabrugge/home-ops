@@ -28,6 +28,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-kubectl
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. The ToolHive proxies carry no auth of their own, so every
   # caller inherits the server's ServiceAccount. kubectl's SA can read cluster
@@ -46,6 +52,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-flux
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY - see mcp-kubectl above.
   hostnames:
@@ -62,6 +74,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-brocade
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. This one reaches core01 with stored credentials and can change
   # switch config - exposure would be a full network compromise path.
@@ -79,6 +97,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-opnsense
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. Holds the gw01 API key - same reasoning as mcp-brocade.
   hostnames:
@@ -95,6 +119,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-victorialogs
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY - reads every log line the cluster and the LAN ship to
   # VictoriaLogs, which includes secrets that apps log by accident.
@@ -112,6 +142,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-grafana
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. Carries an Admin service-account token - it can rewrite
   # dashboards and alert rules.
@@ -129,6 +165,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-netbox
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. Write-enabled NetBox token - it is the source of truth for
   # the whole network inventory.
@@ -146,6 +188,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-onshape
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. Holds Onshape API keys with write access to the CAD account.
   hostnames:
@@ -162,6 +210,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-printer
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. Can start and cancel prints and set heater temperatures on
   # fdm01 - this one reaches a machine that gets hot.
@@ -179,6 +233,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-arr
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY - see mcp-kubectl above.
   hostnames:
@@ -195,6 +255,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-spoolman
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY - see mcp-kubectl above.
   hostnames:
@@ -211,6 +277,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-github
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. Carries a GitHub token that can write to this repo.
   hostnames:
@@ -227,6 +299,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-hass
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. Can actuate locks, HVAC and every other IoT device.
   hostnames:
@@ -243,6 +321,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-prometheus
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY - see mcp-kubectl above.
   hostnames:
@@ -259,6 +343,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: mcp-talos
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
 spec:
   # INTERNAL ONLY. talosctl can reboot and wipe nodes.
   hostnames:
