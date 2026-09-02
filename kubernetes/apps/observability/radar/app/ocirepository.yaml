@@ -14,8 +14,8 @@ spec:
   # pinned digest makes the OCIRepository permanently unready.
   ref:
     tag: 1.12.2
-  # In-cluster Service, not ocharted.homeops.ca: the public hostname routes back
-  # in via envoy-external, so ocharted's auth bypassNetworks (10.42.0.0/16) never
-  # matches the caller and every pull returns 401.
-  insecure: true
-  url: oci://ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/helm-charts/radar
+  # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
+  # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
+  # so an http:// Service URL fails every PR with
+  # "http: server gave HTTP response to HTTPS client".
+  url: oci://ocharted.homeops.ca/skyhook-io.github.io/helm-charts/radar
