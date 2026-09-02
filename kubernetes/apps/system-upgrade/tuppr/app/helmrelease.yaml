@@ -11,6 +11,14 @@ spec:
   interval: 1h
   values:
     replicaCount: 2
+    talos:
+      # Chart default is talos.default.svc.cluster.local, a Service this cluster
+      # does not have; without this every upgrade job dies with
+      # "error creating etcd client: context deadline exceeded".
+      endpoints:
+        - 192.168.42.51
+        - 192.168.42.52
+        - 192.168.42.53
     monitoring:
       serviceMonitor:
         enabled: true
