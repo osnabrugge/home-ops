@@ -13,11 +13,15 @@
     commitMessageExtra: "({{manager}})",
     additionalBranchPrefix: "{{manager}}-",
   },
-  // Re-enable together with RENOVATE_SECRETS in .github/workflows/renovate.yaml
-  // once ocharted is serving AND the OCHARTED_USERNAME/OCHARTED_PASSWORD repo
-  // secrets exist. Referencing a secret that is not supplied makes Renovate fail
-  // config validation and stop opening PRs entirely (issue #3954).
+  // ocharted is only a pull-through cache and is reached over a cluster-internal
+  // Service, so it needs no credentials from CI and must not be queried from CI.
+  // The charts behind it are tracked against their upstream Helm repos below.
   hostRules: [],
+  // librenms is an unfinished scaffold: it has a helmrelease.yaml but no ks.yaml,
+  // no ocirepository.yaml for the chartRef it names, and is not referenced by
+  // kubernetes/apps/observability/kustomization.yaml. Renovate PRs against it can
+  // never render or deploy. Remove this entry once the app is fully wired up.
+  ignorePaths: ["kubernetes/apps/observability/librenms/**"],
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
@@ -32,16 +36,26 @@
       enabled: false,
     },
     {
-      description: "Pin radar: cluster-local ocharted registry is unreachable from GitHub Actions",
+      // GitHub Actions cannot resolve the cluster-internal ocharted Service, so
+      // query the upstream Helm repo it proxies rather than disabling updates.
+      description: "Track radar against its upstream Helm repo, not the ocharted proxy",
       matchDatasources: ["docker"],
-      matchPackageNames: ["ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/helm-charts/radar"],
-      enabled: false,
+      matchPackageNames: [
+        "ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/helm-charts/radar",
+      ],
+      overrideDatasource: "helm",
+      overridePackageName: "radar",
+      registryUrls: ["https://skyhook-io.github.io/helm-charts"],
     },
     {
-      description: "Pin ceph-csi-drivers: cluster-local ocharted registry is unreachable from GitHub Actions",
+      description: "Track ceph-csi-drivers against its upstream Helm repo, not the ocharted proxy",
       matchDatasources: ["docker"],
-      matchPackageNames: ["ocharted.kube-system.svc.cluster.local:8080/ceph.github.io/ceph-csi-operator/ceph-csi-drivers"],
-      enabled: false,
+      matchPackageNames: [
+        "ocharted.kube-system.svc.cluster.local:8080/ceph.github.io/ceph-csi-operator/ceph-csi-drivers",
+      ],
+      overrideDatasource: "helm",
+      overridePackageName: "ceph-csi-drivers",
+      registryUrls: ["https://ceph.github.io/ceph-csi-operator"],
     },
     // Auto-merge rules
     {
@@ -161,6 +175,12 @@
         commitMessageTopic: "{{{groupName}}} group",
       },
       minimumGroupSize: 2,
+    },
+    {
+      description: "CoreDNS 1.14.3+ prefetch poisons autopath answers, hold until coredns/coredns#8390 is fixed",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/coredns/charts/coredns"],
+      enabled: false,
     },
     // Labeling rules
     {

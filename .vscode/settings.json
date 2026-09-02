@@ -1160,9 +1160,9 @@
     },
     "home-ops/.vscode/mcp.json: orcaslicer": {
       "allowedModels": [
+        "agent-host-copilotcli:auto",
         "copilotcli/auto",
         "copilot/auto",
-        "agent-host-copilotcli:auto",
         "agent-host-copilotcli:claude-haiku-4.5",
         "agent-host-claude:@provider=copilot:claude-haiku-4.5",
         "copilotcli/claude-haiku-4.5",

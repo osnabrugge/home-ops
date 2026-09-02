@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: spoolman-mcp
+spec:
+  # Built from /Disane87/spoolman-mcp by .github/workflows/spoolman-mcp-image.yaml
+  image: ghcr.io/osnabrugge/spoolman-mcp:v1.0.1
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  env:
+    - name: SPOOLMAN_URL
+      value: "http://spoolman.default.svc.cluster.local:7912"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 30Mi
+    limits:
+      memory: 128Mi
+  groupRef:
+    name: mcp-tools

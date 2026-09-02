@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # See renovate.yaml - app credentials come from repo secrets, not Key Vault.
       - name: Generate Token
@@ -31,6 +33,7 @@ jobs:
         with:
           client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          permission-contents: write
 
       - name: Get Previous Tag and Determine Next Tag
         id: determine-next-tag
