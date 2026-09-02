@@ -179,6 +179,21 @@
       matchPackageNames: ["ghcr.io/coredns/charts/coredns"],
       enabled: false,
     },
+    {
+      // Talos 1.13.x (latest stable) bundles Kubernetes 1.36 and its upgrade-k8s
+      // validator hard-rejects 1.36->1.37, so a 1.37 bump wedges tuppr in Failed
+      // forever. Raise the cap once Talos 1.14 is stable and rolled out.
+      description: "Cap Kubernetes at 1.36.x until Talos 1.14 ships stable",
+      matchDatasources: ["docker"],
+      matchPackageNames: [
+        "/kube-apiserver/",
+        "/kube-controller-manager/",
+        "/kube-proxy/",
+        "/kube-scheduler/",
+        "/kubelet/",
+      ],
+      allowedVersions: "<1.37.0",
+    },
     // Labeling rules
     {
       matchUpdateTypes: ["major"],

@@ -14,15 +14,23 @@ alerting:
     user-key: ${BUDDY_PUSHOVER_USER_KEY}
 
 endpoints:
-  - name: Ping
+  # ICMP to our own WAN IP can never pass: the firewall drops echo requests and
+  # reaching it from inside would need hairpin NAT. Query the DDNS name against
+  # a public resolver instead -- this proves the DDNS updater is alive and still
+  # publishing an A record, which is what the ping was really watching.
+  - name: DDNS
     group: buddy
-    url: icmp://${BUDDY_DDNS_HOSTNAME}
-    interval: 1m
+    url: 1.1.1.1
+    dns:
+      query-name: ${BUDDY_DDNS_HOSTNAME}
+      query-type: A
+    interval: 5m
     ui:
       hide-url: true
       hide-hostname: true
     conditions:
-      - "[CONNECTED] == true"
+      - "[DNS_RCODE] == NOERROR"
+      - "len([BODY]) > 6"
     alerts:
       - type: pushover
 
