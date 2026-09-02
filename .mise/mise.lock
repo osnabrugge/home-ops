@@ -12,7 +12,6 @@ checksum = "sha256:325e971b6ba9bfa504672e29be93c24981eeb1c07576d730e9f7c8805afff
 url = "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_arm64.tar.gz"
 url_api = "https://api.github.com/repos/rhysd/actionlint/releases/assets/384924897"
 provenance = "github-attestations"
-
 [tools.actionlint."platforms.linux-x64"]
 checksum = "sha256:8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
 url = "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
@@ -20,19 +19,19 @@ url_api = "https://api.github.com/repos/rhysd/actionlint/releases/assets/3849248
 provenance = "github-attestations"
 
 [[tools."github:home-operations/flate"]]
-version = "0.6.2"
+version = "0.6.1"
 backend = "github:home-operations/flate"
-specifiers = ["v0.6.2"]
+specifiers = ["0.6.1"]
 
 [tools."github:home-operations/flate"."platforms.linux-arm64"]
-checksum = "sha256:eb55ff9e718327aedbed82bd57eb8694b4dd7dcdf7573b68344bc1b981f7a5d9"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_linux_arm64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096275"
+checksum = "sha256:8ce58ae6f4ca3d609af658c688ea5d01049bfb6dae94a990339e2cb38b19db0f"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584321"
 
 [tools."github:home-operations/flate"."platforms.linux-x64"]
-checksum = "sha256:26475a469ec781c1a4ef4fba715c162c9e480549802cd6639e155cfe0e39f04a"
-url = "https://github.com/home-operations/flate/releases/download/v0.6.2/flate_0.6.2_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/538096274"
+checksum = "sha256:25de65dd4f4478575768b4c30d6bad4cbb7a75a7a38be5a3cd776ae065fd6631"
+url = "https://github.com/home-operations/flate/releases/download/v0.6.1/flate_0.6.1_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/home-operations/flate/releases/assets/531584324"
 
 [[tools."github:mitsuhiko/minijinja"]]
 version = "2.24.0"
@@ -112,9 +111,9 @@ checksum = "sha256:b2b76660fa4ded4e0b2a41ee3c0c651cd52ea8170ead91ebac1e147ac3d55
 url = "https://nodejs.org/dist/v26.8.1/node-v26.8.1-linux-x64.tar.gz"
 
 [[tools.oxfmt]]
-version = "0.66.0"
+version = "0.65.0"
 backend = "npm:oxfmt"
-specifiers = ["0.66.0"]
+specifiers = ["0.65.0"]
 
 [[tools.shellcheck]]
 version = "0.11.0"
