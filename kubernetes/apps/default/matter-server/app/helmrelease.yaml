@@ -15,6 +15,24 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         strategy: Recreate
+        initContainers:
+          # Thread border routers advertise the mesh OMR prefix as a /64 Route
+          # Information Option; at the kernel default of 0 the RIO is discarded and
+          # the route into the Thread network is never installed. Privileged because
+          # /proc/sys is mounted read-only for the app container, and this is an
+          # unsafe sysctl so securityContext.sysctls would need allowedUnsafeSysctls
+          # on every kubelet.
+          sysctl:
+            image:
+              repository: busybox
+              tag: "1.36"
+            command:
+              - sh
+              - -c
+              - sysctl -w net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
+            securityContext:
+              runAsUser: 0
+              privileged: true
         containers:
           app:
             image:
