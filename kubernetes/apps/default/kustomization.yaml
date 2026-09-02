@@ -24,6 +24,7 @@ resources:
   - ./lidarr/ks.yaml
   - ./matter-server/ks.yaml
   - ./mosquitto/ks.yaml
+  - ./otbr/ks.yaml
   - ./plex/ks.yaml
   - ./prowlarr/ks.yaml
   - ./qbittorrent/ks.yaml
