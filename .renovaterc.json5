@@ -36,13 +36,12 @@
       enabled: false,
     },
     {
-      // GitHub Actions cannot resolve the cluster-internal ocharted Service, so
-      // query the upstream Helm repo it proxies rather than disabling updates.
+      // ocharted only bypasses auth for 10.42.0.0/16, so a lookup from CI returns
+      // no-result. Query the upstream Helm repo it proxies instead. Keep these
+      // matchers in sync with the OCIRepository url or updates silently stop.
       description: "Track radar against its upstream Helm repo, not the ocharted proxy",
       matchDatasources: ["docker"],
-      matchPackageNames: [
-        "ocharted.kube-system.svc.cluster.local:8080/skyhook-io.github.io/helm-charts/radar",
-      ],
+      matchPackageNames: ["ocharted.homeops.ca/skyhook-io.github.io/helm-charts/radar"],
       overrideDatasource: "helm",
       overridePackageName: "radar",
       registryUrls: ["https://skyhook-io.github.io/helm-charts"],
@@ -50,9 +49,7 @@
     {
       description: "Track ceph-csi-drivers against its upstream Helm repo, not the ocharted proxy",
       matchDatasources: ["docker"],
-      matchPackageNames: [
-        "ocharted.kube-system.svc.cluster.local:8080/ceph.github.io/ceph-csi-operator/ceph-csi-drivers",
-      ],
+      matchPackageNames: ["ocharted.homeops.ca/ceph.github.io/ceph-csi-operator/ceph-csi-drivers"],
       overrideDatasource: "helm",
       overridePackageName: "ceph-csi-drivers",
       registryUrls: ["https://ceph.github.io/ceph-csi-operator"],
