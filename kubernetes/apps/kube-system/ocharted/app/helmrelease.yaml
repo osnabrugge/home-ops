@@ -27,8 +27,15 @@ spec:
           conditions: ["[STATUS] == 200"]
       hostnames:
         - "{{ .Release.Name }}.homeops.ca"
+      # envoy-internal, not -external: on the external gateway the name resolves
+      # to Cloudflare, so pulls re-enter from a public IP and never match
+      # auth.bypassNetworks (ocharted checks the socket peer and ignores XFF),
+      # returning 401. Internally it resolves to the LAN envoy LB and the
+      # proxying pod IS in 10.42/16. That also gives a real TLS endpoint, which
+      # flate requires: it maps spec.insecure to InsecureSkipVerify over HTTPS
+      # rather than to plain HTTP as source-controller does.
       parentRefs:
-        - name: envoy-external
+        - name: envoy-internal
           namespace: network
     monitoring:
       serviceMonitor:

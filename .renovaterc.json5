@@ -17,6 +17,11 @@
   // Service, so it needs no credentials from CI and must not be queried from CI.
   // The charts behind it are tracked against their upstream Helm repos below.
   hostRules: [],
+  // librenms is an unfinished scaffold: it has a helmrelease.yaml but no ks.yaml,
+  // no ocirepository.yaml for the chartRef it names, and is not referenced by
+  // kubernetes/apps/observability/kustomization.yaml. Renovate PRs against it can
+  // never render or deploy. Remove this entry once the app is fully wired up.
+  ignorePaths: ["kubernetes/apps/observability/librenms/**"],
   packageRules: [
     {
       description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
