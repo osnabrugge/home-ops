@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/charlie-haley/omada_exporter
-              tag: 0.13.1@sha256:f1b939655866d87bcc5df4e6017627cfe690dee81c4a8550382d108e9e852171
+              tag: 0.13.1
             env:
               OMADA_HOST: https://oc01.in.homeops.ca:8843
               OMADA_INSECURE: true
