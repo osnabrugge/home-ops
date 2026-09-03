@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app omada-exporter
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *app
+  interval: 1h
+  values:
+    controllers:
+      omada-exporter:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/charlie-haley/omada_exporter@sha256:f1b939655866d87bcc5df4e6017627cfe690dee81c4a8550382d108e9e852171
+              tag: 0.13.1
+            env:
+              OMADA_HOST: https://oc01.in.homeops.ca:8843
+              OMADA_INSECURE: true
+              OMADA_REQUEST_TIMEOUT: 60
+            envFrom:
+              - secretRef:
+                  name: omada-exporter-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 15m
+              limits:
+                memory: 120M
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        fsGroup: 65534
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: 9202
+    serviceMonitor:
+      app:
+        endpoints:
+          - port: http
+            scheme: http
+            path: /metrics
+            interval: 60s
+            scrapeTimeout: 1m

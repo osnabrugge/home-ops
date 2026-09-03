@@ -18,6 +18,7 @@ resources:
   - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
   - ./mikrotik-exporter/ks.yaml
+  - ./omada-exporter/ks.yaml
   - ./opnsense-exporter/ks.yaml
   - ./prometheus-adapter/ks.yaml
   - ./pve-exporter/ks.yaml
