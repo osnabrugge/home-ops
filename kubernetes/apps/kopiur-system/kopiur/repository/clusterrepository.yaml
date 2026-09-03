@@ -13,7 +13,7 @@ spec:
       volume:
         nfs:
           server: nas02.in.homeops.ca
-          path: /volume1/data/kopiur
+          path: /volume3/kopiur
   encryption:
     passwordSecretRef:
       name: kopiur-repository-secret

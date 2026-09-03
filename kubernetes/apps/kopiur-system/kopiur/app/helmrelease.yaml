@@ -14,7 +14,7 @@ spec:
       - name: repo
         nfs:
           server: nas02.in.homeops.ca
-          path: /volume1/data/kopiur
+          path: /volume3/kopiur
     extraVolumeMounts:
       - name: repo
         mountPath: /repo
