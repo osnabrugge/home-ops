@@ -54,6 +54,9 @@ spec:
                 - name: gpu
               requests:
                 cpu: 100m
+                # Without this, the scheduler defaults the request to the 16Gi
+                # limit and Plex cannot fit on any node.
+                memory: 4Gi
               limits:
                 memory: 16Gi
     defaultPodOptions:
