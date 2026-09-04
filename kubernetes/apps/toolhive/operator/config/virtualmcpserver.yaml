@@ -62,8 +62,8 @@ spec:
       - name: entra
         type: oidc
         oidcConfig:
-          issuerUrl: https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0
-          clientId: 5c3c299e-f61f-41cc-b4e1-f12018b84afa
+          issuerUrl: https://login.microsoftonline.com/2dd2129b-675b-4350-a458-0147ce24617a/v2.0
+          clientId: 3bd36745-d7c4-49c8-912e-b9921f05e485
           clientSecretRef:
             name: toolhive
             key: entra-client-secret
