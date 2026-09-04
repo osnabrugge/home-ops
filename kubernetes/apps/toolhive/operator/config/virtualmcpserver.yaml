@@ -50,7 +50,6 @@ apiVersion: toolhive.stacklok.dev/v1beta1
 kind: VirtualMCPServer
 metadata:
   name: toolhive-safe
-  namespace: toolhive-system
 spec:
   groupRef:
     name: toolhive
