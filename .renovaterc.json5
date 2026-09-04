@@ -153,6 +153,26 @@
       groupSlug: "mise-tools",
     },
     {
+      description: "Netbox Diode Group",
+      groupName: "netbox-diode",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/diode-auth/", "/diode-ingester/", "/diode-reconciler/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 3,
+    },
+    {
+      description: "Printstash Group",
+      groupName: "printstash",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/printstash-api/", "/printstash-frontend/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 2,
+    },
+    {
       description: "Rook-Ceph Group",
       groupName: "rook-ceph",
       matchDatasources: ["docker"],
