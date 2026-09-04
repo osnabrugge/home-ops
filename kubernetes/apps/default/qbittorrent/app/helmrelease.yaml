@@ -53,6 +53,9 @@ spec:
             resources:
               requests:
                 cpu: 100m
+                # Without this the request defaults to the 16Gi limit and the
+                # pod cannot be scheduled on any node.
+                memory: 2Gi
               limits:
                 memory: 16Gi
     defaultPodOptions:
