@@ -9,6 +9,9 @@ spec:
     kind: OCIRepository
     name: qbittorrent
   interval: 1h
+  # RWO volume detach/reattach on reschedule regularly exceeds Helm's 5m default,
+  # which sends the release into an upgrade->timeout->rollback loop.
+  timeout: 15m
   values:
     controllers:
       qbittorrent:
