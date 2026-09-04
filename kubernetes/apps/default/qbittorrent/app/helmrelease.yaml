@@ -12,22 +12,6 @@ spec:
   values:
     controllers:
       qbittorrent:
-        initContainers:
-          copy-config:
-            image:
-              repository: public.ecr.aws/docker/library/busybox
-              tag: latest
-            command:
-              - sh
-              - -c
-              - |
-                if [ ! -f /config/qBittorrent/qBittorrent.conf ]; then
-                  mkdir -p /config/qBittorrent
-                  cp /tmp/qbt-config/qbittorrent.conf /config/qBittorrent/qBittorrent.conf
-                  echo "Copied initial config"
-                else
-                  echo "Config already exists, skipping"
-                fi
         containers:
           app:
             image:
@@ -37,17 +21,6 @@ spec:
               TZ: America/Toronto
               QBT_WEBUI_PORT: &port 80
               QBT_TORRENTING_PORT: &torrentPort 31288
-              # Ratio optimization - Critical for H&R prevention
-              QBT_SEED_RATIO_LIMIT: "3.0"
-              QBT_SEED_TIME_LIMIT: "9999999"
-              QBT_MAX_SEEDING_TIME: "9999999"
-              QBT_MAX_ACTIVE_DOWNLOADS: "5"
-              QBT_MAX_UPLOADS_PER_SECOND: "0"
-              QBT_UPLOAD_SLOTS: "20"
-            envFrom:
-              - secretRef:
-                  name: qbittorrent-secret
-                  optional: true
             probes:
               liveness:
                 enabled: true
@@ -77,45 +50,8 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 2Gi
               limits:
                 memory: 16Gi
-          metrics:
-            image:
-              repository: ghcr.io/esanchezm/prometheus-qbittorrent-exporter
-              tag: sha-3e55078@sha256:22bfda2c06fb4a65215de95e25288df97199424f44298b78dbfdfd82d34349b8
-            env:
-              QBITTORRENT_HOST: localhost
-              QBITTORRENT_PORT: *port
-              EXPORTER_PORT: &metricsPort 8000
-              VERIFY_WEBUI_CERTIFICATE: "False"
-            envFrom:
-              - secretRef:
-                  name: qbittorrent-secret
-                  optional: true
-            probes:
-              liveness:
-                enabled: true
-                custom: true
-                spec:
-                  httpGet:
-                    path: /metrics
-                    port: *metricsPort
-                  initialDelaySeconds: 15
-                  periodSeconds: 30
-                  timeoutSeconds: 5
-                  failureThreshold: 3
-              readiness:
-                enabled: false
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
-            resources:
-              requests:
-                cpu: 5m
-              limits:
-                memory: 64Mi
     defaultPodOptions:
       terminationGracePeriodSeconds: 300
       securityContext:
@@ -154,14 +90,6 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-      configmap:
-        type: configMap
-        name: qbittorrent-config
-        defaultMode: 0644
-        globalMounts:
-          - path: /tmp/qbt-config/qbittorrent.conf
-            subPath: qbittorrent.conf
-            readOnly: true
       media:
         type: nfs
         server: nas02.in.homeops.ca
@@ -170,7 +98,3 @@ spec:
           - path: /data
       tmp:
         type: emptyDir
-      cache:
-        type: emptyDir
-        globalMounts:
-          - path: /cache

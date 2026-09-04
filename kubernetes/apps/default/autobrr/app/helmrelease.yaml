@@ -27,21 +27,9 @@ spec:
               AUTOBRR__METRICS_PORT: &metricsPort 9094
               AUTOBRR__CHECK_FOR_UPDATES: false
               AUTOBRR__LOG_LEVEL: INFO
-              # Ratio protection settings
-              AUTOBRR__DISABLE_FILTER_ON_STARTUP: "false"
-              AUTOBRR__PACING_ENABLED: "true"
-              AUTOBRR__PACING_INTERVAL: "300"
-              AUTOBRR_BOOTSTRAP_ENABLED: "true"
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
-            lifecycle:
-              postStart:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - if [ "$(printenv AUTOBRR_BOOTSTRAP_ENABLED)" = "true" ]; then nohup /bootstrap/bootstrap.sh >/tmp/autobrr-bootstrap.log 2>&1 & fi
             probes:
               liveness:
                 enabled: true
@@ -71,11 +59,8 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                # Observed 14d working set spikes to ~512Mi (announce/filter bursts),
-                # which repeatedly OOMKilled at the old 512Mi limit. Sized with headroom.
-                memory: 256Mi
               limits:
-                memory: 1Gi
+                memory: 256Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -108,21 +93,5 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-      configmap:
-        type: configMap
-        name: autobrr-config
-        defaultMode: 0644
-        globalMounts:
-          - path: /config/autobrr/config.toml
-            subPath: config.toml
-            readOnly: true
-      bootstrap:
-        type: configMap
-        name: autobrr-bootstrap
-        defaultMode: 0755
-        globalMounts:
-          - path: /bootstrap/bootstrap.sh
-            subPath: bootstrap.sh
-            readOnly: true
       tmp:
         type: emptyDir
