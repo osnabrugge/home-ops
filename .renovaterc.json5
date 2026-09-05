@@ -194,6 +194,15 @@
       minimumGroupSize: 2,
     },
     {
+      // A merged Talos bump is not a PR, it is an unattended rolling power-cycle
+      // of all 6 nodes via tuppr. 1.13->1.14 renumbered /dev/dri and broke every
+      // GPU workload. Raise this deliberately, with a maintenance window.
+      description: "Never auto-bump Talos minor/major -- tuppr reboots the whole cluster",
+      matchPackageNames: ["siderolabs/talos"],
+      matchUpdateTypes: ["major", "minor"],
+      dependencyDashboardApproval: true,
+    },
+    {
       description: "CoreDNS 1.14.3+ prefetch poisons autopath answers, hold until coredns/coredns#8390 is fixed",
       matchDatasources: ["docker"],
       matchPackageNames: ["ghcr.io/coredns/charts/coredns"],
