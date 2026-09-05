@@ -373,7 +373,7 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: vmcp-toolhive
+        - name: toolhive
           port: 4483
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -388,5 +388,5 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: vmcp-toolhive-safe
+        - name: toolhive-safe
           port: 4483
