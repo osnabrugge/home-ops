@@ -46,6 +46,10 @@ spec:
       - name: unbound-certs
         secret:
           secretName: &secret unbound-dns-secret
+    extraArgs:
+      # Without this it also ingests envoy-external routes, producing conflicting
+      # record candidates for dual-published hosts ("discarding CNAME record").
+      - --gateway-name=envoy-internal
     triggerLoopOnEvent: true
     policy: sync
     sources:
