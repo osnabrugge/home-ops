@@ -72,6 +72,9 @@ spec:
         type: LoadBalancer
         annotations:
           lbipam.cilium.io/ips: 192.168.69.128
+          # Without its own name the service source claims plex.homeops.ca and
+          # points it at :32400, where nothing serves 443.
+          external-dns.alpha.kubernetes.io/hostname: plex-direct.homeops.ca
         externalTrafficPolicy: Local
         ports:
           http:
@@ -85,6 +88,8 @@ spec:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
           - name: envoy-external
+            namespace: network
+          - name: envoy-internal
             namespace: network
         rules:
           - # Ref: https://forums.plex.tv/t/external-srt-subtitles-are-not-working-w-reverse-proxy/886540
