@@ -54,8 +54,6 @@ spec:
                 - name: gpu
               requests:
                 cpu: 100m
-                # Without this, the scheduler defaults the request to the 16Gi
-                # limit and Plex cannot fit on any node.
                 memory: 4Gi
               limits:
                 memory: 16Gi
@@ -102,21 +100,6 @@ spec:
               - path:
                   type: PathPrefix
                   value: /library/streams
-          - backendRefs:
-              - identifier: app
-                port: *port
-      internal:
-        annotations:
-          gatus.home-operations.com/endpoint: |-
-            conditions:
-              - "len([BODY]) > 0"
-          external-dns.alpha.kubernetes.io/controller: none
-        hostnames:
-          - "{{ .Release.Name }}.homeops.ca"
-        parentRefs:
-          - name: envoy-internal
-            namespace: network
-        rules:
           - backendRefs:
               - identifier: app
                 port: *port
