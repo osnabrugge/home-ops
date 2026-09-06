@@ -88,7 +88,7 @@ sync resource:
 
 [doc('View a secret')]
 view-secret ns secret:
-    kubectl view-secret -n {{ ns }} {{ secret }}
+    kubectl get secret -n {{ ns }} {{ secret }}
 
 [doc('Copy the Flux sops-age key into a namespace so its Kustomizations can decrypt')]
 seed-sops-key ns:
