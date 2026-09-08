@@ -33,6 +33,9 @@
       overrideDatasource: "helm",
       overridePackageName: "radar",
       registryUrls: ["https://skyhook-io.github.io/helm-charts"],
+      // ocharted serves manifests by TAG only; a digest-addressed fetch 404s, so a
+      // pinned digest makes the OCIRepository permanently unready (broke PR #4169).
+      pinDigests: false,
     },
     {
       description: "Track ceph-csi-drivers against its upstream Helm repo, not the ocharted proxy",
@@ -41,6 +44,7 @@
       overrideDatasource: "helm",
       overridePackageName: "ceph-csi-drivers",
       registryUrls: ["https://ceph.github.io/ceph-csi-operator"],
+      pinDigests: false,
     },
     // Auto-merge rules
     {
