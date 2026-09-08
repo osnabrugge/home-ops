@@ -23,10 +23,10 @@ spec:
     # the old cephClusterSpec.cephVersion in place rendered cephVersion TWICE, so
     # Flux's post-render YAML parse failed and the HR upgrade got stuck (failing
     # every 15m since 2026-07-08), cascading "dependency not ready" to ~40 apps.
-    cephImage:
-      repository: quay.io/ceph/ceph
-      tag: v20.2.2
-      allowUnsupported: false
+    #
+    # cephImage is deliberately NOT overridden: the chart ships a Ceph version
+    # matched to its Rook operator release, so pinning it here made Renovate try
+    # to bump Ceph independently of Rook.
     cephClusterSpec:
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
