@@ -254,6 +254,28 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
+  name: mcp-memory
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
+spec:
+  # INTERNAL ONLY - see mcp-kubectl above.
+  hostnames:
+    - mcp-memory.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-memory-mcp-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
   name: mcp-spoolman
   annotations:
     # MCP endpoints answer 406 to a plain GET (they require
@@ -315,6 +337,28 @@ spec:
   rules:
     - backendRefs:
         - name: mcp-hass-mcp-proxy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-omada
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    # /health does: verified 200 on netbox/github/arr/talos/brocade.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
+spec:
+  # INTERNAL ONLY - see mcp-kubectl above.
+  hostnames:
+    - mcp-omada.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-omada-mcp-proxy
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
