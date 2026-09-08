@@ -19,3 +19,5 @@ spec:
   # so an http:// Service URL fails every PR with
   # "http: server gave HTTP response to HTTPS client".
   url: oci://ocharted.homeops.ca/skyhook-io.github.io/helm-charts/radar
+  secretRef:
+    name: ocharted-pull

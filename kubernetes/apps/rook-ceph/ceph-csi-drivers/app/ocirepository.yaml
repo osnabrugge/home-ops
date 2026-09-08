@@ -16,3 +16,5 @@ spec:
   # so an http:// Service URL fails every PR with
   # "http: server gave HTTP response to HTTPS client".
   url: oci://ocharted.homeops.ca/ceph.github.io/ceph-csi-operator/ceph-csi-drivers
+  secretRef:
+    name: ocharted-pull
