@@ -5,10 +5,12 @@ kind: PersistentVolumeClaim
 metadata:
   name: memory-mcp
 spec:
-  # CephFS rather than ceph-block: the emergency_ro cascade that repeatedly wedges
-  # this cluster is a krbd failure, and CephFS uses a different driver.
-  storageClassName: ceph-filesystem
-  accessModes: ["ReadWriteMany"]
+  # ceph-filesystem was tried first (CephFS avoids the krbd emergency_ro cascade)
+  # but CephFS has never been exercised on this cluster and mounts fail with
+  # "no mds is up ... or you may not be authorized" despite MDS active and CSI
+  # caps correct. Revisit once CephFS is proven.
+  storageClassName: ceph-block
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
       storage: 1Gi
