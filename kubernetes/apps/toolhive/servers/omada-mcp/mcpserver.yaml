@@ -1,0 +1,44 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: omada-mcp
+spec:
+  image: ghcr.io/migueltvms/tplink-omada-mcp:v0.15.0@sha256:46bc8d69bcd3cd44583d7359fb7c1c5875fb199ecda7191c25059f7e734401ab
+  transport: streamable-http
+  mcpPort: 3000
+  proxyPort: 8080
+  permissionProfile:
+    type: builtin
+    name: network
+  env:
+    - name: OMADA_STRICT_SSL
+      value: "false"
+    - name: OMADA_TOOL_CATEGORIES
+      value: "all:r"
+    - name: OMADA_SITE_ID
+      value: "8000"
+    - name: MCP_SERVER_USE_HTTP
+      value: "true"
+    - name: MCP_HTTP_BIND_ADDR
+      value: "0.0.0.0"
+    - name: MCP_HTTP_PORT
+      value: "3000"
+    - name: MCP_HTTP_ALLOWED_ORIGINS
+      value: "*"
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          envFrom:
+            - secretRef:
+                name: omada-mcp-secret
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  groupRef:
+    name: mcp-tools
