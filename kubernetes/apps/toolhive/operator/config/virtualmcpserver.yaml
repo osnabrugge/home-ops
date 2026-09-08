@@ -6,9 +6,9 @@ metadata:
   name: toolhive
 spec:
   groupRef:
-    name: toolhive
+    name: mcp-tools
   telemetryConfigRef:
-    name: toolhive
+    name: prometheus
   authServerConfig:
     issuer: https://mcp.homeops.ca
     upstreamProviders:
@@ -52,9 +52,9 @@ metadata:
   name: toolhive-safe
 spec:
   groupRef:
-    name: toolhive
+    name: mcp-tools
   telemetryConfigRef:
-    name: toolhive
+    name: prometheus
   authServerConfig:
     issuer: https://mcp-safe.homeops.ca
     upstreamProviders:
