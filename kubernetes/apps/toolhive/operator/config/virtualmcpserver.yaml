@@ -19,7 +19,7 @@ spec:
           issuerUrl: https://login.microsoftonline.com/2dd2129b-675b-4350-a458-0147ce24617a/v2.0
           clientId: 3bd36745-d7c4-49c8-912e-b9921f05e485
           clientSecretRef:
-            name: toolhive
+            name: toolhive-secret
             key: entra-client-secret
           scopes:
             - openid
@@ -64,7 +64,7 @@ spec:
           issuerUrl: https://login.microsoftonline.com/2dd2129b-675b-4350-a458-0147ce24617a/v2.0
           clientId: 3bd36745-d7c4-49c8-912e-b9921f05e485
           clientSecretRef:
-            name: toolhive
+            name: toolhive-secret
             key: entra-client-secret
           scopes:
             - openid
