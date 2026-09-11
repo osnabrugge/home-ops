@@ -417,7 +417,8 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: toolhive
+        # Operator names the Service after the VirtualMCPServer with a vmcp- prefix.
+        - name: vmcp-toolhive
           port: 4483
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -432,5 +433,5 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: toolhive-safe
+        - name: vmcp-toolhive-safe
           port: 4483

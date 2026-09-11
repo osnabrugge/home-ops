@@ -29,6 +29,10 @@ spec:
                     values:
                       - worker
               topologyKey: kubernetes.io/hostname
+    # NetBox v4.7 removed the `housekeeping` management command ("Unknown command:
+    # 'housekeeping'"); the worker's built-in scheduler runs these tasks now.
+    housekeeping:
+      enabled: false
     allowedHosts:
       - netbox.homeops.ca
       - netbox.observability.svc.cluster.local
