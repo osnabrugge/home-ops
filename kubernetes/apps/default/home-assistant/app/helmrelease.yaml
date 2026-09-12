@@ -57,7 +57,9 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /healthz
+                    # HA does not serve /healthz here - verified 404 on both
+                    # 2026.9.0 and 2026.9.1. /manifest.json is static and unauthenticated.
+                    path: /manifest.json
                     port: &port 8123
                   periodSeconds: 10
                   timeoutSeconds: 5
