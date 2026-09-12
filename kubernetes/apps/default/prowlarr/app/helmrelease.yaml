@@ -46,6 +46,12 @@ spec:
                   httpGet:
                     path: /ping
                     port: *port
+                    # Prowlarr host-filters requests; kubelet probes the pod IP, which
+                    # is not in its allow-list, so /ping returns 400 and the pod never
+                    # goes Ready. localhost is allow-listed.
+                    httpHeaders:
+                      - name: Host
+                        value: localhost
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
