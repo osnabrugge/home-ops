@@ -14,7 +14,6 @@ spec:
   # pinned digest makes the OCIRepository permanently unready.
   ref:
     tag: 1.13.1
-    digest: 36003e3ede2d165b7504f5beb853f5ad1324ec75f9308c6bb20d3e50e69e8791
   # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
   # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
   # so an http:// Service URL fails every PR with

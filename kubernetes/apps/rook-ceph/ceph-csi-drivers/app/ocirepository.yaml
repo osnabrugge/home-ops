@@ -9,9 +9,10 @@ spec:
   layerSelector:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
+  # Pin by tag only. Do NOT add a digest: ocharted serves this manifest by tag
+  # but 404s digest-addressed fetches, making the OCIRepository permanently unready.
   ref:
     tag: 1.0.5
-    digest: 2ea80e1f2ed0858fead1d184098e64ef8b9c12fd8b466f2f4ff39550579110fe
   # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
   # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
   # so an http:// Service URL fails every PR with
