@@ -6,7 +6,7 @@ metadata:
   name: printer-mcp
 spec:
   # Built from the upstream npm package by .github/workflows/printer-mcp-image.yaml
-  image: ghcr.io/osnabrugge/printer-mcp:1.2.5@sha256:e46dccd693389824f643232edb8fd0488ba45828135369ca5e5ead497a54344e
+  image: ghcr.io/osnabrugge/printer-mcp:1.2.5@sha256:2a6d11644bed750d5ce8216d9768c23279f282289a225c8d5311667a690b1985
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080
