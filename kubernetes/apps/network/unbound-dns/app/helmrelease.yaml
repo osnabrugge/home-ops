@@ -60,6 +60,8 @@ spec:
     domainFilters:
       - homeops.ca
     serviceMonitor:
-      enabled: true
+      # Replaced by ./servicemonitor.yaml — the chart also scrapes the webhook port,
+      # which does not serve /metrics. See that file for the full explanation.
+      enabled: false
     podAnnotations:
       secret.reloader.stakater.com/reload: *secret

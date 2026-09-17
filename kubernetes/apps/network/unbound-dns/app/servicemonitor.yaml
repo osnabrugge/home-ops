@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/servicemonitor_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: unbound-dns
+spec:
+  # Replaces the chart's ServiceMonitor (serviceMonitor.enabled=false). The chart
+  # emits a second endpoint for `http-webhook` whenever a webhook provider is set,
+  # but ghcr.io/guillomep/external-dns-unbound-webhook does not implement /metrics —
+  # it answers `OK` (2 bytes) on every path, which Prometheus cannot parse, so that
+  # target sat permanently down and fired TargetDown. Port `http` (7979) serves the
+  # real external-dns metrics (~34 KB) and is the only one worth scraping.
+  jobLabel: app.kubernetes.io/instance
+  namespaceSelector:
+    matchNames: ["network"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: unbound-dns
+      app.kubernetes.io/name: external-dns
+  endpoints:
+    - port: http
+      path: /metrics
