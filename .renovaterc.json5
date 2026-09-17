@@ -47,14 +47,27 @@
       pinDigests: false,
     },
     {
-      // Belt-and-braces for the two rules above. Their `pinDigests: false` is keyed on
-      // matchDatasources:["docker"], but `overrideDatasource: "helm"` moves the package
-      // off that datasource during lookup, so the setting did not stick: #4290 re-added
-      // `digest: 823df216...` to radar on 2026-09-16 (bare hex, the Helm index.yaml
-      // format), which Flux rejects with `cannot parse hash`. Commit 166cf7d30 had
-      // already stripped the same digest once. Key this on the file path instead, which
-      // no datasource override can change.
-      description: "Never pin digests on ocharted-backed OCIRepositories",
+      // ⛔ THIS DOES NOT WORK. Kept only to document the dead end.
+      // `pinDigests` is the WRONG KNOB: it governs whether Renovate *pins* a digest
+      // on an otherwise-unpinned dep. The bare-hex digest here is not a pin — the
+      // flux manager writes `ref.digest` as part of an ordinary version bump, copying
+      // the `digest:` field out of the upstream Helm index.yaml (bare hex, no
+      // `sha256:` prefix), which source-controller rejects: `cannot parse hash`.
+      // Re-added by #4290 (1.13.x) and again by #4306 (1.14.0 -> 1.14.1) AFTER the
+      // matchFileNames rule below was added. Stripped in 166cf7d30, again, and again.
+      //
+      // ROOT CAUSE: `overrideDatasource: "helm"` above. It exists only because
+      // ocharted.homeops.ca is published on envoy-INTERNAL, so a GitHub-hosted runner
+      // cannot reach it and `hostRules` had to be emptied. onedr0p has the same proxy
+      // but his ocharted.turbo.ac is publicly reachable, so he authenticates with a
+      // hostRule, stays on the docker datasource, and needs NO pinDigests rule at all —
+      // all four of his ocharted OCIRepositories are tag-only with no digest.
+      //
+      // DURABLE FIX (needs a decision): publish ocharted externally like onedr0p and
+      // restore the hostRule + OCHARTED_USERNAME/OCHARTED_PASSWORD, then delete the two
+      // overrideDatasource rules above. Until then a digest WILL come back on the next
+      // radar/ceph-csi-drivers version bump and must be stripped by hand.
+      description: "Never pin digests on ocharted-backed OCIRepositories (INEFFECTIVE - see comment)",
       matchFileNames: [
         "kubernetes/apps/observability/radar/app/ocirepository.yaml",
         "kubernetes/apps/rook-ceph/ceph-csi-drivers/app/ocirepository.yaml",
