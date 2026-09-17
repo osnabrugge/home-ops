@@ -72,12 +72,6 @@ spec:
     route:
       app:
         annotations:
-          # external-dns' gateway-httproute source takes its target from the
-          # Gateway's status.addresses — the private Cilium LB IP — and Cloudflare
-          # rejects a proxied record pointing at RFC1918 (error 9003). The same
-          # annotation on the Gateway is not consulted for route-derived records,
-          # so it has to live here, on the route.
-          external-dns.alpha.kubernetes.io/target: external.homeops.ca
           gatus.home-operations.com/endpoint: |-
             conditions: ["[STATUS] == 200"]
         hostnames:
