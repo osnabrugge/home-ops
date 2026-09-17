@@ -49,8 +49,10 @@ jobs:
             host="${url#https://}"
 
             # Resolve first, so "DNS missing" is never reported as "site down".
-            # getent avoids depending on dnsutils being present on the runner.
-            addr=$(getent ahostsv4 "$host" | awk '{print $1}' | sort -u | tr '\n' ' ')
+            # getent avoids depending on dnsutils being present on the runner, and
+            # exits non-zero on NXDOMAIN — which `bash -e` would treat as a step
+            # failure, so swallow it and let the emptiness of $addr carry the signal.
+            addr=$(getent ahostsv4 "$host" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ' || true)
             if [[ -z "${addr// }" ]]; then
               failed="$failed $host"
               report="$report\n| \`$host\` | :x: NXDOMAIN | no A record | - |"
