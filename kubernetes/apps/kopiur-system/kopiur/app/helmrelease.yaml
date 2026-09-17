@@ -10,14 +10,6 @@ spec:
     name: kopiur
   interval: 1h
   values:
-    extraVolumes:
-      - name: repo
-        nfs:
-          server: nas02.in.homeops.ca
-          path: /volume1/data/kopiur
-    extraVolumeMounts:
-      - name: repo
-        mountPath: /repo
     monitoring:
       dashboards:
         enabled: true

@@ -3,22 +3,35 @@
 apiVersion: kopiur.home-operations.com/v1alpha1
 kind: ClusterRepository
 metadata:
-  name: nas02
+  name: nas01
 spec:
   allowedNamespaces:
     all: true
   backend:
-    filesystem:
-      path: /repo
-      volume:
-        nfs:
-          server: nas02.in.homeops.ca
-          path: /volume1/data/kopiur
+    s3:
+      bucket: default-bucket
+      endpoint: 192.168.42.45:3900
+      region: us-east-1
+      prefix: home-ops/
+      tls:
+        disableTls: true
+      auth:
+        secretRef:
+          name: kopiur-repository-secret
+          namespace: kopiur-system
   encryption:
     passwordSecretRef:
       name: kopiur-repository-secret
       namespace: kopiur-system
       key: KOPIA_PASSWORD
+  maintenance:
+    schedule:
+      quick:
+        cron: 0 * * * *
+        jitter: 10m
+      full:
+        cron: 0 3 * * *
+        jitter: 1h
   moverDefaults:
     cache:
       capacity: 1Mi
