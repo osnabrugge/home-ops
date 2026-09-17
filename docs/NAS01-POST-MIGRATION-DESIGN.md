@@ -235,43 +235,79 @@ At no point does a dataset exist in only one place.
 
 ---
 
-## 5. (e) Buy / don't buy
+## 5. (e) Buy / don't buy — **don't buy. Purge.**
 
-The gap is ~20 TiB usable. All of these fit in the free bays, so this is decided on
-risk and longevity, not on bay count.
+Budget is $400. The gap is ~20 TiB. **Measurement says the gap closes for $0.**
 
-### $/TB is the wrong metric
+### This is a capacity problem, not a performance one
 
-$45 for a 4 TB is $11.25/TB against $15.00/TB for a $120 8 TB, which makes the 4 TB
-look like the buy. That comparison ignores how much life is left. Using ~45,000 h as
-a working service life for this class:
+Every pool reports **0 % fragmentation** and is essentially empty. Nothing is slow.
+The shortfall is pure arithmetic: ~69 TiB of payload against 47.85 TiB of landing
+space. Buying disks is not the only lever, and it is the expensive one.
 
-| Option       | Price | Typical used hours | Remaining |      $ per TB per 1000 h |
-| ------------ | ----: | -----------------: | --------: | -----------------------: |
-| 4 TB @ $45   |   $45 |            ~50,000 |        ~0 | **effectively infinite** |
-| 8 TB @ $120  |  $120 |            ~20,000 |   ~25,000 |                **$0.60** |
-| 12 TB @ $140 |  $140 |            ~30,000 |   ~15,000 |                    $0.78 |
+### Where the 51 TiB actually is
 
-### Recommendation
+```
+/volume1/data/media/movies   27T      /volume1/data/downloads   830G
+/volume1/data/media/tv       14T      /volume1/data/kopiur       67G
+/volume1/data/media/other   8.8T      /volume1/data/apps         50G
+/volume1/data/media/music   962G
+```
 
-- **Buy 6× 8 TB, ~$720.** Builds `media`'s first vdev as raidz2 6× 8 TB = 29.1 TiB,
-  covering the 20 TiB gap with headroom, and matching the 4× 8 TB already on hand so
-  the second vdev can be symmetric later.
-- **Do not buy 4 TB at any price.** Used 4 TB stock today is overwhelmingly 2016–2018
-  — the exact vintage of the two drives being retired at 61.7 k hours. It is buying
-  the failure you are escaping. It also costs 8 W and a bay each for 3.64 TiB.
-- **Do not buy 5× new 20 TB** (the previous plan). That pays new-drive prices to put
-  new drives in the same failure domain as 4.3-year-old ones. If 20 TB is bought at
-  all, buy to _pair_ with the ex-nas02 drives so no raidz2 vdev is uniformly aged.
-- **Condition of sale: the seller must state SMART power-on hours.** The entire
-  ranking above rests on that number. Walk away from any listing that omits it —
-  reputable refurb-enterprise resellers publish it.
+Radarr: **1,200 films on disk, 26.7 TiB, mean 22.8 GB.**
+
+| Movie size         | Films |   Space |
+| ------------------ | ----: | ------: |
+| >60 GB 2160p remux |    99 | 7.2 TiB |
+| 40–60 GB           |   171 | 8.4 TiB |
+| 20–40 GB           |   209 | 5.5 TiB |
+| 10–20 GB           |   262 | 3.8 TiB |
+| <10 GB             |   459 | 1.8 TiB |
+
+**479 films — 40 % of the library — hold 21.1 TiB, or 79 % of the space.**
+Re-grabbing only those at 1080p (~8 GB) frees **17.4 TiB**, against a ~20 TiB gap.
+The 8.8 TiB in `media/other` (largely 2160p site-rip packs) covers the remainder
+several times over.
+
+Root cause: the **`Remux-2160p` profile is active in Radarr** with
+`upgradeAllowed: true`. A 2160p remux is 60–90 GB. That profile, not the drive
+count, is what made this a 51 TiB problem — and it is why `data` grew 39.7 → 51 TiB
+in a month. Left alone it will consume any disk purchase within a year.
+
+### Recommendation: spend $0
+
+1. Switch the affected films from `Remux-2160p` to `Remux-1080p`, then run a search
+   for the 479 files >20 GB. Frees ~17.4 TiB and stops the growth at source.
+2. Prune `media/other` to taste — anything there is a straight subtraction.
+3. Re-measure. Only if still short, revisit buying.
+
+### If you do end up buying, $/TB is the wrong metric
+
+Use **$ per TB per 1000 remaining hours**, taking ~45,000 h as a working service
+life for this class:
+
+| Option                      | Price | Disclosed hours | Remaining |            $/TB/1000 h |
+| --------------------------- | ----: | --------------: | --------: | ---------------------: |
+| 4 TB @ $45                  |   $45 |         ~50,000 |        ~0 |          effectively ∞ |
+| **8 TB SAS @ C$160 (eBay)** | C$160 |     **~63,000** |    **~0** | **effectively ∞ — NO** |
+| 8 TB @ $120, 20 k h         |  $120 |          20,000 |   ~25,000 |              **$0.60** |
+
+⛔ **The C$160 "Dell Enterprise Plus 8 TB" listing is a trap.** The seller honestly
+states *"approximately 63k hours or less per drive"*. nas01's oldest drive is
+61.7 k hours — the one being retired. Six of those is C$960 to install drives
+**older than the ones they replace**. Credit to the seller for disclosing; the
+answer is still no.
+
+- **Do not buy 4 TB at any price** — used stock is the same 2016–2018 vintage.
+- **Do not buy 5× new 20 TB** (the previous plan). That pays new-drive prices to
+  share a failure domain with 4.3-year-old drives.
+- **Never buy without disclosed SMART hours.** The whole ranking rests on it.
 
 ### Mixed ages within a vdev are a feature
 
-`media`'s 8 TB vdev would mix 44.9 k, 21.5 k, 16.8 k and two fresh drives. That is
-**good**: it de-correlates failures. A vdev of six identical drives from one batch
-tends to fail together, which is the scenario raidz2 is least able to absorb.
+A `media` 8 TB vdev mixing 44.9 k, 21.5 k and 16.8 k hour drives is **good**: it
+de-correlates failures. Six identical drives from one batch tend to fail together,
+which is exactly what raidz2 is least able to absorb.
 
 ---
 
