@@ -2,8 +2,11 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
+# Use this for an app whose PVC kopiur itself provisions (name == ${APP}). For an app
+# whose PVC already exists under a different name (StatefulSet volumeClaimTemplate, a
+# chart-managed claim), use ../policy directly and set KOPIUR_PVC instead.
+components:
+  - ../policy
 resources:
-  - ./snapshotpolicy.yaml
-  - ./snapshotschedule.yaml
   - ./pvc.yaml
   - ./restore.yaml

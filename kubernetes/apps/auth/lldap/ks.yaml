@@ -17,7 +17,6 @@ spec:
   postBuild:
     substitute:
       APP: lldap
-      KOPIUR_SCHEDULE: "45 2 * * *"
       KOPIUR_CAPACITY: 1Gi
   prune: true
   sourceRef:

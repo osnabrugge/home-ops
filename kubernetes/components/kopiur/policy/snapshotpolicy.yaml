@@ -30,5 +30,5 @@ spec:
     keepWeekly: 4
   sources:
     - pvc:
-        name: ${APP}
+        name: ${KOPIUR_PVC:=${APP}}
   volumeSnapshotClassName: ${KOPIUR_SNAPSHOTCLASS:=csi-ceph-blockpool}

@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: qbittorrent
-      KOPIUR_SCHEDULE: "30 2 * * *"
       KOPIUR_CAPACITY: 20Gi
   prune: true
   sourceRef:

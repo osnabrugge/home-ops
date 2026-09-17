@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: autobrr
-      KOPIUR_SCHEDULE: "20 5 * * 0"
   prune: true
   sourceRef:
     kind: GitRepository

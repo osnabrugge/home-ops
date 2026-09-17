@@ -15,7 +15,6 @@ spec:
   postBuild:
     substitute:
       APP: thelounge
-      KOPIUR_SCHEDULE: "20 6 * * 0"
   prune: true
   sourceRef:
     kind: GitRepository

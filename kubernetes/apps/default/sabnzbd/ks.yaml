@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: sabnzbd
-      KOPIUR_SCHEDULE: "45 1 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

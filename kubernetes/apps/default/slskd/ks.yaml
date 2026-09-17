@@ -6,6 +6,7 @@ metadata:
   name: slskd
 spec:
   components:
+    - ../../../../components/kopiur/policy
     - ../../../../components/zeroscaler
   dependsOn:
     - name: multus-networks
@@ -18,6 +19,8 @@ spec:
     substitute:
       APP: slskd
       CONTROLLER: StatefulSet
+      # StatefulSet volumeClaimTemplate, so the claim is not named ${APP}.
+      KOPIUR_PVC: config-slskd-0
   prune: true
   sourceRef:
     kind: GitRepository
