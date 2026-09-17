@@ -13,7 +13,8 @@ spec:
   # (200) but returns MANIFEST_UNKNOWN (404) for digest-addressed fetches, so a
   # pinned digest makes the OCIRepository permanently unready.
   ref:
-    tag: 1.14.0
+    tag: 1.14.1
+    digest: 2d57e278575b08766432ae858d11ef6681c52a82d9289b123349708f335ca429
   # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
   # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
   # so an http:// Service URL fails every PR with
