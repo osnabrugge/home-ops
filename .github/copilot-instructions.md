@@ -2,16 +2,24 @@
 
 ## 🛑 STOP — SESSION START PROTOCOL (do this BEFORE your first reply)
 
-Your `<userMemory>`/`<repoMemory>` context block **lies** — it has reported
-"empty" while `/memories/` held 15 populated files. **Never trust it.** Always
-list and read memory yourself with the `memory` tool. This is one tool call and
-it has repeatedly saved hours.
+Work through these steps in order, before answering anything:
 
-**Mandatory first actions, every session, before answering anything:**
-
-1. `memory view /memories/agent-behaviour.md` — how Sean wants you to operate.
+1. **Decide whether memory reads apply.** Skip steps 2–4 only if the request
+   mentions no filename, hostname, or topic from the index table in
+   [Memory policy](#memory-policy). Otherwise continue.
+2. `memory view /memories/agent-behaviour.md` — how Sean wants you to operate.
    Contains "THE HALT PROBLEM" (his #1 complaint) and the no-fabrication rule.
-2. `memory view /memories/` — list, then read the `repo/*.md` matching the topic.
+3. `memory view /memories/` — list the directory, then read the **single**
+   `repo/*.md` matching the topic. Not the whole set.
+4. If no index row matches, skim the filenames from step 3; if it is still
+   unclear, proceed and state which memory files you consulted.
+5. Before your final reply, write back to memory (see [Memory policy](#memory-policy)).
+
+Your `<userMemory>`/`<repoMemory>` context block **lies** — it has reported
+"empty" while `/memories/` held 15 populated files. **Never trust it**; confirm
+with the `memory` tool. This is one tool call and it has repeatedly saved hours.
+
+## Memory policy
 
 **Topic → file index (read the match BEFORE answering, not after):**
 
@@ -25,14 +33,23 @@ it has repeatedly saved hours.
 | what's parked and why                             | `repo/blocked-work.md`, `repo/deferred-work.md` |
 | promises made                                     | `commitments.md`                                |
 
+**If a memory read fails or returns empty** for a file the listing says exists,
+retry once, then tell Sean explicitly which file was expected and ask before
+proceeding — do NOT fabricate its contents.
+
+**If a memory file contradicts this working agreement,** treat the memory file as
+authoritative for repo-specific facts, and flag the conflict to Sean.
+
+**Write back:** append new verified facts, corrections to stale entries, and any
+mistake worth not repeating to `/memories/repo/<matching-topic>.md` — creating a
+new file there if no topic matches — using the existing bullet format. Do this
+when Sean indicates the task is complete, or before your final reply. Memory is
+only worth the cost of reading it if it stays current.
+
 **Failure this actually prevents (2026-09-16/17):** I asked Sean for SSH access,
 nas01 hardware inventory and nas02 share sizes, then proposed a pool design —
 all four were already in `repo/nas01.md`, which literally says _"⛔⛔ DECIDED
 DESIGN — STOP RE-DERIVING THIS"_ and _"Read this file BEFORE any nas01 answer."_
-
-**Write back before the session ends.** New verified facts, corrections to stale
-entries, and any mistake worth not repeating. Memory is only worth the cost of
-reading it if it stays current.
 
 ## What this repo is
 
@@ -95,12 +112,10 @@ reading it if it stays current.
 
 - **Radar** (https://radar.homeops.ca/mcp): MCP server for cluster health
 - **Opnsense** (stdio): MCP for managing firewall and troubleshooting network/firewall issues
-- **Azure** (stidio): MCP for managing Azure resources (VMs, KeyVault, etc) see context below for details
-- **Cloudflare:** (https://mcp.cloudflare.com/mcp): Use Code Mode to reduce context window size to discover tool operations. Use cloudflare-dns-analytics and cloudflare-observability for native MCP for actual debuggin and troubleshooting for anything external DNS and/or Tunnel related issues.
+- **Azure** (stdio): MCP for managing Azure resources (VMs, KeyVault, etc) see context below for details
+- **Cloudflare:** (https://mcp.cloudflare.com/mcp): Use Code Mode to reduce context window size to discover tool operations. Use cloudflare-dns-analytics and cloudflare-observability for native MCP for actual debugging and troubleshooting for anything external DNS and/or Tunnel related issues.
 - **Playwright** (stdio): for testing internal web endpoints (e.g. `envoy-internal`). For external web endpoints (e.g. `envoy-external`), you may deploy any Azure resources within the primary Resource Group (see Azure Context below).
-- **Serena** (stdio): MCP Server for semantic code retrieval, editing, refactoring and debugging tools. Leverage this to build out your memory and/or knowledge base for any code related issues. You may also use this to build out your own custom code snippets and/or templates for future use. This is a highly desired tool by AI agents and here is what Opus 4.6 (high) had to say on a large Python codebase:
-
-“Serena’s IDE-backed semantic tools are the single most impactful addition to my toolkit – cross-file renames, moves, and reference lookups that would cost me 8–12 careful, error-prone steps collapse into one atomic call, and I would absolutely ask any developer I work with to set them up.”"
+- **Serena** (stdio): MCP Server for semantic code retrieval, editing, refactoring and debugging. Use it for cross-file renames, symbol moves, and reference lookups in this repo's code (e.g. the `docker/*-mcp` Python servers and `scripts/`); prefer it over ad-hoc grep/sed for multi-file refactors. Also use it to store code-related memories/snippets for reuse.
 
 ### Azure Context
 
@@ -113,5 +128,7 @@ reading it if it stays current.
 ## Validation protocol before declaring done
 
 - `flux get kustomizations -A` and `flux get helmreleases -A` show no new failures.
-- Health/alerts not made worse (radar / alertmanager check command>`).
+- Health/alerts not made worse — compare active alerts before and after with
+  `kubectl -n observability exec sts/alertmanager-kube-prometheus-stack -c alertmanager -- amtool --alertmanager.url=http://localhost:9093 alert query`,
+  or the radar MCP server.
 - For storage/exposure changes, run the relevant memory's verification steps.
