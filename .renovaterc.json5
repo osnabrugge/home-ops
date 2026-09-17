@@ -46,6 +46,21 @@
       registryUrls: ["https://ceph.github.io/ceph-csi-operator"],
       pinDigests: false,
     },
+    {
+      // Belt-and-braces for the two rules above. Their `pinDigests: false` is keyed on
+      // matchDatasources:["docker"], but `overrideDatasource: "helm"` moves the package
+      // off that datasource during lookup, so the setting did not stick: #4290 re-added
+      // `digest: 823df216...` to radar on 2026-09-16 (bare hex, the Helm index.yaml
+      // format), which Flux rejects with `cannot parse hash`. Commit 166cf7d30 had
+      // already stripped the same digest once. Key this on the file path instead, which
+      // no datasource override can change.
+      description: "Never pin digests on ocharted-backed OCIRepositories",
+      matchFileNames: [
+        "kubernetes/apps/observability/radar/app/ocirepository.yaml",
+        "kubernetes/apps/rook-ceph/ceph-csi-drivers/app/ocirepository.yaml",
+      ],
+      pinDigests: false,
+    },
     // Auto-merge rules
     {
       description: "Auto-merge trusted OCI digests",
