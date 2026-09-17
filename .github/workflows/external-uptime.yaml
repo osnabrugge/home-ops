@@ -42,27 +42,30 @@ jobs:
     steps:
       - name: Probe
         id: probe
+        shell: bash
         run: |
+          # Deliberately NOT `set -e`. Every command here is expected to fail
+          # sometimes — that is the measurement, not an error.
+          set +e
           failed=""
           report=""
           for url in $ENDPOINTS; do
             host="${url#https://}"
 
             # Resolve first, so "DNS missing" is never reported as "site down".
-            # getent avoids depending on dnsutils being present on the runner, and
-            # exits non-zero on NXDOMAIN — which `bash -e` would treat as a step
-            # failure, so swallow it and let the emptiness of $addr carry the signal.
-            addr=$(getent ahostsv4 "$host" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ' || true)
+            addr=$(getent ahostsv4 "$host" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ')
             if [[ -z "${addr// }" ]]; then
               failed="$failed $host"
               report="$report\n| \`$host\` | :x: NXDOMAIN | no A record | - |"
               continue
             fi
 
-            read -r code total < <(
-              curl -sS -o /dev/null --max-time 20 \
-                -w '%{http_code} %{time_total}' "$url" 2>/dev/null || echo "000 0"
-            )
+            result=$(curl -s -o /dev/null --max-time 20 \
+              -w '%{http_code} %{time_total}' "$url" 2>/dev/null)
+            code=${result%% *}
+            total=${result##* }
+            [[ -z "$code" ]] && code="000"
+            [[ -z "$total" ]] && total="0"
 
             # 2xx/3xx is up. 401/403 means the edge answered and auth is doing its
             # job, which is still "reachable" for uptime purposes.
@@ -81,6 +84,7 @@ jobs:
             echo -e "| --- | --- | --- | --- |$report"
             echo "REPORT_EOF"
           } >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Summary
         env:
