@@ -1,0 +1,154 @@
+---
+# Replaces the Azure Application Insights web tests deleted on 2026-08-23.
+# Those cost ~$58/month against a $20-30 budget; this runs free on a public repo
+# and, unlike anything inside the cluster, actually probes from outside the network.
+name: External Uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: Print the full response detail for every endpoint
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  # Public surface served by envoy-external. Anything here must answer from the
+  # internet; a name resolving on the LAN proves nothing.
+  ENDPOINTS: >-
+    https://requests.homeops.ca
+    https://plex.homeops.ca
+    https://hass.homeops.ca
+    https://auth.homeops.ca
+    https://status.homeops.ca
+    https://external.homeops.ca
+
+jobs:
+  probe:
+    name: Probe public endpoints
+    runs-on: ubuntu-latest
+    outputs:
+      failed: ${{ steps.probe.outputs.failed }}
+      report: ${{ steps.probe.outputs.report }}
+    steps:
+      - name: Probe
+        id: probe
+        run: |
+          failed=""
+          report=""
+          for url in $ENDPOINTS; do
+            host="${url#https://}"
+
+            # Resolve first, so "DNS missing" is never reported as "site down".
+            # getent avoids depending on dnsutils being present on the runner.
+            addr=$(getent ahostsv4 "$host" | awk '{print $1}' | sort -u | tr '\n' ' ')
+            if [[ -z "${addr// }" ]]; then
+              failed="$failed $host"
+              report="$report\n| \`$host\` | :x: NXDOMAIN | no A record | - |"
+              continue
+            fi
+
+            read -r code total < <(
+              curl -sS -o /dev/null --max-time 20 \
+                -w '%{http_code} %{time_total}' "$url" 2>/dev/null || echo "000 0"
+            )
+
+            # 2xx/3xx is up. 401/403 means the edge answered and auth is doing its
+            # job, which is still "reachable" for uptime purposes.
+            if [[ "$code" =~ ^(2|3)[0-9][0-9]$ ]] || [[ "$code" =~ ^(401|403)$ ]]; then
+              report="$report\n| \`$host\` | :white_check_mark: $code | ${addr% } | ${total}s |"
+            else
+              failed="$failed $host"
+              report="$report\n| \`$host\` | :x: $code | ${addr% } | ${total}s |"
+            fi
+          done
+
+          {
+            echo "failed=${failed# }"
+            echo "report<<REPORT_EOF"
+            echo -e "| Endpoint | Status | Resolves to | Time |"
+            echo -e "| --- | --- | --- | --- |$report"
+            echo "REPORT_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          REPORT: ${{ steps.probe.outputs.report }}
+          FAILED: ${{ steps.probe.outputs.failed }}
+        run: |
+          echo "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "$FAILED" ]]; then
+            echo "Unreachable: $FAILED"
+          fi
+
+  report:
+    name: File or close the outage issue
+    needs: probe
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Upsert issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          FAILED: ${{ needs.probe.outputs.failed }}
+          REPORT: ${{ needs.probe.outputs.report }}
+        with:
+          script: |
+            const title = 'External endpoints unreachable';
+            const { FAILED, REPORT } = process.env;
+
+            const existing = (await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'uptime',
+            })).data.find((i) => i.title === title);
+
+            // A single rolling issue — one per run would bury the repo in noise.
+            if (!FAILED) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: existing.number,
+                  body: `Recovered — all endpoints reachable.\n\n${REPORT}`,
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: existing.number,
+                  state: 'closed', state_reason: 'completed',
+                });
+              }
+              return;
+            }
+
+            const body = [
+              `Probed from a GitHub-hosted runner, outside the home network.`,
+              ``,
+              `**Unreachable:** ${FAILED.split(' ').map((h) => `\`${h}\``).join(', ')}`,
+              ``,
+              REPORT,
+              ``,
+              `NXDOMAIN means external-dns never published the record.`,
+              `A non-2xx code means DNS is fine and the failure is at the tunnel,`,
+              `the gateway, or the app itself.`,
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['uptime'],
+              });
+            }
