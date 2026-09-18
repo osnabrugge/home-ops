@@ -40,5 +40,6 @@ spec:
       memory: 128Mi
     limits:
       memory: 512Mi
-  groupRef:
-    name: mcp-tools
+  # No groupRef: v0.15.0 (latest upstream) does not implement the optional
+  # resources/templates/list method, so vmcp marks it unavailable and degrades
+  # both aggregators. Still reachable directly at its own proxy URL/HTTPRoute.
