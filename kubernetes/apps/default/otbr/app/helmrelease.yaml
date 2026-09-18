@@ -12,6 +12,12 @@ spec:
   values:
     controllers:
       app:
+        # Held at 0: NETWORK_DEVICE 192.168.70.36:6638 (the otbr01/zig01 coordinator
+        # socket) is not listening, so the container can never pass its liveness probe.
+        # It had accumulated 85 restarts in one night. Restore to 1 once the device is
+        # reflashed and 6638 answers. The otbr-data PVC is deliberately left in place —
+        # it holds the Thread network dataset.
+        replicas: 0
         strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
