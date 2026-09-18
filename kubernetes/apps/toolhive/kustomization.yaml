@@ -5,6 +5,8 @@ kind: Kustomization
 namespace: toolhive
 components:
   - ../../components/alerts
+  # kopiur mover Jobs load repo creds via envFrom, which is namespace-local
+  - ../../components/kopiur/secret
 resources:
   - ./namespace.yaml
   - ./operator/ks.yaml
