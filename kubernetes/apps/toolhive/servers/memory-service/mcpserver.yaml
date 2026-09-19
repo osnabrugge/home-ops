@@ -40,6 +40,17 @@ spec:
             # route externally without turning on OAuth first.
             - name: MCP_ALLOW_ANONYMOUS_ACCESS
               value: "true"
+            # The image runs with a read-only root and no HOME, so the config
+            # module resolved $HOME/.local/share/mcp-memory to literally
+            # `/.local` and died with EROFS. Point HOME/XDG at the PVC.
+            - name: HOME
+              value: /app/data
+            - name: XDG_DATA_HOME
+              value: /app/data/.local/share
+            - name: XDG_CONFIG_HOME
+              value: /app/data/.config
+            - name: XDG_CACHE_HOME
+              value: /app/data/.cache
             - name: MCP_MEMORY_SQLITE_PATH
               value: /app/data/sqlite_vec.db
             - name: MCP_MEMORY_BACKUPS_PATH
