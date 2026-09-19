@@ -1,0 +1,30 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-memory-service
+  annotations:
+    # MCP endpoints answer 406 to a plain GET (they require
+    # Accept: text/event-stream), so the ingress root can never return 2xx.
+    gatus.home-operations.com/endpoint: |-
+      path: /health
+spec:
+  # INTERNAL ONLY. The proxy has no authentication, and this service holds
+  # everything the assistant knows about Sean. It must never be published via
+  # envoy-external without OAuth enabled first.
+  hostnames:
+    - mcp-memory-service.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-memory-service-proxy
+          port: 8080
+# NOTE — the web dashboard (memory browser, search, quality scoring) is served
+# by the container itself on :8000, NOT by the toolhive proxy on :8080, so it is
+# deliberately not routed here. Reach it during the pilot with:
+#   kubectl -n toolhive port-forward svc/mcp-memory-service-proxy 8000:8000
+# If it proves useful day to day, add a Service selecting the toolhive-managed
+# pod on 8000 plus its own internal-only HTTPRoute.
