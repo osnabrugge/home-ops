@@ -14,7 +14,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # line rather than tracking the latest SDK. Renovate is capped at <2 in
 # .renovaterc.json5 -- without that cap it walks this straight back to v2.
 # renovate: datasource=pypi depName=mcp
-ARG MCP_SDK_VERSION=1.17.0
+ARG MCP_SDK_VERSION=1.30.0
 RUN pip install --no-cache-dir \
     "mcp==${MCP_SDK_VERSION}" \
     "onshape-mcp @ git+https://github.com/hedless/onshape-mcp.git@${ONSHAPE_MCP_REF}"
