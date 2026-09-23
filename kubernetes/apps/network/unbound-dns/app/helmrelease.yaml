@@ -16,7 +16,7 @@ spec:
       webhook:
         image:
           repository: ghcr.io/guillomep/external-dns-unbound-webhook
-          tag: v0.1.4@sha256:bc1960ab0f29182d5dd5dafb10fe2ee07744f1df49563d43a734b4234f7167ce
+          tag: v0.1.5@sha256:50e3e7f038cf4a77b9f1fe175176ae4780ad753c9466471e6449596f37477501
         env:
           - name: UNBOUND_HOST
             value: tcp://192.168.42.1:953
