@@ -238,6 +238,17 @@
       matchPackageNames: ["ghcr.io/coredns/charts/coredns"],
       enabled: false,
     },
+    {
+      // hedless/onshape-mcp declares mcp>=0.1.0 but its code targets the v1 SDK.
+      // v2 removed Server.list_tools(), so the container dies on import with
+      // AttributeError. #3959 (1.17.0 -> 2.0.0) broke it on 2026-08-23 and it
+      // crashlooped until 2026-09-23. Verified: mcp 1.17.0 on python 3.14 still
+      // exposes the decorator.
+      description: "onshape-mcp targets the v1 mcp SDK -- v2 removed Server.list_tools()",
+      matchDatasources: ["pypi"],
+      matchPackageNames: ["mcp"],
+      allowedVersions: "<2",
+    },
     // Labeling rules
     {
       matchUpdateTypes: ["major"],
