@@ -23,33 +23,6 @@ spec:
             runAsGroup: 65532
             seccompProfile:
               type: RuntimeDefault
-          initContainers:
-            - name: install-talosctl
-              image: docker.io/curlimages/curl:8.22.0
-              command:
-                - sh
-                - -c
-                - |
-                  set -eu
-                  VERSION=v1.13.2
-                  echo ">>> Downloading talosctl ${VERSION}"
-                  curl -fsSL -o /shared/talosctl \
-                    "https://github.com/siderolabs/talos/releases/download/${VERSION}/talosctl-linux-amd64"
-                  chmod +x /shared/talosctl
-              securityContext:
-                allowPrivilegeEscalation: false
-                readOnlyRootFilesystem: true
-                capabilities:
-                  drop: ["ALL"]
-              resources:
-                requests:
-                  cpu: 10m
-                  memory: 32Mi
-                limits:
-                  memory: 64Mi
-              volumeMounts:
-                - name: bin
-                  mountPath: /shared
           containers:
             - name: defrag
               image: docker.io/library/busybox:1.38
@@ -89,8 +62,17 @@ spec:
                   mountPath: /etc/talos
                   readOnly: true
           volumes:
+            # Image volume, not an initContainer curl: downloading talosctl from
+            # github.com at runtime made this job fail during the 2026-09-22
+            # outage (`curl: (6) Could not resolve host`). The kubelet caches the
+            # image, so a repeat run needs no egress at all.
+            # Keep this tag equal to the Talos version the nodes run.
+            # ImageVolumeWithDigest is still alpha and disabled here, so this
+            # MUST stay a tag - a pinned digest will fail to mount.
             - name: bin
-              emptyDir: {}
+              image:
+                reference: ghcr.io/siderolabs/talosctl:v1.14.1
+                pullPolicy: IfNotPresent
             - name: talosconfig
               secret:
                 secretName: etcd-defrag-talosconfig

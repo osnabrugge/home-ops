@@ -22,6 +22,23 @@
   // kubernetes/apps/observability/kustomization.yaml. Renovate PRs against it can
   // never render or deploy. Remove this entry once the app is fully wired up.
   ignorePaths: ["kubernetes/apps/observability/librenms/**"],
+  // `customManagers` is mergeable, so these are ADDED to the two in
+  // home-operations/renovate-presets rather than replacing them.
+  customManagers: [
+    {
+      // A Kubernetes image volume pins its image on `reference:`, which no
+      // built-in manager reads, and the preset's `# renovate:` annotation
+      // manager captures the whole `repo:tag` string as currentValue - so
+      // neither can update it. Without this, etcd-defrag's talosctl would
+      // silently drift behind the nodes (it was already a minor behind).
+      customType: "regex",
+      managerFilePatterns: ["/^kubernetes/.+\\.ya?ml$/"],
+      matchStrings: [
+        "image:\\s*\\n\\s*reference:\\s*[\"']?(?<depName>[^\"'\\s:]+):(?<currentValue>[^\"'\\s@]+)[\"']?",
+      ],
+      datasourceTemplate: "docker",
+    },
+  ],
   packageRules: [
     {
       // ocharted only bypasses auth for 10.42.0.0/16, so a lookup from CI returns
