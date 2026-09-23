@@ -12,10 +12,14 @@ spec:
   # Pin by tag only. Do NOT add a digest: ocharted serves this manifest by tag
   # (200) but returns MANIFEST_UNKNOWN (404) for digest-addressed fetches, so a
   # pinned digest makes the OCIRepository permanently unready.
+  # Renovate is kept off this file's `ref` by the customManager in .renovaterc.json5;
+  # `pinDigests: false` does NOT prevent this (see #4290, #4306).
   ref:
-    tag: 1.12.2
+    tag: 1.14.1
   # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
   # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
   # so an http:// Service URL fails every PR with
   # "http: server gave HTTP response to HTTPS client".
   url: oci://ocharted.homeops.ca/skyhook-io.github.io/helm-charts/radar
+  secretRef:
+    name: ocharted-pull

@@ -1,12 +1,12 @@
 ---
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
-apiVersion: toolhive.stacklok.dev/v1alpha1
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
   name: brocade-mcp
 spec:
   # Built from vespo92/BrocadeICXMCP by .github/workflows/brocade-mcp-image.yaml
-  image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0@sha256:1dd1f956cb48d4e40624456543cef27f8fd37affdcc8c90b271e355f4ea8470c
+  image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0@sha256:cb81f7bfabfd50c7da5eee787b5199e85024e8f8f47d3c4e8176c348b0839373
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080

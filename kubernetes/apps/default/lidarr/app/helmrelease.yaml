@@ -18,12 +18,12 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/lidarr
-              tag: 3.1.4.5029@sha256:108eeafa9442d1351beaa2029d17f0d659dc8964649b0edf49007909faab6579
+              tag: 3.1.6.5078@sha256:544631ec29f6ff21887135ea084a602d5ca3f2206b096b04fa0f14c77159da18
             env:
               LIDARR__APP__INSTANCENAME: Lidarr
               LIDARR__APP__THEME: dark
               LIDARR__AUTH__METHOD: External
-              LIDARR__AUTH__REQUIRED: DisabledForLocalAddresses
+              LIDARR__AUTH__REQUIRED: Enabled
               LIDARR__LOG__DBENABLED: "False"
               LIDARR__LOG__LEVEL: info
               LIDARR__SERVER__PORT: &port 80
@@ -53,7 +53,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 100m

@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: dispatcharr
-      KOPIUR_SCHEDULE: "0 3 * * *"
       KOPIUR_CAPACITY: 10Gi
   prune: true
   sourceRef:

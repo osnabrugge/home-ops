@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: sonarr
-      KOPIUR_SCHEDULE: "15 1 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

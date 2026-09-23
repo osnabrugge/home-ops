@@ -1,0 +1,79 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: memory-service
+spec:
+  # PILOT — runs alongside memory-mcp, which stays the system of record until
+  # this one proves itself. Nothing is migrated by deploying this.
+  # Upstream: github.com/doobidoo/mcp-memory-service (Apache 2.0).
+  # :slim is CPU-only (no PyTorch/CUDA), ~90% smaller than :latest and
+  # sufficient here — embeddings run through onnxruntime, not torch.
+  image: doobidoo/mcp-memory-service:slim
+  transport: streamable-http
+  mcpPort: 8000
+  proxyPort: 8080
+  groupRef:
+    name: mcp-tools
+  podTemplateSpec:
+    spec:
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: memory-service
+      containers:
+        - name: mcp
+          env:
+            - name: MCP_MODE
+              value: http
+            - name: MCP_STREAMABLE_HTTP_MODE
+              value: "1"
+            # Must bind 0.0.0.0 or the toolhive proxy cannot reach it; the
+            # default 127.0.0.1 is pod-local only.
+            - name: MCP_HTTP_HOST
+              value: 0.0.0.0
+            - name: MCP_HTTP_PORT
+              value: "8000"
+            # Consistent with every other MCP server here: no auth on the
+            # proxy, reachable only via envoy-internal. Do NOT expose this
+            # route externally without turning on OAuth first.
+            - name: MCP_ALLOW_ANONYMOUS_ACCESS
+              value: "true"
+            # The image runs with a read-only root and no HOME, so the config
+            # module resolved $HOME/.local/share/mcp-memory to literally
+            # `/.local` and died with EROFS. Point HOME/XDG at the PVC.
+            - name: HOME
+              value: /app/data
+            - name: XDG_DATA_HOME
+              value: /app/data/.local/share
+            - name: XDG_CONFIG_HOME
+              value: /app/data/.config
+            - name: XDG_CACHE_HOME
+              value: /app/data/.cache
+            - name: MCP_MEMORY_SQLITE_PATH
+              value: /app/data/sqlite_vec.db
+            - name: MCP_MEMORY_BACKUPS_PATH
+              value: /app/data/backups
+            # English-only content; swap to paraphrase-multilingual-MiniLM-L12-v2
+            # if that ever changes. Changing it later requires re-embedding
+            # everything (cross-language cosine drops ~0.95 -> ~0.10).
+            - name: MCP_EMBEDDING_MODEL
+              value: all-MiniLM-L6-v2
+            # Fail loudly on a missing model rather than silently downloading
+            # or falling back to a different dimensionality.
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            - name: TRANSFORMERS_OFFLINE
+              value: "1"
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 512Mi
+            limits:
+              # ONNX embedding generation is bursty; too low a limit here is
+              # what starved radar (CPUThrottlingHigh at 88%).
+              memory: 2Gi

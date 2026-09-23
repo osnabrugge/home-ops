@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: spoolman
-      KOPIUR_SCHEDULE: "15 3 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

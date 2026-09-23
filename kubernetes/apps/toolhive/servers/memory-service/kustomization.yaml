@@ -1,0 +1,9 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # No pvc.yaml here on purpose - components/kopiur/backup provisions ${APP}
+  # with the immutable dataSourceRef already in place.
+  - ./mcpserver.yaml
+  - ./httproute.yaml

@@ -9,6 +9,9 @@ spec:
     kind: OCIRepository
     name: home-assistant
   interval: 1h
+  # RWO volume detach/reattach on reschedule regularly exceeds Helm's 5m default,
+  # which sends the release into an upgrade->timeout->rollback loop.
+  timeout: 15m
   values:
     controllers:
       home-assistant:
@@ -34,7 +37,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/home-assistant
-              tag: 2026.8.3@sha256:16ca445e58fa71d4f7ff287d4e9793ea690ccae932a5e200852371425cd7abb0
+              tag: 2026.9.3@sha256:638c4c8d62caad377e70bfa7beef75f70c9343a49aed64aad824f2cd06843c1c
             env:
               TZ: America/Toronto
               HASS_HTTP_TRUSTED_PROXY_1: 192.168.69.0/24
@@ -42,6 +45,30 @@ spec:
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    # HA does not serve /healthz here - verified 404 on both
+                    # 2026.9.0 and 2026.9.1. /manifest.json is static and unauthenticated.
+                    path: /manifest.json
+                    port: &port 8123
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -71,7 +98,7 @@ spec:
         ports:
           http:
             appProtocol: kubernetes.io/ws
-            port: 8123
+            port: *port
     route:
       app:
         annotations:

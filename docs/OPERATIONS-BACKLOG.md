@@ -3,7 +3,7 @@
 This file is the persistent task tracker. **It is the source of truth, not the chat.**
 
 > **Working rule (added 2026-08-03, after repeatedly losing scope):**
-> Any multi-part request gets written here *before* work starts. When a request is
+> Any multi-part request gets written here _before_ work starts. When a request is
 > answered only partially, the untouched parts stay listed here as `[ ]` — they are
 > never silently dropped because the conversation moved on. Every session should
 > start by reading this file and end by updating it. Long term this moves into
@@ -33,30 +33,25 @@ rationale. This section is the redo.
 ### A.1 What currently depends on nas01 (must not break)
 
 - [x] P0: **ANSWERED 2026-08-03 — nas01 holds ZERO data and can be rebuilt freely.**
-      Evidence:
-      - Exactly **one** reference to nas01 in all of `kubernetes/`: netboot-xyz mounts
-        `nas01.in.homeops.ca:/mnt/vault/netboot` for ISO assets.
-      - That directory is **empty** (no ISOs were ever placed there).
-      - kopiur's only `ClusterRepository` is **`nas02`** — backups do **not** go to nas01.
-        The `vault/kopiur` dataset exists but is unused (96 K).
-      - `vault` total allocated: **1.96 MB** across `vault/kopiur` + `vault/netboot`.
+      Evidence: - Exactly **one** reference to nas01 in all of `kubernetes/`: netboot-xyz mounts
+      `nas01.in.homeops.ca:/mnt/vault/netboot` for ISO assets. - That directory is **empty** (no ISOs were ever placed there). - kopiur's only `ClusterRepository` is **`nas02`** — backups do **not** go to nas01.
+      The `vault/kopiur` dataset exists but is unused (96 K). - `vault` total allocated: **1.96 MB** across `vault/kopiur` + `vault/netboot`.
       **Implication: no cutover, no fallback, no data preservation required.** The pool
       can be destroyed and rebuilt to whatever design we choose. The only cleanup is
       recreating a `netboot` dataset afterwards (or repointing netboot-xyz).
 
-
 ### A.2 Drive inventory available to the design
 
-| Qty | Device | Where | Notes |
-|---|---|---|---|
-| 12 | mixed HDD (6×4TB, 4×8TB, 2×10TB) | in nas01 `vault` | current pool |
-| 4 | 12TB Ironwolf | **in nas02** | free after migration completes |
-| 1 | 12TB Ironwolf | **on desk, new spare** | → 5× 12TB total |
-| 4 | 20TB Ironwolf | ? confirm location | |
-| 4 | Crucial P3 1TB NVMe | nas01 carrier, `CPU2 SLOT 5` | **3 stranded — bifurcation off** |
-| 2 | Intel Optane P1600X 118G | nas01 M.2-C1/C2 | SLOG mirror |
-| 2 | SATADOM 60G | nas01 | boot-pool (currently **no redundancy**) |
-| 3 | 2.5" SATA SSD | spare | Sean suggests → pve01 instead |
+| Qty | Device                           | Where                        | Notes                                   |
+| --- | -------------------------------- | ---------------------------- | --------------------------------------- |
+| 12  | mixed HDD (6×4TB, 4×8TB, 2×10TB) | in nas01 `vault`             | current pool                            |
+| 4   | 12TB Ironwolf                    | **in nas02**                 | free after migration completes          |
+| 1   | 12TB Ironwolf                    | **on desk, new spare**       | → 5× 12TB total                         |
+| 4   | 20TB Ironwolf                    | ? confirm location           |                                         |
+| 4   | Crucial P3 1TB NVMe              | nas01 carrier, `CPU2 SLOT 5` | **3 stranded — bifurcation off**        |
+| 2   | Intel Optane P1600X 118G         | nas01 M.2-C1/C2              | SLOG mirror                             |
+| 2   | SATADOM 60G                      | nas01                        | boot-pool (currently **no redundancy**) |
+| 3   | 2.5" SATA SSD                    | spare                        | Sean suggests → pve01 instead           |
 
 - [ ] P0: **Fix PCIe bifurcation** (`CPU2 SLOT 5` → `x4x4x4x4`) to recover 3 NVMe.
       Needs reboot window. No BMC creds stored — iKVM at `192.168.99.45` or `sum`.
@@ -68,9 +63,9 @@ rationale. This section is the redo.
 
 - [ ] P1: Decide NIC. Options:
       (a) **Silicom PE310G4i71LB-XR** quad SFP+ — on hand, but full-height bracket,
-          needs a 3D-printed half-height bracket designed
+      needs a 3D-printed half-height bracket designed
       (b) **ConnectX-3/4 dual SFP+** from eBay — cheap, but need guidance on which
-          models cross-flash and which genuinely support **RDMA**
+      models cross-flash and which genuinely support **RDMA**
 - [ ] P1: Produce a "what to look for on eBay" note for CX3/CX4 (model numbers,
       OEM-branded vs retail, firmware cross-flashing, RoCE support caveats)
 
@@ -128,7 +123,7 @@ runs on explicit tagged VLANs; VLAN1 exists, is contained, and is watched.
 - Interface groups: `High_Trust`=opt3,opt4,opt7,opt8 · `Low_Trust`=opt2,opt5,opt6 ·
   `Untrust`=opt1,opt9
 - `mgmt_hosts` alias contains **both** 192.168.0.115 and 192.168.10.115 — the
-  workstation has a presence on VLAN1 *and* VLAN10
+  workstation has a presence on VLAN1 _and_ VLAN10
 - pve01 OVS: `bond0` has `tag=1 vlan_mode=native-untagged`; `tap100i0` (gw01 net0) is an
   untagged **trunk** port
 - ✅ `iperf3 testing` rule (seq=1000, opt6/opt2/opt4 wide open) — **disabled by Sean**
@@ -139,7 +134,7 @@ runs on explicit tagged VLANs; VLAN1 exists, is contained, and is watched.
 could not be adopted and its web UI appeared unreachable. Suspicion fell on VLAN tagging
 on access02. **access02 was not at fault.**
 
-**Root cause — one DHCP lease slot, two claimants.** access02 ran DHCP on *both*
+**Root cause — one DHCP lease slot, two claimants.** access02 ran DHCP on _both_
 `interface vlan 1` and `interface vlan 99`, from the **same chassis MAC and the same
 client-id** (`01:5c:a6:e6:b6:b4:44`). dnsmasq keys leases by client-id, so it can hold
 only **one lease per switch**. The two interfaces fought over that slot, the VLAN1 client
@@ -148,14 +143,14 @@ value and kept trying to manage a dead IP.
 
 Evidence that isolated it (all from gw01, which is L2-adjacent on `vlan0.99`):
 
-| Probe | Result |
-|---|---|
-| `http 192.168.99.22` from src .99.1/.99.2/.42.1/.10.1/.0.1 | **200 from every subnet** → no management ACL |
-| `http 192.168.0.176` from src .0.1 and .99.1 | **000 / no response** → address is dead |
-| `arp` for chassis MAC | `.0.177` on vlan0.1 **and** `.99.22` on vlan0.99 |
-| dnsmasq leases | single entry `5c:a6:e6:b6:b4:44 → 192.168.0.177` |
+| Probe                                                      | Result                                           |
+| ---------------------------------------------------------- | ------------------------------------------------ |
+| `http 192.168.99.22` from src .99.1/.99.2/.42.1/.10.1/.0.1 | **200 from every subnet** → no management ACL    |
+| `http 192.168.0.176` from src .0.1 and .99.1               | **000 / no response** → address is dead          |
+| `arp` for chassis MAC                                      | `.0.177` on vlan0.1 **and** `.99.22` on vlan0.99 |
+| dnsmasq leases                                             | single entry `5c:a6:e6:b6:b4:44 → 192.168.0.177` |
 
-**Fix applied (Sean, via web UI):** VLAN1 interface → *IP Address Mode: None*. Switch is
+**Fix applied (Sean, via web UI):** VLAN1 interface → _IP Address Mode: None_. Switch is
 now single-homed:
 
 ```
@@ -163,7 +158,7 @@ access02# sh ip route
 C  192.168.99.0/24 is directly connected, VLAN99
 ```
 
-Releasing the VLAN1 address deleted the *only* lease record for that client-id — taking
+Releasing the VLAN1 address deleted the _only_ lease record for that client-id — taking
 VLAN99's record with it — which confirms the shared-slot diagnosis. Reservations already
 pin both switches, so `.22` survives renewal:
 
@@ -173,7 +168,7 @@ dhcp-host=5c:a6:e6:b6:b4:44,192.168.99.22,access02
 ```
 
 > **Do not delete VLAN 1 on JetStream switches** — it is the system default VLAN and
-> `no vlan 1` is rejected. Setting the *interface* to IP Address Mode: None is the
+> `no vlan 1` is rejected. Setting the _interface_ to IP Address Mode: None is the
 > supported way to remove the address. Never touch the VLAN99 interface's admin status;
 > that is a console-recovery event.
 
@@ -197,28 +192,28 @@ dhcp-range=tag:vlan0.99,192.168.99.100,192.168.99.199,86400 ← no set: tag, no 
 
 The `b16ad63f` tag is set only for clients that take an address **from the VLAN1 pool**.
 Devices with `dhcp-host` reservations (access01/access02) get their address outside the
-pool, so they likely never receive option 138 *even on VLAN1*. This is why firewall
+pool, so they likely never receive option 138 _even on VLAN1_. This is why firewall
 rules, `udpbroadcastrelay` and DHCP options all appeared to do nothing — the option was
 never reaching the devices.
 
 **Two controllers are live simultaneously** — a strong candidate for historical adoption
 thrash:
 
-| Controller | Address | omadacId | Ver | Ports verified 2026-08-05 |
-|---|---|---|---|---|
-| Synology (`oc01`, nas02-bond0) — **old** | 192.168.99.240 | `5ab5f216de322fbb7001176694c5c6ed` | 6.3.0.36 | 8043, 29814 OPEN |
-| Kubernetes (multus) — **new** | 192.168.99.30 | `4963024d89365c3635a5069d5fcc84fe` | 6.3.0.32 | 8043, 8088, 29811-29814 OPEN, https 200 |
+| Controller                               | Address        | omadacId                           | Ver      | Ports verified 2026-08-05               |
+| ---------------------------------------- | -------------- | ---------------------------------- | -------- | --------------------------------------- |
+| Synology (`oc01`, nas02-bond0) — **old** | 192.168.99.240 | `5ab5f216de322fbb7001176694c5c6ed` | 6.3.0.36 | 8043, 29814 OPEN                        |
+| Kubernetes (multus) — **new**            | 192.168.99.30  | `4963024d89365c3635a5069d5fcc84fe` | 6.3.0.32 | 8043, 8088, 29811-29814 OPEN, https 200 |
 
 The k8s controller pod carries **three** interfaces — `eth0` cilium, `net1` 192.168.0.30
 (VLAN1), `net2` 192.168.99.30 (VLAN99) — and binds discovery on `udp6 :::29810`.
-So it can talk to factory-default gear on VLAN1 *and* provisioned gear on VLAN99.
+So it can talk to factory-default gear on VLAN1 _and_ provisioned gear on VLAN99.
 
 > ⚠️ **Correction (2026-08-05): the multus interfaces are NOT missing routes.**
 > `cat /proc/net/route` inside the pod shows only `eth0` entries, which looks like the
 > VLAN legs have no connected route. They do. Both NADs chain the **`sbr`
 > (source-based routing)** plugin after `macvlan`, which by design moves each
 > interface's routes into its own policy-routing table with matching `ip rule`
-> entries — `/proc/net/route` only ever shows the *main* table. Verified working:
+> entries — `/proc/net/route` only ever shows the _main_ table. Verified working:
 > `wget` from the pod reaches both 192.168.99.21 and 192.168.99.22.
 > **Do not "fix" this** by adding connected routes; it is correct as-is.
 
@@ -233,7 +228,7 @@ omada://192.168.99.30?dPort=29810&mPort=29814&omadacId=4963024d89365c3635a5069d5
 > never appears in the controller at all. Always read the real value from
 > `curl -sk https://<controller>:8043/api/info`.
 
-> ⚠️ **Migration blocker:** the new controller (6.3.0.32) is *older* than the Synology
+> ⚠️ **Migration blocker:** the new controller (6.3.0.32) is _older_ than the Synology
 > one (6.3.0.36). Omada refuses to restore a backup into an older controller. Bump the
 > k8s image to ≥ 6.3.0.36 before attempting a site migration, or rebuild config by hand.
 
@@ -263,15 +258,17 @@ told where the controller was. Turning VLAN1 back on "fixed" it purely because t
 the only scope where the tag gets set.
 
 **Fix (gw01, one field):** Services → Dnsmasq DNS & DHCP → DHCP options → the row for
-interface *Management* → **clear the Tag field** (it currently carries the LAN tag).
+interface _Management_ → **clear the Tag field** (it currently carries the LAN tag).
 Leave interface = Management, option = 138, value = `192.168.99.30`.
 Equivalent CLI shape: `dhcp-option=tag:vlan0.99,138,192.168.99.30`.
 
 Verify after applying:
+
 ```
 grep 'dhcp-option=.*,138,' /usr/local/etc/dnsmasq.conf
 # the vlan0.99 line must NOT contain b16ad63f...
 ```
+
 Then factory-reset the EAP650-Wall on 1/1/48 (already `Pvid 99`, saved to startup-config).
 
 > Also still true from A0-e: a device with a **static** management IP never DHCPs, so it
@@ -281,8 +278,8 @@ Then factory-reset the EAP650-Wall on 1/1/48 (already `Pvid 99`, saved to startu
 ### A0-e. NET-NEW adoption on VLAN99 only — COMPLETE ROOT CAUSE (2026-08-09)
 
 Sean is **cutting over, not migrating** (clean DB — the beta-test junk stays behind).
-So the gate is *"can a factory-default device be adopted with VLAN1 gone?"*, not
-*"can existing devices be moved?"*. Verified state on 2026-08-09:
+So the gate is _"can a factory-default device be adopted with VLAN1 gone?"_, not
+_"can existing devices be moved?"_. Verified state on 2026-08-09:
 
 - New controller is now **6.3.0.42** (image bumped), `device` collection = **0**,
   no management VLAN configured, no discovery/pending records ever written.
@@ -302,7 +299,7 @@ onto VLAN1:
 ```
 
 VLAN1 is `by port` with no explicit member list, so on FastIron every port not
-untagged elsewhere is implicitly untagged in VLAN1. Ports that *are* moved read
+untagged elsewhere is implicitly untagged in VLAN1. Ports that _are_ moved read
 `Pvid 99` (kvm01, hdmi01, pdu02, ups02, pve02, ext01 on 1/1/8…1/1/26) — proving the
 pattern already works on this switch.
 
@@ -326,12 +323,12 @@ lag access02 dynamic id 4
 ```
 
 Reset access02 as-is and it comes back with no working uplink. The LAG must be
-undeployed to a single port *before* the reset.
+undeployed to a single port _before_ the reset.
 
 **Fix — no VLAN 4090 native-VLAN migration is required.**
 
 1. **gw01** — add option 138 to the Management scope
-   *Services → Dnsmasq DNS & DHCP → DHCP options → `+`*
+   _Services → Dnsmasq DNS & DHCP → DHCP options → `+`_
    Interface `Management (opt7)` · Option `138` · Value `192.168.99.30`
    (Rollback: delete the row. Additive only; existing devices are unaffected because
    they hold static/reserved addresses and are already adopted.)
@@ -340,7 +337,7 @@ undeployed to a single port *before* the reset.
    option 138 → informs `192.168.99.30` → appears in the new controller.
 4. **Leave "Management VLAN" unset in the new controller.** Devices then stay
    untagged on VLAN99 permanently, which is what makes VLAN1 deletable and what
-   makes every *future* device (new switch, new EAP, RMA swap) adopt with zero
+   makes every _future_ device (new switch, new EAP, RMA swap) adopt with zero
    manual steps.
 
 **Zero-risk proof first — spare EAP650-Wall, no live device touched.**
@@ -360,7 +357,7 @@ write memory
 
 Rollback: `vlan 1 / untagged ethernet 1/1/48`.
 Plug the EAP650-Wall into 1/1/48 (factory-reset it first — hold Reset ~10 s).
-Pass = it appears under *Devices → Pending* in the k8s controller within ~2 min.
+Pass = it appears under _Devices → Pending_ in the k8s controller within ~2 min.
 
 **Then access02**, in this order (step 1 drops access02 and everything behind it):
 
@@ -396,27 +393,27 @@ The controller was sending adopt commands to the stale `192.168.0.176`. Fixed by
 
 ### Environment facts corrected 2026-08-05
 
-- **dnsmasq is the DHCP server** on gw01 — *not* Kea (`kea enabled=0`) and *not* ISC
+- **dnsmasq is the DHCP server** on gw01 — _not_ Kea (`kea enabled=0`) and _not_ ISC
   (`no <dhcpd> section`). Config: `/usr/local/etc/dnsmasq.conf`;
   leases: `/var/db/dnsmasq.leases`. `pgrep` misses it; confirm with
   `sockstat -4 -l | grep -w 67` (runs as `nobody`).
 - dnsmasq listens on `vlan0.1,vlan0.10,vlan0.42,vlan0.50,vlan0.70,vlan0.99,wg0` and has
-  a `dhcp-range` on **every** VLAN — so "no DHCP on VLAN42" is *not* a thing.
+  a `dhcp-range` on **every** VLAN — so "no DHCP on VLAN42" is _not_ a thing.
 
 #### Default-gateway design (deliberate — do not "fix")
 
-| VLAN | DHCP router (opt 3) | Via |
-|---|---|---|
-| 10 Trusted | 192.168.10.4 | **core01** |
-| 42 Servers | 192.168.42.4 | **core01** |
-| 99 Mgmt | 192.168.99.4 | **core01** |
-| 1 LAN | 192.168.0.1 | gw01 |
-| 70 IoT | 192.168.70.1 | gw01 |
+| VLAN       | DHCP router (opt 3) | Via        |
+| ---------- | ------------------- | ---------- |
+| 10 Trusted | 192.168.10.4        | **core01** |
+| 42 Servers | 192.168.42.4        | **core01** |
+| 99 Mgmt    | 192.168.99.4        | **core01** |
+| 1 LAN      | 192.168.0.1         | gw01       |
+| 70 IoT     | 192.168.70.1        | gw01       |
 
 Trusted VLANs route via core01 so inter-VLAN traffic bypasses the firewall; core01's own
 default is `ip route 0.0.0.0/0 192.168.42.1` (gw01), and core01 runs BGP with the k8s
 nodes so it holds the `192.168.69.0/24` LoadBalancer routes. gw01 reaches VLAN69 only
-*through* core01 (`192.168.69.0/24 via 192.168.42.4`) — so pointing a management device
+_through_ core01 (`192.168.69.0/24 via 192.168.42.4`) — so pointing a management device
 at gw01 instead of core01 causes a hairpin for anything in the LB range.
 
 > A device that changes interfaces keeps its old lease until it re-leases, and will be
@@ -429,7 +426,7 @@ at gw01 instead of core01 causes a hairpin for anything in the LB range.
 
 - ⚠️ **Unknown / not yet verified:** the OPNsense firewall rules could not be read —
   parsing `filter/rule` out of `/conf/config.xml` returned empty, so the rule set is
-  *not* where expected. The `High_Trust`/`Low_Trust` analysis in A0 above is therefore
+  _not_ where expected. The `High_Trust`/`Low_Trust` analysis in A0 above is therefore
   still **unconfirmed**. Do not act on it until the rules are actually read.
 
 ### ⚠️ Correction: VLAN 90 is NOT dead config
@@ -443,9 +440,10 @@ remove it.**
 ---
 
 ## A0b. Infrastructure-as-Code via device APIs (raised 2026-08-05) — THE BIG ONE
-> Sean: *"if this truly was implemented correctly, my entire infrastructure could become
+
+> Sean: _"if this truly was implemented correctly, my entire infrastructure could become
 > exactly what the purpose of this repository is for. A single source of truth and
-> preventing a lot of the fuck ups between me needing to manually configure things."*
+> preventing a lot of the fuck ups between me needing to manually configure things."_
 
 The cluster already self-provisions Service IPs, HTTPRoutes, DNS and certs. Extend that
 model **outward to the physical estate** so infrastructure is declared in git, not typed
@@ -458,32 +456,32 @@ into web UIs.
 - [ ] P2: Design note — needs an operator/controller pattern with reconciliation and
       drift detection, not one-shot scripts, or it rots like any manual config
 - ⚠️ Blocker found: the current OPNsense API key returns **403 on `firewall/filter`** —
-      it is scoped for diagnostics/read only. Any automation needs a properly scoped key.
+  it is scoped for diagnostics/read only. Any automation needs a properly scoped key.
 - ⚠️ Same class of blocker confirmed 2026-08-09: the key also 403s on the **Kea** and
   **dnsmasq** modules, so DHCP options (like Omada's option 138) cannot be automated
   either. One properly-scoped key unblocks both.
 
 ### A0b-1. Managing workloads that run OUTSIDE the cluster — answering Sean's question
 
-> *"how does one manage these types of deployments outside the cluster so that the
+> _"how does one manage these types of deployments outside the cluster so that the
 > cluster can interact with it if there are issues like restarting the services? and
-> that includes both containerized and native deployments?"*
+> that includes both containerized and native deployments?"_
 
-The advice Sean got online — *"just GitOps-manage node-exporter and smartctl-exporter"* —
+The advice Sean got online — _"just GitOps-manage node-exporter and smartctl-exporter"_ —
 is half right. Kubernetes cannot schedule a container onto DSM or TrueNAS. But the
 **monitoring** half is already GitOps'd here (`ScrapeConfig` + selector-less
 `Service`/`EndpointSlice`, exactly as done for `moonraker-fdm01`). Only the
 **deployment** half is manual. Options, honestly ranked:
 
-| Approach | Verdict |
-|---|---|
-| Join the NAS to the cluster as a node | ❌ DSM/TrueNAS SCALE won't tolerate it |
-| Ansible/Salt from a laptop | ⚠️ push-based, drifts, nobody runs it |
-| ⭐ Compose file in git + an in-cluster CronJob that applies it over SSH | ✅ reconciled, drift-corrected, works for DSM *and* TrueNAS |
-| Alert-driven remote restart | ⚠️ band-aid — see below |
+| Approach                                                                | Verdict                                                     |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Join the NAS to the cluster as a node                                   | ❌ DSM/TrueNAS SCALE won't tolerate it                      |
+| Ansible/Salt from a laptop                                              | ⚠️ push-based, drifts, nobody runs it                       |
+| ⭐ Compose file in git + an in-cluster CronJob that applies it over SSH | ✅ reconciled, drift-corrected, works for DSM _and_ TrueNAS |
+| Alert-driven remote restart                                             | ⚠️ band-aid — see below                                     |
 
 **Recommended shape.** Both platforms already speak docker-compose — Synology
-*Container Manager → Project*, TrueNAS SCALE 24+ *Apps → Custom App (compose)*. So:
+_Container Manager → Project_, TrueNAS SCALE 24+ _Apps → Custom App (compose)_. So:
 
 1. Keep `compose.yaml` for the exporters in this repo, mounted into a CronJob as a
    ConfigMap.
@@ -510,19 +508,18 @@ the exporter work and the S3 work share one mechanism rather than two.
 
 ## A1. STORAGE CAPACITY — cost-effective expansion (raised 2026-08-05)
 
-
 **Correction to `NAS01-DESIGN-OPTIONS.md`:** it treated 5× 12 TB as available. There
 are **5 in total**, but only **ONE is free today** (new, unused RMA replacement). The
-other **4× 12 TB and 4× 20 TB are IN USE in nas02** and only free *after* migration —
+other **4× 12 TB and 4× 20 TB are IN USE in nas02** and only free _after_ migration —
 which is circular, since migration is what needs the space.
 
 ### Real disk economics (Sean's eBay research)
 
-| Size | Used price | $/TB | Notes |
-|---|---|---|---|
-| 4 TB SATA/SAS | ~$40 | **$10/TB** | cheapest per TB |
-| 8 TB | $100–200 | $12–25/TB | |
-| 12 TB Ironwolf | **>$400 new (US)** | $33/TB | + shipping + duties — poor value |
+| Size           | Used price         | $/TB       | Notes                            |
+| -------------- | ------------------ | ---------- | -------------------------------- |
+| 4 TB SATA/SAS  | ~$40               | **$10/TB** | cheapest per TB                  |
+| 8 TB           | $100–200           | $12–25/TB  |                                  |
+| 12 TB Ironwolf | **>$400 new (US)** | $33/TB     | + shipping + duties — poor value |
 
 - [ ] P0: **Data reduction first — it is cheaper than any disk.** Sean is confident
       there are large duplicates, obsolete app data, old installs, logs.
@@ -541,7 +538,7 @@ with **no redundancy**. Also: enabling the extra M.2 slots drops the RTX 3090 fr
 x16 to x8. Sean's workloads are inference, streaming w/ AI, video/photo editing.
 
 - [ ] P2: Quantify before touching it — x8 vs x16 impact is small for inference and
-      video work, but this trades *certain* desktop redundancy for *uncertain* NAS gain
+      video work, but this trades _certain_ desktop redundancy for _uncertain_ NAS gain
 - [ ] P2: Related plan: drop Windows → Ubuntu Studio with ZFS boot
 
 ---
@@ -550,11 +547,11 @@ x16 to x8. Sean's workloads are inference, streaming w/ AI, video/photo editing.
 
 No budget left this month. Everything below is a candidate.
 
-- [?] P1: **ASRock Rack X570D4U-2L2T + 4× 32 GB DDR4 ECC** (brand new, idle ~2 yrs).
-      Needs a Ryzen Pro (~$120–150) **and** a rack case Sean does not have.
-      **Decision: complete it, or cut losses and sell board+RAM?**
+- [?] P1: **ASRock Rack X570D4U-2L2T + 4× 32 GB DDR4 ECC** (brand new, idle ~~2 yrs).
+  Needs a Ryzen Pro (~~$120–150) **and** a rack case Sean does not have.
+  **Decision: complete it, or cut losses and sell board+RAM?**
 - [?] P1: **Supermicro X9 dual Xeon + 128 GB DDR3 ECC** (the original nas01) — sell?
-      DDR3 era; power-hungry; likely low resale but zero ongoing value idle.
+  DDR3 era; power-hungry; likely low resale but zero ongoing value idle.
 - [ ] P1: List old memory + NVMe on eBay/Reddit/Facebook
 - [ ] P2: Rank everything by $/effort so the highest-value listings go first
 
@@ -563,7 +560,7 @@ No budget left this month. Everything below is a candidate.
 1. **Second SATADOM** — `boot-pool` is a single device; the only live SPOF
 2. Storage capacity — but **only after** the data-reduction exercise
 3. 3D printing consumables/parts (see H)
-4. *Not yet:* ConnectX NIC, GPU (T4 ~$800). Neither fixes anything currently broken.
+4. _Not yet:_ ConnectX NIC, GPU (T4 ~$800). Neither fixes anything currently broken.
 
 ---
 
@@ -575,13 +572,14 @@ Recurred 4 times (Jul 31, Aug 1, Aug 3, Aug 4) because the fix was wrong, not be
 the fault kept re-firing.
 
 **Mechanism:** an ext4 journal abort (`ext4_journal_check_start`) from a transient I/O
-error flips the filesystem to `emergency_ro`. The mount still *reports* `rw`:
+error flips the filesystem to `emergency_ro`. The mount still _reports_ `rw`:
 `/dev/rbd2 on /config type ext4 (rw,...,emergency_ro)` — so it looks fine.
 **`kubectl rollout restart` CANNOT clear it.** The CSI driver keeps the device staged
 at a **globalmount**; the replacement pod lands on the same node, bind-mounts the same
 read-only globalmount, and inherits RO. It looks fixed, then fails again.
 
 **Correct procedure:**
+
 1. Scope it: `for ip in 51..56; do talosctl -n 192.168.42.$ip read /proc/mounts | grep -c emergency_ro; done`
 2. Map volumes to apps: extract `pvc-<uuid>`, then
    `kubectl get pv <pv> -o jsonpath='{.spec.claimRef.namespace}/{.spec.claimRef.name}'`
@@ -599,20 +597,19 @@ wrong path produces a false "still read-only".
       returns to `HEALTH_OK`, so post-hoc diagnosis is impossible. Need an alert on
       `emergency_ro` present in any node's `/proc/mounts` (and ideally on
       `EXT4-fs error` in kernel logs) so the next occurrence is caught live with cause.
-- [ ] P1: Root cause of the *original* I/O error is still unknown. Suspicion: RBD
+- [ ] P1: Root cause of the _original_ I/O error is still unknown. Suspicion: RBD
       map/unmap churn from kopiur backup movers on k8s05/k8s06 (the two nodes hit).
       Unproven — needs the detection above to catch it in the act.
 
-
 - [~] P0: **frigate ↔ cam03 auth failure** — ROOT-CAUSED, needs a change **on the camera**.
-      Not a frigate bug: **go2rtc** cannot authenticate upstream, so frigate's ffmpeg
-      gets a 404 from the local restream (`rtsp://127.0.0.1:8554/cam03`).
-      Proof (from inside the frigate pod, same URL/user/password):
-      `cam02 -> h264,2560,1440` · `cam03 -> 401 Unauthorized`.
-      All 3 cams share one credential, so the hard reset wiped cam03's `viewer` account.
-      **Action (Sean):** recreate user `viewer` on cam03 with the shared password and
-      media/RTSP permission — on Dahua-style firmware the account usually must be in the
-      right *group*, matching UI fields alone is not always enough.
+  Not a frigate bug: **go2rtc** cannot authenticate upstream, so frigate's ffmpeg
+  gets a 404 from the local restream (`rtsp://127.0.0.1:8554/cam03`).
+  Proof (from inside the frigate pod, same URL/user/password):
+  `cam02 -> h264,2560,1440` · `cam03 -> 401 Unauthorized`.
+  All 3 cams share one credential, so the hard reset wiped cam03's `viewer` account.
+  **Action (Sean):** recreate user `viewer` on cam03 with the shared password and
+  media/RTSP permission — on Dahua-style firmware the account usually must be in the
+  right _group_, matching UI fields alone is not always enough.
 - [ ] P0: **ROTATE `FRIGATE_RTSP_PASSWORD`** — it was leaked in plaintext into a chat
       transcript on 2026-08-03 (ffprobe echoes the full RTSP URL in its error output).
       Update AKV + the `viewer` account on cam01/02/03.
@@ -641,7 +638,6 @@ wrong path produces a false "still read-only".
       whether the cams support ONVIF/RTSP push at all; if not, pull + go2rtc restream
       is the right architecture and no port publishing is needed.
 
-
 ---
 
 ## C. pve01
@@ -650,6 +646,46 @@ wrong path produces a false "still read-only".
       adapter (needed to exceed 1 Gbps). Propose a redundancy plan — possibly the
       3× spare 2.5" SATA SSD.
 - [ ] P1: Document pve01's current disk/NIC layout in NetBox.
+
+### C.2 pve02 — NOT DEPLOYED (raised 2026-09-18)
+
+- [ ] P1: **pve02 has never been deployed.** Verified via NetBox 2026-09-18: a device
+      search for `pve` returns **only pve01** (id 70, `192.168.42.40`, Gowin
+      GW-BS-1UR2-25G, role Hypervisor). There is no pve02 record at all.
+- [ ] P1: Decide what pve02 runs and on what hardware — this overlaps directly with
+      §F (the idle ASRock X570D4U + 128 GB ECC). Answer §F's "second NAS vs second
+      PVE node vs sell" question before buying anything.
+- [ ] P2: Once decided, create the NetBox record **first**, then build. NetBox is
+      meant to be the source of truth; pve02/gw02/pi01–04 being absent or
+      unmodelled is itself the §E "clean up against reality" problem.
+
+---
+
+## C.3 gw02 — firewall HA with CARP + pfSync (raised 2026-09-18)
+
+- [ ] P1: **gw02 has never been deployed.** Verified via NetBox 2026-09-18: a device
+      search for `gw` returns **zero** results.
+- [ ] P1: ⚠️ **Naming inconsistency to resolve first.** NetBox models the firewall as
+      **`fw01`** (role Firewall, model FW6C, no primary IP set), while this repo,
+      the copilot instructions and all memory files call it **`gw01`**. Pick one
+      name and make NetBox, DNS and the docs agree before adding a second unit —
+      otherwise HA config will be written against two different identities.
+- [ ] P1: Configure **CARP** (virtual IP failover) on gw01/gw02 for each routed
+      interface, so the LAN gateway address floats between units.
+- [ ] P1: Configure **pfSync** so state tables replicate and existing connections
+      survive a failover.
+- [ ] P1: Dedicated pfSync link between the two units (direct cable or its own
+      VLAN) — do not run pfSync over a shared user VLAN.
+- [ ] P2: Decide CARP interaction with the Bell WAN. A single PPPoE/ONT handoff
+      cannot be CARP'd on both units simultaneously; document what actually
+      fails over vs what needs manual intervention.
+- [ ] P2: ⚠️ **Sequencing:** the §A0 transit-VLAN work (VLAN 200 / ve 200, removing
+      gw01's VLAN10/42 interfaces) changes which interfaces exist on the
+      firewall. Do that **before** building gw02, or the HA pair gets built
+      against a layout that is about to be torn up.
+- [ ] P2: gw01 SSH access is currently broken (orphaned `sean@DESKTOP` key
+      authorized, private half gone) — fix via the OPNsense GUI before any HA
+      work needs CLI access.
 
 ---
 
@@ -679,11 +715,11 @@ expansion slots. Out of date but structurally valuable.
 - [ ] **P0 (was P1): `API_TOKEN_PEPPERS` is unset, and it blocks creating ANY new API
       token — including from the web UI.** Confirmed 2026-08-09: `Token.save()` calls
       `get_current_pepper()`, which raises `ValueError: API_TOKEN_PEPPERS is not
-      defined`. Every existing token is `version=1` (legacy) and keeps working, which
+    defined`. Every existing token is `version=1` (legacy) and keeps working, which
       is why this stayed invisible.
-      *Workaround used for the toolhive netbox MCP:* create a v1 token explicitly —
+      _Workaround used for the toolhive netbox MCP:_ create a v1 token explicitly —
       `Token(user=u, write_enabled=True, version=1)` via `manage.py shell`.
-      *Real fix:* add key `api_token_peppers` to `netbox-secret` holding JSON with
+      _Real fix:_ add key `api_token_peppers` to `netbox-secret` holding JSON with
       integer keys and ≥50-char values, e.g. `{"1": "<50+ random chars>"}`, and
       reference it from NetBox config. Blocked on Azure Key Vault (403) unless done
       via SOPS — `just kube seed-sops-key observability` then a `*.sops.yaml`.
@@ -697,12 +733,54 @@ Goal Sean stated: get **everything** online and inventoried so we can run as lea
 possible and **sell off surplus**.
 
 - [?] P1: ASRock Rack **X570D4U-2L2T** + **128 GB ECC** idle ~2 years. Needs a CPU and
-      a case. Ryzen Pro 5000-series (e.g. **5600G**, ~$120–150) suggested. Spare ATX
-      PSUs available.
+  a case. Ryzen Pro 5000-series (e.g. **5600G**, ~$120–150) suggested. Spare ATX
+  PSUs available.
 - [?] P1: Case — mATX rackmount options are poor. Sean is considering a **3U/4U** that
-      fits a spare **360 mm AIO**, with room for more HDDs/GPUs later.
+  fits a spare **360 mm AIO**, with room for more HDDs/GPUs later.
 - [ ] P2: Decide whether this box becomes a second NAS, a second PVE node, or is sold.
 - [ ] P2: Produce a sell/keep list once inventory is complete.
+
+### F.2 Raspberry Pi dev environment — 4 nodes, NOT PROVISIONED (raised 2026-09-18)
+
+Verified via NetBox 2026-09-18: **PI Rack** (device id 72) is a UCTRONICS
+_Pi Rack Pro for Raspberry Pi 4B_, 4-bay hot-swap chassis with SSD storage,
+site Home, role Blade Chassis. All four bays are populated:
+
+| Bay | Device | NetBox id |
+| --- | ------ | --------- |
+| 1   | `pi01` | 77        |
+| 2   | `pi02` | 78        |
+| 3   | `pi03` | 79        |
+| 4   | `pi04` | 80        |
+
+Each Pi has a **SATA SSD attached over USB**. Sean's stated goal: use these as a
+**dev/test Kubernetes environment** so changes are not tried out on the
+production cluster.
+
+- [ ] P1: **Get netboot.xyz working first — it is the hard dependency.** PXE/HTTP
+      boot has never worked here, and its NFS `assets` mount currently fails
+      (exit 32) against the wiped nas01. Repoint it at nas02 and prove a single
+      successful network boot before touching the Pis.
+- [ ] P1: Raspberry Pi 4B netboot specifics — the Pi bootloader does TFTP/HTTP
+      boot, **not** standard x86 PXE. Confirm bootloader version and boot order
+      (`BOOT_ORDER`) on each unit, and that the EEPROM is current.
+- [ ] P1: Talos on arm64 for Pi 4B — build/obtain the correct Talos image via the
+      Image Factory with the required overlays, and confirm which Talos release
+      still supports Pi 4B.
+- [ ] P1: Boot from the **USB-attached SATA SSD**, not SD. Verify USB boot is
+      enabled and that the USB-SATA bridge does not need a quirks/TRIM
+      workaround (common failure on these adapters).
+- [ ] P2: Decide the topology — 1 control-plane + 3 workers, or 3 CP for a
+      realistic etcd quorum. 4 GB vs 8 GB RAM per Pi decides what is testable.
+- [ ] P2: Decide whether this dev cluster is Flux-managed from the **same repo**
+      (separate path/branch) or its own repo. Same-repo risks a bad manifest
+      reaching production; separate repo risks drift from prod.
+- [ ] P2: Populate NetBox properly for pi01–04 — device type, platform, primary
+      IPs, and the SSDs as inventory items. They are currently bay entries with
+      little else.
+- [ ] P2: Network placement — which VLAN, DHCP reservations, and whether they need
+      switch ports configured (see the zig01 precedent where a missing port
+      assignment masqueraded as a device fault).
 
 ---
 
@@ -732,21 +810,22 @@ reboots, a PDU power-cycle, and a switch LAG reset.
 
 Why it took a while — every "obvious" cause was ruled out first:
 
-| Checked | Result |
-|---|---|
-| Switch ports 1/2/8 + 2/2/8 | Up 10G, **0 errors**, config identical to k8s05 |
-| ARP / duplicate IP | clean; gw01 even answers k8s06's ARP normally |
-| Destination MAC | correct CARP MAC `00:00:5e:00:01:2a` |
-| MTU | 1500 everywhere |
-| Talos node template | identical to k8s05 |
-| unbound ACL / listen | `0.0.0.0/0 allow`, owns `*:53`; BIND not running |
-| unbound rate limiting | `num.queries_ip_ratelimited=0` |
-| `pflog0` | **0 packets** — the block rule has no `log`, which is why it was invisible |
+| Checked                    | Result                                                                     |
+| -------------------------- | -------------------------------------------------------------------------- |
+| Switch ports 1/2/8 + 2/2/8 | Up 10G, **0 errors**, config identical to k8s05                            |
+| ARP / duplicate IP         | clean; gw01 even answers k8s06's ARP normally                              |
+| Destination MAC            | correct CARP MAC `00:00:5e:00:01:2a`                                       |
+| MTU                        | 1500 everywhere                                                            |
+| Talos node template        | identical to k8s05                                                         |
+| unbound ACL / listen       | `0.0.0.0/0 allow`, owns `*:53`; BIND not running                           |
+| unbound rate limiting      | `num.queries_ip_ratelimited=0`                                             |
+| `pflog0`                   | **0 packets** — the block rule has no `log`, which is why it was invisible |
 
 The tell was `pfctl -s state` = **0 states** for the host while tcpdump showed its
 packets arriving: pf was dropping silently, outbound.
 
 **Fixed:**
+
 1. `cscli decisions delete --ip 192.168.42.56` + `pfctl -t crowdsec_blocklists -T delete …`
    → node booted immediately, Ceph back to HEALTH_OK with 6/6 OSDs.
 2. Installed `infrastructure/opnsense/crowdsec/rfc1918-allowlist.yaml` to
@@ -760,8 +839,6 @@ packets arriving: pf was dropping silently, outbound.
       the firewall log instead of being silent.
 - [ ] P2: this allowlist lives only on gw01. Fold it into whatever config-management
       covers OPNsense so a restore does not lose it.
-
-
 
 ### � Kopia repository needs maintenance (found 2026-08-09)
 
@@ -788,20 +865,20 @@ The VS-Enterprise credit is ~$150/mo. Actual spend 2026-07-10 → 08-09 was
 **$238.35**, which disabled the subscription → Key Vault 403 → 84 ExternalSecrets
 stopped syncing → the `wait: true` cascade → 47 alerts.
 
-| Meter | 30d | Owner |
-|---|---|---|
-| Azure Monitor :: **Standard Web Test Execution** | **$128.53** | agent-created synthetics |
-| Storage :: **LRS List and Create Container Operations** | **$87.96** | nas02 → Azure Blob |
-| Bandwidth :: Standard Data Transfer Out | $10.86 | |
-| Azure Monitor :: Alerts Metric Monitored | $3.00 | |
-| Metrics Export / Log ingestion / Key Vault ops / storage | $8.00 | |
-| **TOTAL** | **$238.35** | |
+| Meter                                                    | 30d         | Owner                    |
+| -------------------------------------------------------- | ----------- | ------------------------ |
+| Azure Monitor :: **Standard Web Test Execution**         | **$128.53** | agent-created synthetics |
+| Storage :: **LRS List and Create Container Operations**  | **$87.96**  | nas02 → Azure Blob       |
+| Bandwidth :: Standard Data Transfer Out                  | $10.86      |                          |
+| Azure Monitor :: Alerts Metric Monitored                 | $3.00       |                          |
+| Metrics Export / Log ingestion / Key Vault ops / storage | $8.00       |                          |
+| **TOTAL**                                                | **$238.35** |                          |
 
 Check any time with `just infra azure-cost`.
 
 **Driver 1 — synthetic web tests ($128.53). FIXED in git, deploy after reset.**
 7 endpoints × 4 locations × every 300 s = **8,064 executions/day**. Standard web
-tests bill *per execution*. Now 2 locations × 900 s = **1,344/day (−83 %)**, plus
+tests bill _per execution_. Now 2 locations × 900 s = **1,344/day (−83 %)**, plus
 `workspaceCapping.dailyQuotaGb` (was `-1` — literally no cap, which is what let it
 run away), App Insights retention 90 → 30 d, and a PT15M alert window.
 ⚠️ Subscription is `ReadOnlyDisabledSubscription` until the credit resets, so
@@ -835,12 +912,12 @@ history        20,000 actions in 24h, no data transferred
 
 It **resumed the instant the credit reset** — blob transactions went 0/day while the
 account was disabled to **~500,000/day** on 2026-08-15 (91k–139k per 6h block).
-That is *higher* than the 146k/day measured in July.
+That is _higher_ than the 146k/day measured in July.
 
 - [ ] **P0 (Sean, 2 clicks): DSM on nas02 → Cloud Sync → task "Azure - Sean
       Personal" → Pause (or delete).** It transfers nothing and is pure scan
       churn. Fully reversible. I did not do it myself because stopping the
-      Cloud Sync *package* would also stop the Dropbox task (connection id 7),
+      Cloud Sync _package_ would also stop the Dropbox task (connection id 7),
       and there is no safe per-task CLI.
 - [ ] P0: once identified — either fix the schedule/state or delete it. nas02 is
       being retired to nas01 anyway, so deleting is probably right.
@@ -851,24 +928,24 @@ That is *higher* than the 146k/day measured in July.
 
 **Two layers, not one.** "The backup until Friday" is not just SOPS:
 
-| Layer | Purpose | Status |
-|---|---|---|
-| SOPS/age | create **new** secrets while Azure is 403 | ✅ working |
+| Layer                  | Purpose                                      | Status                         |
+| ---------------------- | -------------------------------------------- | ------------------------------ |
+| SOPS/age               | create **new** secrets while Azure is 403    | ✅ working                     |
 | Nightly backup CronJob | age-encrypted dump of all 84 to a kopiur PVC | ✅ proven (84 secrets, 160 KB) |
-| Azure Key Vault | the 84 existing secrets | ⛔ 403 until Friday |
+| Azure Key Vault        | the 84 existing secrets                      | ⛔ 403 until Friday            |
 
 **Azure stays** (it is credit-funded, and the cost is now understood — see above).
 Bitwarden Secrets Manager becomes a **second, independent store**, not a replacement.
 
-> ⚠️ **Vaultwarden cannot do this.** Vaultwarden implements the *Password Manager*
+> ⚠️ **Vaultwarden cannot do this.** Vaultwarden implements the _Password Manager_
 > API only; it does **not** implement Bitwarden **Secrets Manager**, so ESO's
 > native `bitwardensecretsmanager` provider cannot talk to it. If the goal is a
 > fully self-hosted second store, the real options are:
 > (a) ESO **webhook** provider in front of a `bw` CLI container against Vaultwarden
->     — this is the Home-Operations Discord approach; no auth on the serve API, so
->     it needs a NetworkPolicy;
+> — this is the Home-Operations Discord approach; no auth on the serve API, so
+> it needs a NetworkPolicy;
 > (b) **Infisical** or **OpenBao**, both of which have first-class ESO providers
->     and can run in-cluster;
+> and can run in-cluster;
 > (c) Bitwarden Secrets Manager **cloud** free tier (below) — least work.
 
 **Bitwarden Secrets Manager (cloud) — after Friday.**
@@ -878,7 +955,7 @@ Verified facts (don't re-research these):
 - Secrets Manager is a **different product from Password Manager**. The $20/yr
   Premium does **not** include it. It doesn't need to — the **free tier is
   sufficient**: unlimited secrets, up to 3 machine accounts, projects. It does
-  require creating a (free) *organization*.
+  require creating a (free) _organization_.
 - ESO ships a native `bitwardensecretsmanager` provider.
 - ⚠️ It needs a **second service**, `bitwarden-sdk-server` — the Bitwarden Rust SDK
   is ~150 MB and needs CGO, so ESO wraps it behind a small REST service. It is a
@@ -896,10 +973,10 @@ Verified facts (don't re-research these):
 **Why the migration is tractable.** The repo uses ~40 distinct Key Vault keys, each
 a JSON blob, consumed by `dataFrom.extract`; only 3 ExternalSecrets use explicit
 `data[].remoteRef`. Bitwarden stores flat string values and ESO's `extract` parses
-a JSON *value*, so one Bitwarden secret per KV key with the identical JSON body is
+a JSON _value_, so one Bitwarden secret per KV key with the identical JSON body is
 a 1:1 mapping. The repo change is then a single `secretStoreRef.name` swap.
 
-**Why wait for Friday.** Migration needs the *source* JSON blobs out of Key Vault.
+**Why wait for Friday.** Migration needs the _source_ JSON blobs out of Key Vault.
 The escrow holds the **rendered** Secrets, not the KV blobs, so doing it now means
 hand-reconstructing 40 JSON documents — slow and easy to get wrong. Friday: Azure
 returns → dump the blobs → push to Bitwarden → flip the store ref → decommission.
@@ -956,6 +1033,7 @@ Registering runners and pushing dependency updates should not share an identity.
 ## I. Apps / identity / home-automation (raised 2026-08-05)
 
 ### I1. Omada — still cannot adopt devices
+
 - [ ] P0: Migration from nas02 (`oc01`) blocked: **no device adoption**.
       Strongly suspected to be the **VLAN1 tagging fault (§A0)**, not an Omada bug —
       controller has `net1` on VLAN1 (192.168.0.30) which is exactly the broken VLAN.
@@ -963,6 +1041,7 @@ Registering runners and pushing dependency updates should not share an identity.
       (c) **abandon VLAN1** and adopt over an explicitly-tagged VLAN.
 
 ### I2. Identity — nothing centralised
+
 - [ ] P0: Everything is scattered (users, groups, systems, devices, SSH, RADIUS, MFA,
       OAuth). Goal is one pane of glass with real lifecycle management.
 - [ ] P0: **Authentik was gated on one item Sean had to do — neither of us can recall
@@ -973,16 +1052,18 @@ Registering runners and pushing dependency updates should not share an identity.
   manual and error-prone (§I3). Centralised identity directly reduces that pain.
 
 ### I3. Camera credentials + frigate/cam03
+
 - [ ] P0: **Rotate `FRIGATE_RTSP_PASSWORD`** — leaked in a chat transcript 2026-08-03
       by ffprobe echoing the RTSP URL on error. **Identify the exact AKV secret name**
       (ExternalSecret `frigate` → key used for `FRIGATE_RTSP_PASSWORD`).
 - [ ] P0: **cam03 still fails even after Sean set a matching password on all 3 accounts.**
       Earlier proof: cam02 `h264,2560,1440` vs cam03 `401 Unauthorized`, same URL/user.
-      Next checks: is `viewer` in the right *group/role* on cam03; does the Dahua-clone
+      Next checks: is `viewer` in the right _group/role_ on cam03; does the Dahua-clone
       firmware use separate "ONVIF user" vs "system user" tables; is there a leading/
       trailing space or a char the camera silently truncates (no copy/paste = high risk).
 
 ### I4. Matter / Thread
+
 - [ ] P1: `matter-server` not set up and not connected to **OTBR01**.
 
 ---
@@ -997,9 +1078,14 @@ Real, blocking pain — Sean cannot print anything beyond PLA (HT-PLA-GF works w
 fdm02 (the SV08) — `printer/objects/query?temperature_probe btt_eddy`:
 
 ```json
-{"temperature": 37.8, "calibration_temp": 39.686469,
- "max_validation_temp": 60.0, "drift_calibration_min_temp": 0.0,
- "estimated_expansion": 0, "compensation_enabled": false}
+{
+    "temperature": 37.8,
+    "calibration_temp": 39.686469,
+    "max_validation_temp": 60.0,
+    "drift_calibration_min_temp": 0.0,
+    "estimated_expansion": 0,
+    "compensation_enabled": false
+}
 ```
 
 `compensation_enabled: false` and no `drift_calibration` polynomial in
@@ -1009,12 +1095,12 @@ fdm02 (the SV08) — `printer/objects/query?temperature_probe btt_eddy`:
 **Why this is exactly the observed symptom.** An LDC1612 eddy coil's inductance
 drifts with its own temperature. The probe was calibrated at **39.7 °C**:
 
-| Filament | Bed | Probe soak | Drift | Result |
-|---|---|---|---|---|
-| PLA | 60 °C | ~45 °C | small | sticks |
-| ABS | **105 °C** | 70–90 °C | 0.1–0.3 mm | **nozzle parks too high** |
+| Filament | Bed        | Probe soak | Drift      | Result                    |
+| -------- | ---------- | ---------- | ---------- | ------------------------- |
+| PLA      | 60 °C      | ~45 °C     | small      | sticks                    |
+| ABS      | **105 °C** | 70–90 °C   | 0.1–0.3 mm | **nozzle parks too high** |
 
-It is a *first-layer gap* fault, not a heat/chemistry fault. That is why bed
+It is a _first-layer gap_ fault, not a heat/chemistry fault. That is why bed
 105 °C, heat-soaking, a big brim, a very slow first layer, hairspray, the stock
 PEI, and the BIQU Glacier all changed nothing — and, decisively, why **the hottest
 band of a temp tower also failed**: nozzle temperature cannot fix a gap.
@@ -1048,7 +1134,7 @@ Only after that is it worth revisiting plate prep, enclosure or ASA-vs-ABS.
       IPA smears mould release rather than removing it).
 - [ ] P1: ASA over ABS for less warp; PETG covers many use cases and is far easier.
 - [ ] P2: Ram3n graphite bed, chamber thermistor, insulation, exhaust into the
-      AC Infinity 6". These help *later*; they were never the blocker.
+      AC Infinity 6". These help _later_; they were never the blocker.
 - ⚠️ Safety: ABS/ASA emit styrene + UFPs. Enclosing concentrates them — vent
   outside or run activated carbon before sealing the chamber.
 
@@ -1060,24 +1146,24 @@ Only after that is it worth revisiting plate prep, enclosure or ASA-vs-ABS.
 > calibration project hold a birthday hostage.
 
 **Do not try to edit the downloaded STL.** This is the thing that has been making
-Onshape feel impossible. Onshape imports an STL as a *mesh*, not a parametric solid —
+Onshape feel impossible. Onshape imports an STL as a _mesh_, not a parametric solid —
 you cannot grab a face and change a dimension, and mesh→BRep conversion on a model
 like this produces garbage. Everyone who says "just import it" has not tried it.
 
 **Re-model the bezel instead.** For [model 1588842](https://www.printables.com/model/1588842-e-ink-digital-picture-frame)
 the part is genuinely simple geometry — a plate, a window, a recessed pocket, and a
-lip — and modelling it from scratch is *faster* than fighting the mesh, and stays
+lip — and modelling it from scratch is _faster_ than fighting the mesh, and stays
 editable when the next screen changes.
 
 Measure first (calipers, write them down):
 
-| Value | Why |
-|---|---|
-| IKEA frame inner opening W × H | sets the plate outline |
-| Screen **active area** W × H | sets the window cut-out |
-| Screen **module/PCB outline** W × H | sets the pocket |
-| Screen module thickness | pocket depth |
-| Ribbon cable exit position + width | escape slot |
+| Value                               | Why                     |
+| ----------------------------------- | ----------------------- |
+| IKEA frame inner opening W × H      | sets the plate outline  |
+| Screen **active area** W × H        | sets the window cut-out |
+| Screen **module/PCB outline** W × H | sets the pocket         |
+| Screen module thickness             | pocket depth            |
+| Ribbon cable exit position + width  | escape slot             |
 
 Then, in Onshape — Variable Studio first, so refitting is one number:
 
@@ -1114,8 +1200,8 @@ its edge. Keep `#lip` ≥ 1.5 mm or it snaps.
       `translate_stl`, `modify_stl_section` and `generate_stl_visualization` — enough to
       measure and sanity-check the downloaded STL without opening any CAD at all.
 
-
 ### J3. Print ecosystem / MCP
+
 - [x] MCP integration for the print stack — `printer` MCP live at mcp-printer.homeops.ca (2026-08-09)
       Spoolman, printguard. Would let filament, print state and failures surface
       alongside the rest of the estate.
@@ -1160,6 +1246,7 @@ acting on any of it.
 - [ ] P2: Revisit Talos NFS tuning after NAS migration and move `nfsvers=4.1` to `4.2` when safe
 
 Reference:
+
 - [talos/machineconfig.yaml.j2](talos/machineconfig.yaml.j2)
 
 ## NAS02 Dependency Migration
@@ -1200,8 +1287,10 @@ Migration checklist per app:
 - [ ] P1: Capture and triage failing probes in a single report
 
 ### In-cluster health-sweep CronJob that files a GitHub issue (designed 2026-06-21, NOT yet built)
+
 There is currently **no** in-cluster cronjob — only `just kubernetes health-sweep` (local,
 manual, `scripts/health-sweep.sh`). To make findings surface automatically:
+
 - CronJob (daily) in `observability` running the sweep + a resource right-sizing check
   (OOM-risk: peak >85% of limit; over-provisioned: request >2x 7d peak) via Prometheus.
 - Read-only cluster RBAC (ServiceAccount: get/list pods, events, deploy/sts; no secrets).
@@ -1229,6 +1318,7 @@ manual, `scripts/health-sweep.sh`). To make findings surface automatically:
 - [ ] P0: zigbee2mqtt coordinator endpoint unreachable from pod (`ETIMEDOUT 192.168.70.37:6638`)
 
 Runbook references:
+
 - [docs/REBUILD-RUNBOOK.md](docs/REBUILD-RUNBOOK.md)
 - [docs/REMOTE-MEDIA-RUNBOOK.md](docs/REMOTE-MEDIA-RUNBOOK.md)
 
@@ -1239,6 +1329,7 @@ Runbook references:
 - [ ] P1: Verify Cloudflare tunnel readiness before and after network changes
 
 Reference:
+
 - [kubernetes/apps/kube-system/cilium/README.md](kubernetes/apps/kube-system/cilium/README.md)
 
 ## Suggested Execution Order

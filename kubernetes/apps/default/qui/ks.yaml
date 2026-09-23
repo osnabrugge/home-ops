@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: qui
-      KOPIUR_SCHEDULE: "40 5 * * 0"
   prune: true
   sourceRef:
     kind: GitRepository

@@ -121,12 +121,103 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: memory-mcp
+spec:
+  # policy, not backup: the PVC already exists without a dataSourceRef, which is
+  # immutable, so backup/pvc.yaml could never be applied over it.
+  components:
+    - ../../../../components/kopiur/policy
+  dependsOn:
+    - name: toolhive-operator
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/memory-mcp
+  postBuild:
+    substitute:
+      APP: memory-mcp
+      KOPIUR_CAPACITY: 1Gi
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: memory-service
+spec:
+  # PILOT of doobidoo/mcp-memory-service, running ALONGSIDE memory-mcp.
+  # memory-mcp stays the system of record; nothing migrates until this proves
+  # better recall and Sean can actually audit it via the dashboard.
+  # Uses backup (not policy) because this PVC is new: kopiur can provision it
+  # with the dataSourceRef in place from the start, which is immutable later.
+  components:
+    - ../../../../components/kopiur/backup
+  dependsOn:
+    - name: toolhive-operator
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/memory-service
+  postBuild:
+    substitute:
+      APP: memory-service
+      KOPIUR_CAPACITY: 5Gi
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: mikrotik-mcp
+# spec:
+#   dependsOn:
+#     - name: toolhive-operator
+#   interval: 1h
+#   path: ./kubernetes/apps/toolhive/servers/mikrotik-mcp
+#   wait: false
+#   prune: true
+#   sourceRef:
+#     kind: GitRepository
+#     name: flux-system
+#     namespace: flux-system
+#   targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: netbox-mcp
 spec:
   dependsOn:
     - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/servers/netbox-mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: omada-mcp
+spec:
+  dependsOn:
+    - name: toolhive-operator
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/servers/omada-mcp
   wait: false
   prune: true
   sourceRef:

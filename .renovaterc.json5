@@ -24,18 +24,6 @@
   ignorePaths: ["kubernetes/apps/observability/librenms/**"],
   packageRules: [
     {
-      description: "Pin maddy: upstream 0.9.5+ has broken/missing layer blobs on ghcr.io (404 on pull)",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["ghcr.io/foxcpp/maddy"],
-      enabled: false,
-    },
-    {
-      description: "Pin quay.io/ceph/ceph: Ceph major upgrades must be co-ordinated with a Rook operator release that explicitly supports the new Ceph major. Re-enable once Rook v1.21 ships with Ceph v21 support.",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["quay.io/ceph/ceph"],
-      enabled: false,
-    },
-    {
       // ocharted only bypasses auth for 10.42.0.0/16, so a lookup from CI returns
       // no-result. Query the upstream Helm repo it proxies instead. Keep these
       // matchers in sync with the OCIRepository url or updates silently stop.
@@ -45,6 +33,9 @@
       overrideDatasource: "helm",
       overridePackageName: "radar",
       registryUrls: ["https://skyhook-io.github.io/helm-charts"],
+      // ocharted serves manifests by TAG only; a digest-addressed fetch 404s, so a
+      // pinned digest makes the OCIRepository permanently unready (broke PR #4169).
+      pinDigests: false,
     },
     {
       description: "Track ceph-csi-drivers against its upstream Helm repo, not the ocharted proxy",
@@ -53,6 +44,35 @@
       overrideDatasource: "helm",
       overridePackageName: "ceph-csi-drivers",
       registryUrls: ["https://ceph.github.io/ceph-csi-operator"],
+      pinDigests: false,
+    },
+    {
+      // ⛔ THIS DOES NOT WORK. Kept only to document the dead end.
+      // `pinDigests` is the WRONG KNOB: it governs whether Renovate *pins* a digest
+      // on an otherwise-unpinned dep. The bare-hex digest here is not a pin — the
+      // flux manager writes `ref.digest` as part of an ordinary version bump, copying
+      // the `digest:` field out of the upstream Helm index.yaml (bare hex, no
+      // `sha256:` prefix), which source-controller rejects: `cannot parse hash`.
+      // Re-added by #4290 (1.13.x) and again by #4306 (1.14.0 -> 1.14.1) AFTER the
+      // matchFileNames rule below was added. Stripped in 166cf7d30, again, and again.
+      //
+      // ROOT CAUSE: `overrideDatasource: "helm"` above. It exists only because
+      // ocharted.homeops.ca is published on envoy-INTERNAL, so a GitHub-hosted runner
+      // cannot reach it and `hostRules` had to be emptied. onedr0p has the same proxy
+      // but his ocharted.turbo.ac is publicly reachable, so he authenticates with a
+      // hostRule, stays on the docker datasource, and needs NO pinDigests rule at all —
+      // all four of his ocharted OCIRepositories are tag-only with no digest.
+      //
+      // DURABLE FIX (needs a decision): publish ocharted externally like onedr0p and
+      // restore the hostRule + OCHARTED_USERNAME/OCHARTED_PASSWORD, then delete the two
+      // overrideDatasource rules above. Until then a digest WILL come back on the next
+      // radar/ceph-csi-drivers version bump and must be stripped by hand.
+      description: "Never pin digests on ocharted-backed OCIRepositories (INEFFECTIVE - see comment)",
+      matchFileNames: [
+        "kubernetes/apps/observability/radar/app/ocirepository.yaml",
+        "kubernetes/apps/rook-ceph/ceph-csi-drivers/app/ocirepository.yaml",
+      ],
+      pinDigests: false,
     },
     // Auto-merge rules
     {
@@ -153,6 +173,26 @@
       groupSlug: "mise-tools",
     },
     {
+      description: "Netbox Diode Group",
+      groupName: "netbox-diode",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/diode-auth/", "/diode-ingester/", "/diode-reconciler/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 3,
+    },
+    {
+      description: "Printstash Group",
+      groupName: "printstash",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/printstash-api/", "/printstash-frontend/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 2,
+    },
+    {
       description: "Rook-Ceph Group",
       groupName: "rook-ceph",
       matchDatasources: ["docker"],
@@ -174,25 +214,29 @@
       minimumGroupSize: 2,
     },
     {
+      description: "Toolhive-Operator Group",
+      groupName: "toolhive-operator",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["/toolhive-operator/", "/toolhive-operator-crds/"],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      // A merged Talos bump is not a PR, it is an unattended rolling power-cycle
+      // of all 6 nodes via tuppr. 1.13->1.14 renumbered /dev/dri and broke every
+      // GPU workload. Raise this deliberately, with a maintenance window.
+      description: "Never auto-bump Talos minor/major -- tuppr reboots the whole cluster",
+      matchPackageNames: ["siderolabs/talos"],
+      matchUpdateTypes: ["major", "minor"],
+      dependencyDashboardApproval: true,
+    },
+    {
       description: "CoreDNS 1.14.3+ prefetch poisons autopath answers, hold until coredns/coredns#8390 is fixed",
       matchDatasources: ["docker"],
       matchPackageNames: ["ghcr.io/coredns/charts/coredns"],
       enabled: false,
-    },
-    {
-      // Talos 1.13.x (latest stable) bundles Kubernetes 1.36 and its upgrade-k8s
-      // validator hard-rejects 1.36->1.37, so a 1.37 bump wedges tuppr in Failed
-      // forever. Raise the cap once Talos 1.14 is stable and rolled out.
-      description: "Cap Kubernetes at 1.36.x until Talos 1.14 ships stable",
-      matchDatasources: ["docker"],
-      matchPackageNames: [
-        "/kube-apiserver/",
-        "/kube-controller-manager/",
-        "/kube-proxy/",
-        "/kube-scheduler/",
-        "/kubelet/",
-      ],
-      allowedVersions: "<1.37.0",
     },
     // Labeling rules
     {

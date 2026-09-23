@@ -41,8 +41,10 @@ spec:
       storageClassName: ceph-block
     resources:
       requests:
-        cpu: 50m
+        cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 200m
-        memory: 1Gi
+        # 200m throttled the container 88.58% of the time after the 1.14.1 upgrade;
+        # it indexes the whole cluster, so it is bursty rather than steady-state.
+        cpu: "1"
+        memory: 2Gi

@@ -11,7 +11,7 @@ spec:
     # ("unsupported upgrade path 1.36->1.37"). Lift this once Talos 1.14 ships
     # stable (1.14.0-rc.2 as of 2026-08-25) and talosupgrade.yaml is on it.
     # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-    version: v1.36.4
+    version: v1.37.0
   healthChecks:
     - apiVersion: kopiur.home-operations.com/v1alpha1
       kind: Snapshot

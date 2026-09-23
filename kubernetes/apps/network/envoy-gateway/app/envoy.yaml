@@ -50,7 +50,10 @@ kind: Gateway
 metadata:
   name: envoy-external
   annotations:
-    external-dns.alpha.kubernetes.io/target: &hostname external.homeops.ca
+    # external-dns v0.22 dropped the `alpha` prefix for these. With the old key the
+    # target is silently ignored, external-dns falls back to the Gateway's LB IP,
+    # and Cloudflare rejects every proxied record with 9003 (RFC1918 target).
+    external-dns.kubernetes.io/target: &hostname external.homeops.ca
     gatus.home-operations.com/endpoint: |-
       client:
         dns-resolver: tcp://1.1.1.1:53
@@ -59,7 +62,7 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: *hostname
+      external-dns.kubernetes.io/hostname: *hostname
       lbipam.cilium.io/ips: 192.168.69.126
   listeners:
     - name: http

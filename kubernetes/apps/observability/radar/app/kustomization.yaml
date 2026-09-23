@@ -6,4 +6,5 @@ resources:
   - ./helmrepository.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml
+  - ./ocharted-pull-externalsecret.yaml
   - ./ocirepository.yaml

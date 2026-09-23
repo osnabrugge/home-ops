@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: prowlarr
-      KOPIUR_SCHEDULE: "0 1 * * *"
   prune: true
   sourceRef:
     kind: GitRepository

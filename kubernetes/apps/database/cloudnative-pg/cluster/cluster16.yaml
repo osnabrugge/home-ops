@@ -42,6 +42,10 @@ spec:
     parameters:
       max_connections: "400"
       shared_buffers: 256MB
+  # CNPG's default PDBs pin the primary at minAvailable=1 over a 1-pod selector,
+  # so allowed-disruptions is permanently 0 and node drains/upgrades hang. With
+  # 3 instances and unsupervised switchover the operator handles eviction itself.
+  enablePDB: false
   nodeMaintenanceWindow:
     inProgress: false
     reusePVC: true

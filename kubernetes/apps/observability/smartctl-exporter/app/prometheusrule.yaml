@@ -67,3 +67,27 @@ spec:
           for: 5m
           labels:
             severity: critical
+
+        # TrueNAS 25.10 removed smartd and every smart.* middleware method, so nas01
+        # schedules its own self-tests from cron and publishes the outcome through the
+        # node-exporter textfile collector. Without these two rules a failed self-test
+        # would only ever exist in the drive's own log.
+        - alert: Nas01SmartSelfTestFailed
+          expr: |-
+            nas01_smart_selftest_failed == 1
+          for: 5m
+          annotations:
+            summary: >-
+              nas01 drive {{ $labels.device }} ({{ $labels.model }} {{ $labels.serial }}) failed its most recent SMART self-test
+          labels:
+            severity: critical
+
+        - alert: Nas01SmartSelfTestStale
+          expr: |-
+            time() - nas01_smart_selftest_report_timestamp_seconds > 14400
+          for: 15m
+          annotations:
+            summary: >-
+              nas01 has not published SMART self-test results for over 4h — the cron job or smartctl is broken
+          labels:
+            severity: warning

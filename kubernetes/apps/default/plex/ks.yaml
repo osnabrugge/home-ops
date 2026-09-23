@@ -18,7 +18,6 @@ spec:
   postBuild:
     substitute:
       APP: plex
-      KOPIUR_SCHEDULE: "0 3 * * *"
       KOPIUR_CAPACITY: 50Gi
   prune: true
   sourceRef:

@@ -5,6 +5,8 @@ kind: Kustomization
 metadata:
   name: omada-db
 spec:
+  components:
+    - ../../../../components/kopiur/policy
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
@@ -12,6 +14,13 @@ spec:
       namespace: external-secrets
   interval: 1h
   path: ./kubernetes/apps/database/omada-db/app
+  postBuild:
+    substitute:
+      APP: omada-db
+      # Claim is provisioned by the mongodb chart, and mongodb owns its data as 1001.
+      KOPIUR_PVC: omada-db-mongodb
+      KOPIUR_PUID: "1001"
+      KOPIUR_PGID: "1001"
   prune: true
   sourceRef:
     kind: GitRepository

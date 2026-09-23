@@ -16,7 +16,6 @@ spec:
   postBuild:
     substitute:
       APP: zigbee
-      KOPIUR_SCHEDULE: "30 3 * * *"
       ZEROSCALER_JOB_NAME: zig01_probe
   prune: true
   sourceRef:
