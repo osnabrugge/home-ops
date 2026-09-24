@@ -83,10 +83,13 @@ spec:
         # LAN attach (bond0.1 / VLAN1) so Omada is L2-reachable for device discovery + adoption.
         # Management attach (bond0.99 / VLAN99) is where the Omada devices actually hold their
         # management IPs (192.168.99.21/.22), so adoption traffic needs to originate there.
+        # Guest attach (bond0.50 / VLAN50) so EAPs serving the guest SSID can
+        # reach the controller for discovery and the guest portal.
         k8s.v1.cni.cncf.io/networks: |-
           [
             {"name": "lan", "namespace": "kube-system", "ips": ["192.168.0.30/24"]},
-            {"name": "management", "namespace": "kube-system", "ips": ["192.168.99.30/24"]}
+            {"name": "management", "namespace": "kube-system", "ips": ["192.168.99.30/24"]},
+            {"name": "guest", "namespace": "kube-system", "ips": ["192.168.50.30/24"]}
           ]
       terminationGracePeriodSeconds: 60
       securityContext:
