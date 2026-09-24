@@ -1,0 +1,112 @@
+---
+# One-shot diagnostic: does inbound UDP actually reach our WAN from the internet?
+#
+# Why this exists: on 2026-09-23 the WireGuard WAN rule on gw01 showed
+# "Evaluations: 74352  Packets: 0  Last Active Time: N/A" — the rule was loaded
+# and correct but had never matched a packet. DNS was verified correct and the
+# firewall exonerated, which left three candidates: the phone isn't sending, the
+# phone is on home Wi-Fi (hairpin is disabled), or the ISP drops inbound UDP.
+# This separates the ISP case from the others without needing the phone.
+#
+# IMPORTANT: the runner cannot tell you whether this worked. WireGuard does not
+# reply to unauthenticated packets, so there is nothing to observe from outside.
+# Read the answer on gw01 instead, before and after:
+#
+#   ssh sean-admin@gw01 'sudo pfctl -vvsr | grep -A2 "port = 51820"'
+#
+# Packets increments  -> inbound UDP reaches the WAN; the fault is the client.
+# Packets stays 0     -> nothing traverses pppoe0; suspect the ISP path.
+name: WAN UDP Reachability
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: Target hostname (must resolve to our own WAN address)
+        type: string
+        default: vpn.homeops.ca
+      port:
+        description: UDP port to probe
+        type: string
+        default: "51820"
+      count:
+        description: Packets to send (capped at 5 — this is a probe, not a load test)
+        type: string
+        default: "3"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Send UDP probe from outside the network
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send
+        shell: bash
+        env:
+          TARGET_HOST: ${{ inputs.host }}
+          TARGET_PORT: ${{ inputs.port }}
+          TARGET_COUNT: ${{ inputs.count }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, socket, sys
+
+          host = os.environ["TARGET_HOST"].strip()
+          port = int(os.environ["TARGET_PORT"])
+          count = min(int(os.environ["TARGET_COUNT"]), 5)
+
+          try:
+              addr = socket.gethostbyname(host)
+          except OSError as exc:
+              sys.exit(f"::error::cannot resolve {host}: {exc}")
+
+          print(f"{host} resolves to {addr}")
+          print(f"sending {count} UDP packet(s) to {addr}:{port}")
+
+          # A WireGuard handshake initiation is type 1 followed by three reserved
+          # zero bytes. The payload is deliberately invalid — we only need pf to
+          # count the packet, and an invalid one cannot establish anything.
+          payload = bytes([1, 0, 0, 0]) + b"\x00" * 28
+
+          sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+          sock.settimeout(2)
+          for i in range(count):
+              sock.sendto(payload, (addr, port))
+              print(f"  sent packet {i + 1}/{count}")
+          sock.close()
+
+          print()
+          print("Sent. The runner cannot observe the result — WireGuard does not")
+          print("answer unauthenticated packets. Check the pf counter on gw01:")
+          print('  sudo pfctl -vvsr | grep -A2 "port = %d"' % port)
+          PY
+
+      - name: How to read the result
+        shell: bash
+        env:
+          TARGET_HOST: ${{ inputs.host }}
+          TARGET_PORT: ${{ inputs.port }}
+        run: |
+          {
+            echo "### WAN UDP reachability probe sent"
+            echo
+            echo "Target: \`${TARGET_HOST}:${TARGET_PORT}\`"
+            echo
+            echo "This workflow cannot report success or failure by itself."
+            echo "On gw01, compare the counter before and after:"
+            echo
+            echo '```sh'
+            echo "sudo pfctl -vvsr | grep -A2 'port = ${TARGET_PORT}'"
+            echo '```'
+            echo
+            echo "| Counter after | Meaning |"
+            echo "| --- | --- |"
+            echo "| \`Packets\` increased | Inbound UDP reaches the WAN — the fault is client-side |"
+            echo "| \`Packets: 0\` still | Nothing traverses pppoe0 — suspect the ISP path |"
+          } >> "$GITHUB_STEP_SUMMARY"
