@@ -126,8 +126,8 @@ spec:
           - path: /dev/shm
       media:
         type: nfs
-        server: nas02.in.homeops.ca
-        path: /volume3/frigate
+        server: nas01.in.homeops.ca
+        path: /mnt/backups/frigate
         globalMounts:
           - path: /media/frigate
       usb:
