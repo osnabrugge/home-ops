@@ -129,9 +129,7 @@ spec:
       # Ensures ISOs (Windows, Proxmox, custom Talos, etc.) survive pod restarts
       assets:
         type: nfs
-        # Back on nas02 while nas01 is rebuilt — its pools were destroyed and the
-        # /mnt/vault/netboot export went with them.
-        server: nas02.in.homeops.ca
-        path: /volume3/netboot
+        server: nas01.in.homeops.ca
+        path: /mnt/nfs/netboot
         globalMounts:
           - path: /assets
