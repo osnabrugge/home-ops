@@ -97,7 +97,7 @@ spec:
           app:
             image:
               repository: netboxlabs/diode-auth
-              tag: 2.3.0
+              tag: 2.3.1
             env:
               TZ: America/Toronto
               HTTP_PORT: &auth-port 8082
@@ -144,7 +144,7 @@ spec:
           app:
             image:
               repository: netboxlabs/diode-ingester
-              tag: 2.3.0
+              tag: 2.3.1
             env:
               TZ: America/Toronto
               REDIS_HOST: dragonfly-diode.database.svc.cluster.local
@@ -199,7 +199,7 @@ spec:
           app:
             image:
               repository: netboxlabs/diode-reconciler
-              tag: 2.3.0
+              tag: 2.3.1
             env:
               TZ: America/Toronto
               REDIS_HOST: dragonfly-diode.database.svc.cluster.local
