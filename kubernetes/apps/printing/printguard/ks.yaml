@@ -18,6 +18,9 @@ spec:
     substitute:
       APP: printguard
       KOPIUR_CAPACITY: 10Gi
+      # PrintGuard runs as root, so a uid-1000 mover gets PermissionDenied on its files
+      KOPIUR_PGID: "0"
+      KOPIUR_PUID: "0"
   prune: true
   sourceRef:
     kind: GitRepository
