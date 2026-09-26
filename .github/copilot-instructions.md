@@ -4,24 +4,35 @@
 
 Work through these steps in order, before answering anything:
 
-1. **Decide whether memory reads apply.** Skip steps 2–4 only if the request
+1. **Decide whether memory reads apply.** Skip steps 2–5 only if the request
    mentions no filename, hostname, or topic from the index table in
    [Memory policy](#memory-policy). Otherwise continue.
 2. `memory view /memories/agent-behaviour.md` — how Sean wants you to operate.
    Contains "THE HALT PROBLEM" (his #1 complaint) and the no-fabrication rule.
-3. `memory view /memories/` — list the directory, then read the **single**
-   `repo/*.md` matching the topic. Not the whole set.
-4. If no index row matches, skim the filenames from step 3; if it is still
-   unclear, proceed and state which memory files you consulted.
-5. Before your final reply, write back to memory (see [Memory policy](#memory-policy)).
+   ⛔ This is the ONLY file you read unprompted. Everything else is MCP-first.
+3. **`tool_search` for the memory MCP servers.** They are **deferred tools** —
+   they do not appear in your tool list until you search for them, and that
+   absence is why they get skipped. Query: `memory_search memory_explore
+mistake_note_search read_graph`. This is the step that keeps getting missed.
+4. **Query MCP before files.** `mistake_note_search` with the task description
+   (catches known pitfalls), then `memory_search`/`memory_explore` for the topic.
+5. Only if MCP returns nothing useful, read the **single** `repo/*.md` matching
+   the topic from the index table. Not the whole set. State which you consulted.
+6. Before your final reply, write back — **to MCP, not to files**
+   (see [Memory policy](#memory-policy)).
 
 Your `<userMemory>`/`<repoMemory>` context block **lies** — it has reported
 "empty" while `/memories/` held 15 populated files. **Never trust it**; confirm
 with the `memory` tool. This is one tool call and it has repeatedly saved hours.
 
+**Why step 3 exists (measured 2026-09-26):** the `memory-service` pilot held
+**1 memory and had served 0 queries** since deployment, while the old graph had
+grown to 48 entities / 448 observations. Not a tool failure — the old protocol
+named neither server, so files won by default every single session.
+
 ## Memory policy
 
-**Topic → file index (read the match BEFORE answering, not after):**
+**Topic → file index (FALLBACK only — query MCP first, per step 4 above):**
 
 | Topic                                             | File                                            |
 | ------------------------------------------------- | ----------------------------------------------- |
@@ -40,11 +51,32 @@ proceeding — do NOT fabricate its contents.
 **If a memory file contradicts this working agreement,** treat the memory file as
 authoritative for repo-specific facts, and flag the conflict to Sean.
 
-**Write back:** append new verified facts, corrections to stale entries, and any
-mistake worth not repeating to `/memories/repo/<matching-topic>.md` — creating a
-new file there if no topic matches — using the existing bullet format. Do this
-when Sean indicates the task is complete, or before your final reply. Memory is
-only worth the cost of reading it if it stays current.
+### ⭐ WRITE TO MCP, NOT TO FILES (Sean's instruction, 2026-09-19)
+
+> "please do not put your notes/memory in any files that get synced to github,
+> I would prefer you use your mcp-memory whenever possible"
+
+- **New findings, incidents, gotchas, project state → MCP.** Dual-write during
+  the pilot: `memory_store` (memory-service) **and** `add_observations`
+  (memory-server), so recall can actually be compared. Mistakes worth not
+  repeating go to `mistake_note_add`.
+- **`/memories/**` keeps only** `agent-behaviour.md`, `commitments.md`, and
+  **credentials-adjacent files** (`access.md`, `ssh-keys.md`,
+  `talos-credentials.md`, `secrets-strategy.md`). Those stay as files because
+  the MCP graph is plaintext readable by any MCP-capable agent in the cluster.
+  Real secrets belong in Azure Key Vault / Bitwarden, never in either store.
+- Existing `repo/*.md` topic files are **read-only legacy** — consult them, but
+  append new material to MCP instead of growing them further.
+
+⚠️ `memory_explore` returns `{"entities": [], "count": 0}` for EVERY query until
+an entity graph exists. Build it with `memory_quality` `{"action": "maintain",
+"dry_run": false}` — `dry_run` defaults to **true** and stores nothing. A silent
+empty result here looks exactly like a broken server; it is not.
+
+⚠️ `search_nodes` (old server) matches the query as ONE phrase. Search a single
+term (`RBD`, `auditorr`), never `RBD postgres ceph`, or you get zero hits and
+will wrongly conclude the graph is empty. `read_graph` costs ~35k tokens —
+treat it as a last resort, not a lookup.
 
 **Failure this actually prevents (2026-09-16/17):** I asked Sean for SSH access,
 nas01 hardware inventory and nas02 share sizes, then proposed a pool design —

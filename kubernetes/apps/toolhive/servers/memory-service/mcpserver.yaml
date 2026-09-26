@@ -66,6 +66,32 @@ spec:
               value: "1"
             - name: TRANSFORMERS_OFFLINE
               value: "1"
+            # Consolidation is the parent switch for insight cards, associations
+            # and clustering; `maintain` reported them skipped without it.
+            - name: MCP_CONSOLIDATION_ENABLED
+              value: "true"
+            - name: MCP_INSIGHT_CARDS_ENABLED
+              value: "true"
+            # Contradiction detection. The running build reports this name; the
+            # config guide documents the MCP_NLI_* family. Set both so the
+            # feature survives either code path.
+            - name: MCP_CONTRADICTION_DETECTION_ENABLED
+              value: "true"
+            - name: MCP_NLI_ENABLED
+              value: "true"
+            - name: MCP_NLI_ON_STORE
+              value: "true"
+            # heuristic = keyword/pattern matching, no ML deps and no outbound
+            # LLM call. Explicit so a future default change cannot start
+            # billing an external provider.
+            - name: MCP_NLI_BACKEND
+              value: heuristic
+            # ⛔ Deliberately FALSE. At the default `true`, a `contradicts` edge
+            # scoring >=0.75 silently hides the older memory from retrieval.
+            # Surfacing the conflict is the goal; hiding a note that might be
+            # the correct one is how stale guidance gets acted on unnoticed.
+            - name: MCP_CONSOLIDATION_AUTO_SUPERSEDE
+              value: "false"
           volumeMounts:
             - name: data
               mountPath: /app/data
