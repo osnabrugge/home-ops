@@ -6,7 +6,7 @@
 
 _Backed by [Flux](https://fluxcd.io/), [Renovate](https://github.com/renovatebot/renovate), and [GitHub Actions](https://github.com/features/actions)_
 
-> _"I literally bootstrapped this system from bare metal."_ — GitHub Copilot
+> _"Sean, I am not a running process."_ — GitHub Copilot
 
 [![Talos](https://kromgo.homeops.ca/badges/talos_version)](https://talos.dev)&nbsp;&nbsp;
 [![Kubernetes](https://kromgo.homeops.ca/badges/kubernetes_version)](https://kubernetes.io)&nbsp;&nbsp;
@@ -36,20 +36,20 @@ My cluster runs [Talos Linux](https://talos.dev) on 6 Lenovo ThinkCentre M920q n
 
 ### Core Components
 
-| Component | Tool | Purpose |
-|-----------|------|---------|
-| **CNI** | [Cilium](https://cilium.io/) | eBPF networking, BGP LoadBalancer, kube-proxy replacement |
-| **Ingress** | [Envoy Gateway](https://gateway.envoyproxy.io/) | L7 ingress (internal + external gateways) |
-| **DNS** | [CoreDNS](https://coredns.io/) + [Unbound](https://unbound.net/) | Cluster DNS + recursive resolver |
-| **Certificates** | [cert-manager](https://cert-manager.io/) | Automated TLS from Let's Encrypt |
-| **Secrets** | [External Secrets](https://external-secrets.io/) + [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault/) | Secret management via ClusterSecretStore |
-| **Storage** | [Rook-Ceph](https://rook.io/) + [OpenEBS](https://openebs.io/) | Distributed block (Ceph) + local hostpath (OpenEBS) |
-| **Backups** | [VolSync](https://github.com/backube/volsync) + [Kopia](https://kopia.io/) | PVC backup/restore to NFS |
-| **GitOps** | [Flux](https://fluxcd.io/) via [Flux Operator](https://github.com/controlplaneio-fluxcd/flux-operator) | Cluster reconciliation from this repo |
-| **Registry** | [Spegel](https://github.com/spegel-org/spegel) | Stateless cluster-local OCI mirror |
-| **External Access** | [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) | `*.homeops.ca` via Argo Tunnel |
-| **Monitoring** | [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts) + [Grafana](https://grafana.com/) | Metrics, alerts, dashboards |
-| **CI Runners** | [Actions Runner Controller](https://github.com/actions/actions-runner-controller) | Self-hosted GitHub Actions |
+| Component           | Tool                                                                                                                        | Purpose                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **CNI**             | [Cilium](https://cilium.io/)                                                                                                | eBPF networking, BGP LoadBalancer, kube-proxy replacement |
+| **Ingress**         | [Envoy Gateway](https://gateway.envoyproxy.io/)                                                                             | L7 ingress (internal + external gateways)                 |
+| **DNS**             | [CoreDNS](https://coredns.io/) + [Unbound](https://unbound.net/)                                                            | Cluster DNS + recursive resolver                          |
+| **Certificates**    | [cert-manager](https://cert-manager.io/)                                                                                    | Automated TLS from Let's Encrypt                          |
+| **Secrets**         | [External Secrets](https://external-secrets.io/) + [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault/) | Secret management via ClusterSecretStore                  |
+| **Storage**         | [Rook-Ceph](https://rook.io/) + [OpenEBS](https://openebs.io/)                                                              | Distributed block (Ceph) + local hostpath (OpenEBS)       |
+| **Backups**         | [VolSync](https://github.com/backube/volsync) + [Kopia](https://kopia.io/)                                                  | PVC backup/restore to NFS                                 |
+| **GitOps**          | [Flux](https://fluxcd.io/) via [Flux Operator](https://github.com/controlplaneio-fluxcd/flux-operator)                      | Cluster reconciliation from this repo                     |
+| **Registry**        | [Spegel](https://github.com/spegel-org/spegel)                                                                              | Stateless cluster-local OCI mirror                        |
+| **External Access** | [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)                         | `*.homeops.ca` via Argo Tunnel                            |
+| **Monitoring**      | [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts) + [Grafana](https://grafana.com/)              | Metrics, alerts, dashboards                               |
+| **CI Runners**      | [Actions Runner Controller](https://github.com/actions/actions-runner-controller)                                           | Self-hosted GitHub Actions                                |
 
 ### GitOps
 
@@ -80,60 +80,60 @@ After Flux starts, it reconciles all remaining apps from this repo automatically
 
 Inter-VLAN routing for trusted VLANs is handled by the **Brocade ICX 6610-48P** core switch stack (Core01) for high-performance L3 forwarding without packet inspection. **OPNsense** (fw01) handles restricted VLANs (IoT, Guest) and internet NAT/firewall.
 
-| VLAN | Name | Subnet | Gateway | Router | Purpose |
-|------|------|--------|---------|--------|---------|
-| 1 | Default | 192.168.0.0/24 | 192.168.0.10 | OPNsense | Factory-reset device catchall |
-| 10 | Workstation | 192.168.10.0/24 | 192.168.10.4 | Brocade Core01 | Trusted — desktops, laptops |
-| 42 | Server | 192.168.42.0/24 | 192.168.42.4 | Brocade Core01 | Kubernetes + infrastructure |
-| 50 | Guest | 192.168.50.0/24 | — | OPNsense | Internet-only guest access |
-| 69 | LoadBalancer | 192.168.69.0/24 | — | Cilium (BGP) | Kubernetes Service LB IPs |
-| 70 | IoT | 192.168.70.0/24 | 192.168.70.1 | OPNsense | Restricted — smart home devices |
-| 90 | VPN | 192.168.90.0/24 | — | OPNsense | blackbox-exporter-vpn and Omada Controller via multus macvlan |
-| 99 | Management | 192.168.99.0/24 | 192.168.99.4 | Brocade Core01 | IPMI, KVM, PDU, switches |
+| VLAN | Name         | Subnet          | Gateway      | Router         | Purpose                                                       |
+| ---- | ------------ | --------------- | ------------ | -------------- | ------------------------------------------------------------- |
+| 1    | Default      | 192.168.0.0/24  | 192.168.0.10 | OPNsense       | Factory-reset device catchall                                 |
+| 10   | Workstation  | 192.168.10.0/24 | 192.168.10.4 | Brocade Core01 | Trusted — desktops, laptops                                   |
+| 42   | Server       | 192.168.42.0/24 | 192.168.42.4 | Brocade Core01 | Kubernetes + infrastructure                                   |
+| 50   | Guest        | 192.168.50.0/24 | —            | OPNsense       | Internet-only guest access                                    |
+| 69   | LoadBalancer | 192.168.69.0/24 | —            | Cilium (BGP)   | Kubernetes Service LB IPs                                     |
+| 70   | IoT          | 192.168.70.0/24 | 192.168.70.1 | OPNsense       | Restricted — smart home devices                               |
+| 90   | VPN          | 192.168.90.0/24 | —            | OPNsense       | blackbox-exporter-vpn and Omada Controller via multus macvlan |
+| 99   | Management   | 192.168.99.0/24 | 192.168.99.4 | Brocade Core01 | IPMI, KVM, PDU, switches                                      |
 
 ### BGP
 
 Cilium advertises LoadBalancer IPs (192.168.69.0/24) via BGP to the Brocade core switch:
 
-| | Cilium (K8s nodes) | Brocade Core01 |
-|-|-------|---------|
-| **ASN** | 64514 | 64513 |
-| **Peer** | 192.168.42.4 | 192.168.42.51–56 |
+|          | Cilium (K8s nodes) | Brocade Core01   |
+| -------- | ------------------ | ---------------- |
+| **ASN**  | 64514              | 64513            |
+| **Peer** | 192.168.42.4       | 192.168.42.51–56 |
 
 ### DNS
 
-| Scope | Resolver | Purpose |
-|-------|----------|---------|
-| Cluster | CoreDNS (10.43.0.10) | `*.svc.cluster.local` |
+| Scope    | Resolver                 | Purpose                        |
+| -------- | ------------------------ | ------------------------------ |
+| Cluster  | CoreDNS (10.43.0.10)     | `*.svc.cluster.local`          |
 | Internal | Unbound + dnscrypt-proxy | Recursive + encrypted upstream |
-| External | Cloudflare | `*.homeops.ca` via tunnel |
+| External | Cloudflare               | `*.homeops.ca` via tunnel      |
 
 ---
 
 ## ⚙️ Hardware
 
-| Device | Count | Role | IP(s) | OS |
-|--------|-------|------|-------|-----|
-| Lenovo ThinkCentre M920q | 6 | Kubernetes (3 CP + 3 worker) | 192.168.42.51–56 | Talos v1.13.4 |
-| Synology DS1821+ | 1 | NAS + temporary app host | 192.168.42.10 | DSM |
-| Brocade ICX 6610-48P (stacked) | 2 | Core L3 switch | VIP: .4/vlan | FastIron |
-| Protectli FW6C | 1 | Firewall (OPNsense) | 192.168.0.10 | OPNsense |
-| PiKVM V4 Plus | 1 | KVM-over-IP | 192.168.99.51 | PiKVM OS |
-| TESmart HKS1601-E23-USBK | 1 | 16-port HDMI KVM switch | 192.168.99.92 | — |
-| CyberPower PDU41001-V | 2 | Switched PDU (SNMP) | 192.168.99.15–16 | — |
-| Raspberry Pi 4B | 4 | ConsolePi, misc | 192.168.42.21–24 | Raspbian |
-| CyberPower UPS | 4 | Battery backup | — | — |
+| Device                         | Count | Role                         | IP(s)            | OS            |
+| ------------------------------ | ----- | ---------------------------- | ---------------- | ------------- |
+| Lenovo ThinkCentre M920q       | 6     | Kubernetes (3 CP + 3 worker) | 192.168.42.51–56 | Talos v1.13.4 |
+| Synology DS1821+               | 1     | NAS + temporary app host     | 192.168.42.10    | DSM           |
+| Brocade ICX 6610-48P (stacked) | 2     | Core L3 switch               | VIP: .4/vlan     | FastIron      |
+| Protectli FW6C                 | 1     | Firewall (OPNsense)          | 192.168.0.10     | OPNsense      |
+| PiKVM V4 Plus                  | 1     | KVM-over-IP                  | 192.168.99.51    | PiKVM OS      |
+| TESmart HKS1601-E23-USBK       | 1     | 16-port HDMI KVM switch      | 192.168.99.92    | —             |
+| CyberPower PDU41001-V          | 2     | Switched PDU (SNMP)          | 192.168.99.15–16 | —             |
+| Raspberry Pi 4B                | 4     | ConsolePi, misc              | 192.168.42.21–24 | Raspbian      |
+| CyberPower UPS                 | 4     | Battery backup               | —                | —             |
 
 ### Out-of-Band Management
 
 Comprehensive OOB infrastructure for remote access, power control, and monitoring:
 
-| Tool | Access | Purpose |
-|------|--------|---------|
-| PiKVM + TESmart | `just infra kvm-switch <node>` | Remote KVM console for any node |
-| PDU (SNMP) | `just infra pdu-reboot <node>` | Hard power cycle any node |
-| UPS (SNMP) | Prometheus/Grafana | Battery backup monitoring |
-| ConsolePi (pi02→Core01-U1, pi03→Core01-U2) | SSH serial | Core switch serial console |
+| Tool                                       | Access                         | Purpose                         |
+| ------------------------------------------ | ------------------------------ | ------------------------------- |
+| PiKVM + TESmart                            | `just infra kvm-switch <node>` | Remote KVM console for any node |
+| PDU (SNMP)                                 | `just infra pdu-reboot <node>` | Hard power cycle any node       |
+| UPS (SNMP)                                 | Prometheus/Grafana             | Battery backup monitoring       |
+| ConsolePi (pi02→Core01-U1, pi03→Core01-U2) | SSH serial                     | Core switch serial console      |
 
 **📘 See [OOB Management Guide](docs/OOB-MANAGEMENT.md) for detailed documentation and workflows.**
 
@@ -146,26 +146,26 @@ Comprehensive OOB infrastructure for remote access, power control, and monitorin
 
 ## ☁️ Cloud Dependencies
 
-| Service | Use | Cost |
-|---------|-----|------|
+| Service                                                                  | Use                                  | Cost   |
+| ------------------------------------------------------------------------ | ------------------------------------ | ------ |
 | [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault/) | Secrets backend for External Secrets | ~$1/mo |
-| [Cloudflare](https://www.cloudflare.com/) | Domain, DNS, Tunnel | Free |
-| [GitHub](https://github.com/) | Repository, CI/CD, Renovate | Free |
+| [Cloudflare](https://www.cloudflare.com/)                                | Domain, DNS, Tunnel                  | Free   |
+| [GitHub](https://github.com/)                                            | Repository, CI/CD, Renovate          | Free   |
 
 ---
 
 ## 🔧 Operations
 
-| Command | Purpose |
-|---------|---------|
-| `just talos rebuild` | Full CP rebuild: preflight → render → apply → bootstrap → verify |
-| `just talos preflight` | Check tools, AKV, node reachability |
-| `just talos render` | Render configs with secrets + guardrails |
-| `just talos export-secrets` | Export AKV secrets for offline/local bootstrap |
-| `just infra kvm-switch k8s01` | Switch KVM HDMI to a node |
-| `just infra pdu-reboot k8s01` | Hard power cycle a node via PDU |
-| `just infra console k8s01` | Switch KVM + take screenshot |
-| `just kube sync-hr` | Force reconcile all HelmReleases |
+| Command                       | Purpose                                                          |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `just talos rebuild`          | Full CP rebuild: preflight → render → apply → bootstrap → verify |
+| `just talos preflight`        | Check tools, AKV, node reachability                              |
+| `just talos render`           | Render configs with secrets + guardrails                         |
+| `just talos export-secrets`   | Export AKV secrets for offline/local bootstrap                   |
+| `just infra kvm-switch k8s01` | Switch KVM HDMI to a node                                        |
+| `just infra pdu-reboot k8s01` | Hard power cycle a node via PDU                                  |
+| `just infra console k8s01`    | Switch KVM + take screenshot                                     |
+| `just kube sync-hr`           | Force reconcile all HelmReleases                                 |
 
 See [REBUILD-RUNBOOK.md](docs/REBUILD-RUNBOOK.md) for the full step-by-step rebuild procedure.
 
@@ -175,29 +175,29 @@ See [REBUILD-RUNBOOK.md](docs/REBUILD-RUNBOOK.md) for the full step-by-step rebu
 
 Work in progress — updated each session with Copilot. The full backlog with priorities lives on [GitHub Project #4](https://github.com/users/osnabrugge/projects/4) and individual issues in this repo.
 
-| Status | Item |
-|--------|------|
-| ✅ | Upgrade Talos to v1.13.0 across all 6 nodes |
-| ✅ | Restore postgres16 cluster after wedged replica (rebuild postgres16-9 → postgres16-11 via pg_basebackup) |
-| ✅ | Authelia: allow login by uid OR email (`users_filter` updated; commit 3dded43bd) |
-| ✅ | Gatus: also attach HTTPRoute to envoy-internal so LAN DNS hits a live listener (commit 1cf07186b) |
-| ✅ | Zigbee2MQTT: recover from RBD `emergency_ro` after k8s06 network blip (force-delete pod) |
-| ✅ | Recover 8 emergency_ro RBD volumes after network blip (k8s06 reboot, etcd defrag) |
-| ✅ | Replace `sed` with bash string replacement in `akv-inject.sh` (longest-first sort, no escaping bugs) |
-| ✅ | Add post-render guardrails to render recipe (unresolved placeholders, empty secrets, `talosctl validate`) |
-| ✅ | Restore root `kubernetes/apps` kustomization and add a dedicated `database` namespace |
-| ✅ | Reintroduce CloudNativePG operator in-cluster for shared PostgreSQL workloads |
-| ✅ | Reintroduce shared Redis-compatible cache layer with Dragonfly in `database` |
-| ✅ | Add NetBox deployment wired to shared PostgreSQL and Redis-compatible cache |
-| ✅ | Wire Grafana SSO through Authelia OIDC |
-| ⏳ | Plex: decide architecture for direct LAN/WAN access without Cloudflare relay (CF tunnel intercepts `*.homeops.ca`, mangles Plex binary protocol) |
-| ⏳ | Diagnose & fix kromgo / alertmanager 404 via Cloudflare edge (direct envoy is 200) — [#3171](https://github.com/osnabrugge/home-ops/issues/3171) |
-| ⏳ | Restore SNMP visibility — every device on `192.168.99.0/24` mgmt VLAN ignores SNMP v2c (both `public` and `private`) from laptop *and* in-cluster; pings/HTTP fine. Device-side fix needed; also no Ruckus ICX dashboard exists — [#3175](https://github.com/osnabrugge/home-ops/issues/3175) |
-| ⏳ | Authelia: re-enroll TOTP for `sean` (`totp_configurations` table empty post-rebuild) — [#3172](https://github.com/osnabrugge/home-ops/issues/3172) |
-| ⏳ | Rewrite apply-wait logic (remove `--insecure` polling; use event-driven readiness) |
-| ⏳ | Update `REBUILD-RUNBOOK.md` to reflect all new automation |
-| ⏳ | Migrate TheLounge IRC nicks from NAS02 to configmap |
-| ⏳ | Deferred: NFD + Coral + Frigate, Printguard + Klipper (net-new features; stability-first mandate) |
+| Status | Item                                                                                                                                                                                                                                                                                          |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✅     | Upgrade Talos to v1.13.0 across all 6 nodes                                                                                                                                                                                                                                                   |
+| ✅     | Restore postgres16 cluster after wedged replica (rebuild postgres16-9 → postgres16-11 via pg_basebackup)                                                                                                                                                                                      |
+| ✅     | Authelia: allow login by uid OR email (`users_filter` updated; commit 3dded43bd)                                                                                                                                                                                                              |
+| ✅     | Gatus: also attach HTTPRoute to envoy-internal so LAN DNS hits a live listener (commit 1cf07186b)                                                                                                                                                                                             |
+| ✅     | Zigbee2MQTT: recover from RBD `emergency_ro` after k8s06 network blip (force-delete pod)                                                                                                                                                                                                      |
+| ✅     | Recover 8 emergency_ro RBD volumes after network blip (k8s06 reboot, etcd defrag)                                                                                                                                                                                                             |
+| ✅     | Replace `sed` with bash string replacement in `akv-inject.sh` (longest-first sort, no escaping bugs)                                                                                                                                                                                          |
+| ✅     | Add post-render guardrails to render recipe (unresolved placeholders, empty secrets, `talosctl validate`)                                                                                                                                                                                     |
+| ✅     | Restore root `kubernetes/apps` kustomization and add a dedicated `database` namespace                                                                                                                                                                                                         |
+| ✅     | Reintroduce CloudNativePG operator in-cluster for shared PostgreSQL workloads                                                                                                                                                                                                                 |
+| ✅     | Reintroduce shared Redis-compatible cache layer with Dragonfly in `database`                                                                                                                                                                                                                  |
+| ✅     | Add NetBox deployment wired to shared PostgreSQL and Redis-compatible cache                                                                                                                                                                                                                   |
+| ✅     | Wire Grafana SSO through Authelia OIDC                                                                                                                                                                                                                                                        |
+| ⏳     | Plex: decide architecture for direct LAN/WAN access without Cloudflare relay (CF tunnel intercepts `*.homeops.ca`, mangles Plex binary protocol)                                                                                                                                              |
+| ⏳     | Diagnose & fix kromgo / alertmanager 404 via Cloudflare edge (direct envoy is 200) — [#3171](https://github.com/osnabrugge/home-ops/issues/3171)                                                                                                                                              |
+| ⏳     | Restore SNMP visibility — every device on `192.168.99.0/24` mgmt VLAN ignores SNMP v2c (both `public` and `private`) from laptop _and_ in-cluster; pings/HTTP fine. Device-side fix needed; also no Ruckus ICX dashboard exists — [#3175](https://github.com/osnabrugge/home-ops/issues/3175) |
+| ⏳     | Authelia: re-enroll TOTP for `sean` (`totp_configurations` table empty post-rebuild) — [#3172](https://github.com/osnabrugge/home-ops/issues/3172)                                                                                                                                            |
+| ⏳     | Rewrite apply-wait logic (remove `--insecure` polling; use event-driven readiness)                                                                                                                                                                                                            |
+| ⏳     | Update `REBUILD-RUNBOOK.md` to reflect all new automation                                                                                                                                                                                                                                     |
+| ⏳     | Migrate TheLounge IRC nicks from NAS02 to configmap                                                                                                                                                                                                                                           |
+| ⏳     | Deferred: NFD + Coral + Frigate, Printguard + Klipper (net-new features; stability-first mandate)                                                                                                                                                                                             |
 
 ---
 
@@ -247,12 +247,12 @@ This cluster is actively maintained with a reliability-first and security-focuse
 
 This is the shared operating lane: detect, respond, harden, and upstream improvements.
 
-| Area | What We Track | Current Focus |
-|------|----------------|---------------|
-| **Uptime & Reliability** | API readiness, node health, app availability, failed reconciliations | Reduce noisy failures, tighten MTTR, improve rollout safety |
-| **Threats & Mitigations** | Crash loops, ingress failures, auth errors, risky config drift | Faster incident triage, stricter guardrails, preventive hardening |
-| **Upstream Contributions** | Issues opened, PRs merged, docs fixes contributed back | Convert local fixes into upstream improvements where possible |
-| **Features & Enhancements** | New apps, automation, runbooks, quality-of-life tooling | Keep raising reliability and operator ergonomics each sprint |
+| Area                        | What We Track                                                        | Current Focus                                                     |
+| --------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Uptime & Reliability**    | API readiness, node health, app availability, failed reconciliations | Reduce noisy failures, tighten MTTR, improve rollout safety       |
+| **Threats & Mitigations**   | Crash loops, ingress failures, auth errors, risky config drift       | Faster incident triage, stricter guardrails, preventive hardening |
+| **Upstream Contributions**  | Issues opened, PRs merged, docs fixes contributed back               | Convert local fixes into upstream improvements where possible     |
+| **Features & Enhancements** | New apps, automation, runbooks, quality-of-life tooling              | Keep raising reliability and operator ergonomics each sprint      |
 
 ### Ongoing Guardian Priorities
 
@@ -271,22 +271,25 @@ This section is a running record of AI-assisted work on the cluster. It serves a
 **Duration:** ~6 hours | **Status:** ✅ Mostly complete (1 architectural decision pending)
 
 #### Items Resolved
-| Item | Root Cause | Fix | Commit |
-|------|-----------|-----|--------|
-| `postgres16-9` wedged 9h | Replica stuck in standby join | Deleted pod + PVC; CNPG rebuilt as `postgres16-11` via pg_basebackup. 3/3 ready. | (runtime) |
-| Gatus 404 from LAN | `external-dns/unbound` published `.121` (envoy-internal LB) but HTTPRoute only attached to envoy-external listener | Added `envoy-internal` as second `parentRef`. `curl --resolve gatus.homeops.ca:443:192.168.69.121` now 200. | `1cf07186b` |
-| Authelia login fails for email | `users_filter` only matched `uid`, not `mail` | Changed filter to `(&(\|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))` | `3dded43bd` |
-| Zigbee2MQTT crashloop (`EROFS`) | `/config` RBD remounted `emergency_ro` after k8s06 network blip | `kubectl delete pod --force` → kubelet remounted clean. 1/1 Running, MQTT publishing. | (runtime) |
-| Arrs (radarr/sonarr/prowlarr/agregarr) | Verified healthy; no action required | — | — |
+
+| Item                                   | Root Cause                                                                                                         | Fix                                                                                                         | Commit      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ----------- |
+| `postgres16-9` wedged 9h               | Replica stuck in standby join                                                                                      | Deleted pod + PVC; CNPG rebuilt as `postgres16-11` via pg_basebackup. 3/3 ready.                            | (runtime)   |
+| Gatus 404 from LAN                     | `external-dns/unbound` published `.121` (envoy-internal LB) but HTTPRoute only attached to envoy-external listener | Added `envoy-internal` as second `parentRef`. `curl --resolve gatus.homeops.ca:443:192.168.69.121` now 200. | `1cf07186b` |
+| Authelia login fails for email         | `users_filter` only matched `uid`, not `mail`                                                                      | Changed filter to `(&(\|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))`     | `3dded43bd` |
+| Zigbee2MQTT crashloop (`EROFS`)        | `/config` RBD remounted `emergency_ro` after k8s06 network blip                                                    | `kubectl delete pod --force` → kubelet remounted clean. 1/1 Running, MQTT publishing.                       | (runtime)   |
+| Arrs (radarr/sonarr/prowlarr/agregarr) | Verified healthy; no action required                                                                               | —                                                                                                           | —           |
 
 #### Items Pending
-| Item | Status | Notes |
-|------|--------|-------|
-| Plex direct connect (no relay) | ⏳ Architectural decision | Cloudflare tunnel `*.homeops.ca` ingress catches `plex.homeops.ca` and CF mangles Plex binary protocol → client falls back to relay. Three options under consideration: (A) bypass CF + router NAT, (B) accept relay, (C) separate gateway with non-`homeops.ca` hostname. |
-| kromgo / alertmanager 404 via CF | ⏳ New tracking issue | Direct envoy-external returns 200; CF edge returns 404 without hitting tunnel. Likely a Cloudflare cache or page rule on these specific subdomains. |
-| TOTP re-enrollment for `sean` | ⏳ User action | `totp_configurations` table empty after Authelia DB rebuild |
+
+| Item                             | Status                    | Notes                                                                                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plex direct connect (no relay)   | ⏳ Architectural decision | Cloudflare tunnel `*.homeops.ca` ingress catches `plex.homeops.ca` and CF mangles Plex binary protocol → client falls back to relay. Three options under consideration: (A) bypass CF + router NAT, (B) accept relay, (C) separate gateway with non-`homeops.ca` hostname. |
+| kromgo / alertmanager 404 via CF | ⏳ New tracking issue     | Direct envoy-external returns 200; CF edge returns 404 without hitting tunnel. Likely a Cloudflare cache or page rule on these specific subdomains.                                                                                                                        |
+| TOTP re-enrollment for `sean`    | ⏳ User action            | `totp_configurations` table empty after Authelia DB rebuild                                                                                                                                                                                                                |
 
 #### Lessons Learned
+
 - `external-dns` decides which LB to publish to from `.status.parents`, not `.spec.parentRefs`. A route attached to gateway A whose listener has `allowedRoutes.namespaces.from=All` will appear under gateway B's parents too if both gateways permit it — so external-dns may publish via the "wrong" LB.
 - CNAMEs to `cfargotunnel` are always Cloudflare-proxied; the `external-dns.alpha.kubernetes.io/cloudflare-proxied=false` annotation is a no-op for these.
 - CNPG pipes (`/controller/log/postgres*`) cannot be `tail -f`'d; use `kubectl logs` instead.
@@ -298,9 +301,11 @@ This section is a running record of AI-assisted work on the cluster. It serves a
 **Duration:** ~2 hours | **Status:** ✅ Complete
 
 #### What Happened
+
 A brief network blip on the storage VLAN caused 8 RBD volumes to remount as `emergency_ro` across multiple workloads (zigbee, postgres replicas, atuin, others). k8s06 also became partially unreachable to etcd peers.
 
 #### Recovery Steps
+
 1. Identified affected pods via `kubectl get pods -A -o wide | grep -E 'CrashLoopBackOff|Error'` and matched against `kubectl exec ... -- mount | grep emergency_ro`
 2. Force-deleted each affected pod (`kubectl delete pod --force --grace-period=0`) so kubelet would remount cleanly
 3. Rebooted k8s06 to clear etcd connectivity issues
@@ -308,6 +313,7 @@ A brief network blip on the storage VLAN caused 8 RBD volumes to remount as `eme
 5. Verified all PVCs `Bound` and pods `Running`
 
 #### Lessons Learned
+
 - RBD `emergency_ro` recovery is just a pod restart away when the underlying RBD image is healthy. Don't overthink it.
 - Keep this runbook bias toward boring, repeatable recovery (Guardian Charter).
 
@@ -318,18 +324,20 @@ A brief network blip on the storage VLAN caused 8 RBD volumes to remount as `eme
 **Duration:** ~2 hours | **Status:** ✅ Complete
 
 #### New Infrastructure Deployed
-| Component | Type | Status | Notes |
-|-----------|------|--------|-------|
-| **NetBox** | IPAM/DCIM | ✅ Enabled | Re-enabled in kustomization; CNPG 3/3 healthy |
-| **Diode (multi-service)** | NetBox ingestion | ✅ Manifests ready | Replaced broken single-image with proper 4-service architecture |
-| **LibreNMS** | Network monitoring | ⏸️ Suspended | Manifests prepared; enable after NetBox is stable |
+
+| Component                 | Type               | Status             | Notes                                                           |
+| ------------------------- | ------------------ | ------------------ | --------------------------------------------------------------- |
+| **NetBox**                | IPAM/DCIM          | ✅ Enabled         | Re-enabled in kustomization; CNPG 3/3 healthy                   |
+| **Diode (multi-service)** | NetBox ingestion   | ✅ Manifests ready | Replaced broken single-image with proper 4-service architecture |
+| **LibreNMS**              | Network monitoring | ⏸️ Suspended       | Manifests prepared; enable after NetBox is stable               |
 
 #### Architecture Changes
+
 - **netbox-diode** rewritten to use proper 3-service Diode architecture:
-  - `netboxlabs/diode-auth:1.12.0` — OAuth2 client manager (wraps Ory Hydra)
-  - `netboxlabs/diode-ingester:1.13.0` — gRPC endpoint accepting network device data
-  - `netboxlabs/diode-reconciler:1.13.0` — Reconciles data streams into NetBox
-  - `oryd/hydra:v2.2.0` — OAuth2 server for secure agent authentication
+    - `netboxlabs/diode-auth:1.12.0` — OAuth2 client manager (wraps Ory Hydra)
+    - `netboxlabs/diode-ingester:1.13.0` — gRPC endpoint accepting network device data
+    - `netboxlabs/diode-reconciler:1.13.0` — Reconciles data streams into NetBox
+    - `oryd/hydra:v2.2.0` — OAuth2 server for secure agent authentication
 - **CNPG postgres16 cluster** extended with `managed.roles` for `diode` and `hydra` users
 - **CNPG Database CRDs** added for `diode` and `hydra` databases in existing cluster
 - **Dragonfly** gained `dragonfly-diode` service for Diode Redis stream separation
@@ -337,12 +345,14 @@ A brief network blip on the storage VLAN caused 8 RBD volumes to remount as `eme
 - **ExternalSecret** created for Diode/Hydra DB users (`diode-db-user`, `hydra-db-user`)
 
 #### AKV Secrets Required (must add before deployment)
-| AKV Key | Required Fields |
-|---------|----------------|
+
+| AKV Key        | Required Fields                                                                                                                                                                                                                                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `netbox-diode` | `DIODE_INGEST_CLIENT_ID`, `DIODE_INGEST_CLIENT_SECRET`, `DIODE_TO_NETBOX_CLIENT_ID`, `DIODE_TO_NETBOX_CLIENT_SECRET`, `NETBOX_TO_DIODE_CLIENT_ID`, `NETBOX_TO_DIODE_CLIENT_SECRET`, `HYDRA_SECRETS_SYSTEM` (≥32 chars), `DIODE_REDIS_PASSWORD`, `DIODE_DB_USERNAME`, `DIODE_DB_PASSWORD`, `HYDRA_DB_USERNAME`, `HYDRA_DB_PASSWORD` |
-| `librenms` | `LIBRENMS_DB_USERNAME`, `LIBRENMS_DB_PASSWORD`, `LIBRENMS_APP_KEY` |
+| `librenms`     | `LIBRENMS_DB_USERNAME`, `LIBRENMS_DB_PASSWORD`, `LIBRENMS_APP_KEY`                                                                                                                                                                                                                                                                 |
 
 #### Deployment Order
+
 1. AKV secrets populated → ExternalSecrets sync
 2. CNPG managed roles created (diode + hydra users)
 3. CNPG Database CRDs create `diode` and `hydra` databases
@@ -355,23 +365,26 @@ A brief network blip on the storage VLAN caused 8 RBD volumes to remount as `eme
 **Duration:** ~4 hours | **Status:** ✅ Complete
 
 #### New Infrastructure Deployed
-| Component | Type | Status | Notes |
-|-----------|------|--------|-------|
-| **CNPG (postgres16)** | Database | ✅ Running | 2 instances, scheduled backups enabled |
-| **Dragonfly** | Cache | ✅ Running | 3-pod cluster, full HA setup |
-| **NetBox** | IPAM/DCIM | ✅ Syncing | External secret active, ceph-block PVC bound |
+
+| Component             | Type      | Status     | Notes                                        |
+| --------------------- | --------- | ---------- | -------------------------------------------- |
+| **CNPG (postgres16)** | Database  | ✅ Running | 2 instances, scheduled backups enabled       |
+| **Dragonfly**         | Cache     | ✅ Running | 3-pod cluster, full HA setup                 |
+| **NetBox**            | IPAM/DCIM | ✅ Syncing | External secret active, ceph-block PVC bound |
 
 #### Alerts Fixed
-| Alert | Root Cause | Resolution | Status |
-|-------|-----------|-----------|--------|
-| agregarr exposed | Already internal (envoy-internal), agent mistakenly disabled route | Reverted route to enabled | ✅ Fixed |
-| alertmanager.homeops.ca inaccessible | Hostname was `alertmanager.turbo.ac` | Changed to `alertmanager.homeops.ca` in HelmRelease | ✅ Fixed |
-| zigbee HelmRelease crash | TCP timeout to 192.168.70.37:6638 (coordinator unreachable) | Hardware/network issue — coordinator offline | ⏸️ User action required |
-| unbound-dns crash loop | external-dns race condition on webhook startup (505 restarts) | Currently 2/2 Running but flapping | ⚠️ Partial—needs startup delay |
-| kopia-maint-daily failed | NFS `/mnt/repository/x/n0_/` permission denied (UID 1000) | File-level NFS permission issue | ⏸️ User action required (NAS) |
-| netbox HelmRelease | Missing `email_password` secret key + no PVC | Added secret key to AKV + ExternalSecret, created ceph-block PVC | ✅ Fixed |
+
+| Alert                                | Root Cause                                                         | Resolution                                                       | Status                         |
+| ------------------------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------ |
+| agregarr exposed                     | Already internal (envoy-internal), agent mistakenly disabled route | Reverted route to enabled                                        | ✅ Fixed                       |
+| alertmanager.homeops.ca inaccessible | Hostname was `alertmanager.turbo.ac`                               | Changed to `alertmanager.homeops.ca` in HelmRelease              | ✅ Fixed                       |
+| zigbee HelmRelease crash             | TCP timeout to 192.168.70.37:6638 (coordinator unreachable)        | Hardware/network issue — coordinator offline                     | ⏸️ User action required        |
+| unbound-dns crash loop               | external-dns race condition on webhook startup (505 restarts)      | Currently 2/2 Running but flapping                               | ⚠️ Partial—needs startup delay |
+| kopia-maint-daily failed             | NFS `/mnt/repository/x/n0_/` permission denied (UID 1000)          | File-level NFS permission issue                                  | ⏸️ User action required (NAS)  |
+| netbox HelmRelease                   | Missing `email_password` secret key + no PVC                       | Added secret key to AKV + ExternalSecret, created ceph-block PVC | ✅ Fixed                       |
 
 #### Code Changes
+
 - ✅ Fixed `alertmanager.homeops.ca` hostname in `kubernetes/apps/observability/kube-prometheus-stack/helmrelease.yaml`
 - ✅ Removed hardcoded identity (`sean@seanv.com`, `sean-admin`) from NetBox manifests for privacy
 - ✅ Added `email_password` to NetBox ExternalSecret
@@ -380,11 +393,13 @@ A brief network blip on the storage VLAN caused 8 RBD volumes to remount as `eme
 - ✅ Made bootstrap `kube` stage idempotent with marker-aware logic
 
 #### Auth & Privacy
+
 - 🔒 Hardcoded personal identity completely removed from tracked manifests
 - ✅ NetBox secret keys synced from Azure Key Vault
 - ✅ Privacy audit passed
 
 #### Commits
+
 ```
 af55490a fix: update HelmRelease and ExternalSecret configurations for idempotency
 86615e01 fix: update README and add PersistentVolumeClaim for NetBox
@@ -394,16 +409,19 @@ aa83729b docs: add Guardian Charter section
 ```
 
 #### Additional Fixes (This Session, Immediate Follow-Up)
+
 - ✅ **qBittorrent auth bypass fixed**: Enabled `ReverseProxyEnabled: true`, added pod CIDR `10.42.0.0/16` to auth whitelist, deployment restarted. Internal users no longer see login prompt.
 - ✅ **PR #3014 opened**: Branch `fix/bootstrap-idempotent-kube-stage` → main with full database tier + fixes
 
 #### Metrics
+
 - **Deployment time:** ~45 min (CNPG + Dragonfly operators ready, NetBox syncing)
 - **Alerts resolved:** 3/6 (alert, qbittorrent, netbox)
 - **Upstream contributions:** 0 (all work is internal)
 - **Code quality:** No hardcoded secrets, privacy-clean manifests
 
 #### Pending
+
 - Zigbee coordinator connectivity (user network/hardware troubleshooting)
 - Kopia NFS permissions on NAS (user filesystem work)
 - unbound-dns race condition stabilization (needs pod startup ordering fix)
@@ -414,8 +432,8 @@ aa83729b docs: add Guardian Charter section
 
 Track open-source improvements contributed back from this cluster:
 
-| Project | PR/Issue | Status | Impact |
-|---------|----------|--------|--------|
+| Project                                         | PR/Issue                                            | Status    | Impact                                                                                                                                                                                                                                                          |
+| ----------------------------------------------- | --------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [foxcpp/maddy](https://github.com/foxcpp/maddy) | [PR #839](https://github.com/foxcpp/maddy/pull/839) | ✅ Merged | Added `LOGIN` SASL auth directive to SMTP target — enables Maddy as relay to servers that only support LOGIN (e.g., Azure Communication Services). Discovered bug during cluster SMTP relay deployment, built fix, validated in production, submitted upstream. |
 
 ---
