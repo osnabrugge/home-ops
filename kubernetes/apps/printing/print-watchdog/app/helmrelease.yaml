@@ -187,7 +187,11 @@ spec:
                             except Exception as exc:
                                 log(f"{url}: resume failed: {exc}")
 
-                    if cur == "printing" and not s["stalled"]:
+                    # print_duration stays 0 for the whole START_PRINT preamble
+                    # (heat soak, QGL, nozzle clean, bed mesh), during which the
+                    # state is already "printing" but the file never advances.
+                    started = (ps.get("print_duration") or 0) > 0
+                    if cur == "printing" and started and not s["stalled"]:
                         if time.time() - s["moved"] > STALL_S:
                             s["stalled"] = True
                             mail(f"PRINT STALLED: {fn}", describe(url, st) +
