@@ -29,10 +29,12 @@ spec:
               MAIL_FROM: print-watchdog@homeops.ca
               POLL_S: "20"
               STALL_S: "300"
-              # Resumes a pause that Klipper reported no error for. PrintGuard's
-              # own defect pauses look identical, so set this false once
-              # PrintGuard is confirmed detecting.
-              AUTO_RESUME: "true"
+              # MUST stay false. A human pausing because they can see a failure
+              # produces the same Moonraker state as a spurious pause - no error
+              # message - so auto-resume cannot tell them apart. On 2026-09-27 it
+              # resumed a print Sean had paused over visible spaghetti and ran it
+              # 5 more minutes into the mess.
+              AUTO_RESUME: "false"
               RESUME_GRACE_S: "60"
               MAX_RESUMES: "3"
             securityContext:
