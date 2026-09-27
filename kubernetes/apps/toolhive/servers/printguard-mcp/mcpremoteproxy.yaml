@@ -1,0 +1,21 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpremoteproxy_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPRemoteProxy
+metadata:
+  name: printguard-mcp
+spec:
+  # PrintGuard serves MCP from the same pod that serves its web UI.
+  remoteUrl: http://printguard.printing.svc.cluster.local:8000/mcp/
+  transport: streamable-http
+  proxyPort: 8080
+  # Cluster-internal Service, not a public endpoint.
+  allowPrivateEndpoint: true
+  groupRef:
+    name: mcp-tools
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
