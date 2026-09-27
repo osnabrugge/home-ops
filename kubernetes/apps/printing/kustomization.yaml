@@ -19,3 +19,4 @@ resources:
   - ./mobileraker/ks.yaml
   - ./pgcode/ks.yaml
   - ./printstash/ks.yaml
+  - ./print-watchdog/ks.yaml

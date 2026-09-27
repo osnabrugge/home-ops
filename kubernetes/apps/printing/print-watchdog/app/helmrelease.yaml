@@ -1,0 +1,200 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app print-watchdog
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *app
+  interval: 1h
+  values:
+    controllers:
+      print-watchdog:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/library/python
+              tag: 3.13-alpine
+            command: ["python3", "-u", "/app/watchdog.py"]
+            env:
+              TZ: America/Toronto
+              MOONRAKER_URLS: http://192.168.42.26:7125
+              SMTP_HOST: 192.168.69.122
+              SMTP_PORT: "25"
+              MAIL_TO: sean@seanv.com
+              MAIL_FROM: print-watchdog@homeops.ca
+              POLL_S: "20"
+              STALL_S: "300"
+              # Resumes a pause that Klipper reported no error for. PrintGuard's
+              # own defect pauses look identical, so set this false once
+              # PrintGuard is confirmed detecting.
+              AUTO_RESUME: "true"
+              RESUME_GRACE_S: "60"
+              MAX_RESUMES: "3"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+    persistence:
+      scripts:
+        type: configMap
+        identifier: scripts
+        defaultMode: 0755
+        advancedMounts:
+          print-watchdog:
+            app:
+              - path: /app/watchdog.py
+                subPath: watchdog.py
+                readOnly: true
+    configMaps:
+      scripts:
+        data:
+          watchdog.py: |
+            """Watches Moonraker print jobs and mails Sean when one stops making
+            progress. Runs in-cluster so it survives the workstation being off."""
+            import json
+            import os
+            import smtplib
+            import time
+            import urllib.request
+            from email.message import EmailMessage
+
+            URLS = [u.strip().rstrip("/") for u in os.environ["MOONRAKER_URLS"].split(",") if u.strip()]
+            SMTP_HOST = os.environ["SMTP_HOST"]
+            SMTP_PORT = int(os.environ["SMTP_PORT"])
+            MAIL_TO = os.environ["MAIL_TO"]
+            MAIL_FROM = os.environ["MAIL_FROM"]
+            POLL_S = int(os.environ.get("POLL_S", "20"))
+            STALL_S = int(os.environ.get("STALL_S", "300"))
+            AUTO_RESUME = os.environ.get("AUTO_RESUME", "false").lower() == "true"
+            RESUME_GRACE_S = int(os.environ.get("RESUME_GRACE_S", "60"))
+            MAX_RESUMES = int(os.environ.get("MAX_RESUMES", "3"))
+
+            QUERY = "print_stats&virtual_sdcard&extruder&heater_bed"
+            TERMINAL = {"complete", "cancelled", "error", "standby"}
+
+
+            def log(msg):
+                print(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {msg}", flush=True)
+
+
+            def get(url, path, timeout=10):
+                with urllib.request.urlopen(f"{url}{path}", timeout=timeout) as r:
+                    return json.load(r)
+
+
+            def post(url, path, timeout=30):
+                req = urllib.request.Request(f"{url}{path}", method="POST", data=b"")
+                with urllib.request.urlopen(req, timeout=timeout) as r:
+                    return json.load(r)
+
+
+            def mail(subject, body):
+                try:
+                    m = EmailMessage()
+                    m["Subject"], m["From"], m["To"] = subject, MAIL_FROM, MAIL_TO
+                    m.set_content(body)
+                    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
+                        s.send_message(m)
+                    log(f"EMAIL SENT: {subject}")
+                except Exception as exc:
+                    log(f"email failed ({subject}): {exc}")
+
+
+            def describe(url, st):
+                ps, vs = st["print_stats"], st["virtual_sdcard"]
+                e, b = st["extruder"], st["heater_bed"]
+                return (
+                    f"printer  : {url}\n"
+                    f"file     : {ps.get('filename')}\n"
+                    f"state    : {ps.get('state')}\n"
+                    f"message  : {ps.get('message') or '(none)'}\n"
+                    f"progress : {vs.get('progress', 0) * 100:.2f} %\n"
+                    f"duration : {ps.get('print_duration', 0) / 3600:.2f} h\n"
+                    f"nozzle   : {e['temperature']:.1f} / {e['target']:.1f} C\n"
+                    f"bed      : {b['temperature']:.1f} / {b['target']:.1f} C\n"
+                )
+
+
+            state = {u: {"last": None, "file": None, "pos": None, "moved": time.time(),
+                         "paused_at": None, "resumes": 0, "stalled": False} for u in URLS}
+
+            log(f"watching {URLS} every {POLL_S}s (auto_resume={AUTO_RESUME})")
+
+            while True:
+                for url in URLS:
+                    s = state[url]
+                    try:
+                        st = get(url, f"/printer/objects/query?{QUERY}")["result"]["status"]
+                    except Exception as exc:
+                        log(f"{url} unreachable: {exc}")
+                        continue
+
+                    ps = st["print_stats"]
+                    cur, fn = ps.get("state"), ps.get("filename")
+                    pos = st["virtual_sdcard"].get("file_position")
+
+                    if fn != s["file"]:
+                        s.update(file=fn, resumes=0, stalled=False, pos=None)
+
+                    if pos != s["pos"]:
+                        s.update(pos=pos, moved=time.time(), stalled=False)
+
+                    if cur != s["last"]:
+                        log(f"{url}: {s['last']} -> {cur}")
+                        if cur == "paused":
+                            s["paused_at"] = time.time()
+                            mail(f"PRINT PAUSED: {fn}", describe(url, st) +
+                                 "\nNo resume has been attempted yet.\n")
+                        elif cur in ("error", "cancelled"):
+                            mail(f"PRINT {cur.upper()}: {fn}", describe(url, st))
+                        elif cur == "complete":
+                            mail(f"PRINT COMPLETE: {fn}", describe(url, st))
+                        s["last"] = cur
+
+                    if cur == "paused" and AUTO_RESUME and s["paused_at"]:
+                        waited = time.time() - s["paused_at"]
+                        klipper_error = bool(ps.get("message"))
+                        if klipper_error:
+                            pass  # a real fault; a human must look
+                        elif s["resumes"] >= MAX_RESUMES:
+                            pass
+                        elif waited >= RESUME_GRACE_S:
+                            try:
+                                post(url, "/printer/print/resume")
+                                s["resumes"] += 1
+                                s["paused_at"] = None
+                                log(f"{url}: auto-resumed ({s['resumes']}/{MAX_RESUMES})")
+                                mail(f"AUTO-RESUMED: {fn}", describe(url, st) +
+                                     f"\nResume {s['resumes']} of {MAX_RESUMES}."
+                                     " Klipper reported no error, so this looked"
+                                     " like a spurious pause.\n")
+                            except Exception as exc:
+                                log(f"{url}: resume failed: {exc}")
+
+                    if cur == "printing" and not s["stalled"]:
+                        if time.time() - s["moved"] > STALL_S:
+                            s["stalled"] = True
+                            mail(f"PRINT STALLED: {fn}", describe(url, st) +
+                                 f"\nFile position has not advanced for {STALL_S}s"
+                                 " while still reporting 'printing'.\n")
+
+                    if cur in TERMINAL:
+                        s["paused_at"] = None
+
+                time.sleep(POLL_S)
