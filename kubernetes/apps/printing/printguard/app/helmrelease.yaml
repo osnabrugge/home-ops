@@ -61,7 +61,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
-              capabilities: {drop: ["ALL"]}
+              capabilities: { drop: ["ALL"] }
             resources:
               claims:
                 - name: gpu
@@ -70,41 +70,6 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 3Gi
-          mediamtx:
-            image:
-              repository: docker.io/bluenviron/mediamtx
-              tag: 1.21.1@sha256:5ce2a948eb68df06ce2e13870db8df8e30d516ac4dc40e04bfe8aee3bdf7be40
-            env:
-              TZ: America/Toronto
-            probes:
-              liveness:
-                enabled: true
-                custom: true
-                spec:
-                  tcpSocket:
-                    port: 9997
-                  periodSeconds: 30
-                  timeoutSeconds: 5
-                  failureThreshold: 5
-              readiness:
-                enabled: true
-                custom: true
-                spec:
-                  tcpSocket:
-                    port: 9997
-                  periodSeconds: 30
-                  timeoutSeconds: 5
-                  failureThreshold: 5
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities: {drop: ["ALL"]}
-            resources:
-              requests:
-                cpu: 10m
-                memory: 64Mi
-              limits:
-                memory: 256Mi
     defaultPodOptions:
       resourceClaims:
         - name: gpu
@@ -142,38 +107,3 @@ spec:
           printguard:
             app:
               - path: /data
-      mediamtx-config:
-        type: configMap
-        identifier: mediamtx
-        advancedMounts:
-          printguard:
-            mediamtx:
-              - path: /mediamtx.yml
-                subPath: mediamtx.yml
-                readOnly: true
-    configMaps:
-      mediamtx:
-        data:
-          mediamtx.yml: |
-            api: yes
-            apiAddress: :9997
-            authInternalUsers:
-              - user: any
-                permissions:
-                  - action: publish
-                  - action: read
-                  - action: playback
-                  - action: api
-            rtsp: yes
-            rtspAddress: :8554
-            rtmp: yes
-            rtmpAddress: :1935
-            hls: yes
-            hlsAddress: :8888
-            hlsVariant: fmp4
-            hlsSegmentCount: 3
-            hlsSegmentDuration: 1s
-            webrtc: no
-            srt: no
-            paths:
-              all_others:
