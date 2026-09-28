@@ -5,5 +5,14 @@ metadata:
   name: _
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
+    # printguard writes /app/data/state.json as root:root mode 0600, so the default
+    # uid-1000 mover cannot read it and every snapshot since 2026-09-26 was refused
+    # with PrivilegedMoverNotPermitted. KOPIUR_IGNORE_FILE_ERRORS is NOT a substitute:
+    # it would "succeed" while silently skipping state.json, the only file worth
+    # keeping. printguard is the only root mover of 29 policies cluster-wide.
+    # Accepted risk: this permits a root mover for EVERY app in this namespace, which
+    # is tolerable only because `printing` is single-tenant. Revert by deleting this
+    # line if that ever stops being true.
+    kopiur.home-operations.com/privileged-movers: "true"
   labels:
     resource.kubernetes.io/admin-access: "true"
