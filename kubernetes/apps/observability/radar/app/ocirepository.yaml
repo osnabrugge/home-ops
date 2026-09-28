@@ -16,7 +16,6 @@ spec:
   # `pinDigests: false` does NOT prevent this (see #4290, #4306).
   ref:
     tag: 1.15.0
-    digest: 7407b294ebb2b52482234e1630d8a111333b6e3c68e9e6bdbba58c474c0e334c
   # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
   # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
   # so an http:// Service URL fails every PR with
