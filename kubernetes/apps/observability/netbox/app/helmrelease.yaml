@@ -33,6 +33,29 @@ spec:
     # 'housekeeping'"); the worker's built-in scheduler runs these tasks now.
     housekeeping:
       enabled: false
+    # NetBox leaks ~17 MiB/h across its 4 granian workers: the pod sits at ~1050 MiB
+    # fresh, climbs to the ceiling in ~28h, gets OOMKilled, and repeats. Verified as a
+    # clean sawtooth in Prometheus (1063->1445, 1102->1431, 1060->1485, each ending in
+    # a drop back to ~1050). The chart's `resourcesPreset: medium` caps it at 1536Mi,
+    # which is a generic Bitnami preset, not a NetBox-derived number.
+    #
+    # Raising the limit alone only moves the OOM later, so the leak is dealt with at
+    # source: granian respawns a worker once it exceeds max-rss, or every 12h, reusing
+    # the remaining workers meanwhile so there is no request-visible restart.
+    # `resources` is set explicitly because it makes the chart ignore resourcesPreset.
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+    extraEnvs:
+      - name: GRANIAN_WORKERS_LIFETIME # 12h, seconds
+        value: "43200"
+      - name: GRANIAN_WORKERS_MAX_RSS # MiB per worker; fresh worker is ~280
+        value: "420"
+      - name: GRANIAN_RSS_SAMPLES # 3 x 30s sustained, so a transient spike is ignored
+        value: "3"
     allowedHosts:
       - netbox.homeops.ca
       - netbox.observability.svc.cluster.local
