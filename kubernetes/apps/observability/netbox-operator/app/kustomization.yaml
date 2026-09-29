@@ -6,4 +6,5 @@ namespace: observability
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
+  - ./l2vpn-crds.yaml
   - ./ocirepository.yaml
