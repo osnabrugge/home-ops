@@ -7,4 +7,5 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./l2vpn-crds.yaml
+  - ./l2vpn-rbac.yaml
   - ./ocirepository.yaml

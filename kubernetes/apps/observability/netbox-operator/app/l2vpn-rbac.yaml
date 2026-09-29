@@ -1,0 +1,34 @@
+---
+# Companion to l2vpn-crds.yaml. Chart 1.2.188 ships neither the L2VPN CRDs nor
+# RBAC for them, but the operator image it pins (0.2.72) starts L2VPN informers
+# regardless. Without these rules the informer never syncs, the manager tears
+# down every other controller with it, and the pod CrashLoopBackOffs.
+# Verbs mirror the chart's own rules for the six shipped kinds.
+# Remove together with l2vpn-crds.yaml once upstream ships them.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: netbox-operator-l2vpn
+rules:
+  - apiGroups: ["netbox.dev"]
+    resources: ["l2vpns", "l2vpnclaims"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["netbox.dev"]
+    resources: ["l2vpns/finalizers", "l2vpnclaims/finalizers"]
+    verbs: ["update"]
+  - apiGroups: ["netbox.dev"]
+    resources: ["l2vpns/status", "l2vpnclaims/status"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: netbox-operator-l2vpn
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: netbox-operator-l2vpn
+subjects:
+  - kind: ServiceAccount
+    name: netbox-operator
+    namespace: observability
