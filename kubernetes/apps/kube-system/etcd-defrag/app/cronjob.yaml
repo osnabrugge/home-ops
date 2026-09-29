@@ -71,7 +71,7 @@ spec:
             # MUST stay a tag - a pinned digest will fail to mount.
             - name: bin
               image:
-                reference: ghcr.io/siderolabs/talosctl:v1.14.1
+                reference: ghcr.io/siderolabs/talosctl:v1.14.2
                 pullPolicy: IfNotPresent
             - name: talosconfig
               secret:
