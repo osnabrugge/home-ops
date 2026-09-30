@@ -13,6 +13,10 @@
 Thumbs.db
 kubeconfig
 talosconfig
+# kubectl writes its discovery/http cache here when KUBECONFIG points into the
+# repo; ~1 MB of churn that must never be committed (and would be swept up by
+# a `git add -A` during a refactor).
+.kube/
 # Rendered Talos machineconfigs contain secrets — never commit
 talos/rendered/
 .tmp-*

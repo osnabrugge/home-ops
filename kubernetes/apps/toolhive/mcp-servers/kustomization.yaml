@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ./arr/ks.yaml
+  - ./brocade/ks.yaml
+  - ./cilium/ks.yaml
+  - ./flux/ks.yaml
+  - ./github/ks.yaml
+  - ./grafana/ks.yaml
+  - ./hass/ks.yaml
+  - ./kubectl/ks.yaml
+  - ./memory/ks.yaml
+  - ./memory-service/ks.yaml
+  - ./mikrotik/ks.yaml
+  - ./netbox/ks.yaml
+  - ./omada/ks.yaml
+  - ./onshape/ks.yaml
+  - ./opnsense/ks.yaml
+  - ./printer/ks.yaml
+  - ./printguard/ks.yaml
+  - ./prometheus/ks.yaml
+  - ./spoolman/ks.yaml
+  - ./talos/ks.yaml
+  - ./victorialogs/ks.yaml
