@@ -10,7 +10,7 @@ spec:
   # Uses backup (not policy) because this PVC is new: kopiur can provision it
   # with the dataSourceRef in place from the start, which is immutable later.
   components:
-    - ../../../../components/kopiur/backup
+    - ../../../../../components/kopiur/backup
   dependsOn:
     - name: toolhive-operator
     - name: rook-ceph-cluster

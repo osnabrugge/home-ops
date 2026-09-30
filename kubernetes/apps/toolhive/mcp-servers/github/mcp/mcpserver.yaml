@@ -30,10 +30,10 @@ spec:
     spec:
       containers:
         - name: mcp
+          # github-mcp-server takes a subcommand, not --transport; --listen-host
+          # defaults to every interface.
           args:
-            - --transport=streamable-http
-            - --additional-tools=cilium,hubble
-            - --host=0.0.0.0
+            - http
             - --port=8000
   groupRef:
     name: mcp-tools

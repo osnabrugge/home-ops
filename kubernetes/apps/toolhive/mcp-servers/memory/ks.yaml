@@ -7,7 +7,7 @@ spec:
   # policy, not backup: the PVC already exists without a dataSourceRef, which is
   # immutable, so backup/pvc.yaml could never be applied over it.
   components:
-    - ../../../../components/kopiur/policy
+    - ../../../../../components/kopiur/policy
   dependsOn:
     - name: toolhive-operator
     - name: rook-ceph-cluster

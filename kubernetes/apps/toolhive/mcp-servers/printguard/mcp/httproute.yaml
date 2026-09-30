@@ -17,5 +17,5 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: mcp-printguard-proxy
+        - name: mcp-printguard-mcp-remote-proxy
           port: 8080
