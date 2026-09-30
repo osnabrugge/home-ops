@@ -150,6 +150,9 @@ cluster:
         - level: Metadata
     certSANs:
       - k8s.in.homeops.ca
+      # kubeconfig connects by IP, so the address needs its own SAN; a DNS SAN
+      # alone does not satisfy verification of an IP-based server URL.
+      - 192.168.69.120
     disablePodSecurityPolicy: true
     extraArgs:
       enable-aggregator-routing: "true"
