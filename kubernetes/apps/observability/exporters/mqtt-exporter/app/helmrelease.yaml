@@ -25,9 +25,10 @@ spec:
               MQTT_V5_PROTOCOL: true
               PROMETHEUS_PORT: &port 3321
               TZ: "America/Toronto"
-            envFrom:
-              - secretRef:
-                  name: "{{ .Release.Name }}-secret"
+            # No envFrom: mosquitto runs allow_anonymous true with no password_file,
+            # so the exporter connects unauthenticated. The old secretRef pointed at
+            # an mqtt-exporter-secret that has never existed in Azure Key Vault and
+            # made the container fail with CreateContainerConfigError.
             probes:
               liveness:
                 enabled: true
