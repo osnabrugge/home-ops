@@ -72,6 +72,22 @@ spec:
             # mgr working set sits at ~1Gi (prometheus module + pg_autoscaler) and was
             # pinned at 100% of Rook's 1Gi default, risking OOM -> CephMgr* alerts.
             memory: 2Gi
+      # Ceph 20 (Tentacle) added AUTH_INSECURE_* health checks that flag the legacy
+      # "aes" cephx cipher as insecure. Our keys are generation 1, minted under
+      # keyCephVersion 19.2.3-0 (Squid), so the cluster went HEALTH_ERR after the
+      # Tentacle upgrade -> the rook-ceph-cluster Kustomization health check fails
+      # -> ~37 Kustomizations stall on "dependency not ready". No data is at risk.
+      #
+      # Staged on purpose. Rook documents daemon keys as rotatable "without affecting
+      # client connections", while CSI rotation "can affect existing PV connections".
+      # This is phase 1 (daemons only: mon/mgr/osd/mds/rgw). CSI keys are rotated
+      # separately so a bad rotation cannot remount RBD volumes read-only.
+      security:
+        cephx:
+          daemon:
+            keyType: aes256k
+            keyRotationPolicy: KeyGeneration
+            keyGeneration: 2
       storage:
         devicePathFilter: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_*
         useAllDevices: false
