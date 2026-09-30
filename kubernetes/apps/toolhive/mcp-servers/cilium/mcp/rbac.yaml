@@ -12,24 +12,21 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cilium-mcp-readonly
+  name: kubectl-mcp-readonly
 subjects:
   - kind: ServiceAccount
-    name: kubectl-mcp
+    name: cilium-mcp
     namespace: toolhive
 ---
+# Write access limited to the Cilium API group: enables the cilium/hubble tools to
+# manage network policies and endpoints, but nothing outside Cilium CRDs.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: cilium-mcp-readonly
+  name: cilium-mcp-write
 rules:
   - apiGroups:
-      - fluxcd.controlplane.io
-      - helm.toolkit.fluxcd.io
-      - image.toolkit.fluxcd.io
-      - kustomize.toolkit.fluxcd.io
-      - notification.toolkit.fluxcd.io
-      - source.toolkit.fluxcd.io
+      - cilium.io
     resources:
       - "*"
     verbs:
