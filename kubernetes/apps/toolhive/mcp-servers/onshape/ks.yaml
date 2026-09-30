@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: onshape-mcp
+spec:
+  dependsOn:
+    - name: toolhive-operator
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/mcp-servers/onshape/mcp
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive

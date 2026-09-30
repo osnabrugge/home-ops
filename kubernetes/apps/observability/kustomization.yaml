@@ -11,22 +11,14 @@ components:
 resources:
   - ./namespace.yaml
   - ./alert-triage/ks.yaml
-  - ./blackbox-exporter/ks.yaml
+  - ./exporters
   - ./gatus-sidecar/ks.yaml
   - ./grafana-operator/ks.yaml
-  - ./ipmi-exporter/ks.yaml
   - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
-  - ./mikrotik-exporter/ks.yaml
-  - ./omada-exporter/ks.yaml
-  - ./opnsense-exporter/ks.yaml
   - ./prometheus-adapter/ks.yaml
-  - ./pve-exporter/ks.yaml
   - ./radar/ks.yaml
   - ./silence-operator/ks.yaml
-  - ./smartctl-exporter/ks.yaml
-  - ./snmp-exporter/ks.yaml
-  - ./speedtest-exporter/ks.yaml
   - ./netbox-operator/ks.yaml
   - ./netbox/ks.yaml
   - ./netbox-diode/ks.yaml

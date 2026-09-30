@@ -1,0 +1,27 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: memory-mcp
+spec:
+  # policy, not backup: the PVC already exists without a dataSourceRef, which is
+  # immutable, so backup/pvc.yaml could never be applied over it.
+  components:
+    - ../../../../components/kopiur/policy
+  dependsOn:
+    - name: toolhive-operator
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+  interval: 1h
+  path: ./kubernetes/apps/toolhive/mcp-servers/memory/mcp
+  postBuild:
+    substitute:
+      APP: memory-mcp
+      KOPIUR_CAPACITY: 1Gi
+  wait: false
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: toolhive

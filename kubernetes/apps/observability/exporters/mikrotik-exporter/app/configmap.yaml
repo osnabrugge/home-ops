@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mktxp-config
+data:
+  # Only non-default settings are listed. In mktxp most router collectors
+  # default to True, so the "= False" lines below are load-bearing: removing
+  # them would enable DHCP/firewall/wireless/CAPsMAN collection against a switch
+  # that has none of it. Settings already False upstream (bgp, certificate, lte,
+  # ipsec, eoip, kid_control_*) are omitted.
+  mktxp.conf: |
+    ## MikroTik CRS305-1G-4S+ Switch
+    [CRS305-1G-4S+]
+        enabled = True
+        hostname = ext01.in.homeops.ca
+        port = 8729
+        username = $${MIKROTIK_USERNAME}
+        password = $${MIKROTIK_PASSWORD}
+
+        # This switch sits outside the firewall, so the API must not be spoken
+        # in the clear. 8729 is the API-SSL port; 8728 + plaintext_login would
+        # put these credentials on the wire.
+        use_ssl = True
+        no_ssl_certificate = True
+        ssl_certificate_verify = False
+
+        # Switch-relevant collectors that default to False upstream.
+        switch_port = True
+        routing_stats = True
+
+        # Router-only collectors that default to True upstream.
+        dhcp = False
+        dhcp_lease = False
+        pool = False
+        firewall = False
+        wireless = False
+        wireless_clients = False
+        capsman = False
+        capsman_clients = False
+        queue = False
+        netwatch = False
+        poe = False
+        # Publishes RouterOS account names as metric labels; not worth exposing
+        # for an internet-facing device.
+        user = False
+
+  _mktxp.conf: |-
+    [MKTXP]
+        listen = 0.0.0.0:49090
+        socket_timeout = 2
+        initial_delay_on_failure = 120
+        max_delay_on_failure = 900
+        max_worker_threads = 5
+        max_scrape_duration = 10
+        total_max_scrape_duration = 30
+        minimal_collect_interval = 5
+        fetch_routers_in_parallel = True
+
+    [LOGGING]
+        enabled = False
+        log_file = /dev/null

@@ -1,0 +1,45 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: mqtt-exporter
+spec:
+  groups:
+    - name: mqtt.rules
+      rules:
+        - alert: ZigbeeDeviceAbsent
+          expr: |-
+            mqtt_zigbee_availability < 1 AND (time() - mqtt_linkquality_ts) > 86400
+          annotations:
+            summary: >-
+              Device {{ $labels.topic }} has not been seen in over a day.
+          labels:
+            severity: warning
+
+        - alert: ZigbeeBatteryLow
+          expr: |-
+            mqtt_battery < 20
+          annotations:
+            summary: >-
+              Battery for device {{ $labels.topic }} is getting low.
+          labels:
+            severity: warning
+
+        - alert: ZigbeeBatteryLow
+          expr: |-
+            mqtt_battery < 10
+          annotations:
+            summary: >-
+              Battery for device {{ $labels.topic }} is very low.
+          labels:
+            severity: critical
+
+        - alert: ZigbeeUpdateAvailable
+          expr: |-
+            mqtt_update_installed_version != mqtt_update_latest_version
+          annotations:
+            summary: >-
+              Device {{ $labels.topic }} has a firmware update available.
+          labels:
+            severity: warning

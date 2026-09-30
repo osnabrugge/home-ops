@@ -14,7 +14,7 @@ resources:
   - ./kubectl/ks.yaml
   - ./memory/ks.yaml
   - ./memory-service/ks.yaml
-  - ./mikrotik/ks.yaml
+  # - ./mikrotik/ks.yaml
   - ./netbox/ks.yaml
   - ./omada/ks.yaml
   - ./onshape/ks.yaml
