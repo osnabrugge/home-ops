@@ -715,7 +715,7 @@ expansion slots. Out of date but structurally valuable.
 - [ ] **P0 (was P1): `API_TOKEN_PEPPERS` is unset, and it blocks creating ANY new API
       token — including from the web UI.** Confirmed 2026-08-09: `Token.save()` calls
       `get_current_pepper()`, which raises `ValueError: API_TOKEN_PEPPERS is not
-    defined`. Every existing token is `version=1` (legacy) and keeps working, which
+  defined`. Every existing token is `version=1` (legacy) and keeps working, which
       is why this stayed invisible.
       _Workaround used for the toolhive netbox MCP:_ create a v1 token explicitly —
       `Token(user=u, write_enabled=True, version=1)` via `manage.py shell`.
@@ -1207,6 +1207,72 @@ its edge. Keep `#lip` ≥ 1.5 mm or it snaps.
       alongside the rest of the estate.
 - [ ] P2: Anycubic Kobra 2 (lightly modified) is offline. Deliberately deferred until
       ABS/ASA prints reliably on the SV08.
+
+---
+
+## K. CI / onedr0p parity (raised 2026-09-30)
+
+### K1. Claude Renovate Review without a Claude subscription — VIABLE via Azure
+
+onedr0p runs `.github/workflows/claude-renovate-review.yaml`, which reviews every
+`renovate/*` PR. Its only subscription-bound input is `claude_code_oauth_token`
+(Claude Pro/Max, ~$30/mo USD). `anthropics/claude-code-action` also accepts
+**Microsoft Foundry**, so the same workflow runs on the Azure subscription we
+already pay for — no Claude subscription, no LiteLLM, no Copilot ToS grey area.
+
+- [ ] P1: Create an Azure AI Foundry resource in `rg-homeops-prod` and request
+      access to a Claude model (start with `claude-sonnet-4-5`, cheaper than Opus
+      for diff review)
+- [ ] P1: Register a federated credential (OIDC) on an Entra app for
+      `repo:osnabrugge/home-ops` so Actions authenticates with **no stored secret** —
+      same Workload Identity pattern owed to ESO (see G, Azure credential rotation)
+- [ ] P1: Port onedr0p's workflow, swapping the auth block:
+      `yaml
+    - uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - uses: anthropics/claude-code-action@v1
+      with:
+        use_foundry: "true"
+        claude_args: --model claude-sonnet-4-5
+      env:
+        ANTHROPIC_FOUNDRY_BASE_URL: https://<resource>.services.ai.azure.com
+    `
+      `permissions: id-token: write` is required. Foundry/Bedrock/Vertex are
+      **OIDC-only** — an API key will not work.
+- [ ] P1: We use a GitHub App (`homeops-runner`) rather than 1Password + `bot-ross`;
+      reuse it for `permission-pull-requests: write` instead of adding 1Password
+- [ ] P2: Cap spend — Azure budget alert on the Foundry resource. Credit exhaustion
+      has bitten before (see G, "Azure credit exhaustion — MEASURED 2026-08-09")
+- [?] Decision: Sonnet vs Opus per PR. Opus is materially dearer; Renovate diffs are
+  small and mostly mechanical
+
+**Rejected approach (documented so it is not retried):** routing a GitHub Copilot
+subscription through LiteLLM. It would not help Actions anyway — GitHub-hosted
+runners cannot reach a LAN proxy, so it would need a self-hosted runner or a
+publicly exposed proxy — and using the Copilot subscription as a general-purpose
+API for automation is outside what that licence permits.
+
+### K2. onedr0p divergence audit — OWED
+
+Sean's standing preference is to track `onedr0p/home-ops` patterns; the two have
+drifted and no structured comparison has ever been produced.
+
+- [ ] P1: Diff repo structure against `/home/sean/projects/talos/onedr0p/home-ops`
+      and produce a table: same / intentionally different / drifted-by-accident
+- [ ] P2: For each accidental drift, either adopt upstream or record _why_ we differ
+
+### K3. Talos sysctl for granian worker respawn (raised 2026-09-30)
+
+NetBox's granian warns on startup: `net.ipv4.tcp_migrate_req` is not enabled, so
+queued connections may reset when a worker respawns (now every 12h — see the
+NetBox OOM fix). Needs a Talos machine-config sysctl, so it should ride along with
+the next Talos upgrade rather than causing its own reboot.
+
+- [ ] P2: Add `net.ipv4.tcp_migrate_req: "1"` to the Talos machine config and apply
+      during the next Talos node-reboot window
 
 ---
 
