@@ -88,6 +88,16 @@ spec:
             keyType: aes256k
             keyRotationPolicy: KeyGeneration
             keyGeneration: 2
+          # Phase 2. Safe here only because the rook-csi-* secrets are owned by
+          # CephCluster/rook-ceph, so Rook rewrites them in step with Ceph even
+          # though the drivers come from the separate ceph-csi-operator chart.
+          # keepPriorKeyCountMax keeps the old key valid so live PV connections
+          # migrate instead of dropping to read-only.
+          csi:
+            keyType: aes256k
+            keyRotationPolicy: KeyGeneration
+            keyGeneration: 2
+            keepPriorKeyCountMax: 1
       storage:
         devicePathFilter: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_*
         useAllDevices: false
