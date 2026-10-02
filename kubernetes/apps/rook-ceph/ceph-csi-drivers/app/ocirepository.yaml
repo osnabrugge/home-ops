@@ -11,9 +11,10 @@ spec:
     operation: copy
   # Pin by tag only. Do NOT add a digest: ocharted serves this manifest by tag
   # but 404s digest-addressed fetches, making the OCIRepository permanently unready.
+  # Renovate's flux manager re-adds a BARE-HEX digest (no sha256: prefix) from the
+  # upstream index.yaml on every version bump; strip it after each bump.
   ref:
     tag: 1.1.0
-    digest: 5fd7eabfd47a45139bad212c7aeb561e1f934973a2332540154b65035c4b7bd6
   # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
   # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
   # so an http:// Service URL fails every PR with
