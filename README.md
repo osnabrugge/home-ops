@@ -30,6 +30,18 @@ This is a mono repository for my home infrastructure and Kubernetes cluster. I t
 
 ---
 
+## 📦 Related Repositories
+
+Container images are **not** built here. This repo holds manifests only — it contains no `Dockerfile`s and no image-build workflows.
+
+- **home-ops** (this repo) — Talos config, Kubernetes manifests, Flux configuration, docs.
+- **[container-images](https://github.com/osnabrugge/container-images)** — personal images with no upstream equivalent, such as the MCP servers this cluster runs. Publishes to `ghcr.io/osnabrugge/*`.
+- **[containers](https://github.com/osnabrugge/containers)** — fork of [home-operations/containers](https://github.com/home-operations/containers), used solely to stage PRs back upstream. Nothing in it is deployed to this cluster.
+
+**Where does a new image go?** If another homelabber would plausibly want it, open a PR against the `containers` fork. If it only makes sense for this estate, it belongs in `container-images`.
+
+---
+
 ## ⛵ Kubernetes
 
 My cluster runs [Talos Linux](https://talos.dev) on 6 Lenovo ThinkCentre M920q nodes — a semi-hyper-converged setup where workloads and block storage share the same hardware, with a Synology NAS providing NFS shares and backups.

@@ -5,7 +5,7 @@ kind: MCPServer
 metadata:
   name: opnsense-mcp
 spec:
-  # Built from the upstream npm package by .github/workflows/opnsense-mcp-image.yaml
+  # Built from the upstream npm package by osnabrugge/container-images (apps/opnsense-mcp)
   image: ghcr.io/osnabrugge/opnsense-mcp:0.5.3@sha256:616a58bf00db1d2c72bf0af843e710bde3d4a3108d252c388a3466bbf8dd5084
   transport: stdio
   proxyMode: streamable-http

@@ -5,7 +5,7 @@ kind: MCPServer
 metadata:
   name: brocade-mcp
 spec:
-  # Built from vespo92/BrocadeICXMCP by .github/workflows/brocade-mcp-image.yaml
+  # Built from vespo92/BrocadeICXMCP by osnabrugge/container-images (apps/brocade-icx-mcp)
   image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0@sha256:cb81f7bfabfd50c7da5eee787b5199e85024e8f8f47d3c4e8176c348b0839373
   transport: stdio
   proxyMode: streamable-http

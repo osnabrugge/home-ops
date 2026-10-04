@@ -5,7 +5,9 @@ kind: MCPServer
 metadata:
   name: spoolman-mcp
 spec:
-  # Built from /Disane87/spoolman-mcp by .github/workflows/spoolman-mcp-image.yaml
+  # Built from /Disane87/spoolman-mcp by osnabrugge/container-images (apps/spoolman-mcp).
+  # NOTE: container-images normalised the tag to :1.0.1 (no "v" prefix). Keep this
+  # on :v1.0.1 until the first build there publishes :1.0.1, then bump.
   image: ghcr.io/osnabrugge/spoolman-mcp:v1.0.1
   transport: stdio
   proxyMode: streamable-http

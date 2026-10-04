@@ -94,6 +94,14 @@ DESIGN — STOP RE-DERIVING THIS"_ and _"Read this file BEFORE any nas01 answer.
 
 ## Golden rules (do not violate without explicit approval)
 
+- **NO CONTAINER BUILDS IN THIS REPO.** No `Dockerfile`s, no image-build
+  workflows, no `docker/` directory. This repo is manifests only. Personal
+  images go to [`container-images`](https://github.com/osnabrugge/container-images);
+  anything another homelabber would want goes as a PR to the
+  [`containers`](https://github.com/osnabrugge/containers) fork of
+  home-operations. Sean has had to say "stop adding that to this repo" — the
+  `docker/` tree and six `*-mcp-image.yaml` workflows were migrated out on
+  2026-09-26. Do not recreate them.
 - **READ-ONLY infra hosts**: `pve01`, `nas02`, `gw01`, firewalls, switches, APs.
   Never modify config or restart services on them without explicit go-ahead +
   a tested rollback. (See user memory `production-change-rules.md`.)
@@ -147,7 +155,7 @@ DESIGN — STOP RE-DERIVING THIS"_ and _"Read this file BEFORE any nas01 answer.
 - **Azure** (stdio): MCP for managing Azure resources (VMs, KeyVault, etc) see context below for details
 - **Cloudflare:** (https://mcp.cloudflare.com/mcp): Use Code Mode to reduce context window size to discover tool operations. Use cloudflare-dns-analytics and cloudflare-observability for native MCP for actual debugging and troubleshooting for anything external DNS and/or Tunnel related issues.
 - **Playwright** (stdio): for testing internal web endpoints (e.g. `envoy-internal`). For external web endpoints (e.g. `envoy-external`), you may deploy any Azure resources within the primary Resource Group (see Azure Context below).
-- **Serena** (stdio): MCP Server for semantic code retrieval, editing, refactoring and debugging. Use it for cross-file renames, symbol moves, and reference lookups in this repo's code (e.g. the `docker/*-mcp` Python servers and `scripts/`); prefer it over ad-hoc grep/sed for multi-file refactors. Also use it to store code-related memories/snippets for reuse.
+- **Serena** (stdio): MCP Server for semantic code retrieval, editing, refactoring and debugging. Use it for cross-file renames, symbol moves, and reference lookups in this repo's code (e.g. `scripts/`); prefer it over ad-hoc grep/sed for multi-file refactors. Also use it to store code-related memories/snippets for reuse.
 
 ### Azure Context
 
