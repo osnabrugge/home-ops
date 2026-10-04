@@ -8,12 +8,16 @@ spec:
   groups:
     - name: external-dns.rules
       rules:
+        # Both controllers run --interval=1m, so a 60s threshold was measuring the
+        # sync interval itself: observed staleness peaked at 83s over a normal 30m
+        # window, parking this in Pending on ordinary jitter. 300s = five missed
+        # cycles, which only a genuinely stuck reconcile loop can reach.
         - alert: ExternalDNSStale
           expr: |-
-            time() - external_dns_controller_last_sync_timestamp_seconds > 60
+            time() - external_dns_controller_last_sync_timestamp_seconds > 300
           for: 5m
           annotations:
             summary: >-
-              ExternalDNS ({{ $labels.job }}) has not synced successfully in the last five minutes
+              ExternalDNS ({{ $labels.job }}) has not synced successfully in over five minutes
           labels:
             severity: critical
