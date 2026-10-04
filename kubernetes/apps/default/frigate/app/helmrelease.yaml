@@ -214,6 +214,13 @@ spec:
                   width: 704
                   height: 480
                   fps: 5
+                # Plain :80 — the web UI 302s to 443 but /onvif/device_service does not.
+                # cam02/cam03 return 403 here and need ONVIF enabled before they get a block.
+                onvif:
+                  host: 192.168.70.71
+                  port: 80
+                  user: viewer
+                  password: "{FRIGATE_RTSP_PASSWORD}"
               cam02:
                 ffmpeg:
                   inputs:

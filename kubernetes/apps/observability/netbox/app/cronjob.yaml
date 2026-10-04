@@ -1,0 +1,71 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/batch/cronjob_v1.json
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: netbox-device-type-import
+spec:
+  schedule: "30 3 * * *"
+  timeZone: America/Toronto
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      # NetBox runs under the zeroscaler component, so the first request may land
+      # while it is still scaling up from zero. Retries cover that cold start.
+      backoffLimit: 3
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: import
+              image: ghcr.io/marcinpsk/device-type-library-import:1.9.0
+              # --update applies upstream changes to existing types. Component
+              # removal and conflict resolution are deliberately omitted: both
+              # delete objects in NetBox and must never run unattended.
+              args: ["--update"]
+              env:
+                - name: NETBOX_URL
+                  value: https://netbox.homeops.ca
+                - name: NETBOX_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: netbox-secret
+                      key: api_token
+                # NetBox caps MAX_PAGE_SIZE at 1000; asking for more just logs a
+                # warning and paginates anyway.
+                - name: GRAPHQL_PAGE_SIZE
+                  value: "1000"
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: "1"
+              volumeMounts:
+                - name: repo
+                  mountPath: /app/repo
+                - name: tmp
+                  mountPath: /tmp
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          volumes:
+            - name: repo
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}

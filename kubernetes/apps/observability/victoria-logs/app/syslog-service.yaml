@@ -9,7 +9,7 @@ metadata:
   name: victoria-logs-syslog
   annotations:
     lbipam.cilium.io/ips: 192.168.69.125
-    external-dns.alpha.kubernetes.io/hostname: syslog.homeops.ca
+    external-dns.kubernetes.io/hostname: syslog.homeops.ca
 spec:
   type: LoadBalancer
   selector:

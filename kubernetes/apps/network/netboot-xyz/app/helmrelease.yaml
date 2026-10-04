@@ -93,7 +93,7 @@ spec:
         annotations:
           # Next free IP after omada-controller (192.168.69.130)
           lbipam.cilium.io/ips: 192.168.69.131
-          external-dns.alpha.kubernetes.io/hostname: netboot.homeops.ca
+          external-dns.kubernetes.io/hostname: netboot.homeops.ca
         externalTrafficPolicy: Local
         ports:
           tftp:
