@@ -15,8 +15,13 @@ spec:
       enabled: true
     auth:
       existingSecret: ocharted-secret
-      bypassNetworks:
-        - 10.42.0.0/16
+      # No bypassNetworks. ocharted authorises on the SOCKET PEER, and every
+      # request arrives from an envoy pod inside 10.42.0.0/16 — its own logs show
+      # remote=10.42.x.x with the real client only in xff. A 10.42.0.0/16 bypass
+      # therefore matches traffic from the EXTERNAL gateway too, since cloudflared
+      # and envoy-external are both in-cluster, which would make this an open
+      # unauthenticated proxy the moment it is published. Both consumers already
+      # carry the ocharted-pull dockerconfigjson, so they authenticate instead.
     deploymentAnnotations:
       reloader.stakater.com/auto: "true"
     httpRoute:
