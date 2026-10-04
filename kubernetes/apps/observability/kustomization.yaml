@@ -16,7 +16,11 @@ resources:
   - ./grafana-operator/ks.yaml
   - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
-  - ./network-ups-tools/ks.yaml
+  # network-ups-tools is DISABLED: ghcr.io/jr0dd/network-ups-tools ships only
+  # serial/USB drivers and has no snmp-ups binary, so it cannot talk to the
+  # RMCARD-equipped CyberPower units at all. snmp-exporter already covers the
+  # metrics; re-enable only with an image built --with-snmp.
+  # - ./network-ups-tools/ks.yaml
   - ./prometheus-adapter/ks.yaml
   - ./radar/ks.yaml
   - ./silence-operator/ks.yaml
