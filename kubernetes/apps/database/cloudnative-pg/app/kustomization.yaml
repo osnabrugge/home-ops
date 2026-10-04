@@ -9,6 +9,7 @@ resources:
   - ./diode-db-externalsecret.yaml
   - ./dispatcharr-db-externalsecret.yaml
   - ./externalsecret.yaml
+  - ./grafanadashboard.yaml
   - ./netbox-db-externalsecret.yaml
   - ./spoolman-db-externalsecret.yaml
   - ./helmrelease.yaml
