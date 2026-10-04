@@ -16,11 +16,10 @@ resources:
   - ./grafana-operator/ks.yaml
   - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
-  # network-ups-tools is DISABLED: ghcr.io/jr0dd/network-ups-tools ships only
-  # serial/USB drivers and has no snmp-ups binary, so it cannot talk to the
-  # RMCARD-equipped CyberPower units at all. snmp-exporter already covers the
-  # metrics; re-enable only with an image built --with-snmp.
-  # - ./network-ups-tools/ks.yaml
+  # NUT deliberately does NOT live in this cluster. In an outage the cluster must
+  # shut down BEFORE nas01, which serves it NFS — so the orchestrator cannot be a
+  # workload that dies with the cluster. It runs on nas01, which already ships the
+  # snmp-ups driver the container image lacks. snmp-exporter covers UPS metrics.
   - ./prometheus-adapter/ks.yaml
   - ./radar/ks.yaml
   - ./silence-operator/ks.yaml
