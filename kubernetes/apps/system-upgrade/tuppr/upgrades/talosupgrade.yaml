@@ -25,5 +25,13 @@ spec:
         !(status.phase in ['Resolving', 'Restoring'])
     - apiVersion: ceph.rook.io/v1
       kind: CephCluster
+      # A bare HEALTH_OK match parks the rollout forever on warnings that carry no
+      # data risk. Ceph 20.2.4 Tentacle added four cephx key-type checks
+      # (AUTH_EMERGENCY_CIPHERS_SET, AUTH_INSECURE_CLIENT_KEY_TYPE,
+      # AUTH_INSECURE_KEYS_ALLOWED, AUTH_INSECURE_KEYS_CREATABLE) that are still
+      # firing for the prior-generation .1 keys kept by keepPriorKeyCountMax, and
+      # clearing them means touching the keys that caused the 2026-10-01 RBD
+      # outage. Accept HEALTH_WARN only while every reported check is an AUTH_ one
+      # — anything real (OSD_DOWN, PG_DEGRADED, MON_DOWN, ...) still blocks.
       expr: |-
-        status.ceph.health in ['HEALTH_OK']
+        status.ceph.health == 'HEALTH_OK' || status.ceph.details.all(k, k.startsWith('AUTH_'))
