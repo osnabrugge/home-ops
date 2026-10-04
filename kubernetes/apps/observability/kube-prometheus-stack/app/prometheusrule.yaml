@@ -86,3 +86,22 @@ spec:
               {{ $labels.instance }} is at {{ $value | printf "%.1f" }}% memory
               utilisation with reclaimable ZFS ARC already counted as available,
               so this is real pressure rather than cache.
+
+        # The percentage alert above cannot be the only safety net on a ZFS box.
+        # nas01 runs with swap disabled, so if ARC ever fails to release fast
+        # enough the OOM killer acts immediately rather than swapping. ARC is
+        # demonstrably well behaved there (observed collapsing 230 -> 27 GiB and
+        # recovering, with no kills), but an actual kill is the signal that it
+        # stopped keeping up — and k8s05 OOMKilled the rook-ceph-operator during
+        # the 2026-10-01 incident with nothing alerting on it.
+        - alert: NodeOOMKillDetected
+          expr: increase(node_vmstat_oom_kill[10m]) > 0
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: Kernel OOM killer fired on {{ $labels.instance }}
+            description: >-
+              {{ $value | printf "%.0f" }} process(es) killed in the last 10m.
+              On ZFS hosts this means ARC did not release memory fast enough; on
+              Kubernetes nodes check for a container exceeding its memory limit.

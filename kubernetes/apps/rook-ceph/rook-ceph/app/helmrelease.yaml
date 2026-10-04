@@ -20,4 +20,9 @@ spec:
       requests:
         cpu: 100m # unchangable
         memory: 128Mi # unchangable
-      limits: {}
+      # The chart defaults to 512Mi, and `limits: {}` does not clear it because
+      # Helm merges maps. The operator peaked at 477Mi over a normal week (93% of
+      # that) and was OOMKilled on k8s05 during the 2026-10-01 cephx incident —
+      # precisely when it was needed to reconcile the cluster back to health.
+      limits:
+        memory: 1Gi
