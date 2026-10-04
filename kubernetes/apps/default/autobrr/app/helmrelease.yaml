@@ -27,9 +27,6 @@ spec:
               AUTOBRR__METRICS_PORT: &metricsPort 9094
               AUTOBRR__CHECK_FOR_UPDATES: false
               AUTOBRR__LOG_LEVEL: INFO
-            envFrom:
-              - secretRef:
-                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
                 enabled: true
@@ -59,9 +56,8 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
               limits:
-                memory: 1Gi
+                memory: 256Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
