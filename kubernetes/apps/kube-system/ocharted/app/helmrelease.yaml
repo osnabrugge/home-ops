@@ -32,15 +32,18 @@ spec:
           conditions: ["[STATUS] == 200"]
       hostnames:
         - "{{ .Release.Name }}.homeops.ca"
-      # envoy-internal, not -external: on the external gateway the name resolves
-      # to Cloudflare, so pulls re-enter from a public IP and never match
-      # auth.bypassNetworks (ocharted checks the socket peer and ignores XFF),
-      # returning 401. Internally it resolves to the LAN envoy LB and the
-      # proxying pod IS in 10.42/16. That also gives a real TLS endpoint, which
-      # flate requires: it maps spec.insecure to InsecureSkipVerify over HTTPS
-      # rather than to plain HTTP as source-controller does.
+      # Published on BOTH gateways. Internal keeps in-cluster pulls on the LAN
+      # path and gives flate the real TLS endpoint it needs (it maps spec.insecure
+      # to InsecureSkipVerify over HTTPS rather than to plain HTTP as
+      # source-controller does). External is what lets Renovate resolve chart
+      # versions from a GitHub-hosted runner, retiring the overrideDatasource
+      # rules in .renovaterc.json5. Safe ONLY because auth.bypassNetworks was
+      # removed above: ocharted sees an in-cluster envoy peer on both paths and
+      # cannot tell them apart, so the bypass would have covered public traffic.
       parentRefs:
         - name: envoy-internal
+          namespace: network
+        - name: envoy-external
           namespace: network
     monitoring:
       serviceMonitor:
