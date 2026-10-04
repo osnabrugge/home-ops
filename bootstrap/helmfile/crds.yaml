@@ -27,5 +27,11 @@ releases:
   - name: grafana-operator
     namespace: observability
 
+  - name: kopiur
+    namespace: kopiur-system
+
   - name: kube-prometheus-stack
     namespace: observability
+
+  - name: snapshot-controller
+    namespace: kube-system
