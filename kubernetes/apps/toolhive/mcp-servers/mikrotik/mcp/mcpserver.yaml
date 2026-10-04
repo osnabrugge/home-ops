@@ -5,7 +5,7 @@ kind: MCPServer
 metadata:
   name: mikrotik-mcp
 spec:
-  image: ghcr.io/jeff-nasseri/mikrotik-mcp:0.23.3@sha256:7220bb6e37578d2bfcac75ae5732c45af2085d1d2d50a259ad741f2762d6ec2d
+  image: ghcr.io/jeff-nasseri/mikrotik-mcp:0.24.0@sha256:d8815a3d9b9ef46679e1c70db01c153ea4a11a3dc4300ce9b9d4ee7dca252602
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080
