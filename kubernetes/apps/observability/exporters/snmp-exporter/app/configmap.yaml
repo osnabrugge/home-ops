@@ -19,19 +19,20 @@ data:
           - 1.3.6.1.2.1.1.5.0      # sysName
           - 1.3.6.1.4.1.3808.1.1.1.2.1.1.0   # upsBasicBatteryStatus
           - 1.3.6.1.4.1.3808.1.1.1.2.1.2.0   # upsBasicBatteryTimeOnBattery
+          - 1.3.6.1.4.1.3808.1.1.1.2.1.4.0   # upsBaseBatteryAgeRecommand (months)
           - 1.3.6.1.4.1.3808.1.1.1.4.1.1.0   # upsBasicOutputStatus
           - 1.3.6.1.4.1.3808.1.1.1.2.2.1.0   # upsAdvBatteryCapacity
-          - 1.3.6.1.4.1.3808.1.1.1.2.2.2.0   # upsAdvBatteryTemperature
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.2.0   # upsAdvanceBatteryVoltage (decivolts)
           - 1.3.6.1.4.1.3808.1.1.1.2.2.4.0   # upsAdvBatteryRunTimeRemaining
           - 1.3.6.1.4.1.3808.1.1.1.2.2.5.0   # upsAdvBatteryReplaceIndicator (PR1500RT2U does NOT expose 2.2.6)
-          - 1.3.6.1.4.1.3808.1.1.1.2.2.8.0   # upsAdvBatteryActualVoltage
+          - 1.3.6.1.4.1.3808.1.1.1.2.2.8.0   # upsAdvanceBatteryVoltageRating (nominal, not measured)
           - 1.3.6.1.4.1.3808.1.1.1.3.2.1.0   # upsAdvInputLineVoltage
           - 1.3.6.1.4.1.3808.1.1.1.3.2.4.0   # upsAdvInputFrequency
           - 1.3.6.1.4.1.3808.1.1.1.4.2.1.0   # upsAdvOutputVoltage
           - 1.3.6.1.4.1.3808.1.1.1.4.2.2.0   # upsAdvOutputFrequency
           - 1.3.6.1.4.1.3808.1.1.1.4.2.3.0   # upsAdvOutputLoad
-          - 1.3.6.1.4.1.3808.1.1.1.4.2.6.0   # upsAdvOutputActivePower
-          - 1.3.6.1.4.1.3808.1.1.1.5.2.1.0   # upsAdvConfigRatedOutputPower
+          - 1.3.6.1.4.1.3808.1.1.1.4.2.5.0   # upsAdvanceOutputPower (watts) -- 4.2.6 is Energy, not power
+          - 1.3.6.1.4.1.3808.1.1.1.5.2.1.0   # upsAdvanceConfigOutputVoltage (120V) -- NOT rated power
         metrics:
           - name: sysUpTime
             oid: 1.3.6.1.2.1.1.3.0
@@ -50,7 +51,13 @@ data:
           - name: upsBasicBatteryTimeOnBattery_seconds
             oid: 1.3.6.1.4.1.3808.1.1.1.2.1.2.0
             type: gauge
+            # TimeTicks passed through raw, so the value is HUNDREDTHS of a second
+            # despite the _seconds suffix. Divide by 100. Kept for compatibility.
             help: Elapsed time on battery (hundredths of second)
+          - name: upsBaseBatteryAgeRecommand_months
+            oid: 1.3.6.1.4.1.3808.1.1.1.2.1.4.0
+            type: gauge
+            help: Manufacturer recommended battery replacement age (months)
           - name: upsBasicOutputStatus
             oid: 1.3.6.1.4.1.3808.1.1.1.4.1.1.0
             type: gauge
@@ -59,22 +66,30 @@ data:
             oid: 1.3.6.1.4.1.3808.1.1.1.2.2.1.0
             type: gauge
             help: Battery capacity remaining (%)
-          - name: upsAdvBatteryTemperature
+          # 2.2.2 is upsAdvanceBatteryVoltage in CPS-MIB, NOT temperature -- it was
+          # mislabelled by copying APC's PowerNet-MIB layout onto CyberPower's. The
+          # real temperature OID (2.2.3) returns NULL on the PR1500RT2U, so there is
+          # no battery temperature to scrape on this hardware.
+          - name: upsAdvBatteryVoltage_decivolts
             oid: 1.3.6.1.4.1.3808.1.1.1.2.2.2.0
             type: gauge
-            help: Battery temperature (Celsius)
+            help: Battery voltage in tenths of a volt (529 = 52.9V)
           - name: upsAdvBatteryRunTimeRemaining
             oid: 1.3.6.1.4.1.3808.1.1.1.2.2.4.0
             type: gauge
+            # Raw TimeTicks: hundredths of a second. /6000 gives minutes.
             help: Estimated runtime remaining (hundredths of second)
           - name: upsAdvBatteryReplaceIndicator
             oid: 1.3.6.1.4.1.3808.1.1.1.2.2.5.0
             type: gauge
+            # Verified real, not a false positive: the card raises this from the
+            # install date in 2.1.3 against the recommended age in 2.1.4, so it
+            # reports 2 while capacity still reads 100%.
             help: Battery replace indicator (1=noBatteryNeedsReplacing 2=batteryNeedsReplacing)
-          - name: upsAdvBatteryActualVoltage
+          - name: upsAdvBatteryVoltageRating
             oid: 1.3.6.1.4.1.3808.1.1.1.2.2.8.0
             type: gauge
-            help: Battery actual voltage (V)
+            help: Nominal battery pack voltage rating (V), a constant -- not a measurement
           - name: upsAdvInputLineVoltage
             oid: 1.3.6.1.4.1.3808.1.1.1.3.2.1.0
             type: gauge
@@ -95,14 +110,20 @@ data:
             oid: 1.3.6.1.4.1.3808.1.1.1.4.2.3.0
             type: gauge
             help: Output load (%)
+          # Was pointed at 4.2.6, which is upsAdvanceOutputEnergy (46899 and climbing),
+          # not power -- the source of the "~100x inflated" load maths. 4.2.5 is the
+          # real active power in watts. Name kept so dashboards keep working.
           - name: upsAdvOutputActivePower
-            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.6.0
+            oid: 1.3.6.1.4.1.3808.1.1.1.4.2.5.0
             type: gauge
             help: Active output power (Watts)
-          - name: upsAdvConfigRatedOutputPower
+          # 5.2.1 reads 120 -- that is upsAdvanceConfigOutputVoltage in CPS-MIB, the
+          # configured output voltage, not a power rating. The PR1500RT2U is a
+          # 1500VA/1000W unit and does not expose its wattage rating here.
+          - name: upsAdvConfigOutputVoltage
             oid: 1.3.6.1.4.1.3808.1.1.1.5.2.1.0
             type: gauge
-            help: Rated output power (Watts)
+            help: Configured output voltage (V)
       # CyberPower PDU41001 — "PDU2" NextGen MIB, enterprise 1.3.6.1.4.1.3808.1.1.3
       # NOTE: PDU41001 is bank-metered (no per-outlet metering). The legacy
       # ePDULoadStatus* OIDs under 3808.1.1.6 do NOT exist on this device and

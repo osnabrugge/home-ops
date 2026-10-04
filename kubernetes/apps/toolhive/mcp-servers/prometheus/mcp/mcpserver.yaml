@@ -11,7 +11,7 @@ spec:
     name: mcp-tools
   env:
     - name: PROMETHEUS_URL
-      value: http://kube-prometheus-stack-prometheus.monitor.svc.cluster.local:9090
+      value: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
     - name: PROMETHEUS_DISABLE_LINKS
       value: "true"
     - name: PROMETHEUS_MCP_SERVER_TRANSPORT

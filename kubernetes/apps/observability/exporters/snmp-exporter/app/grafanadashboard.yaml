@@ -159,8 +159,8 @@ spec:
           ]},
           "options": {"legend": {"displayMode": "list","placement": "bottom"},"tooltip": {"mode": "multi"}},
           "targets": [
-            {"expr": "upsAdvBatteryTemperature{instance=\"$instance\"}","legendFormat": "Temperature","refId": "A"},
-            {"expr": "upsAdvBatteryActualVoltage{instance=\"$instance\"}","legendFormat": "Battery Voltage","refId": "B"}
+            {"expr": "upsAdvBatteryVoltage_decivolts{instance=\"$instance\"} / 10","legendFormat": "Battery Voltage","refId": "A"},
+            {"expr": "upsAdvBatteryVoltageRating{instance=\"$instance\"}","legendFormat": "Nominal Rating","refId": "B"}
           ]
         },
         {

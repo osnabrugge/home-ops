@@ -8,26 +8,49 @@ spec:
   groups:
     - name: snmp-exporter.rules
       rules:
+        # upsBasicOutputStatus is the authoritative on/off-mains signal (2=onLine
+        # 3=onBattery 7=off). The old expr used upsBasicBatteryTimeOnBattery_seconds
+        # > 60, but that metric is TimeTicks passed through as a raw gauge, so its
+        # unit is hundredths of a second -- "60" meant 0.6s, and the real 5 minute
+        # delay came from the for: clause.
+        #
+        # for: 30s is one scrape interval of confirmation (SNMP is scraped every
+        # 30s), so a momentary flicker cannot page but a genuine outage surfaces
+        # within 30-60s. Alerting faster than that requires lowering the scrape
+        # interval, not lowering this value.
         - alert: UPSOnBattery
-          expr: upsBasicBatteryTimeOnBattery_seconds > 60
+          expr: upsBasicOutputStatus{job="snmp-exporter"} == 3
           annotations:
             summary: >-
-              ZPM {{$labels.instance}} is running on batteries
-          for: 5m
+              UPS {{ $labels.instance }} is running on battery
+            description: >-
+              Mains power lost. Estimated runtime remaining:
+              {{ with printf "upsAdvBatteryRunTimeRemaining{instance='%s'}" $labels.instance | query }}{{ . | first | value | humanizeDuration }}{{ end }}.
+          for: 30s
           labels:
             severity: critical
 
+        # Driven by install date vs recommended age on the card, not by measured
+        # capacity -- so it fires at 100% capacity. Both packs are genuinely overdue
+        # (ups01 replaced 2022-07-05, ups02 2022-03-24, recommendation 42 months).
         - alert: UPSReplaceBattery
           expr: upsAdvBatteryReplaceIndicator == 2
           annotations:
             summary: >-
-              ZPM {{ $labels.instance }} battery needs to be replaced
+              UPS {{ $labels.instance }} battery is past its recommended service life
+            description: >-
+              The UPS reports the battery should be replaced. It still holds charge,
+              but runtime will keep shrinking -- which directly reduces the shutdown
+              budget during an outage.
           for: 5m
           labels:
             severity: critical
 
+        # instance is set from __param_target by the ServiceMonitor relabeling, so
+        # it is an IP, never a hostname. The previous instance=~"pdu.*" matched no
+        # series at all and this alert could never fire.
         - alert: PDUUnreachable
-          expr: up{job="snmp-exporter", instance=~"pdu.*"} == 0
+          expr: 'up{job="snmp-exporter", instance=~"192\\.168\\.99\\.(15|16)"} == 0'
           annotations:
             summary: >-
               PDU {{ $labels.instance }} is unreachable via SNMP
@@ -38,8 +61,9 @@ spec:
           labels:
             severity: warning
 
+        # Same dead-matcher bug as PDUUnreachable: instance is an IP, not "ups01".
         - alert: UPSUnreachable
-          expr: up{job="snmp-exporter", instance=~"ups.*"} == 0
+          expr: 'up{job="snmp-exporter", instance=~"192\\.168\\.99\\.(11|12)"} == 0'
           annotations:
             summary: >-
               UPS {{ $labels.instance }} is unreachable via SNMP
@@ -50,15 +74,39 @@ spec:
           labels:
             severity: warning
 
-        - alert: UPSLowBattery
-          expr: upsAdvBatteryCapacity < 50
+        # Replaces a capacity<50 for:10m rule that was unfirable: ups01 holds only
+        # ~24 min at current load, so 50% is reached around minute 12 and the 10m
+        # hold would expire after the batteries already had. Runtime remaining is
+        # the number that actually matters for a shutdown decision.
+        #
+        # upsAdvBatteryRunTimeRemaining is TimeTicks exported as a raw gauge:
+        # hundredths of a second, so /6000 converts to minutes.
+        - alert: UPSLowRuntime
+          expr: |
+            (upsAdvBatteryRunTimeRemaining / 6000) < 5
+              and on (instance) upsBasicOutputStatus == 3
           annotations:
             summary: >-
-              UPS {{ $labels.instance }} battery capacity is low ({{ $value }}%)
+              UPS {{ $labels.instance }} has under 5 minutes of runtime left
             description: >-
-              UPS battery capacity is below 50%. Consider reducing load or
-              preparing for potential power loss.
-          for: 10m
+              On battery with {{ $value | printf "%.1f" }} minutes remaining.
+              Shut workloads down now.
+          labels:
+            severity: critical
+
+        # Degraded battery health while still on mains: runtime should be tens of
+        # minutes at idle, so a low figure here means the pack is failing.
+        - alert: UPSRuntimeDegraded
+          expr: |
+            (upsAdvBatteryRunTimeRemaining / 6000) < 10
+              and on (instance) upsBasicOutputStatus == 2
+          annotations:
+            summary: >-
+              UPS {{ $labels.instance }} runtime is degraded ({{ $value | printf "%.1f" }} min on mains)
+            description: >-
+              Still on mains, but estimated runtime is under 10 minutes. Battery
+              is ageing or the load has grown.
+          for: 30m
           labels:
             severity: warning
 
