@@ -59,10 +59,6 @@ machine:
   kernel:
     modules:
       - name: dm_thin_pool
-      - name: drbd
-        parameters:
-          - usermode_helper=disabled
-      - name: drbd_transport_tcp
       - name: nbd
   kubelet:
     defaultRuntimeSeccompProfileEnabled: true
