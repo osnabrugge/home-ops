@@ -60,3 +60,29 @@ spec:
             severity: critical
           annotations:
             summary: A Talos node upgrade has failed
+
+    - name: node-memory-zfs-aware
+      rules:
+        # Replaces the upstream NodeMemoryHighUtilization (disabled in the
+        # HelmRelease). ZFS is out-of-tree, so its ARC is never counted in
+        # MemAvailable even though everything above arc_c_min is evictable on
+        # demand. nas01 sat at 94% with 230 GiB of its 251 GiB in ARC — by
+        # design, since L2ARC was dropped in favour of ARC + special vdevs.
+        # Counting reclaimable ARC as available puts nas01 at 5.9%.
+        # The `or` term supplies a zero-valued series so non-ZFS hosts, which
+        # export no node_zfs_* metrics, are not dropped by vector matching.
+        - alert: NodeMemoryHighUtilizationZFSAware
+          expr: >-
+            100 * (1 - (node_memory_MemAvailable_bytes
+            + ((node_zfs_arc_size - node_zfs_arc_c_min)
+            or (node_memory_MemAvailable_bytes * 0)))
+            / node_memory_MemTotal_bytes) > 90
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Host is running out of memory
+            description: >-
+              {{ $labels.instance }} is at {{ $value | printf "%.1f" }}% memory
+              utilisation with reclaimable ZFS ARC already counted as available,
+              so this is real pressure rather than cache.

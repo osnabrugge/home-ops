@@ -20,6 +20,10 @@ spec:
         # zeroscaler scale-to-zero HPAs (maxReplicas=1) always report "maxed"
         # at 1 active replica -> pure false positive in this cluster.
         KubeHpaMaxedOut: true
+        # Reads MemAvailable, which cannot see ZFS ARC because ZFS is out-of-tree.
+        # nas01 reported 94% while 230 of its 251 GiB was reclaimable ARC.
+        # Replaced by NodeMemoryHighUtilizationZFSAware in home-ops-selfcheck.
+        NodeMemoryHighUtilization: true
     alertmanager:
       route:
         main:
