@@ -22,7 +22,7 @@ spec:
           expr: upsBasicOutputStatus{job="snmp-exporter"} == 3
           annotations:
             summary: >-
-              UPS {{ $labels.instance }} is running on battery
+              UPS {{ $labels.target }} is running on battery
             description: >-
               Mains power lost. Estimated runtime remaining:
               {{ with printf "upsAdvBatteryRunTimeRemaining{instance='%s'}" $labels.instance | query }}{{ . | first | value | humanizeDuration }}{{ end }}.
@@ -37,7 +37,7 @@ spec:
           expr: upsAdvBatteryReplaceIndicator == 2
           annotations:
             summary: >-
-              UPS {{ $labels.instance }} battery is past its recommended service life
+              UPS {{ $labels.target }} battery is past its recommended service life
             description: >-
               The UPS reports the battery should be replaced. It still holds charge,
               but runtime will keep shrinking -- which directly reduces the shutdown
@@ -49,6 +49,9 @@ spec:
         # instance is set from __param_target by the ServiceMonitor relabeling, so
         # it is an IP, never a hostname. The previous instance=~"pdu.*" matched no
         # series at all and this alert could never fire.
+        #
+        # The friendly "target" label (pdu01/pdu02) exists on the scraped SNMP
+        # metrics but NOT on up{}, so matching by address is required here.
         - alert: PDUUnreachable
           expr: 'up{job="snmp-exporter", instance=~"192\\.168\\.99\\.(15|16)"} == 0'
           annotations:
@@ -87,7 +90,7 @@ spec:
               and on (instance) upsBasicOutputStatus == 3
           annotations:
             summary: >-
-              UPS {{ $labels.instance }} has under 5 minutes of runtime left
+              UPS {{ $labels.target }} has under 5 minutes of runtime left
             description: >-
               On battery with {{ $value | printf "%.1f" }} minutes remaining.
               Shut workloads down now.
@@ -102,7 +105,7 @@ spec:
               and on (instance) upsBasicOutputStatus == 2
           annotations:
             summary: >-
-              UPS {{ $labels.instance }} runtime is degraded ({{ $value | printf "%.1f" }} min on mains)
+              UPS {{ $labels.target }} runtime is degraded ({{ $value | printf "%.1f" }} min on mains)
             description: >-
               Still on mains, but estimated runtime is under 10 minutes. Battery
               is ageing or the load has grown.
@@ -117,7 +120,7 @@ spec:
           expr: upsAdvOutputLoad > 80
           annotations:
             summary: >-
-              UPS {{ $labels.instance }} load is high ({{ $value | humanize }}%)
+              UPS {{ $labels.target }} load is high ({{ $value | humanize }}%)
             description: >-
               UPS is running at over 80% capacity. Consider load balancing.
           for: 15m
