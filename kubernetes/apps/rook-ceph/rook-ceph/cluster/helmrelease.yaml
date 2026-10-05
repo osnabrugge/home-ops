@@ -93,10 +93,20 @@ spec:
           # though the drivers come from the separate ceph-csi-operator chart.
           # keepPriorKeyCountMax keeps the old key valid so live PV connections
           # migrate instead of dropping to read-only.
+          #
+          # ROLLED BACK TO aes 2026-10-04. Under aes256k gen 2 the kernel RBD
+          # client authenticated to the mon fine but failed authorizing to the
+          # OSDs ("libceph: auth protocol 'cephx' authorization to osd failed:
+          # -13"), so every rbd map hung, held the CSI volume lock, and later
+          # mounts returned "Aborted: an operation with the given Volume ID
+          # already exists". 16 pods sat in ContainerCreating for 5h. The
+          # provisioner was unaffected because librbd is userspace.
+          # Retry aes256k only after Talos v1.14.2 (kernel aes256k backport) and
+          # add `allowedCiphers: [aes256k]` alongside it.
           csi:
-            keyType: aes256k
+            keyType: aes
             keyRotationPolicy: KeyGeneration
-            keyGeneration: 2
+            keyGeneration: 3
             keepPriorKeyCountMax: 1
       storage:
         devicePathFilter: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_*
