@@ -84,8 +84,14 @@ spec:
       # separately so a bad rotation cannot remount RBD volumes read-only.
       security:
         cephx:
+          # No daemon.keyType: Rook auto-detects the best type and the Rook guide
+          # says to remove the pin once the mons carry --mon-auth-emergency-allowed-ciphers
+          # (they do). Leaving it pinned kept the cluster in the emergency-cipher
+          # state where long-running OSDs stopped being able to decrypt their
+          # rotating service keys ("could not set rotating key: decode_decrypt
+          # failed") roughly an hour after each start, which made them unable to
+          # verify any peer authorizer -> -13 for every krbd client.
           daemon:
-            keyType: aes256k
             keyRotationPolicy: KeyGeneration
             keyGeneration: 2
           # Phase 2. Safe here only because the rook-csi-* secrets are owned by
@@ -94,20 +100,28 @@ spec:
           # keepPriorKeyCountMax keeps the old key valid so live PV connections
           # migrate instead of dropping to read-only.
           #
-          # ROLLED BACK TO aes 2026-10-04. Under aes256k gen 2 the kernel RBD
-          # client authenticated to the mon fine but failed authorizing to the
-          # OSDs ("libceph: auth protocol 'cephx' authorization to osd failed:
-          # -13"), so every rbd map hung, held the CSI volume lock, and later
-          # mounts returned "Aborted: an operation with the given Volume ID
-          # already exists". 16 pods sat in ContainerCreating for 5h. The
-          # provisioner was unaffected because librbd is userspace.
-          # Retry aes256k only after Talos v1.14.2 (kernel aes256k backport) and
-          # add `allowedCiphers: [aes256k]` alongside it.
+          # ROLLED BACK TO aes 2026-10-04, RESTORED TO aes256k 2026-10-05.
+          # The rollback blamed the kernel for the -13 ("libceph: auth protocol
+          # 'cephx' authorization to osd failed"), but the kernel was never the
+          # problem: siderolabs/pkgs@84c1b87 backports CEPH_CRYPTO_AES256KRB5 into
+          # the 6.18 Talos kernel and ships in every v1.14.x. Verified on all six
+          # nodes -- /proc/kallsyms exports ceph_crypto_key_prepare on both
+          # 6.18.51-talos (v1.14.1) and 6.18.54-talos (v1.14.2). The real cause was
+          # the OSDs failing to decrypt their rotating keys, so they rejected every
+          # authorizer regardless of which cipher the client used.
+          # keepPriorKeyCountMax: 1 keeps the generation 3 aes key valid so
+          # currently-mounted PVCs are unaffected; new mounts use generation 4.
           csi:
-            keyType: aes
+            keyType: aes256k
             keyRotationPolicy: KeyGeneration
-            keyGeneration: 3
+            keyGeneration: 4
             keepPriorKeyCountMax: 1
+          # Last remaining aes entity. No CephBlockPool has mirroring enabled and
+          # there are no peer clusters, so nothing consumes this key today.
+          rbdMirrorPeer:
+            keyType: aes256k
+            keyRotationPolicy: KeyGeneration
+            keyGeneration: 2
       storage:
         devicePathFilter: /dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_1TB_*
         useAllDevices: false
