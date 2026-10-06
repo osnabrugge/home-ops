@@ -91,26 +91,30 @@ spec:
           # rotating service keys ("could not set rotating key: decode_decrypt
           # failed") roughly an hour after each start, which made them unable to
           # verify any peer authorizer -> -13 for every krbd client.
-          # keyGeneration PINNED TO 1 (was 2) on 2026-10-05 after this broke the
-          # cluster twice in 24h. mon/mgr/admin/crashCollector/cephExporter all
-          # reached generation 2, but status.cephx.osd stayed {keyGeneration: 1,
-          # keyCephVersion: "19.2.3-0"} because Rook cannot finish an OSD key
-          # rotation when CV_MODE=raw (the keyring lives on the device, there is
-          # no rook-ceph-osd-N-keyring secret to rewrite). So every reconcile saw
-          # desired 2 != actual 1, ran `ceph auth rotate` against the mon, failed
-          # the OSD half, and never stamped status -- leaving the mon key and the
-          # on-disk key permanently out of sync for osd.0/1/4/5.
+          # ROTATION DISABLED 2026-10-05 after this broke the cluster twice in 24h.
+          # mon/mgr/admin/crashCollector/cephExporter all reached generation 2, but
+          # status.cephx.osd stayed {keyGeneration: 1, keyCephVersion: "19.2.3-0"}:
+          # Rook cannot finish an OSD key rotation under CV_MODE=raw, because the
+          # keyring lives on the device and there is no rook-ceph-osd-N-keyring
+          # secret to rewrite. So every reconcile saw desired 2 != actual 1, ran
+          # `ceph auth rotate` against the mon, failed the OSD half and never
+          # stamped status -- leaving the mon key and the on-disk key permanently
+          # out of sync for osd.0/1/4/5.
           #
-          # Symptom is NOT obvious: the cluster stays HEALTH_WARN with all PGs
+          # The symptom is NOT obvious: the cluster stays HEALTH_WARN with all PGs
           # active+clean and running pods keep working (their krbd sessions are
-          # already authenticated), but the OSDs can no longer decrypt rotating
-          # keys, so they reject every NEW client. `rbd create` hangs forever,
-          # which wedges ceph-csi -> no provision/attach/snapshot cluster-wide.
-          # Rook only rotates when desired > actual, so pinning 1 is a no-op for
-          # the daemons already at 2 and simply stops the retry loop.
+          # already authenticated), but those OSDs can no longer decrypt rotating
+          # keys and reject every NEW client. `rbd create` hangs forever, which
+          # wedges ceph-csi -> no provision/attach/snapshot cluster-wide.
+          #
+          # keyGeneration stays 2 because the CRD rejects a decrease
+          # ("keyGeneration cannot be decreased"); Disabled is what actually stops
+          # the retry loop, and is Rook's own default. Re-enable only once the
+          # raw-mode OSD rotation bug is fixed upstream, and verify afterwards with
+          # the mon-vs-on-disk key fingerprint check for all six OSDs.
           daemon:
-            keyRotationPolicy: KeyGeneration
-            keyGeneration: 1
+            keyRotationPolicy: Disabled
+            keyGeneration: 2
           # Phase 2. Safe here only because the rook-csi-* secrets are owned by
           # CephCluster/rook-ceph, so Rook rewrites them in step with Ceph even
           # though the drivers come from the separate ceph-csi-operator chart.
