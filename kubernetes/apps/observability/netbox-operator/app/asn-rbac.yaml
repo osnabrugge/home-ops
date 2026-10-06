@@ -1,0 +1,31 @@
+---
+# Companion to asn-crds.yaml; mirrors l2vpn-rbac.yaml.
+# Verbs mirror the chart's own rules for the shipped kinds.
+# Remove together with asn-crds.yaml once upstream ships them.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: netbox-operator-asn
+rules:
+  - apiGroups: ["netbox.dev"]
+    resources: ["asns", "asnclaims"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["netbox.dev"]
+    resources: ["asns/finalizers", "asnclaims/finalizers"]
+    verbs: ["update"]
+  - apiGroups: ["netbox.dev"]
+    resources: ["asns/status", "asnclaims/status"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: netbox-operator-asn
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: netbox-operator-asn
+subjects:
+  - kind: ServiceAccount
+    name: netbox-operator
+    namespace: observability
