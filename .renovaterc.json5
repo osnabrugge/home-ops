@@ -13,10 +13,20 @@
     commitMessageExtra: "({{manager}})",
     additionalBranchPrefix: "{{manager}}-",
   },
-  // ocharted is only a pull-through cache and is reached over a cluster-internal
-  // Service, so it needs no credentials from CI and must not be queried from CI.
-  // The charts behind it are tracked against their upstream Helm repos below.
-  hostRules: [],
+  // ocharted.homeops.ca is published on envoy-EXTERNAL as well as envoy-internal, so a
+  // GitHub-hosted runner can reach it. The chart deliberately sets no auth.bypassNetworks
+  // (ocharted authorises on the socket peer, which is always an in-cluster envoy pod, so a
+  // 10.42.0.0/16 bypass would also cover public traffic), therefore CI must authenticate.
+  // Credentials come from RENOVATE_SECRETS in .github/workflows/renovate.yaml.
+  hostRules: [
+    {
+      description: "Authenticate against the ocharted OCI registry",
+      matchHost: "ocharted.homeops.ca",
+      hostType: "docker",
+      username: "{{ secrets.OCHARTED_USERNAME }}",
+      password: "{{ secrets.OCHARTED_PASSWORD }}",
+    },
+  ],
   // librenms is an unfinished scaffold: it has a helmrelease.yaml but no ks.yaml,
   // no ocirepository.yaml for the chartRef it names, and is not referenced by
   // kubernetes/apps/observability/kustomization.yaml. Renovate PRs against it can
@@ -40,55 +50,16 @@
     },
   ],
   packageRules: [
+    // ocharted serves manifests by TAG only, so a digest-addressed fetch 404s and leaves
+    // the OCIRepository permanently unready (broke PR #4169). The old overrideDatasource
+    // workarounds for radar and ceph-csi-drivers are gone: with the hostRule above,
+    // Renovate queries ocharted directly on the docker datasource instead of the upstream
+    // Helm repo, so it no longer copies the bare-hex `digest:` out of a Helm index.yaml
+    // (which source-controller rejects with `cannot parse hash`, re-broken by #4290/#4306).
     {
-      // ocharted only bypasses auth for 10.42.0.0/16, so a lookup from CI returns
-      // no-result. Query the upstream Helm repo it proxies instead. Keep these
-      // matchers in sync with the OCIRepository url or updates silently stop.
-      description: "Track radar against its upstream Helm repo, not the ocharted proxy",
+      description: "ocharted serves by tag only - never pin digests on it",
       matchDatasources: ["docker"],
-      matchPackageNames: ["ocharted.homeops.ca/skyhook-io.github.io/helm-charts/radar"],
-      overrideDatasource: "helm",
-      overridePackageName: "radar",
-      registryUrls: ["https://skyhook-io.github.io/helm-charts"],
-      // ocharted serves manifests by TAG only; a digest-addressed fetch 404s, so a
-      // pinned digest makes the OCIRepository permanently unready (broke PR #4169).
-      pinDigests: false,
-    },
-    {
-      description: "Track ceph-csi-drivers against its upstream Helm repo, not the ocharted proxy",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["ocharted.homeops.ca/ceph.github.io/ceph-csi-operator/ceph-csi-drivers"],
-      overrideDatasource: "helm",
-      overridePackageName: "ceph-csi-drivers",
-      registryUrls: ["https://ceph.github.io/ceph-csi-operator"],
-      pinDigests: false,
-    },
-    {
-      // ⛔ THIS DOES NOT WORK. Kept only to document the dead end.
-      // `pinDigests` is the WRONG KNOB: it governs whether Renovate *pins* a digest
-      // on an otherwise-unpinned dep. The bare-hex digest here is not a pin — the
-      // flux manager writes `ref.digest` as part of an ordinary version bump, copying
-      // the `digest:` field out of the upstream Helm index.yaml (bare hex, no
-      // `sha256:` prefix), which source-controller rejects: `cannot parse hash`.
-      // Re-added by #4290 (1.13.x) and again by #4306 (1.14.0 -> 1.14.1) AFTER the
-      // matchFileNames rule below was added. Stripped in 166cf7d30, again, and again.
-      //
-      // ROOT CAUSE: `overrideDatasource: "helm"` above. It exists only because
-      // ocharted.homeops.ca is published on envoy-INTERNAL, so a GitHub-hosted runner
-      // cannot reach it and `hostRules` had to be emptied. onedr0p has the same proxy
-      // but his ocharted.turbo.ac is publicly reachable, so he authenticates with a
-      // hostRule, stays on the docker datasource, and needs NO pinDigests rule at all —
-      // all four of his ocharted OCIRepositories are tag-only with no digest.
-      //
-      // DURABLE FIX (needs a decision): publish ocharted externally like onedr0p and
-      // restore the hostRule + OCHARTED_USERNAME/OCHARTED_PASSWORD, then delete the two
-      // overrideDatasource rules above. Until then a digest WILL come back on the next
-      // radar/ceph-csi-drivers version bump and must be stripped by hand.
-      description: "Never pin digests on ocharted-backed OCIRepositories (INEFFECTIVE - see comment)",
-      matchFileNames: [
-        "kubernetes/apps/observability/radar/app/ocirepository.yaml",
-        "kubernetes/apps/rook-ceph/ceph-csi-drivers/app/ocirepository.yaml",
-      ],
+      matchPackageNames: ["ocharted.homeops.ca/**"],
       pinDigests: false,
     },
     // Auto-merge rules

@@ -79,6 +79,22 @@ jobs:
             echo "PEM_EOF"
           } >> $GITHUB_OUTPUT
 
+          # ocharted.homeops.ca is an authenticated OCI pull-through cache published on
+          # envoy-external. Renovate resolves chart versions through it, so CI needs the
+          # same credentials the cluster uses (ClusterSecretStore azurekv, key `ocharted`).
+          OCHARTED=$(az keyvault secret show \
+            --vault-name ${{ secrets.KEYVAULT_NAME }} \
+            --name ocharted \
+            --query value -o tsv)
+
+          OCHARTED_USERNAME=$(echo "$OCHARTED" | jq -r '.OCHARTED_USERNAME')
+          OCHARTED_PASSWORD=$(echo "$OCHARTED" | jq -r '.OCHARTED_PASSWORD')
+          echo "::add-mask::$OCHARTED_USERNAME"
+          echo "::add-mask::$OCHARTED_PASSWORD"
+
+          echo "OCHARTED_USERNAME=$OCHARTED_USERNAME" >> $GITHUB_OUTPUT
+          echo "OCHARTED_PASSWORD=$OCHARTED_PASSWORD" >> $GITHUB_OUTPUT
+
       - name: Generate Token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
@@ -108,6 +124,11 @@ jobs:
           RENOVATE_DRY_RUN: ${{ inputs.dryRun }}
           RENOVATE_INTERNAL_CHECKS_FILTER: strict
           RENOVATE_PLATFORM: github
+          RENOVATE_SECRETS: |-
+            {
+              "OCHARTED_USERNAME": "${{ steps.load-secrets.outputs.OCHARTED_USERNAME }}",
+              "OCHARTED_PASSWORD": "${{ steps.load-secrets.outputs.OCHARTED_PASSWORD }}"
+            }
           RENOVATE_PLATFORM_COMMIT: true
         with:
           token: ${{ steps.app-token.outputs.token }}
