@@ -234,3 +234,14 @@ apiVersion: v1alpha1
 kind: WatchdogTimerConfig
 device: /dev/watchdog0
 timeout: 5m
+---
+# Required by the lldpd extension: without it ext-lldpd waits forever, the boot
+# sequence hits its 70m timeout and Talos reverts the upgrade and reboots.
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: lldpd
+configFiles:
+  - content: |
+      configure lldp portidsubtype ifname
+      configure system description "Talos Node"
+    mountPath: /usr/local/etc/lldpd/lldpd.conf
