@@ -15,7 +15,7 @@ spec:
   # Renovate is kept off this file's `ref` by the customManager in .renovaterc.json5;
   # `pinDigests: false` does NOT prevent this (see #4290, #4306).
   ref:
-    tag: 1.15.0
+    tag: 1.16.0
   # HTTPS hostname (now served by envoy-internal), not the plain-HTTP Service:
   # flate maps spec.insecure to TLS InsecureSkipVerify rather than to plain HTTP,
   # so an http:// Service URL fails every PR with
