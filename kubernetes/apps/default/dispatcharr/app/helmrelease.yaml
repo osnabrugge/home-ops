@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dispatcharr/dispatcharr
-              tag: 0.31.0@sha256:f81924fa3dbfeb463b3908be7e086bf58aacbd2ba56062bfb555ee3a471acf8f
+              tag: 0.32.0@sha256:b7d695c5cc98b9abd64c74a94539c1ebffc23d965021613c820c67e25dea41a3
             env: &svcEnv
               TZ: America/Toronto
               # Modular mode: use the cluster's shared PostgreSQL (CNPG postgres16)
@@ -71,7 +71,7 @@ spec:
           celery:
             image:
               repository: ghcr.io/dispatcharr/dispatcharr
-              tag: 0.31.0@sha256:f81924fa3dbfeb463b3908be7e086bf58aacbd2ba56062bfb555ee3a471acf8f
+              tag: 0.32.0@sha256:b7d695c5cc98b9abd64c74a94539c1ebffc23d965021613c820c67e25dea41a3
             command: ["/app/docker/entrypoint.celery.sh"]
             env: *svcEnv
             envFrom: *svcEnvFrom
