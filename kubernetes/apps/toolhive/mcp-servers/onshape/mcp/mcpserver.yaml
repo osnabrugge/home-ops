@@ -7,7 +7,8 @@ metadata:
 spec:
   # Upstream ships a Python package only, so this image is built from a pinned
   # commit by osnabrugge/container-images (apps/onshape-mcp).
-  image: ghcr.io/osnabrugge/onshape-mcp:0.3.1
+  # Digest-pinned: 0.3.1 was re-pushed with the mcp<2 fix and nodes kept the stale copy.
+  image: ghcr.io/osnabrugge/onshape-mcp:0.3.1@sha256:73f20e93aea154217bf6879412cd3681978aaabc13e31a2eef3c2fb2287039c9
   # Upstream speaks stdio; toolhive's proxy fronts it with streamable-http.
   transport: stdio
   proxyPort: 8080
