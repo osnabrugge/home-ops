@@ -41,6 +41,10 @@ spec:
       # 4-7ms, OSDs idle (CPU ~20m, client IO <1MiB/s) when it flaps. Throttling scrubs is
       # the durable, non-physical fix. Applied at runtime 2026-07-05; pinned here.
       cephConfig:
+        mon:
+          # Someone set this "true" in the mon config DB by hand (Rook never sets it);
+          # it alone raises AUTH_INSECURE_KEYS_CREATABLE once allowedCiphers is aes256k.
+          mon_auth_allow_insecure_key: "false"
         osd:
           osd_scrub_sleep: "0.1" # sleep between scrub chunks (default 0 = flat-out)
           osd_max_scrubs: "1" # one scrub per OSD at a time (default 3)
