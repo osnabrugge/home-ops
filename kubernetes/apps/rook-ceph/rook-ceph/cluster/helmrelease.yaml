@@ -60,6 +60,13 @@ spec:
       network:
         connections:
           requireMsgr2: true
+      # Rook drops any node whose taints the OSD placement doesn't tolerate (any
+      # effect) from the storage spec, so tuppr's soft taint stalled Rook upgrades.
+      placement:
+        osd:
+          tolerations:
+            - key: tuppr.home-operations.com/outdated
+              operator: Exists
       resources:
         osd:
           limits:
@@ -130,13 +137,15 @@ spec:
           # 6.18.51-talos (v1.14.1) and 6.18.54-talos (v1.14.2). The real cause was
           # the OSDs failing to decrypt their rotating keys, so they rejected every
           # authorizer regardless of which cipher the client used.
-          # keepPriorKeyCountMax: 1 keeps the generation 3 aes key valid so
-          # currently-mounted PVCs are unaffected; new mounts use generation 4.
+          # keepPriorKeyCountMax was 1 to keep the generation 3 aes key valid for
+          # mounts made before the rotation. Every node was drained and rebooted
+          # for Talos v1.14.2 on 2026-10-08 and no mon session used a .3 entity
+          # afterwards, so the prior aes keys are dropped (Rook's final CSI step).
           csi:
             keyType: aes256k
             keyRotationPolicy: KeyGeneration
             keyGeneration: 4
-            keepPriorKeyCountMax: 1
+            keepPriorKeyCountMax: 0
           # Last remaining aes entity. No CephBlockPool has mirroring enabled and
           # there are no peer clusters, so nothing consumes this key today.
           rbdMirrorPeer:
