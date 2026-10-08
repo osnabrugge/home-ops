@@ -17,7 +17,7 @@ spec:
     name: network
   env:
     - name: SPOOLMAN_URL
-      value: "http://spoolman.default.svc.cluster.local:7912"
+      value: "http://spoolman.printing.svc.cluster.local:8000"
   resources:
     requests:
       cpu: 10m
