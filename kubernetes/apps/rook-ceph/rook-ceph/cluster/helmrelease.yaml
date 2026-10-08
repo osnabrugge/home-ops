@@ -91,6 +91,13 @@ spec:
       # separately so a bad rotation cannot remount RBD volumes read-only.
       security:
         cephx:
+          # Clears AUTH_INSECURE_KEYS_ALLOWED/CREATABLE. Set 2026-10-08 only after
+          # `ceph auth dump-keys` showed all 20 entities on aes256k. Rook owns
+          # auth_allowed_ciphers, so a manual `ceph mon set` would be reverted.
+          # If daemons ever fail with "RADOS permission denied", follow Rook's
+          # "Fixing cluster unavailability with allowedCiphers" doc.
+          allowedCiphers:
+            - aes256k
           # No daemon.keyType: Rook auto-detects the best type and the Rook guide
           # says to remove the pin once the mons carry --mon-auth-emergency-allowed-ciphers
           # (they do). Leaving it pinned kept the cluster in the emergency-cipher
