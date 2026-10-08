@@ -46,6 +46,10 @@ spec:
                   httpGet:
                     path: /ping
                     port: *port
+                    # Prowlarr 2.6.5+ enforces AllowedHosts; kubelet probes send the pod IP as Host.
+                    httpHeaders:
+                      - name: Host
+                        value: prowlarr.default.svc.cluster.local
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
