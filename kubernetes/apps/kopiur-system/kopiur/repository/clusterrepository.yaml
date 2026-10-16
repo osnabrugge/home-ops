@@ -9,16 +9,15 @@ spec:
     all: true
   backend:
     s3:
-      bucket: default-bucket
-      endpoint: 192.168.42.45:3900
-      region: us-east-1
-      prefix: home-ops/
-      tls:
-        disableTls: true
       auth:
         secretRef:
           name: kopiur-repository-secret
           namespace: kopiur-system
+      bucket: kopiur
+      endpoint: nas01.in.homeops.ca:9000
+      region: us-east-1
+      tls:
+        disableTls: true
   encryption:
     passwordSecretRef:
       name: kopiur-repository-secret
@@ -34,18 +33,14 @@ spec:
         jitter: 1h
   moverDefaults:
     cache:
-      capacity: 1Mi
-      mode: Ephemeral
-      storageClassName: openebs-hostpath
-    podSecurityContext:
-      fsGroup: 1000
-      fsGroupChangePolicy: OnRootMismatch
-    scratch:
-      capacity: 1Mi
-      storageClassName: openebs-hostpath
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-    ttlSecondsAfterFinished: 300
+      # Every cache PVC is 5Gi or larger (KOPIUR_CAPACITY default). Kopia's own
+      # defaults are 5000 MiB per budget, larger than the whole PVC, so the
+      # sweeper never runs and the cache fills the volume. The metadata budget
+      # applies twice: kopia caps the index-blobs cache at the same size.
+      contentCacheSizeMb: 512
+      metadataCacheSizeMb: 1024
+  parameters:
+    epoch:
+      minDuration: 1h
   scheduleDefaults:
     timezone: America/Toronto
