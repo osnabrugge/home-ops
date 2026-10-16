@@ -13,18 +13,22 @@ spec:
     replicaCount: 1
     image:
       pullPolicy: IfNotPresent
-    serviceAccount:
-      create: true
-    rbac:
-      create: true
-      podLogs: true
-      metrics: true
-      viewRBAC: true
-      viewWebhooks: true
-    mcp:
-      enabled: true
     auth:
       mode: none
+    crdGroups:
+      all: true # get/list/watch on every API group and resource, including Secrets
+    mcp:
+      enabled: true
+    rbac:
+      create: true
+      podExec: true
+      portForward: true
+      secrets: true
+      viewNodeRuntime: true
+      viewRBAC: true
+      viewWebhooks: true
+    serviceAccount:
+      create: true
     service:
       port: 9280
     traffic:
