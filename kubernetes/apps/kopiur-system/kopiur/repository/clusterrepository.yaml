@@ -13,8 +13,12 @@ spec:
         secretRef:
           name: kopiur-repository-secret
           namespace: kopiur-system
-      bucket: kopiur
+      # Existing repository (46.6 GiB of history) lives in default-bucket/home-ops/.
+      # The empty `kopiur` bucket has no key grant; switching to it would start a
+      # brand-new repository. Migrate data first if renaming the bucket.
+      bucket: default-bucket
       endpoint: nas01.in.homeops.ca:9000
+      prefix: home-ops/
       region: us-east-1
       tls:
         disableTls: true

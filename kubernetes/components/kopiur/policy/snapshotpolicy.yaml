@@ -7,17 +7,22 @@ metadata:
 spec:
   compression:
     compressor: zstd
+  errorHandling:
+    # Opt-in per app. Lets a snapshot complete-with-errors instead of failing outright
+    # when a single file is unreadable by the uid-1000 mover (e.g. frigate's .jwt_secret,
+    # written root:1000 mode 0600).
+    ignoreFileErrors: ${KOPIUR_IGNORE_FILE_ERRORS:=false}
   mover:
     cache:
       capacity: ${KOPIUR_CAPACITY:=5Gi}
       mode: Persistent
-      storageClassName: miroir-slow
+      storageClassName: openebs-hostpath
     securityContext:
       runAsUser: ${KOPIUR_PUID:=1000}
       runAsGroup: ${KOPIUR_PGID:=1000}
   repository:
     kind: ClusterRepository
-    name: expanse
+    name: nas01
   retention:
     keepLatest: 3
     keepHourly: 24
@@ -25,5 +30,5 @@ spec:
     keepWeekly: 4
   sources:
     - pvc:
-        name: ${APP}
+        name: ${KOPIUR_PVC:=${APP}}
   volumeSnapshotClassName: ${KOPIUR_SNAPSHOTCLASS:=csi-ceph-blockpool}
