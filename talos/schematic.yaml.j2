@@ -1,15 +1,16 @@
 ---
 customization:
   extraKernelArgs:
-    - i915.enable_guc=2                               # Coffee Lake CPU & Intel iGPU
-    - intel_iommu=on                                  # PCI Passthrough
-    - iommu=pt                                        # PCI Passthrough
-    - pcie_aspm=off                                   # Disable PCIe ASPM
-    - pcie_port_pm=off                                # Disable PCIe Port PM
-    - sysctl.kernel.kexec_load_disabled=1             # Disable kexec load
+    - i915.enable_guc=2                   # Coffee Lake CPU & Intel iGPU
+    - intel_iommu=on                      # PCI Passthrough
+    - iommu=pt                            # PCI Passthrough
+    - pcie_aspm=off                       # Disable PCIe ASPM
+    - pcie_port_pm=off                    # Disable PCIe Port PM
+    - sysctl.kernel.kexec_load_disabled=1 # Disable kexec load
   systemExtensions:
     officialExtensions:
-      - siderolabs/i915                                # Intel iGPU
-      - siderolabs/intel-ucode                         # Intel CPU Microcode
-      - siderolabs/lldpd                               # LLDP Discovery
-      - siderolabs/mei                                 # Intel iGPU
+      - siderolabs/i915                   # Intel iGPU
+      - siderolabs/intel-ucode            # Intel CPU Microcode
+      - siderolabs/lldpd                  # LLDP Discovery
+      - siderolabs/mei                    # Intel iGPU
+      - siderolabs/nfsrahead              # NFS Readahead
