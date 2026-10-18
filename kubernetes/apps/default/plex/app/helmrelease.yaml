@@ -54,7 +54,6 @@ spec:
                 - name: gpu
               requests:
                 cpu: 100m
-                memory: 4Gi
               limits:
                 memory: 16Gi
     defaultPodOptions:
