@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/oliverbravery/printguard
-              tag: 2.6.2-intel@sha256:a22cf4cb32fc33ab5a2cc9060ab4a6db5f4e54fa19c034bc2632691a771643cb
+              tag: 2.6.3-intel@sha256:afa75b109c030c291cf006334f4ee754698aefd02c116b2d714b96d00e7c2192
             env:
               TZ: America/Toronto
               DATA_DIR: /data
