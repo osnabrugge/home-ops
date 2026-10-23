@@ -29,7 +29,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: import
-              image: ghcr.io/marcinpsk/device-type-library-import:1.9.0
+              image: ghcr.io/marcinpsk/device-type-library-import:1.9.1
               # --update applies upstream changes to existing types. Component
               # removal and conflict resolution are deliberately omitted: both
               # delete objects in NetBox and must never run unattended.
