@@ -36,7 +36,7 @@ spec:
               args: ["--update"]
               env:
                 - name: NETBOX_URL
-                  value: https://netbox.homeops.ca
+                  value: http://netbox.observability.svc.cluster.local
                 - name: NETBOX_TOKEN
                   valueFrom:
                     secretKeyRef:
