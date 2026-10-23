@@ -8,6 +8,7 @@ metadata:
 #
 # - aggregationRule: same selector as built-in "view" — expands with operators that ship
 #   rbac.authorization.k8s.io/aggregate-to-view ClusterRoles (CRDs, etc.).
+# - Explicit grants live in a separate role because the aggregation controller owns rules.
 # - Non-core apiGroups: resources "*" is safe for Secret *objects* (they only exist in group "").
 # - Core group "": explicit resource list — secrets omitted; exec/proxy-style subresources omitted.
 apiVersion: rbac.authorization.k8s.io/v1
@@ -18,6 +19,15 @@ aggregationRule:
   clusterRoleSelectors:
     - matchLabels:
         rbac.authorization.k8s.io/aggregate-to-view: "true"
+    - matchLabels:
+        rbac.homeops.ca/aggregate-to-kubectl-mcp: "true"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubectl-mcp-readonly-extra
+  labels:
+    rbac.homeops.ca/aggregate-to-kubectl-mcp: "true"
 rules:
   - nonResourceURLs:
       - /api
