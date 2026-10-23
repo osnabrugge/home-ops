@@ -22,6 +22,10 @@ spec:
     spec:
       containers:
         - name: mcp
+          # Match v2's image user; ToolHive otherwise defaults to UID/GID 1000.
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
           env:
             - name: MCP_ALLOW_UNAUTHENTICATED
               value: "true"
