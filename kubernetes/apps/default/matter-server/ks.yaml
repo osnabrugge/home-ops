@@ -6,6 +6,8 @@ metadata:
   name: matter-server
 spec:
   dependsOn:
+    - name: home-assistant
+      namespace: default
     - name: multus-networks
       namespace: kube-system
     - name: rook-ceph-cluster

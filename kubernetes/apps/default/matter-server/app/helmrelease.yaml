@@ -14,55 +14,43 @@ spec:
       matter-server:
         annotations:
           reloader.stakater.com/auto: "true"
-        strategy: Recreate
-        initContainers:
-          # Thread border routers advertise the mesh OMR prefix as a /64 Route
-          # Information Option; at the kernel default of 0 the RIO is discarded and
-          # the route into the Thread network is never installed. Privileged because
-          # /proc/sys is mounted read-only for the app container, and this is an
-          # unsafe sysctl so securityContext.sysctls would need allowedUnsafeSysctls
-          # on every kubelet.
-          sysctl:
-            image:
-              repository: busybox
-              tag: "1.38"
-            command:
-              - sh
-              - -c
-              - sysctl -w net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
-            securityContext:
-              runAsUser: 0
-              privileged: true
         containers:
           app:
             image:
               repository: ghcr.io/matter-js/matterjs-server
-              tag: 1.5.3@sha256:c0a816559384497f30d5cfe32dcd049fdec90c5659f1a1a86c87600fb3298595
+              tag: 1.5.4@sha256:b7f4f6c888ece6214a0720ab68c3a46654c71c6d34d01ef1850095d210c0615b
             env:
-              # Node.js image: cap the V8 heap below the 1Gi limit to avoid OOM-kill.
-              NODE_OPTIONS: --max-old-space-size=768
+              MATTER_SERVER__INSTANCE_NAME: "{{ .Release.Name }}"
+              MATTER_SERVER__PORT: &port 5580
+              MATTER_SERVER__APPLICATION_URL: &host "{{ .Release.Name }}.homeops.ca"
+              MATTER_SERVER__LOG_LEVEL: info
+              TZ: America/Toronto
             args:
-              - --storage-path
-              - /data
-              - --port
-              - "5580"
-              - --primary-interface
-              - net1
+              - --storage-path=/data
+              - --primary-interface=net1
+              - --log-level=debug
+              - --production-mode
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *port
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *port
             resources:
               requests:
                 cpu: 25m
                 memory: 256Mi
               limits:
                 memory: 1Gi
-            securityContext:
-              # matterjs-server defaults to UID 1000; kept as root so the root-owned /data
-              # from the old python image stays writable (drop-in migration) + NET_RAW ping.
-              runAsUser: 0
-              runAsGroup: 0
-              allowPrivilegeEscalation: false
-              capabilities:
-                add: ["NET_ADMIN", "NET_RAW"]
-                drop: ["ALL"]
     defaultPodOptions:
       # Attach to the IoT VLAN (VLAN70) so the Matter stack shares L2 with the
       # SLZB OTBR (otbr01, wired) and Matter devices, matching the zigbee/HA pattern.
@@ -75,18 +63,34 @@ spec:
             "mac": "c6:07:27:af:fb:54"
           }]
       securityContext:
-        fsGroup: 0
+        sysctls:
+          # Accept Thread OMR route advertisements on the Multus interface.
+          - name: net.ipv6.conf.net1.accept_ra_rt_info_max_plen
+            value: "64"
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
     service:
       app:
         ports:
           http:
-            appProtocol: kubernetes.io/ws
-            port: 5580
+            port: *port
+    route:
+      app:
+        hostnames: [*host]
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - name: "{{ .Release.Name }}"
+                port: *port
     persistence:
       data:
-        existingClaim: matter-server-data
-        globalMounts:
-          - path: /data
+        existingClaim: "{{ .Release.Name }}"
       tmp:
         type: emptyDir
