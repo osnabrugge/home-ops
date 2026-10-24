@@ -18,6 +18,20 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
+          thread-routes:
+            image:
+              repository: docker.io/library/busybox
+              tag: "1.38"
+            # Learn /64 Thread OMR routes on the IoT interface inside this pod.
+            command:
+              - sysctl
+              - -w
+              - net.ipv6.conf.net1.accept_ra=2
+              - net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
+            securityContext:
+              runAsNonRoot: false
+              runAsUser: 0
+              privileged: true
           install-frigate-integration:
             image:
               repository: docker.io/library/busybox

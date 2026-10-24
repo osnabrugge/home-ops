@@ -14,21 +14,35 @@ spec:
       matter-server:
         annotations:
           reloader.stakater.com/auto: "true"
+        strategy: Recreate
+        initContainers:
+          thread-routes:
+            image:
+              repository: docker.io/library/busybox
+              tag: "1.38"
+            # These unsafe sysctls must be set in the pod namespace, not by kubelet.
+            command:
+              - sysctl
+              - -w
+              - net.ipv6.conf.net1.accept_ra=2
+              - net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
+            securityContext:
+              runAsNonRoot: false
+              runAsUser: 0
+              privileged: true
         containers:
           app:
             image:
               repository: ghcr.io/matter-js/matterjs-server
               tag: 1.5.4@sha256:b7f4f6c888ece6214a0720ab68c3a46654c71c6d34d01ef1850095d210c0615b
             env:
-              MATTER_SERVER__INSTANCE_NAME: "{{ .Release.Name }}"
-              MATTER_SERVER__PORT: &port 5580
-              MATTER_SERVER__APPLICATION_URL: &host "{{ .Release.Name }}.homeops.ca"
-              MATTER_SERVER__LOG_LEVEL: info
+              PORT: &port 5580
+              LOG_LEVEL: info
+              NODE_OPTIONS: --max-old-space-size=768
               TZ: America/Toronto
             args:
               - --storage-path=/data
               - --primary-interface=net1
-              - --log-level=debug
               - --production-mode
             probes:
               liveness:
@@ -38,6 +52,9 @@ spec:
                   httpGet:
                     path: /health
                     port: *port
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
               readiness:
                 enabled: true
                 custom: true
@@ -45,6 +62,15 @@ spec:
                   httpGet:
                     path: /health
                     port: *port
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *port
+                  periodSeconds: 10
+                  failureThreshold: 30
             resources:
               requests:
                 cpu: 25m
@@ -63,10 +89,6 @@ spec:
             "mac": "c6:07:27:af:fb:54"
           }]
       securityContext:
-        sysctls:
-          # Accept Thread OMR route advertisements on the Multus interface.
-          - name: net.ipv6.conf.net1.accept_ra_rt_info_max_plen
-            value: "64"
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
@@ -81,7 +103,7 @@ spec:
             port: *port
     route:
       app:
-        hostnames: [*host]
+        hostnames: ["{{ .Release.Name }}.homeops.ca"]
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -92,5 +114,7 @@ spec:
     persistence:
       data:
         existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /data
       tmp:
         type: emptyDir

@@ -5,6 +5,9 @@ kind: Kustomization
 metadata:
   name: matter-server
 spec:
+  components:
+    # Provision the fresh claim and protect the new fabric with scheduled backups.
+    - ../../../../components/kopiur/backup
   dependsOn:
     - name: home-assistant
       namespace: default
