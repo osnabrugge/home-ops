@@ -20,15 +20,13 @@ spec:
             image:
               repository: docker.io/library/busybox
               tag: "1.38"
-            # Forward Thread traffic and keep accepting backbone RAs as a router.
+            # Restore SBR's link-local route, then forward Thread traffic and accept RAs.
             command:
-              - sysctl
-              - -w
-              - net.ipv4.ip_forward=1
-              - net.ipv6.conf.all.forwarding=1
-              - net.ipv6.conf.default.forwarding=1
-              - net.ipv6.conf.net1.accept_ra=2
-              - net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
+              - sh
+              - -ec
+              - |
+                ip -6 route replace fe80::/64 dev net1 metric 1024
+                sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.ipv6.conf.default.forwarding=1 net.ipv6.conf.net1.accept_ra=2 net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
             securityContext:
               runAsNonRoot: false
               runAsUser: 0

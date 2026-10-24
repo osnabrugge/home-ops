@@ -20,12 +20,14 @@ spec:
             image:
               repository: docker.io/library/busybox
               tag: "1.38"
-            # These unsafe sysctls must be set in the pod namespace, not by kubelet.
+            # SBR moves net1's link-local route away; scoped Matter traffic needs it.
+            # Unsafe sysctls must be set in the pod namespace, not by kubelet.
             command:
-              - sysctl
-              - -w
-              - net.ipv6.conf.net1.accept_ra=2
-              - net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
+              - sh
+              - -ec
+              - |
+                ip -6 route replace fe80::/64 dev net1 metric 1024
+                sysctl -w net.ipv6.conf.net1.accept_ra=2 net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
             securityContext:
               runAsNonRoot: false
               runAsUser: 0

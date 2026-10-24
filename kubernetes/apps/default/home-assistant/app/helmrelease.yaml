@@ -22,12 +22,13 @@ spec:
             image:
               repository: docker.io/library/busybox
               tag: "1.38"
-            # Learn /64 Thread OMR routes on the IoT interface inside this pod.
+            # Restore scoped IPv6 traffic and learn /64 Thread routes on the IoT link.
             command:
-              - sysctl
-              - -w
-              - net.ipv6.conf.net1.accept_ra=2
-              - net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
+              - sh
+              - -ec
+              - |
+                ip -6 route replace fe80::/64 dev net1 metric 1024
+                sysctl -w net.ipv6.conf.net1.accept_ra=2 net.ipv6.conf.net1.accept_ra_rt_info_max_plen=64
             securityContext:
               runAsNonRoot: false
               runAsUser: 0
