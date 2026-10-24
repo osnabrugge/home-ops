@@ -1,0 +1,58 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.36.0/mutatingadmissionpolicybinding-admissionregistration-v1.json
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: rook-rgw-pod-name
+spec:
+  policyName: rook-rgw-pod-name
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.36.0/mutatingadmissionpolicy-admissionregistration-v1.json
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: rook-rgw-pod-name
+spec:
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: rook-ceph
+    resourceRules:
+      - apiGroups: [apps]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [deployments]
+  matchConditions:
+    - name: is-object-store-rgw
+      expression: >-
+        object.metadata.name == "rook-ceph-rgw-ceph-objectstore-a" &&
+        has(object.metadata.ownerReferences) &&
+        object.metadata.ownerReferences.exists(r,
+          r.apiVersion == "ceph.rook.io/v1" &&
+          r.kind == "CephObjectStore" && r.name == "ceph-objectstore"
+        )
+    # Rook v1.21.0 appends NameEnvVar after DaemonEnvVars already supplied it.
+    # Leave conflicting values or a corrected upstream template untouched.
+    - name: has-identical-trailing-pod-name
+      expression: >-
+        object.spec.template.spec.containers.size() > 0 &&
+        object.spec.template.spec.containers[0].name == "rgw" &&
+        has(object.spec.template.spec.containers[0].env) &&
+        object.spec.template.spec.containers[0].env.size() > 2 &&
+        object.spec.template.spec.containers[0].env[1].name == "POD_NAME" &&
+        object.spec.template.spec.containers[0].env.filter(e, e.name == "POD_NAME").size() == 2 &&
+        object.spec.template.spec.containers[0].env[1] ==
+          object.spec.template.spec.containers[0].env[object.spec.template.spec.containers[0].env.size() - 1]
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{
+              op: "remove",
+              path: "/spec/template/spec/containers/0/env/" +
+                string(object.spec.template.spec.containers[0].env.size() - 1)
+            }
+          ]
