@@ -17,6 +17,7 @@ resources:
   # - ./mikrotik/ks.yaml
   - ./netbox/ks.yaml
   - ./omada/ks.yaml
+  - ./omada-controller/ks.yaml
   - ./onshape/ks.yaml
   - ./opnsense/ks.yaml
   - ./printer/ks.yaml
