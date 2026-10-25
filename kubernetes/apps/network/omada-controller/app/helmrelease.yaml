@@ -19,17 +19,15 @@ spec:
             image:
               repository: docker.io/library/busybox
               tag: "1.38"
-            # SBR keeps LAN routes in table 100; unbound discovery needs a main-table route.
+            # Keep LAN discovery local and prefer attached subnets over SBR's source default.
             command:
-              - ip
-              - "-4"
-              - route
-              - replace
-              - 192.168.0.0/24
-              - dev
-              - net1
-              - src
-              - 192.168.0.30
+              - sh
+              - -ec
+              - |
+                ip -4 route replace 192.168.0.0/24 dev net1 src 192.168.0.30
+                ip -4 rule add priority 100 to 192.168.0.0/24 lookup main
+                ip -4 rule add priority 101 to 192.168.99.0/24 lookup main
+                ip -4 rule add priority 102 to 192.168.50.0/24 lookup main
             securityContext:
               runAsNonRoot: false
               runAsUser: 0
