@@ -14,11 +14,11 @@ spec:
     name: network
   env:
     - name: OMADA_STRICT_SSL
-      value: "false"
+      value: "true"
     - name: OMADA_TOOL_CATEGORIES
       value: "all:r"
     - name: OMADA_SITE_ID
-      value: "8000"
+      value: "6a019344fa47ff44e14dc383"
     - name: MCP_SERVER_USE_HTTP
       value: "true"
     - name: MCP_HTTP_BIND_ADDR

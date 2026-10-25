@@ -11,7 +11,7 @@ metadata:
     gatus.home-operations.com/endpoint: |-
       path: /health
 spec:
-  # INTERNAL ONLY - see mcp-kubectl above.
+  # Internal cluster-controller endpoint; mcp-omada remains the production NAS controller.
   hostnames:
     - mcp-omada-controller.homeops.ca
   parentRefs:
