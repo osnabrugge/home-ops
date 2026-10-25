@@ -11,8 +11,8 @@ One `ClusterRepository`, **`nas01`**, defined in
 
 |                 |                                                                              |
 | --------------- | ---------------------------------------------------------------------------- |
-| Backend         | S3 (Garage on nas01), `192.168.42.45:3900`, TLS disabled                     |
-| Bucket / prefix | `default-bucket` / `home-ops/`                                               |
+| Backend         | S3 (Garage on nas01), `nas01.in.homeops.ca:9000`, TLS disabled               |
+| Bucket / prefix | `kopiur` / none                                                              |
 | Credentials     | `kopiur-repository-secret` in `kopiur-system` (from Azure Key Vault via ESO) |
 | Maintenance     | quick hourly (`0 * * * *`, 10m jitter), full daily 03:00 (1h jitter)         |
 
@@ -71,6 +71,13 @@ copy the restored data into the live PVC.
 
 ## History
 
+- **2026-10-24** — moved the existing Garage repository from
+  `default-bucket/home-ops/` to the root of `kopiur`, matching onedr0p. Kopiur's
+  controller and Flux reconciliation were paused while all 25,395 objects
+  (60,702,954,882 bytes) were copied through S3 and verified with matching MD5
+  checksums and zero differences. The old prefix is retained for rollback; do not
+  delete it until at least a week of successful backups and a separate cleanup
+  approval. Suspending Flux alone does not stop Kopiur's runtime writers.
 - **2026-07-06** — migrated from VolSync to kopiur. VolSync's CSI `Snapshot` copyMethod
   on rook-ceph **1.20.1** intermittently fenced RBD volumes read-only (recoverable by a
   clean pod remount) and occasionally corrupted the ext4 filesystem, needing a manual
