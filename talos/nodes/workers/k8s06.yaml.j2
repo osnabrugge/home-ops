@@ -7,35 +7,3 @@ apiVersion: v1alpha1
 kind: KubeNodeConfig
 labels:
   topology.kubernetes.io/zone: w
----
-apiVersion: v1alpha1
-kind: VLANConfig
-name: bond0.1
-vlanID: 1
-parent: bond0
-addresses:
-  - address: 192.168.0.56/24
----
-apiVersion: v1alpha1
-kind: VLANConfig
-name: bond0.50
-vlanID: 50
-parent: bond0
-addresses:
-  - address: 192.168.50.56/24
----
-apiVersion: v1alpha1
-kind: VLANConfig
-name: bond0.70
-vlanID: 70
-parent: bond0
-addresses:
-  - address: 192.168.70.56/24
----
-apiVersion: v1alpha1
-kind: VLANConfig
-name: bond0.99
-vlanID: 99
-parent: bond0
-addresses:
-  - address: 192.168.99.56/24
