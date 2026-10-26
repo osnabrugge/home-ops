@@ -15,8 +15,7 @@ spec:
       namespace: database
   interval: 1h
   path: ./kubernetes/apps/database/cloudnative-pg/app
-  # Restore after app-owned inventories have claimed the existing resources.
-  prune: false
+  prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
@@ -53,8 +52,7 @@ spec:
       namespace: database
   interval: 1h
   path: ./kubernetes/apps/database/cloudnative-pg/cluster
-  # Restore after app-owned inventories have claimed the existing resources.
-  prune: false
+  prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
