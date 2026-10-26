@@ -33,7 +33,7 @@ spec:
           app:
             image:
               repository: docker.io/freeradius/freeradius-server
-              tag: 3.2.10@sha256:cc7fd136e7b03e7b332d94297530318e824a4ecfedbce54562cced723e71e812
+              tag: 3.2.10@sha256:e1c23197a21c7aeba167f552fbe63fb70c79bb8e30847a4146f356d85b9fde4e
             env:
               TZ: America/Toronto
             envFrom:
