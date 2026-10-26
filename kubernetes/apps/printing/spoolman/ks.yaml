@@ -3,6 +3,57 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: spoolman-database-credentials
+spec:
+  # The shared Cluster needs its managed-role password before it can initialize.
+  dependsOn:
+    - name: azurekv
+      namespace: external-secrets
+  healthChecks:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: spoolman-db-user
+      namespace: database
+  interval: 1h
+  path: ./kubernetes/apps/printing/spoolman/database/credentials
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: database
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: spoolman-database
+spec:
+  dependsOn:
+    - name: cloudnative-pg-cluster
+      namespace: database
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Database
+      name: spoolman
+      namespace: database
+  healthCheckExprs:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Database
+      current: status.applied == true
+  interval: 1h
+  path: ./kubernetes/apps/printing/spoolman/database
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: database
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: spoolman
 spec:
   components:
@@ -11,6 +62,7 @@ spec:
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
+    - name: spoolman-database
   interval: 1h
   path: ./kubernetes/apps/printing/spoolman/app
   postBuild:

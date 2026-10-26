@@ -11,6 +11,5 @@ resources:
   - ./externalsecret.yaml
   - ./grafanadashboard.yaml
   - ./netbox-db-externalsecret.yaml
-  - ./spoolman-db-externalsecret.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml

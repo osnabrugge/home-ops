@@ -32,6 +32,8 @@ spec:
     - name: cloudnative-pg
     - name: azurekv
       namespace: external-secrets
+    - name: spoolman-database-credentials
+      namespace: printing
   healthChecks:
     - apiVersion: postgresql.cnpg.io/v1
       kind: Cluster
