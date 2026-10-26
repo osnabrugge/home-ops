@@ -3,13 +3,62 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: authelia-database-credentials
+spec:
+  dependsOn:
+    - name: azurekv
+      namespace: external-secrets
+  healthChecks:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      name: authelia-db-user
+      namespace: database
+  interval: 1h
+  path: ./kubernetes/apps/auth/authelia/database/credentials
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: database
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: authelia-database
+spec:
+  dependsOn:
+    - name: cloudnative-pg-cluster
+      namespace: database
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Database
+      name: authelia
+      namespace: database
+  healthCheckExprs:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Database
+      current: status.applied == true
+  interval: 1h
+  path: ./kubernetes/apps/auth/authelia/database
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: database
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: authelia
 spec:
   dependsOn:
     - name: lldap
       namespace: auth
-    - name: cloudnative-pg-cluster
-      namespace: database
+    - name: authelia-database
     - name: dragonfly-cluster
       namespace: database
     - name: azurekv

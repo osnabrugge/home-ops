@@ -5,9 +5,5 @@ kind: Kustomization
 namespace: database
 resources:
   - ./cluster16.yaml
-  - ./authelia-database.yaml
-  - ./authentik-database.yaml
-  - ./diode-databases.yaml
-  - ./dispatcharr-database.yaml
   - ./objectbucketclaim.yaml
   - ./scheduledbackup.yaml

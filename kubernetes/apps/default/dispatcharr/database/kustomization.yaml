@@ -1,0 +1,8 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Source ownership is app-local; the live object stays with the shared Cluster.
+namespace: database
+resources:
+  - ./database.yaml

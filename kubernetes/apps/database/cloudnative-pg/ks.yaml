@@ -29,10 +29,21 @@ kind: Kustomization
 metadata:
   name: cloudnative-pg-cluster
 spec:
+  # Bootstrap and managed roles need these app-owned passwords before initialization.
   dependsOn:
     - name: cloudnative-pg
     - name: azurekv
       namespace: external-secrets
+    - name: authelia-database-credentials
+      namespace: auth
+    - name: authentik-database-credentials
+      namespace: auth
+    - name: dispatcharr-database-credentials
+      namespace: default
+    - name: netbox-database-credentials
+      namespace: observability
+    - name: netbox-diode-database-credentials
+      namespace: observability
     - name: spoolman-database-credentials
       namespace: printing
   healthChecks:

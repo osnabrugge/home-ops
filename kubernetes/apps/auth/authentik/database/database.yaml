@@ -1,6 +1,6 @@
 ---
 # Authentik database — created in the existing postgres16 cluster.
-# The authentik role is managed via spec.managed.roles in cluster16.yaml.
+# The shared postgres16 Cluster still manages the authentik role.
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
