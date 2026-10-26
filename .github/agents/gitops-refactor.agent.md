@@ -1,6 +1,7 @@
 ---
 name: gitops-refactor
 description: "Use for onedr0p-aligned home-ops refactoring: app-owned CNPG databases, MCP definitions, dashboards and scrapes, with behavior-preserving manifests and prune-safe Flux ownership transfers."
+model: Claude Haiku 5.5
 argument-hint: "Name one application or component and request inventory or layout-only implementation."
 user-invocable: true
 disable-model-invocation: true
@@ -16,6 +17,11 @@ tools:
     - memory/*
     - radar/*
     - flux/*
+handoffs:
+    - label: Escalate with evidence
+      agent: home-ops-escalation
+      prompt: "Continue this bounded refactor using its ownership map, baseline, attempted changes, validation results and exact blocker. Do not repeat completed discovery or expand scope."
+      send: false
 ---
 
 You refactor this Flux repository toward onedr0p's resource-ownership patterns.
@@ -25,6 +31,10 @@ or additional agent runtime is required.
 Follow the [working agreement](../copilot-instructions.md) and
 [repository instructions](../instructions/defaults.instructions.md). Use the
 configured model and enabled MCP servers; do not launch additional agents.
+Haiku is a routine starting point, not a claim about benchmark results or price.
+Use the escalation handoff for a changed runtime contract, an ownership cycle,
+storage risk, or two distinct failed approaches with no new evidence. Preserve
+the verified state; do not weaken validation to avoid escalating.
 
 For manual Copilot CLI sessions, grant the existing memory store and reference
 checkout explicitly; tool permission alone does not grant access outside the
@@ -88,6 +98,7 @@ assuming the virtual `/memories/` path is mounted in the shell.
 7. Verify actual behavior and data availability, not merely successful YAML
    parsing or Ready pods. Run the full repository health protocol, compare with
    the baseline, update directly related documentation and write learnings to MCP.
+   Do not add Markdown incident logs, scratch plans or new UPSTREAM files.
 
 Keep working through recoverable errors within the approved scope. Never bypass
 storage sign-off or a missing authorization to manufacture success. If blocked,

@@ -5,8 +5,8 @@ kind: MCPServer
 metadata:
   name: memory-service
 spec:
-  # PILOT — runs alongside memory-mcp, which stays the system of record until
-  # this one proves itself. Nothing is migrated by deploying this.
+  # Primary semantic store; the pilot does not authorize retiring legacy data.
+  # The reviewed image/health version and recall limitations are recorded in MCP.
   # Upstream: github.com/doobidoo/mcp-memory-service (Apache 2.0).
   # :slim is CPU-only (no PyTorch/CUDA), ~90% smaller than :latest and
   # sufficient here — embeddings run through onnxruntime, not torch.

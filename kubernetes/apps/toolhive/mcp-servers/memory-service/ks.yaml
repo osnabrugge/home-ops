@@ -4,9 +4,9 @@ kind: Kustomization
 metadata:
   name: memory-service
 spec:
-  # PILOT of doobidoo/mcp-memory-service, running ALONGSIDE memory-mcp.
-  # memory-mcp stays the system of record; nothing migrates until this proves
-  # better recall and Sean can actually audit it via the dashboard.
+  # Primary semantic memory store; retain legacy comparison data during the pilot.
+  # Search rank is not authority. Graph extraction/automatic supersession are not
+  # trusted substitutes for dated evidence and reviewed corrections.
   # Uses backup (not policy) because this PVC is new: kopiur can provision it
   # with the dataSourceRef in place from the start, which is immutable later.
   components:
