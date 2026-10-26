@@ -1,0 +1,32 @@
+---
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: HomeOps Omada SAML provider
+entries:
+  # Adopt the existing IdP-side settings; this does not repair the controller's trust.
+  - model: authentik_providers_saml.samlprovider
+    state: present
+    id: omada-provider
+    identifiers:
+      name: Provider for Omada SAML
+    attrs:
+      authorization_flow:
+        !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      acs_url: https://omada-controller.homeops.ca:443/sso/saml/login
+      audience: https://omada-controller.homeops.ca:443/4963024d89365c3635a5069d5fcc84fe
+      sp_binding: post
+      sign_assertion: true
+      sign_response: false
+      default_name_id_policy: urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
+      signing_kp:
+        !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+  - model: authentik_core.application
+    state: present
+    identifiers:
+      slug: omada
+    attrs:
+      name: Omada
+      group: Network
+      provider: !KeyOf omada-provider

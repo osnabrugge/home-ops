@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: HomeOps LDAP provider
+entries:
+  - model: authentik_providers_ldap.ldapprovider
+    state: present
+    id: ldap-provider
+    identifiers:
+      name: Provider for LDAP
+    attrs:
+      authorization_flow: !Find [authentik_flows.flow, [slug, ldap-authentication-flow]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
+      base_dn: DC=ldap,DC=goauthentik,DC=io
+      bind_mode: cached
+      search_mode: cached
+      mfa_support: true
+      tls_server_name: ldap.homeops.ca
+      certificate: !Find [authentik_crypto.certificatekeypair, [name, LDAPS]]
+  - model: authentik_core.application
+    state: present
+    identifiers:
+      slug: ldap
+    attrs:
+      name: LDAP
+      provider: !KeyOf ldap-provider

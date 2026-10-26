@@ -46,6 +46,10 @@ spec:
     prometheus:
       rules:
         enabled: true
+    blueprints:
+      configMaps:
+        - authentik-blueprints
+        - omada-controller-authentik
     server:
       replicas: 1
       resources:

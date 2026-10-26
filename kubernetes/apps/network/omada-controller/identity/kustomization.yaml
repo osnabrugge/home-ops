@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The declaration belongs to Omada; Authentik mounts it in its own namespace.
+namespace: auth
+configMapGenerator:
+  - name: omada-controller-authentik
+    files:
+      - omada-controller.yaml=./blueprint.yaml
+generatorOptions:
+  disableNameSuffixHash: true

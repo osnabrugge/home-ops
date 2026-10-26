@@ -1,0 +1,105 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/batch/cronjob_v1.json
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: authentik-blueprints
+spec:
+  schedule: "*/15 * * * *"
+  timeZone: America/Toronto
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          automountServiceAccountToken: false
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: apply
+              # Keep the importer aligned with the Authentik Helm chart version.
+              image: ghcr.io/goauthentik/server:2026.8.5
+              command:
+                - ak
+                - shell
+                - -c
+                - |
+                  from pathlib import Path
+                  from authentik.blueprints.v1.importer import Importer
+
+                  for name in ("groups.yaml", "ldap.yaml", "omada-controller.yaml"):
+                      path = Path("/blueprints/homeops") / name
+                      importer = Importer.from_string(path.read_text())
+                      valid, logs = importer.validate()
+                      if not valid:
+                          for entry in logs:
+                              print(entry.event)
+                          raise RuntimeError(f"Blueprint validation failed: {name}")
+                      if not importer.apply():
+                          raise RuntimeError(f"Blueprint application failed: {name}")
+                      print(f"Applied blueprint: {name}")
+              env:
+                - name: HOME
+                  value: /tmp
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: "1"
+                - name: AUTHENTIK_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-secret
+                      key: AUTHENTIK_SECRET_KEY
+                - name: AUTHENTIK_POSTGRESQL__PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-secret
+                      key: AUTHENTIK_POSTGRESQL__PASSWORD
+                - name: AUTHENTIK_POSTGRESQL__HOST
+                  value: postgres16-rw.database.svc.cluster.local
+                - name: AUTHENTIK_POSTGRESQL__NAME
+                  value: authentik
+                - name: AUTHENTIK_POSTGRESQL__USER
+                  value: authentik
+                - name: AUTHENTIK_POSTGRESQL__PORT
+                  value: "5432"
+                - name: AUTHENTIK_REDIS__HOST
+                  value: dragonfly-authentik.database.svc.cluster.local
+                - name: AUTHENTIK_REDIS__DB
+                  value: "3"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 512Mi
+                limits:
+                  memory: 1Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: blueprints
+                  mountPath: /blueprints/homeops
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: blueprints
+              projected:
+                sources:
+                  - configMap:
+                      name: authentik-blueprints
+                  - configMap:
+                      name: omada-controller-authentik
+            - name: tmp
+              emptyDir: {}

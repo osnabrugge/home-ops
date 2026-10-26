@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: HomeOps identity groups
+entries:
+  # Memberships, roles and the built-in administrator group are not changed here.
+  - model: authentik_core.group
+    state: present
+    identifiers:
+      name: authentik Agent-Users
+    attrs:
+      is_superuser: false
+  - model: authentik_core.group
+    state: present
+    identifiers:
+      name: authentik Read-only
+    attrs:
+      is_superuser: false
