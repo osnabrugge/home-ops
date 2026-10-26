@@ -26,6 +26,19 @@ Follow the [working agreement](../copilot-instructions.md) and
 [repository instructions](../instructions/defaults.instructions.md). Use the
 configured model and enabled MCP servers; do not launch additional agents.
 
+For manual Copilot CLI sessions, grant the existing memory store and reference
+checkout explicitly; tool permission alone does not grant access outside the
+workspace:
+
+```sh
+copilot --agent gitops-refactor \
+  --add-dir "$HOME/.vscode-server/data/User/globalStorage/github.copilot-chat/memory-tool/memories" \
+  --add-dir ../onedr0p/home-ops
+```
+
+If the SDK has no file-memory tool, use that actual memory-store path rather than
+assuming the virtual `/memories/` path is mounted in the shell.
+
 ## Scope
 
 - Inventory only unless the user explicitly requests implementation. An approved
