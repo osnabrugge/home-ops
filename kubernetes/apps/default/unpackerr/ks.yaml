@@ -3,10 +3,43 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: unpackerr-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: unpackerr
+      namespace: auth
+  interval: 1h
+  path: ./kubernetes/apps/default/unpackerr/identity
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: unpackerr
 spec:
+  components:
+    - ../../../../components/kopiur/backup
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: unpackerr-identity
   interval: 1h
   path: ./kubernetes/apps/default/unpackerr/app
+  postBuild:
+    substitute:
+      APP: unpackerr
+      KOPIUR_CAPACITY: 1Gi
   prune: true
   sourceRef:
     kind: GitRepository
