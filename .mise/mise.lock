@@ -28,10 +28,7 @@ provenance = "github-attestations"
 [[tools."aqua:kubernetes-sigs/krew"]]
 version = "0.5.0"
 backend = "aqua:kubernetes-sigs/krew"
-specifiers = [
-    "0.5.0",
-    "latest",
-]
+specifiers = ["latest"]
 
 [tools."aqua:kubernetes-sigs/krew"."platforms.linux-arm64"]
 checksum = "sha256:ab7a98b992424e76b6c162f8b67fb76c4b1e243598aa2807bdf226752f964548"
