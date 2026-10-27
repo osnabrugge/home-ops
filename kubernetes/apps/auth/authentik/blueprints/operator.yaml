@@ -36,7 +36,8 @@ entries:
         - authentik_policies.delete_policybinding
         - authentik_outposts.view_outpost
         - authentik_outposts.change_outpost
-        - authentik_core.view_group
+        # authentik_core.view_group is also assigned through the API: this
+        # version's role importer matches codenames across Django app namespaces.
         - authentik_core.view_user
         - authentik_policies.view_policy
         - authentik_flows.view_flow

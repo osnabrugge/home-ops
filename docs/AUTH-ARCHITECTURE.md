@@ -9,10 +9,11 @@ supported OAuth2/proxy applications**, and native
 identity/protocol objects. Sean approved this hybrid target on 2026-10-26.
 The application operator does not replace user/group lifecycle management.
 
-The migration is queued in [#4738](https://github.com/osnabrugge/home-ops/issues/4738)
-for the next supervised authentication session; **no calendar date is confirmed**.
-This schedules the work, not an unattended login cutover or immediate Authelia
-removal. Keep Talos, Unpackerr and other broad rollouts in separate windows.
+Sean authorized staged rollout on 2026-10-27 after the NAS exporter repair.
+[Tracker #4738](https://github.com/osnabrugge/home-ops/issues/4738) holds the
+remaining consumer cutovers and retirement gates. Operator deployment is not
+permission to remove Authelia or retire recovery access; broad changes still
+require separate observed rollouts.
 
 The existing deployment is Authentik 2026.8.5. The GitOps foundation mounts:
 
@@ -26,6 +27,10 @@ The existing deployment is Authentik 2026.8.5. The GitOps foundation mounts:
   the application owns its declaration; its ConfigMap lives in namespace `auth`
   so Authentik can mount it. Its Kustomization has no Authentik dependency;
   Authentik depends on the ConfigMap owner to avoid a bootstrap cycle.
+- [Application-operator identity](../kubernetes/apps/auth/authentik/blueprints/operator.yaml):
+  declares a dedicated non-human service principal and its reconciliation role.
+  Its token is stored in Key Vault and delivered through External Secrets, not
+  issued to an interactive agent or added to a human administrator group.
 
 This is an adoption of existing configuration, **not an estate-wide SSO cutover**.
 Authelia still uses LLDAP and retains the existing Proxmox/Grafana/NetBox OIDC
@@ -33,7 +38,8 @@ registrations. An Authentik provider record does not prove that its consumer is
 configured or that login works. Omada's existing connection now uses the current
 `omada` IdP metadata URL instead of the obsolete `omada-saml` URL, after verifying
 an identical signing-certificate fingerprint. Its end-to-end user login still
-requires verification; no agent identity or additional privileges are created.
+requires verification. Existing human identities and grants are unchanged;
+only the dedicated controller service principal is added.
 
 The app-owned SAML blueprint preserves the existing mappings and adds the
 vendor-required `username` and `usergroup_name` claims. The group claim emits
@@ -47,11 +53,20 @@ See [TP-Link's SAML configuration and -1001 troubleshooting guide](https://www.o
 [SlashNephy/authentik-operator](https://github.com/SlashNephy/authentik-operator/blob/main/docs/spec.md)
 currently excludes creating users/groups/policies and the SAML, LDAP, SCIM and
 RADIUS providers. It is useful for its supported OAuth2/proxy application scope,
-but cannot manage this complete identity design alone. Its deployment is
-**planned, not yet performed**. Pin a release compatible with the deployed
-Authentik minor and provision its dedicated least-permission reconciliation
-credential through approved secret storage, not a bootstrap or interactive agent
-credential.
+but cannot manage this complete identity design alone.
+[The deployed operator](../kubernetes/apps/auth/authentik-operator/app/helmrelease.yaml)
+is pinned to 2026.8.2, compatible with the Authentik 2026.8 minor. Its dedicated
+reconciliation credential is a non-superuser with no group memberships; do not
+replace it with a bootstrap or interactive-agent credential.
+
+The pinned native role importer cannot select third-party
+`guardian.view_roleobjectpermission`, and its codename-only lookup would also
+grant Django's unrelated `auth.view_group` alongside
+`authentik_core.view_group`. Bootstrap those two exact required permissions via
+the supported role-permission API, remove the unrelated `auth.view_group`, and
+verify the resulting permission set. The blueprint deliberately omits those two
+API-managed grants. Recovery of a deleted role must repeat this verified step;
+do not compensate by granting superuser.
 
 | Reconciler                 | Ownership                                                                                    |
 | -------------------------- | -------------------------------------------------------------------------------------------- |
@@ -60,11 +75,20 @@ credential.
 | Flux/Helm/External Secrets | Kubernetes deployment, pinned versions and approved secret references                        |
 
 Never let two reconcilers own the same application, provider or binding. The
-deployed native reconciliation job currently applies groups, LDAP and Omada SAML;
-it does not own the Grafana OAuth provider. Inventory live ownership before
+deployed native reconciliation job applies groups, LDAP, the controller service
+identity and Omada SAML; it does not own the Grafana OAuth provider. Inventory live ownership before
 adoption, use `Retain` plus reviewed `IfMatch`, and stop on mismatches rather than
 using `Force` to make the migration succeed. Test the operator first with a new
-non-production application and both allowed and denied groups.
+non-production application and both allowed and denied principals.
+
+The [private loopback OIDC canary](../kubernetes/apps/auth/authentik-operator/canary/application.yaml)
+passed normal technical-user authentication and consent, PKCE authorization-code
+exchange, ID-token signature/audience/issuer/nonce validation and userinfo matching.
+Native policy evaluation rejects the operator service principal. A controlled
+canary-name edit was automatically repaired on resync without changing application
+identity or credential UID/hash. These are canary tests, not proof of a real
+human consumer cutover. The canary is hidden from the normal app dashboard and
+does not grant access to existing applications.
 
 Blueprints apply declared attributes by stable name/slug. In the pinned version,
 discovery compares file hashes; an unchanged file is not sufficient proof of
