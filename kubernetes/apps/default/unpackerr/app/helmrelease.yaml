@@ -12,15 +12,35 @@ spec:
   values:
     controllers:
       unpackerr:
+        strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
               repository: ghcr.io/unpackerr/unpackerr
-              tag: v0.16.1@sha256:406586865431b40b29353d899fb75a788f5384743f7f381444db5fe55d206914
+              tag: v1.0.0@sha256:21c6bfa4f4c86ab2dd0232da0dfb3ed4c5d929e42e09894e7b4d2154d0c144f6
             env:
               TZ: America/Toronto
+              UN_LOG_FILE: /config/unpackerr.log
+              UN_LOG_FILES: "3"
+              UN_LOG_FILE_MB: "5"
+              UN_KEEP_HISTORY: "400"
+              UN_WEBSERVER_LISTEN_ADDR: 0.0.0.0:5656
+              UN_WEBSERVER_METRICS: "true"
+              UN_WEBSERVER_UI_PASSWORD: webauth:X-Authentik-Username
+              UN_WEBSERVER_UI_ROLE_HEADER: X-Authentik-Groups
+              UN_WEBSERVER_UPSTREAMS_0: 10.42.0.0/16
+              # Unpackerr tokenizes the existing "authentik Admins" group header.
+              # This role can inspect behavior but cannot change settings or queues.
+              UN_WEBSERVER_ROLES_Admins_PERMISSIONS_0: system:stats:read
+              UN_WEBSERVER_ROLES_Admins_PERMISSIONS_1: system:info:read
+              UN_WEBSERVER_ROLES_Admins_PERMISSIONS_2: system:queue:read
+              UN_WEBSERVER_ROLES_Admins_PERMISSIONS_3: system:history:read
+              UN_WEBSERVER_ROLES_Admins_PERMISSIONS_4: system:logs:read
+              UN_WEBSERVER_ROLES_metrics_PERMISSIONS_0: system:metrics:read
+              UN_WEBSERVER_API_KEYS_0_NAME: prometheus
+              UN_WEBSERVER_API_KEYS_0_ROLES_0: metrics
               # Lidarr
               UN_LIDARR_0_URL: http://lidarr.default.svc.cluster.local
               UN_LIDARR_0_PATHS_0: /data/downloads/torrents/complete
@@ -47,15 +67,18 @@ spec:
                   name: unpackerr-secret
             probes:
               liveness:
-                enabled: false
+                enabled: true
               readiness:
-                enabled: false
+                enabled: true
               startup:
-                enabled: false
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
@@ -69,7 +92,28 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: 5656
+    serviceMonitor:
+      app:
+        endpoints:
+          - port: http
+            path: /metrics
+            interval: 60s
+            scrapeTimeout: 15s
+            authorization:
+              type: Bearer
+              credentials:
+                name: unpackerr-secret
+                key: UN_WEBSERVER_API_KEYS_0_KEY
     persistence:
+      config:
+        existingClaim: unpackerr
+        globalMounts:
+          - path: /config
       media:
         type: nfs
         server: nas02.in.homeops.ca

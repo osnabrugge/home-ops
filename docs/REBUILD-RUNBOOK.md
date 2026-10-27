@@ -28,26 +28,26 @@ just talos verify       # Health checks
 
 ### Prerequisites
 
-| Tool | Required version |
-|------|-----------------|
-| `talosctl` | v1.13.x |
-| `minijinja-cli` | any |
-| `yq` | v4.x (mikefarah) |
-| `jq` | 1.6+ |
-| `az` | 2.x (logged in) |
-| `gum` | any |
-| `kubectl` | v1.36.x |
+| Tool            | Required version |
+| --------------- | ---------------- |
+| `talosctl`      | v1.13.x          |
+| `minijinja-cli` | any              |
+| `yq`            | v4.x (mikefarah) |
+| `jq`            | 1.6+             |
+| `az`            | 2.x (logged in)  |
+| `gum`           | any              |
+| `kubectl`       | v1.36.x          |
 
 ### Node inventory
 
-| Node | IP | MAC (bond member 1) | MAC (bond member 2) | Role |
-|------|-----|---------------------|---------------------|------|
-| k8s01 | 192.168.42.51 | 38:ea:a7:91:e3:9c | 38:ea:a7:91:e3:9d | controlplane |
-| k8s02 | 192.168.42.52 | 8c:dc:d4:ac:7a:e8 | 8c:dc:d4:ac:7a:e9 | controlplane |
-| k8s03 | 192.168.42.53 | 00:11:0a:68:bd:70 | 00:11:0a:68:bd:71 | controlplane |
-| k8s04 | 192.168.42.54 | 38:ea:a7:90:4b:0c | 38:ea:a7:90:4b:0d | worker |
-| k8s05 | 192.168.42.55 | (see template) | (see template) | worker |
-| k8s06 | 192.168.42.56 | (see template) | (see template) | worker |
+| Node  | IP            | MAC (bond member 1) | MAC (bond member 2) | Role         |
+| ----- | ------------- | ------------------- | ------------------- | ------------ |
+| k8s01 | 192.168.42.51 | 38:ea:a7:91:e3:9c   | 38:ea:a7:91:e3:9d   | controlplane |
+| k8s02 | 192.168.42.52 | 8c:dc:d4:ac:7a:e8   | 8c:dc:d4:ac:7a:e9   | controlplane |
+| k8s03 | 192.168.42.53 | 00:11:0a:68:bd:70   | 00:11:0a:68:bd:71   | controlplane |
+| k8s04 | 192.168.42.54 | 38:ea:a7:90:4b:0c   | 38:ea:a7:90:4b:0d   | worker       |
+| k8s05 | 192.168.42.55 | (see template)      | (see template)      | worker       |
+| k8s06 | 192.168.42.56 | (see template)      | (see template)      | worker       |
 
 ---
 
@@ -76,14 +76,17 @@ Select **Talos Linux** from the netboot.xyz menu, then wait for maintenance mode
 For SecureBoot-enabled nodes, use the Talos Image Factory URL for a signed image.
 
 **Checkpoint:** Wait until all 3 nodes respond on port 50000:
+
 ```bash
 for ip in 192.168.42.51 192.168.42.52 192.168.42.53; do
   echo -n "$ip: " && timeout 3 bash -c "echo >/dev/tcp/$ip/50000" 2>/dev/null && echo "READY" || echo "NOT READY"
 done
 ```
+
 **Expected:** All three show `READY`.
 
 **If a node shows NOT READY:**
+
 - Check physical machine is powered on
 - Check it has booted from a Talos ISO (not from empty disk)
 - Check network cable / LACP bond / DHCP lease on 192.168.42.0/24
@@ -100,6 +103,7 @@ just talos preflight
 **Expected output:** All checks show `OK`. If any show `FAIL`, fix the issue and re-run.
 
 Checks performed:
+
 - Required CLI tools present
 - `az` CLI logged in
 - AKV `keyvault-kube/talos` secret accessible (14 JSON keys)
@@ -115,6 +119,7 @@ just talos render
 ```
 
 **Expected output:**
+
 ```
 Rendering k8s01 → .../talos/rendered/k8s01.yaml
 .../talos/rendered/k8s01.yaml is valid for metal mode
@@ -124,6 +129,7 @@ All configs rendered and validated in .../talos/rendered/
 ```
 
 **Key facts about what this does:**
+
 1. Renders `machineconfig.yaml.j2` with `minijinja-cli`
 2. Pipes through `akv-inject.sh` to replace all `azkv://keyvault-kube/talos#...` placeholders with real secrets (from AKV or local files if `AKV_LOCAL_DIR` is set)
 3. Applies node-specific patch from `talos/nodes/<node>.yaml.j2` (hostname, MACs, type)
@@ -134,6 +140,7 @@ All configs rendered and validated in .../talos/rendered/
 **Output:** `talos/rendered/{k8s01,k8s02,k8s03}.yaml` — these contain secrets and are gitignored.
 
 **Checkpoint:** Verify no unresolved placeholders:
+
 ```bash
 grep "azkv://" talos/rendered/*.yaml && echo "FAIL" || echo "OK: all secrets resolved"
 ```
@@ -147,6 +154,7 @@ just talos apply
 ```
 
 This applies each rendered YAML to its respective node using:
+
 ```
 talosctl apply-config --nodes <ip> --endpoints <ip> --insecure --file talos/rendered/<node>.yaml
 ```
@@ -154,6 +162,7 @@ talosctl apply-config --nodes <ip> --endpoints <ip> --insecure --file talos/rend
 After each apply, it waits for the node to leave maintenance and start apid (up to ~5 minutes).
 
 **Expected output per node:**
+
 ```
 Applying config to k8s01 (192.168.42.51) ...
   Config applied to k8s01
@@ -162,6 +171,7 @@ Applying config to k8s01 (192.168.42.51) ...
 ```
 
 **If a node times out:**
+
 - The recipe automatically collects `talosctl logs machined` and stops
 - Common causes: wrong disk selector (no matching disk), broken bond (LACP not negotiated), bad secrets
 
@@ -176,6 +186,7 @@ just talos bootstrap
 This runs `talosctl bootstrap` on k8s01 (192.168.42.51) — the first CP node.
 
 **Bootstrap must run exactly once.** The recipe:
+
 - Checks for `.private/bootstrap.done` marker — warns if bootstrap already ran
 - Handles "AlreadyExists" safely (idempotent)
 - Uses `--insecure` (no dependency on stale talosconfig)
@@ -184,6 +195,7 @@ This runs `talosctl bootstrap` on k8s01 (192.168.42.51) — the first CP node.
 After bootstrap succeeds, it fetches kubeconfig and sets the server to the bootstrap IP.
 
 **Expected output:**
+
 ```
 Bootstrapping Kubernetes on 192.168.42.51...
   Bootstrap command accepted
@@ -201,6 +213,7 @@ just talos verify
 ```
 
 **Expected output:**
+
 ```
 ── Cluster health checks ──
 
@@ -290,33 +303,34 @@ just talos render
 ```
 
 **When to use which mode:**
-| Scenario | Mode |
-|----------|------|
-| Normal rebuild | AKV (default) |
+
+| Scenario                 | Mode                                            |
+| ------------------------ | ----------------------------------------------- |
+| Normal rebuild           | AKV (default)                                   |
 | AKV outage / no internet | Local (`export AKV_LOCAL_DIR=.private/secrets`) |
-| CI/CD pipeline | AKV (service principal) |
-| 3am panic rebuild | Local (if pre-exported) |
+| CI/CD pipeline           | AKV (service principal)                         |
+| 3am panic rebuild        | Local (if pre-exported)                         |
 
 **Important:** Local secret files are in `.private/` which is gitignored. They must be pre-populated with `just talos export-secrets` while AKV is accessible.
 
 ### Required AKV keys (14 total)
 
-| Key | Description |
-|-----|-------------|
-| `MACHINE_CA_CRT` | Machine CA certificate |
-| `MACHINE_CA_KEY` | Machine CA private key |
-| `MACHINE_TOKEN` | Machine authentication token |
-| `CLUSTER_CA_CRT` | Cluster CA certificate |
-| `CLUSTER_CA_KEY` | Cluster CA private key |
-| `CLUSTER_ID` | Cluster ID |
-| `CLUSTER_SECRET` | Cluster secret |
-| `CLUSTER_TOKEN` | Cluster bootstrap token |
-| `CLUSTER_AGGREGATORCA_CRT` | Aggregator CA certificate |
-| `CLUSTER_AGGREGATORCA_KEY` | Aggregator CA private key |
-| `CLUSTER_ETCD_CA_CRT` | etcd CA certificate |
-| `CLUSTER_ETCD_CA_KEY` | etcd CA private key |
-| `CLUSTER_SECRETBOXENCRYPTIONSECRET` | Secretbox encryption secret |
-| `CLUSTER_SERVICEACCOUNT_KEY` | Service account key |
+| Key                                 | Description                  |
+| ----------------------------------- | ---------------------------- |
+| `MACHINE_CA_CRT`                    | Machine CA certificate       |
+| `MACHINE_CA_KEY`                    | Machine CA private key       |
+| `MACHINE_TOKEN`                     | Machine authentication token |
+| `CLUSTER_CA_CRT`                    | Cluster CA certificate       |
+| `CLUSTER_CA_KEY`                    | Cluster CA private key       |
+| `CLUSTER_ID`                        | Cluster ID                   |
+| `CLUSTER_SECRET`                    | Cluster secret               |
+| `CLUSTER_TOKEN`                     | Cluster bootstrap token      |
+| `CLUSTER_AGGREGATORCA_CRT`          | Aggregator CA certificate    |
+| `CLUSTER_AGGREGATORCA_KEY`          | Aggregator CA private key    |
+| `CLUSTER_ETCD_CA_CRT`               | etcd CA certificate          |
+| `CLUSTER_ETCD_CA_KEY`               | etcd CA private key          |
+| `CLUSTER_SECRETBOXENCRYPTIONSECRET` | Secretbox encryption secret  |
+| `CLUSTER_SERVICEACCOUNT_KEY`        | Service account key          |
 
 ### Rotating secrets
 
@@ -331,6 +345,7 @@ This generates a new secrets bundle with `talosctl gen secrets`, converts it to 
 ## Troubleshooting
 
 ### Node stuck in maintenance after apply
+
 ```bash
 # Check if config was received (--insecure works pre- and post-bootstrap)
 talosctl dmesg --nodes <ip> --endpoints <ip> --insecure 2>&1 | tail -30
@@ -342,40 +357,52 @@ talosctl get addresses --nodes <ip> --endpoints <ip> --insecure 2>&1
 The `just talos apply` recipe automatically collects these logs on timeout.
 
 ### etcd won't form
+
 ```bash
 talosctl etcd members --nodes 192.168.42.51 --endpoints 192.168.42.51 --insecure
 talosctl logs etcd --nodes 192.168.42.51 --endpoints 192.168.42.51 --insecure 2>&1 | tail -30
 ```
 
 ### apiserver auth loops
+
 Past symptom: `Authorization error user=apiserver-kubelet-client ... resource=nodes subresource=pods`
 Root cause: stale/mismatched secrets. Fix: `just talos rotate-secrets && just talos render && just talos apply`
 
 ### kubeprism unhealthy / kubelet EOF to 127.0.0.1:7445
+
 Usually resolves once all etcd members are healthy and apiserver is fully started. Wait 2-3 minutes.
 
 ### "wrong" NIC in bond
+
 Cross-check MACs against `talos/nodes/<node>.yaml.j2`:
+
 ```bash
 yq '.machine.network.interfaces[0].bond.deviceSelectors[].hardwareAddr' talos/nodes/k8s01.yaml.j2
 ```
+
 Compare with physical NIC labels or NetBox inventory.
 
 ### Bootstrap marker prevents re-bootstrap
+
 If `just talos bootstrap` shows the marker warning and you're sure you want to re-bootstrap:
+
 ```bash
 rm .private/bootstrap.done
 just talos bootstrap
 ```
+
 The `just talos wipe-cp` recipe automatically removes the marker.
 
 ### Zigbee / Multus IoT network attached but unreachable
+
 Symptom pattern:
+
 - Zigbee pod has `kube-system/iot` on `net1` with expected static IP/MAC
 - Zigbee logs show `connect ETIMEDOUT 192.168.70.37:6638`
 - `ip addr show net1` in test pod shows `NO-CARRIER`
 
 Quick checks:
+
 ```bash
 # 1) Confirm multus attachment + MAC pinning
 kubectl describe pod -n default -l app.kubernetes.io/name=zigbee | grep -A 35 "k8s.v1.cni.cncf.io/network-status"
@@ -393,6 +420,7 @@ talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 logs controller-runtime
 ```
 
 Interpretation:
+
 - If `bond0.70` exists but stays `down` and pods on `net1` show `NO-CARRIER`, this is usually an upstream L2/VLAN path issue (switch trunk / VLAN allow-list / native-tag mismatch) rather than multus annotation syntax.
 - If `bond0.70` does not exist on some nodes, re-render and re-apply Talos configs for all nodes (CP and worker).
 
@@ -401,14 +429,15 @@ Interpretation:
 All nodes k8s01–k8s06 should have `bond0.1`, `bond0.50`, `bond0.70`, and `bond0.90` sub-interfaces for macvlan NADs (IoT/Zigbee, blackbox-exporter-vpn, Omada Controller, etc.).
 
 Expected static IP assignments per node:
-| Node | VLAN 1 (bond0.1) | VLAN 50 (bond0.50) | VLAN 70 (bond0.70) | VLAN 90 (bond0.90) |
-|------|------------------|--------------------|--------------------|---------------------|
-| k8s01 | 192.168.0.11/24 | 192.168.50.11/24 | 192.168.70.11/24 | 192.168.90.11/24 |
-| k8s02 | 192.168.0.12/24 | 192.168.50.12/24 | 192.168.70.12/24 | 192.168.90.12/24 |
-| k8s03 | 192.168.0.13/24 | 192.168.50.13/24 | 192.168.70.13/24 | 192.168.90.13/24 |
-| k8s04 | 192.168.0.14/24 | 192.168.50.14/24 | 192.168.70.14/24 | 192.168.90.14/24 |
-| k8s05 | 192.168.0.15/24 | 192.168.50.15/24 | 192.168.70.15/24 | 192.168.90.15/24 |
-| k8s06 | 192.168.0.16/24 | 192.168.50.16/24 | 192.168.70.16/24 | 192.168.90.16/24 |
+
+| Node  | VLAN 1 (bond0.1) | VLAN 50 (bond0.50) | VLAN 70 (bond0.70) | VLAN 90 (bond0.90) |
+| ----- | ---------------- | ------------------ | ------------------ | ------------------ |
+| k8s01 | 192.168.0.11/24  | 192.168.50.11/24   | 192.168.70.11/24   | 192.168.90.11/24   |
+| k8s02 | 192.168.0.12/24  | 192.168.50.12/24   | 192.168.70.12/24   | 192.168.90.12/24   |
+| k8s03 | 192.168.0.13/24  | 192.168.50.13/24   | 192.168.70.13/24   | 192.168.90.13/24   |
+| k8s04 | 192.168.0.14/24  | 192.168.50.14/24   | 192.168.70.14/24   | 192.168.90.14/24   |
+| k8s05 | 192.168.0.15/24  | 192.168.50.15/24   | 192.168.70.15/24   | 192.168.90.15/24   |
+| k8s06 | 192.168.0.16/24  | 192.168.50.16/24   | 192.168.70.16/24   | 192.168.90.16/24   |
 
 ```bash
 # Verify all VLAN links on all nodes
@@ -422,6 +451,7 @@ talosctl --nodes 192.168.42.51 --endpoints 192.168.42.51 get addresses | grep -E
 ```
 
 If sub-interfaces are missing after applying config, re-render and re-apply:
+
 ```bash
 just talos render-config k8s01 | talosctl apply-config --nodes 192.168.42.51 --file /dev/stdin
 ```
@@ -429,6 +459,7 @@ just talos render-config k8s01 | talosctl apply-config --nodes 192.168.42.51 --f
 ### CephNodeNetworkBondDegraded on k8s06 / `enp1s0f1`
 
 Known-good desired state in Git:
+
 - `talos/nodes/k8s06.yaml.j2` defines `bond0` as 802.3ad/LACP over `enp1s0f0`
   and `enp1s0f1`.
 - The saved core01 config maps `k8s06-enp1s0f0` to `ethernet 1/2/8` and
@@ -442,6 +473,7 @@ LAG will not restore carrier if the NIC, cable, transceiver, or `2/2/8` switch
 path is down.
 
 Read-only checks:
+
 ```bash
 # Talos side: confirm bond membership and which slave lacks carrier.
 talosctl --nodes 192.168.42.56 --endpoints 192.168.42.56 read /proc/net/bonding/bond0
@@ -456,6 +488,7 @@ show logging | include 2/2/8
 ```
 
 Approval-gated diagnostics workflow (for this issue and future recurrences):
+
 1. Capture evidence first from Talos + Kubernetes + Ceph (commands above), then paste
    the outputs into the incident issue before taking manual action.
 2. If the issue still has no clear root cause, request authorized operator approval to
@@ -464,18 +497,20 @@ Approval-gated diagnostics workflow (for this issue and future recurrences):
    logging levels and keep all captured output in the issue for future comparison.
 
 Temporary elevated diagnostics (requires explicit approval on core01):
+
 - Increase logging only for the affected LAG/member path (`k8s06`, `2/2/8`) so we can
   capture LACP/member flaps, physical layer errors, and state transitions during the
   incident window.
 - Collect at least three snapshots (`t0`, `t+5m`, `t+15m`) of:
-  - `show lag k8s06`
-  - `show interfaces brief ethernet 2/2/8`
-  - `show interfaces ethernet 2/2/8`
-  - `show logging | include 2/2/8`
+    - `show lag k8s06`
+    - `show interfaces brief ethernet 2/2/8`
+    - `show interfaces ethernet 2/2/8`
+    - `show logging | include 2/2/8`
 - If no events appear even with temporary increased logging, treat that as evidence
   and prioritize host-side causes (NIC, PCIe seating/riser, firmware/driver, thermal).
 
 Manual remediation path:
+
 1. Verify Ceph is healthy before touching the host network path.
 2. Reseat or replace the cable/transceiver between k8s06 `enp1s0f1` and core01
    `ethernet 2/2/8`.
@@ -490,7 +525,9 @@ Manual remediation path:
    `for` interval.
 
 ### Cluster resource policy audit
+
 Use this to find containers missing CPU/memory requests/limits:
+
 ```bash
 # Count missing by namespace
 kubectl get pods -A -o json \
@@ -516,11 +553,13 @@ The bootstrap helmfile handles the critical-path installation automatically.
 ### Phase 1: Platform foundation (automatic via bootstrap helmfile)
 
 Run the full bootstrap orchestration:
+
 ```bash
 just bootstrap
 ```
 
 This executes in order:
+
 1. **Cilium** (CNI + BGP + LoadBalancer) — nodes become Ready
 2. **CoreDNS** — cluster DNS
 3. **Spegel** — registry mirror
@@ -533,6 +572,7 @@ This executes in order:
 ### Phase 2: Platform services (Flux-managed, auto-reconcile)
 
 These will reconcile within ~10-20 minutes after Flux starts:
+
 - **Rook-Ceph** — Distributed storage (OSD formation takes ~5-10 min)
 - **OpenEBS LocalPV** — Local hostpath storage
 - **Envoy Gateway** — Ingress (internal + external gateways)
@@ -545,10 +585,12 @@ These will reconcile within ~10-20 minutes after Flux starts:
 ### Phase 3: Applications (Flux-managed, auto-reconcile)
 
 Once storage + secrets are healthy, all apps in `kubernetes/apps/default/` reconcile:
+
 - PVC data may need VolSync restore for persistent apps
 - Apps will start in degraded state until PVCs are restored
 
 **VolSync restore:** For each app with prior backup data:
+
 ```bash
 just kube snapshot <app>  # Trigger restore from Kopia
 ```
@@ -559,6 +601,37 @@ just kube snapshot <app>  # Trigger restore from Kopia
 2. **NAS availability:** `nas02.in.homeops.ca` must be online with NFS exports for Kopia backups and NFS mounts.
 3. **AKV secrets:** All ExternalSecrets depend on the `azurekv` ClusterSecretStore. Verify AKV credentials haven't expired.
 4. **Cloudflare Tunnel:** Check tunnel status in Cloudflare dashboard — auth tokens in AKV may need refresh.
+
+### Unpackerr v1 insights and recovery
+
+- The internal-only `unpackerr.homeops.ca` route goes to Authentik's embedded
+  proxy, not directly to Unpackerr. Its app-owned
+  [identity declaration](../kubernetes/apps/default/unpackerr/identity/application.yaml)
+  permits the existing `authentik Admins` group. No local UI password or new
+  interactive agent account is provisioned.
+- The UI role is limited to queue, history, logs, statistics and system
+  information. Queue mutations and configuration writes are denied; existing
+  Starr settings and API keys remain GitOps/External Secrets owned.
+- The [network policy](../kubernetes/apps/default/unpackerr/app/networkpolicy.yaml)
+  allows backend ingress only from Authentik server pods and Prometheus. A
+  spoofed identity header from another pod must not reach the application.
+  Keep the trusted-proxy settings and policy together.
+- Port 5656 serves the UI/API/WebSocket and authenticated metrics. Prometheus
+  uses a separate `system:metrics:read` key from the `unpackerr` Key Vault
+  secret, through External Secrets; that key cannot access the UI API.
+- The `unpackerr` PVC stores `/config`, logs and JSONL history and is backed up
+  by Kopiur. The NFS downloads mount is unchanged. Keep a single extractor:
+  the workload uses `Recreate`, not overlapping rolling-update workers.
+- Before a future major update, use an isolated synthetic archive with no
+  production Starr credentials or writable downloads. Verify authentication,
+  rejected writes, metrics, WebSocket updates and history across restart.
+  The v1 extractor intentionally changes the default Starr expansion-ratio cap
+  from 5:1 to 7.5:1; do not claim identical extraction behavior or invent an
+  unsupported setting to hide that change.
+- Rollback requires quiescing the extractor, pinning the prior image, disabling
+  its new web exposure as appropriate, and preserving the PVC/history and
+  source downloads. Do not delete the PVC or use a force Helm upgrade to
+  recover a configuration problem.
 
 ---
 
@@ -575,11 +648,13 @@ The alias that backs the destination (e.g., `torrent_hosts`) **must contain only
 If the hostname is in the alias alongside the direct IP, OPNsense creates a round-robin table entry and 50% of inbound torrent connections will be forwarded to the wrong IP, silently breaking peering with private trackers and causing ratio degradation.
 
 **Correct alias config (torrent_hosts):**
+
 ```
 192.168.69.123    ← direct LB IP only
 ```
 
 **Verify port-forward is working:**
+
 ```bash
 # From fw01: confirm pf state table shows ESTABLISHED connections on :31288
 pfctl -ss | grep 31288
@@ -594,8 +669,9 @@ nc -zv 192.168.69.123 31288
 ### Monitoring
 
 After a rebuild, verify:
+
 - Gatus endpoint `services / qBittorrent BitTorrent Port` → green (TCP 192.168.69.123:31288)
 - Prometheus alert `QBittorrentUploadStalled` is NOT firing (upload > 1 KB/s when seeders > 10)
 - Reannounce all torrents to trackers after any port-forward disruption:
-  - qBittorrent → select all → right-click → Force Reannounce
-  - or via API: `curl -X POST 'http://qbittorrent.homeops.ca/api/v2/torrents/reannounce?hashes=all'`
+    - qBittorrent → select all → right-click → Force Reannounce
+    - or via API: `curl -X POST 'http://qbittorrent.homeops.ca/api/v2/torrents/reannounce?hashes=all'`
