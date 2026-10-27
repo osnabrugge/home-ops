@@ -13,4 +13,5 @@ resources:
   - ./lldap/ks.yaml
   - ./authelia/ks.yaml
   - ./authentik/ks.yaml
+  - ./authentik-operator/ks.yaml
   - ./freeradius/ks.yaml
