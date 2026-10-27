@@ -1044,12 +1044,17 @@ Registering runners and pushing dependency updates should not share an identity.
 
 - [ ] P0: [#4738](https://github.com/osnabrugge/home-ops/issues/4738): migrate from
       Authelia to Authentik CE, with authentik-operator for supported OAuth2/proxy
-      apps and native blueprints for identities and other protocols. First
-      supervised window is queued; no calendar date or unattended cutover is set.
-- [x] Native blueprint foundation is deployed. This does not mean users, consumer
-      integrations or the application operator have been migrated.
-- [ ] P0: Operator canary, identity/recovery mapping, then one real consumer at a
-      time. Preserve IDs, roles, secrets, API access and break-glass recovery.
+      apps and native blueprints for identities and other protocols. Staged
+      rollout was authorized on 2026-10-27; human consumer cutovers remain gated.
+- [x] Native blueprint foundation and compatible application operator are deployed.
+      The private OIDC canary passed normal login/consent, PKCE, token validation,
+      denied-principal evaluation and periodic drift repair.
+- [x] Unpackerr v1 uses a new operator-managed, group-gated internal proxy for
+      read-only insights; real backend/metrics/WebSocket/network-boundary and
+      backed-state recovery tests pass. No local UI account was added.
+- [ ] P0: Human identity/MFA/recovery mapping, then existing consumers one at a
+      time. Grafana has a real Generic OAuth account to preserve; do not use
+      email-only auto-linking. Preserve IDs, roles, secrets and break-glass access.
 - [ ] P1: Retire Authelia only after all consumer gates and a reversible observation
       period pass. Retain its database/credentials/backup; assess LLDAP consumers
       separately before any directory retirement.

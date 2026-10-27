@@ -90,6 +90,14 @@ identity or credential UID/hash. These are canary tests, not proof of a real
 human consumer cutover. The canary is hidden from the normal app dashboard and
 does not grant access to existing applications.
 
+Unpackerr v1 is now a new operator-managed proxy application. Its app-owned
+[declaration](../kubernetes/apps/default/unpackerr/identity/application.yaml)
+allows the existing administrator group, while Unpackerr itself grants only
+five read permissions for insights. Direct backend ingress is restricted to the
+proxy and Prometheus; the metrics key has no UI API access. This new integration
+does not migrate the existing Grafana/Proxmox/NetBox identities or prove a human
+SSO login.
+
 Blueprints apply declared attributes by stable name/slug. In the pinned version,
 discovery compares file hashes; an unchanged file is not sufficient proof of
 repairing a manual UI edit. The
@@ -122,9 +130,9 @@ feature. See [Enterprise boundaries](https://docs.goauthentik.io/enterprise/ente
 
 ### Next controlled migration stages
 
-1. Verify recovery/backups, inventory actual consumers and choose a stable issuer
-   and required LAN/public reachability. Deploy the operator and test a canary
-   without moving existing logins. Do not repoint Authelia's issuer first.
+1. Keep the verified operator/canary and inventory actual consumers, recovery,
+   backups and required issuer/reachability before moving existing logins.
+   Do not repoint Authelia's issuer first.
 2. Manage human/service identity declarations and memberships through reviewed
    encrypted blueprints/approved secret storage, not public plaintext Git.
    Passwords, passkey enrollment, MFA recovery material and private keys remain
@@ -137,6 +145,10 @@ feature. See [Enterprise boundaries](https://docs.goauthentik.io/enterprise/ente
    login, denied-user handling, logout and break-glass recovery before disabling
    its old integration. Verify the actual Proxmox realm and NetBox LDAP backend;
    an Authelia client registration is not proof of consumer use.
+   Grafana's existing Generic OAuth user and local administrator recovery were
+   verified read-only, but human identity/MFA/role validation was unavailable.
+   Its old issuer is therefore preserved; do not auto-link by email or treat the
+   operator's technical canary as permission to retire that login.
 5. Inventory forward-auth/API/callback/WebSocket paths and migrate them without
    breaking machine clients. Test passkey enrollment/recovery before enforcing
    passwordless human login. Validate both LAN and real external access when

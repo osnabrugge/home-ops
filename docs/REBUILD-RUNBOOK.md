@@ -602,6 +602,37 @@ just kube snapshot <app>  # Trigger restore from Kopia
 3. **AKV secrets:** All ExternalSecrets depend on the `azurekv` ClusterSecretStore. Verify AKV credentials haven't expired.
 4. **Cloudflare Tunnel:** Check tunnel status in Cloudflare dashboard — auth tokens in AKV may need refresh.
 
+### NAS01 SMART exporter recovery
+
+The host-owned source is `/mnt/local/docker-compose.yml` on NAS01. Edit only
+the `smartctl-exporter` service and validate Compose before recreating that
+service with `docker compose up -d --no-deps smartctl-exporter`; do not restart
+Garage or change pool/disk configuration for an exporter problem.
+
+- Use verified `/dev/disk/by-id` paths with the actual `scsi`, `sat` or `nvme`
+  type and the read-only identity-directory mount. Linux `sdX` enumeration is not
+  a durable device identity; update the explicit list when replacing hardware.
+- The zero-capacity UDISK USB device that appeared as `/dev/sdr` has no supported
+  SMART interface and must not be forced into the monitored disk list.
+- Version 0.15.0 has a reproduced missing-SAS-descriptor regression:
+  [prometheus-community/smartctl_exporter#403](https://github.com/prometheus-community/smartctl_exporter/issues/403),
+  with [prometheus-community/smartctl_exporter#397](https://github.com/prometheus-community/smartctl_exporter/pull/397)
+  still unmerged at the repair. NAS01 is pinned to official
+  `quay.io/prometheuscommunity/smartctl-exporter:v0.14.0` digest
+  `sha256:cfe22c36d7d2fac48ebf619707305acb65eb0fb670656eb80f356e606d782bc1`.
+  This is a rollback mitigation, not a claim that the upstream bug is fixed.
+- Coverage is 24 readable physical disks: four SAS, twelve SATA and eight NVMe.
+  The previously unmonitored SATADOM remains omitted: its duplicate ATA
+  attribute ID 1 causes duplicate Prometheus samples. A native SMART read
+  passes health but reports an unsupported-command bit; do not call it a
+  failed disk or claim complete SATADOM telemetry.
+- Verify `/metrics` returns HTTP 200 after a full five-minute repoll,
+  `smartctl_devices` is 24, all expected device series exist, and the Prometheus
+  target is up. Preserve real historical-error bitmasks; never zero or suppress
+  them just to make monitoring green.
+- Original Compose rollback copies are retained beside the host source.
+  Confirm other container identities and `zpool status -x` are unchanged.
+
 ### Unpackerr v1 insights and recovery
 
 - The internal-only `unpackerr.homeops.ca` route goes to Authentik's embedded
@@ -622,6 +653,9 @@ just kube snapshot <app>  # Trigger restore from Kopia
 - The `unpackerr` PVC stores `/config`, logs and JSONL history and is backed up
   by Kopiur. The NFS downloads mount is unchanged. Keep a single extractor:
   the workload uses `Recreate`, not overlapping rolling-update workers.
+  Settings remain environment/External Secrets owned; an optional TOML file is
+  not required in this mode. JSONL history is created when extraction events
+  occur, not merely because an idle process starts.
 - Before a future major update, use an isolated synthetic archive with no
   production Starr credentials or writable downloads. Verify authentication,
   rejected writes, metrics, WebSocket updates and history across restart.

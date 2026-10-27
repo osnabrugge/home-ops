@@ -1,6 +1,6 @@
 # Identity & Auth Integration Matrix
 
-## Current migration status (2026-10-26)
+## Current migration status (2026-10-27)
 
 The approved target is **Authentik CE + authentik-operator for supported
 OAuth2/proxy application resources + native blueprints for the remaining
@@ -8,17 +8,31 @@ identity/protocol objects**, with existing FreeRADIUS retained where needed.
 See [the current architecture](./AUTH-ARCHITECTURE.md) and
 [migration tracker #4738](https://github.com/osnabrugge/home-ops/issues/4738).
 
-The operator and consumer cutovers are queued for a supervised session, not
-deployed by this scheduling change. No date is booked. The deployed native
-blueprint foundation does not prove a consumer's end-to-end login.
+The application operator is deployed with a dedicated non-superuser reconciliation
+identity. Its private OIDC canary passed normal authentication/consent, PKCE,
+signed-token validation, userinfo, denied-principal policy evaluation and real
+periodic drift repair. No existing human identity or grant was migrated by those
+tests.
 
-| Consumer                               | Current source evidence                                                                                                  | Migration gate                                                                                            |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Grafana                                | [Active OAuth configuration](../kubernetes/apps/observability/grafana-operator/instance/grafana.yaml) points to Authelia | First consumer canary; preserve user IDs, dashboard ownership and admin/editor/viewer mappings            |
-| Proxmox                                | [Authelia client registration](../kubernetes/apps/auth/authelia/app/configmap.yaml) exists                               | Read-only verification of the actual realm, then a separate approved host-change window                   |
-| NetBox                                 | [Current app configuration](../kubernetes/apps/observability/netbox/app/helmrelease.yaml) uses LLDAP                     | Choose and verify the actual LDAP/OIDC migration; its Authelia registration is not proof of live OIDC use |
-| Omada                                  | [App-owned SAML blueprint](../kubernetes/apps/network/omada-controller/identity/blueprint.yaml) is applied               | Human SSO and physical access02 adoption are separate unverified gates                                    |
-| Other LDAP/RADIUS/forward-auth clients | Historical list below is a discovery starting point only                                                                 | Verify live consumers and machine API bypasses before retiring either Authelia or LLDAP                   |
+Unpackerr v1 is a new operator-managed proxy integration with a group-gated,
+internal-only, read-only insights UI. Existing human consumer cutovers still
+require account/role/MFA/recovery validation; a technical canary is not that proof.
+
+| Consumer                               | Current source evidence                                                                                                           | Migration gate                                                                                                                    |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Grafana                                | [Active OAuth configuration](../kubernetes/apps/observability/grafana-operator/instance/grafana.yaml) points to Authelia          | First consumer canary; preserve user IDs, dashboard ownership and admin/editor/viewer mappings                                    |
+| Proxmox                                | [Authelia client registration](../kubernetes/apps/auth/authelia/app/configmap.yaml) exists                                        | Read-only verification of the actual realm, then a separate approved host-change window                                           |
+| NetBox                                 | [Current app configuration](../kubernetes/apps/observability/netbox/app/helmrelease.yaml) uses LLDAP                              | Choose and verify the actual LDAP/OIDC migration; its Authelia registration is not proof of live OIDC use                         |
+| Omada                                  | [App-owned SAML blueprint](../kubernetes/apps/network/omada-controller/identity/blueprint.yaml) is applied                        | Human SSO and physical access02 adoption are separate unverified gates                                                            |
+| Unpackerr                              | [App-owned proxy application](../kubernetes/apps/default/unpackerr/identity/application.yaml) is reconciled by authentik-operator | HTTPS reaches the IdP, backend reads/denials/metrics/WebSocket and ingress policy are verified; human SSO remains to be exercised |
+| Other LDAP/RADIUS/forward-auth clients | Historical list below is a discovery starting point only                                                                          | Verify live consumers and machine API bypasses before retiring either Authelia or LLDAP                                           |
+
+Grafana's live read-only inventory confirms an existing Generic OAuth account
+and a separately verified local administrator recovery path. Preserve that
+external account's identity and ownership during issuer migration; do not rely
+on the currently enabled insecure email lookup to auto-link it to a new IdP.
+Human mapping/login validation was unavailable during the operator rollout, so
+the existing Authelia issuer and Grafana consumer configuration remain unchanged.
 
 ## Historical audit (2026-06-20; not current verification)
 
