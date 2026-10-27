@@ -14,7 +14,7 @@ permissions:
 jobs:
   main:
     name: Tag
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     environment: "Github Action Runner"
     permissions:
       id-token: write
