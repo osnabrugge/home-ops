@@ -8,5 +8,6 @@ configMapGenerator:
     files:
       - ./groups.yaml
       - ./ldap.yaml
+      - ./operator.yaml
 generatorOptions:
   disableNameSuffixHash: true

@@ -1,0 +1,43 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: authentik-operator-canary
+spec:
+  slug: homeops-auth-canary
+  name: HomeOps identity canary
+  hideFromApplicationDashboard: true
+  deletionPolicy: Retain
+  adopt: Never
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-explicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    oauth2:
+      clientType: Confidential
+      redirectURIs:
+        - url: http://127.0.0.1:18765/callback
+          matchingMode: Strict
+      scopes:
+        - scopeName: openid
+        - scopeName: profile
+        - scopeName: email
+      grantTypes:
+        - AuthorizationCode
+        - RefreshToken
+      signingKey:
+        name: authentik Self-signed Certificate
+      credentials:
+        clientID: homeops-auth-canary
+        secretRef:
+          name: authentik-operator-canary-oidc
+  access:
+    mode: Any
+    rules:
+      - group:
+          name: authentik Admins
+      # Only this loopback canary accepts the existing bootstrap technical user.
+      - user:
+          username: akadmin

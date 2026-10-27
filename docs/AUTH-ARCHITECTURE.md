@@ -3,9 +3,16 @@
 ## Current decision and rollout (2026-10-26)
 
 Use **Authentik Community Edition as the target identity authority**, managed by
-Flux, the existing Helm/External Secrets operators and Authentik's native
-[blueprints](https://docs.goauthentik.io/customize/blueprints/). Do not add a
-second IdP or a third-party application operator to solve user lifecycle.
+Flux, the existing Helm/External Secrets operators, **authentik-operator for its
+supported OAuth2/proxy applications**, and native
+[blueprints](https://docs.goauthentik.io/customize/blueprints/) for the remaining
+identity/protocol objects. Sean approved this hybrid target on 2026-10-26.
+The application operator does not replace user/group lifecycle management.
+
+The migration is queued in [#4738](https://github.com/osnabrugge/home-ops/issues/4738)
+for the next supervised authentication session; **no calendar date is confirmed**.
+This schedules the work, not an unattended login cutover or immediate Authelia
+removal. Keep Talos, Unpackerr and other broad rollouts in separate windows.
 
 The existing deployment is Authentik 2026.8.5. The GitOps foundation mounts:
 
@@ -23,18 +30,41 @@ The existing deployment is Authentik 2026.8.5. The GitOps foundation mounts:
 This is an adoption of existing configuration, **not an estate-wide SSO cutover**.
 Authelia still uses LLDAP and retains the existing Proxmox/Grafana/NetBox OIDC
 registrations. An Authentik provider record does not prove that its consumer is
-configured or that login works. In particular, the Omada controller's stale
-`omada-saml` IdP metadata URL and its end-to-end SAML login remain unresolved.
-No agent identity or additional privileges are created by this foundation.
+configured or that login works. Omada's existing connection now uses the current
+`omada` IdP metadata URL instead of the obsolete `omada-saml` URL, after verifying
+an identical signing-certificate fingerprint. Its end-to-end user login still
+requires verification; no agent identity or additional privileges are created.
 
-### Why native blueprints, not another operator
+The app-owned SAML blueprint preserves the existing mappings and adds the
+vendor-required `username` and `usergroup_name` claims. The group claim emits
+existing memberships only. The audience matches Omada's published Entity ID
+(`:8043/...`); that identifier is not the reachable ACS, which stays on Envoy
+HTTPS/443. RelayState remains the documented Base64 of `resourceId_omadaId`.
+See [TP-Link's SAML configuration and -1001 troubleshooting guide](https://www.omadanetworks.com/us/document/26917/).
+
+### Operator and native-blueprint ownership
 
 [SlashNephy/authentik-operator](https://github.com/SlashNephy/authentik-operator/blob/main/docs/spec.md)
 currently excludes creating users/groups/policies and the SAML, LDAP, SCIM and
 RADIUS providers. It is useful for its supported OAuth2/proxy application scope,
-but cannot manage this complete identity design. Mixing it into the first
-rollout would add ownership boundaries without removing the need for blueprints.
-Never let two reconcilers own the same Authentik object.
+but cannot manage this complete identity design alone. Its deployment is
+**planned, not yet performed**. Pin a release compatible with the deployed
+Authentik minor and provision its dedicated least-permission reconciliation
+credential through approved secret storage, not a bootstrap or interactive agent
+credential.
+
+| Reconciler                 | Ownership                                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| authentik-operator         | Supported OAuth2/proxy applications, providers and policy bindings; CRs beside each consumer |
+| Native blueprints          | Users/groups/policies/flows and SAML/LDAP/SCIM/RADIUS objects outside the operator's scope   |
+| Flux/Helm/External Secrets | Kubernetes deployment, pinned versions and approved secret references                        |
+
+Never let two reconcilers own the same application, provider or binding. The
+deployed native reconciliation job currently applies groups, LDAP and Omada SAML;
+it does not own the Grafana OAuth provider. Inventory live ownership before
+adoption, use `Retain` plus reviewed `IfMatch`, and stop on mismatches rather than
+using `Force` to make the migration succeed. Test the operator first with a new
+non-production application and both allowed and denied groups.
 
 Blueprints apply declared attributes by stable name/slug. In the pinned version,
 discovery compares file hashes; an unchanged file is not sufficient proof of
@@ -68,16 +98,32 @@ feature. See [Enterprise boundaries](https://docs.goauthentik.io/enterprise/ente
 
 ### Next controlled migration stages
 
-1. Manage human/service identity declarations and memberships through reviewed
+1. Verify recovery/backups, inventory actual consumers and choose a stable issuer
+   and required LAN/public reachability. Deploy the operator and test a canary
+   without moving existing logins. Do not repoint Authelia's issuer first.
+2. Manage human/service identity declarations and memberships through reviewed
    encrypted blueprints/approved secret storage, not public plaintext Git.
    Passwords, passkey enrollment, MFA recovery material and private keys remain
-   outside general MCP memory and public manifests.
-2. Sean selects the future automation identity and authorized groups. Do not use
+   outside general MCP memory and public manifests. Existing passwords/passkeys
+   do not automatically migrate; do not link identities solely by matching email.
+3. Sean selects the future automation identity and authorized groups. Do not use
    bootstrap credentials to self-grant estate-wide access.
-3. Migrate one consumer at a time, proving normal login, exact group/role mapping,
-   logout and a usable break-glass path before removing its old integration.
-4. Test passkey enrollment/recovery before enforcing passwordless human login.
-   Retire Authelia/LLDAP only after their last verified consumer migrates.
+4. Migrate one consumer at a time, starting with the confirmed Grafana OIDC
+   consumer. Preserve existing user IDs, ownership and roles; prove real human
+   login, denied-user handling, logout and break-glass recovery before disabling
+   its old integration. Verify the actual Proxmox realm and NetBox LDAP backend;
+   an Authelia client registration is not proof of consumer use.
+5. Inventory forward-auth/API/callback/WebSocket paths and migrate them without
+   breaking machine clients. Test passkey enrollment/recovery before enforcing
+   passwordless human login. Validate both LAN and real external access when
+   gateway/DNS exposure changes.
+6. When the last actual Authelia consumer is migrated, disable it reversibly and
+   observe for at least seven days before a separate workload/route removal.
+   Retain its database, credentials and verified backup for rollback; this plan
+   does not authorize deleting a database or PVC.
+7. Retire LLDAP only after its own remaining consumers, including any NetBox and
+   FreeRADIUS binds, are migrated and verified. Authelia retirement does not
+   establish that the directory is unused.
 
 Central group changes can govern all _integrated_ consumers, but the first
 OIDC/SAML/LDAP/RADIUS trust and role mapping is still per service. Kubernetes and

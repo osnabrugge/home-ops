@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: HomeOps application operator
+entries:
+  - model: authentik_rbac.role
+    state: present
+    id: operator-role
+    identifiers:
+      name: HomeOps application operator reconciler
+    attrs:
+      permissions:
+        - authentik_rbac.view_role
+        - authentik_rbac.add_role
+        - authentik_rbac.change_role
+        - authentik_rbac.assign_role_permissions
+        - authentik_rbac.unassign_role_permissions
+        # guardian.view_roleobjectpermission requires the documented API bootstrap:
+        # Authentik's blueprint permission choices exclude third-party apps.
+        - authentik_core.view_application
+        - authentik_core.add_application
+        - authentik_core.change_application
+        - authentik_core.delete_application
+        - authentik_providers_proxy.view_proxyprovider
+        - authentik_providers_proxy.add_proxyprovider
+        - authentik_providers_proxy.change_proxyprovider
+        - authentik_providers_proxy.delete_proxyprovider
+        - authentik_providers_oauth2.view_oauth2provider
+        - authentik_providers_oauth2.add_oauth2provider
+        - authentik_providers_oauth2.change_oauth2provider
+        - authentik_providers_oauth2.delete_oauth2provider
+        - authentik_policies.view_policybinding
+        - authentik_policies.add_policybinding
+        - authentik_policies.change_policybinding
+        - authentik_policies.delete_policybinding
+        - authentik_outposts.view_outpost
+        - authentik_outposts.change_outpost
+        - authentik_core.view_group
+        - authentik_core.view_user
+        - authentik_policies.view_policy
+        - authentik_flows.view_flow
+        - authentik_crypto.view_certificatekeypair
+        - authentik_providers_oauth2.view_scopemapping
+  # This is the reconciler's non-human credential, not an interactive agent identity.
+  - model: authentik_core.user
+    state: present
+    identifiers:
+      username: authentik-operator
+    attrs:
+      name: Authentik application operator
+      type: service_account
+      path: service-accounts
+      is_active: true
+      groups: []
+      roles:
+        - !KeyOf operator-role

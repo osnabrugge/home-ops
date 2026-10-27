@@ -620,8 +620,7 @@ wrong path produces a false "still read-only".
       Fixed by adding the RCT + `intel-gpu-resource-driver` dependency (`06c4038be`).
       Verified: claim `allocated,reserved`, `/dev/dri` → `card0`, `renderD128`.
 - [x] P1: **printguard GPU vs CPU — measured.** printguard self-benchmarks at startup:
-      | Backend | Result |
-      |---|---|
+      | Backend | Result | |---|---|
       | Intel OpenVINO (iGPU) | **234.0 fps** (1 worker) |
       | LiteRT CPU + XNNPACK | **349.8 fps** (2 workers) |
       **CPU wins by ~50 %** and printguard auto-selects it. Expected: k8s01 is an
@@ -1026,7 +1025,8 @@ Registering runners and pushing dependency updates should not share an identity.
       CARP/pfsync) without the painful manual console bootstrap
 - [ ] P2: Omada adoption end-to-end verification (VLAN99 path proven; adoption untested)
 - [ ] P2: Identity: one-pane identity lifecycle (users, groups, systems, devices, SSH,
-      RADIUS, MFA, OAuth). Authentik feasibility gate still undecided.
+      RADIUS, MFA, OAuth). Authentik CE + operator/native-blueprint target approved;
+      staged migration tracked in [#4738](https://github.com/osnabrugge/home-ops/issues/4738).
 
 ---
 
@@ -1040,14 +1040,19 @@ Registering runners and pushing dependency updates should not share an identity.
 - [ ] P1: Options: (a) fix VLAN1, (b) add a VLAN99 interface on the local switch,
       (c) **abandon VLAN1** and adopt over an explicitly-tagged VLAN.
 
-### I2. Identity — nothing centralised
+### I2. Identity — Authentik migration approved, cutovers pending
 
-- [ ] P0: Everything is scattered (users, groups, systems, devices, SSH, RADIUS, MFA,
-      OAuth). Goal is one pane of glass with real lifecycle management.
-- [ ] P0: **Authentik was gated on one item Sean had to do — neither of us can recall
-      what it was. Re-derive it from the current state before proposing more work.**
-- [ ] P1: Authentik is a lot of manual learning/config for Sean. Evaluate honestly
-      whether it is the right cost/benefit vs alternatives, given lldap already exists.
+- [ ] P0: [#4738](https://github.com/osnabrugge/home-ops/issues/4738): migrate from
+      Authelia to Authentik CE, with authentik-operator for supported OAuth2/proxy
+      apps and native blueprints for identities and other protocols. First
+      supervised window is queued; no calendar date or unattended cutover is set.
+- [x] Native blueprint foundation is deployed. This does not mean users, consumer
+      integrations or the application operator have been migrated.
+- [ ] P0: Operator canary, identity/recovery mapping, then one real consumer at a
+      time. Preserve IDs, roles, secrets, API access and break-glass recovery.
+- [ ] P1: Retire Authelia only after all consumer gates and a reversible observation
+      period pass. Retain its database/credentials/backup; assess LLDAP consumers
+      separately before any directory retirement.
 - Motivating pain: the IP cameras have no copy/paste, so any password rotation is
   manual and error-prone (§I3). Centralised identity directly reduces that pain.
 
@@ -1230,16 +1235,16 @@ already pay for — no Claude subscription, no LiteLLM, no Copilot ToS grey area
       `yaml
     - uses: azure/login@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     - uses: anthropics/claude-code-action@v1
       with:
-        use_foundry: "true"
-        claude_args: --model claude-sonnet-4-5
+      use_foundry: "true"
+      claude_args: --model claude-sonnet-4-5
       env:
-        ANTHROPIC_FOUNDRY_BASE_URL: https://<resource>.services.ai.azure.com
-    `
+      ANTHROPIC_FOUNDRY_BASE_URL: https://<resource>.services.ai.azure.com
+      `
       `permissions: id-token: write` is required. Foundry/Bedrock/Vertex are
       **OIDC-only** — an API key will not work.
 - [ ] P1: We use a GitHub App (`homeops-runner`) rather than 1Password + `bot-ross`;
