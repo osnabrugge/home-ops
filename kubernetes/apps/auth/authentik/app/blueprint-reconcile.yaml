@@ -38,7 +38,7 @@ spec:
                   from pathlib import Path
                   from authentik.blueprints.v1.importer import Importer
 
-                  for name in ("groups.yaml", "ldap.yaml", "omada-controller.yaml"):
+                  for name in ("groups.yaml", "ldap.yaml", "operator.yaml", "omada-controller.yaml"):
                       path = Path("/blueprints/homeops") / name
                       importer = Importer.from_string(path.read_text())
                       valid, logs = importer.validate()
