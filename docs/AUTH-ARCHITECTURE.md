@@ -23,9 +23,17 @@ The existing deployment is Authentik 2026.8.5. The GitOps foundation mounts:
 This is an adoption of existing configuration, **not an estate-wide SSO cutover**.
 Authelia still uses LLDAP and retains the existing Proxmox/Grafana/NetBox OIDC
 registrations. An Authentik provider record does not prove that its consumer is
-configured or that login works. In particular, the Omada controller's stale
-`omada-saml` IdP metadata URL and its end-to-end SAML login remain unresolved.
-No agent identity or additional privileges are created by this foundation.
+configured or that login works. Omada's existing connection now uses the current
+`omada` IdP metadata URL instead of the obsolete `omada-saml` URL, after verifying
+an identical signing-certificate fingerprint. Its end-to-end user login still
+requires verification; no agent identity or additional privileges are created.
+
+The app-owned SAML blueprint preserves the existing mappings and adds the
+vendor-required `username` and `usergroup_name` claims. The group claim emits
+existing memberships only. The audience matches Omada's published Entity ID
+(`:8043/...`); that identifier is not the reachable ACS, which stays on Envoy
+HTTPS/443. RelayState remains the documented Base64 of `resourceId_omadaId`.
+See [TP-Link's SAML configuration and -1001 troubleshooting guide](https://www.omadanetworks.com/us/document/26917/).
 
 ### Why native blueprints, not another operator
 

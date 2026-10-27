@@ -4,7 +4,22 @@ version: 1
 metadata:
   name: HomeOps Omada SAML provider
 entries:
-  # Adopt the existing IdP-side settings; this does not repair the controller's trust.
+  - model: authentik_providers_saml.samlpropertymapping
+    state: present
+    id: omada-username
+    identifiers:
+      name: HomeOps Omada username
+    attrs:
+      saml_name: username
+      expression: return request.user.username
+  - model: authentik_providers_saml.samlpropertymapping
+    state: present
+    id: omada-groups
+    identifiers:
+      name: HomeOps Omada groups
+    attrs:
+      saml_name: usergroup_name
+      expression: "return [group.name for group in request.user.groups.all()]"
   - model: authentik_providers_saml.samlprovider
     state: present
     id: omada-provider
@@ -15,13 +30,47 @@ entries:
         !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
       invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
       acs_url: https://omada-controller.homeops.ca:443/sso/saml/login
-      audience: https://omada-controller.homeops.ca:443/4963024d89365c3635a5069d5fcc84fe
+      # Entity ID is the SP's identifier, not the publicly reachable ACS endpoint.
+      audience: https://omada-controller.homeops.ca:8043/4963024d89365c3635a5069d5fcc84fe
+      # TP-Link requires base64(resourceId_omadaId); this is not a credential.
+      default_relay_state: NmE2NDZmMWIwZjZhNmUxNmQ0YjIzMjcwXzQ5NjMwMjRkODkzNjVjMzYzNWE1MDY5ZDVmY2M4NGZl
       sp_binding: post
       sign_assertion: true
       sign_response: false
       default_name_id_policy: urn:oasis:names:tc:SAML:2.0:nameid-format:persistent
       signing_kp:
         !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+      property_mappings:
+        - !Find [
+            authentik_providers_saml.samlpropertymapping,
+            [name, "authentik default SAML Mapping: UPN"],
+          ]
+        - !Find [
+            authentik_providers_saml.samlpropertymapping,
+            [name, "authentik default SAML Mapping: Name"],
+          ]
+        - !Find [
+            authentik_providers_saml.samlpropertymapping,
+            [name, "authentik default SAML Mapping: Email"],
+          ]
+        - !Find [
+            authentik_providers_saml.samlpropertymapping,
+            [name, "authentik default SAML Mapping: Username"],
+          ]
+        - !Find [
+            authentik_providers_saml.samlpropertymapping,
+            [name, "authentik default SAML Mapping: User ID"],
+          ]
+        - !Find [
+            authentik_providers_saml.samlpropertymapping,
+            [name, "authentik default SAML Mapping: Groups"],
+          ]
+        - !Find [
+            authentik_providers_saml.samlpropertymapping,
+            [name, "authentik default SAML Mapping: WindowsAccountname (Username)"],
+          ]
+        - !KeyOf omada-username
+        - !KeyOf omada-groups
   - model: authentik_core.application
     state: present
     identifiers:
