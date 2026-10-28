@@ -15,7 +15,7 @@ spec:
       enabled: true
       bbr: true
     bpf:
-      datapathMode: netkit
+      datapathMode: veth # Requires a separately approved, drained-node migration from netkit.
       masquerade: true
       preallocateMaps: true
     bpfClockProbe: true
