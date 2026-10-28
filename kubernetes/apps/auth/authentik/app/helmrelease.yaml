@@ -50,6 +50,7 @@ spec:
       configMaps:
         - authentik-blueprints
         - omada-controller-authentik
+        - radar-authentik
     server:
       replicas: 1
       resources:

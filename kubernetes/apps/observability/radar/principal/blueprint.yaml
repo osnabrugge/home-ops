@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: HomeOps Radar machine client
+entries:
+  - model: authentik_core.user
+    state: present
+    identifiers:
+      username: radar-mcp
+    attrs:
+      name: Radar MCP client
+      type: service_account
+      path: service-accounts
+      is_active: true
+      groups: []
+      roles: []

@@ -59,6 +59,8 @@ spec:
     - name: authentik-database
     - name: omada-controller-identity
       namespace: network
+    - name: radar-principal
+      namespace: observability
     - name: dragonfly-cluster
       namespace: database
     - name: azurekv

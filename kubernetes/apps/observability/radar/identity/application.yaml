@@ -1,0 +1,33 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: radar
+spec:
+  slug: radar
+  name: Radar
+  group: Infrastructure
+  deletionPolicy: Retain
+  adopt: Never
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-implicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    proxy:
+      proxy:
+        externalHost: https://radar.homeops.ca
+        internalHost: http://radar.observability.svc.cluster.local:9280
+      interceptHeaderAuth: true
+      unauthenticatedPaths:
+        - ^/api/health$
+      outpost:
+        name: authentik Embedded Outpost
+  access:
+    mode: Any
+    rules:
+      - group:
+          name: authentik Admins
+      - user:
+          username: radar-mcp

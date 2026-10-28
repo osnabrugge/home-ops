@@ -8,3 +8,4 @@ resources:
   - ./httproute.yaml
   - ./ocharted-pull-externalsecret.yaml
   - ./ocirepository.yaml
+  - ./operational-rbac.yaml

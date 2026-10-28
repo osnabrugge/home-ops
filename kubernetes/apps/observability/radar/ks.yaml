@@ -3,6 +3,45 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: radar-principal
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/observability/radar/principal
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: radar-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+    - name: radar-principal
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: radar
+      namespace: auth
+  interval: 1h
+  path: ./kubernetes/apps/observability/radar/identity
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: radar
 spec:
   interval: 1h
