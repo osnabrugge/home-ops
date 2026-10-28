@@ -13,21 +13,67 @@ spec:
     commonAnnotations:
       fluxcd.controlplane.io/reconcileArtifactEvery: 1h
     instance:
+      distribution:
+        # renovate: datasource=github-releases depName=fluxcd/flux2
+        version: "2.10.0"
       cluster:
         networkPolicy: false
-      components:
-        - source-controller
-        - kustomize-controller
-        - helm-controller
-        - notification-controller
       sync:
-        kind: GitRepository
         url: https://github.com/osnabrugge/home-ops
         ref: refs/heads/main
-        path: kubernetes/flux/cluster
+        path: kubernetes/apps
         interval: 1h
       kustomize:
         patches:
+          - # Add Kustomization defaults for all child Kustomizations
+            patch: |-
+              - op: add
+                path: /spec/prune
+                value: false
+              - op: add
+                path: /spec/decryption
+                value:
+                  provider: sops
+                  secretRef:
+                    name: sops-age
+              - op: add
+                path: /spec/patches
+                value:
+                  - patch: |-
+                      apiVersion: kustomize.toolkit.fluxcd.io/v1
+                      kind: Kustomization
+                      metadata:
+                        name: _
+                      spec:
+                        patches:
+                          - patch: |-
+                              apiVersion: helm.toolkit.fluxcd.io/v2
+                              kind: HelmRelease
+                              metadata:
+                                name: _
+                              spec:
+                                install:
+                                  crds: CreateReplace
+                                rollback:
+                                  cleanupOnFail: true
+                                upgrade:
+                                  cleanupOnFail: true
+                                  crds: CreateReplace
+                                  strategy:
+                                    name: RemediateOnFailure
+                                  remediation:
+                                    remediateLastFailure: true
+                                    retries: 2
+                            target:
+                              group: helm.toolkit.fluxcd.io
+                              kind: HelmRelease
+                    target:
+                      group: kustomize.toolkit.fluxcd.io
+                      kind: Kustomization
+            target:
+              group: kustomize.toolkit.fluxcd.io
+              kind: Kustomization
+              name: flux-system
           - # Increase the number of workers
             patch: |-
               - op: add
@@ -38,7 +84,7 @@ spec:
                 value: --requeue-dependency=5s
             target:
               kind: Deployment
-              name: (kustomize-controller|helm-controller|source-controller)
+              name: (helm-controller|source-controller)
           - # Increase the memory limits
             patch: |-
               apiVersion: apps/v1
@@ -61,6 +107,9 @@ spec:
               - op: add
                 path: /spec/template/spec/containers/0/args/-
                 value: --concurrent=20
+              - op: add
+                path: /spec/template/spec/containers/0/args/-
+                value: --requeue-dependency=5s
               - op: replace
                 path: /spec/template/spec/volumes/0
                 value:
