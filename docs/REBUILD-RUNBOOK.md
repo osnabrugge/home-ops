@@ -524,7 +524,39 @@ Manual remediation path:
    `MII Status: up`, and the Prometheus alert should clear after the rule's
    `for` interval.
 
+### Radar ingress hostname and authentication
+
+Radar's unauthenticated shared listener checks the request hostname. Its
+`allowedHosts` Helm value is a list of hostnames, not client IP ranges:
+
+```yaml
+allowedHosts:
+    - radar.homeops.ca
+```
+
+The HTTPRoute is managed separately from Radar's chart, so the chart cannot
+automatically add that route's hostname. Keep this route on `envoy-internal`.
+Commit and push the HelmRelease before requesting Flux reconciliation; local
+commits and working-tree edits are not deployment sources.
+
+After reconciliation, verify both the UI and a fresh MCP initialization. A
+client that cached the earlier initialization failure may need reconnecting.
+The hostname allow-list is not authentication.
+
+The Authentik application operator is available, but enabling Radar's native
+OIDC also requires explicit Kubernetes user/group RBAC bindings and an
+authenticated MCP client path. Radar 1.18.3's standalone authentication
+middleware accepts session cookies or trusted proxy identity, not generic
+OIDC bearer tokens. Do not switch `auth.mode` and silently break existing MCP
+clients, grant `cluster-admin` automatically, or leave an anonymous MCP bypass.
+
 ### Cluster resource policy audit
+
+Scheduling uses resource **requests**, not current usage. Compare the allocated
+requests in `kubectl describe node <name>` with `kubectl top node <name>`.
+A node can have idle CPU and free memory but insufficient unreserved CPU for
+another pod. Check the requested resource and workload placement before
+reducing requests or moving stateful Ceph workloads.
 
 Use this to find containers missing CPU/memory requests/limits:
 
