@@ -88,8 +88,9 @@ spec:
         trustCRDsExist: true
     rollOutCiliumPods: true
     updateStrategy:
-      type: OnDelete
-      rollingUpdate: null
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
     routingMode: native
     securityContext:
       capabilities:
