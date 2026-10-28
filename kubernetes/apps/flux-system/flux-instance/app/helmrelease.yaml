@@ -28,9 +28,6 @@ spec:
           - # Add Kustomization defaults for all child Kustomizations
             patch: |-
               - op: add
-                path: /spec/prune
-                value: false
-              - op: add
                 path: /spec/decryption
                 value:
                   provider: sops
