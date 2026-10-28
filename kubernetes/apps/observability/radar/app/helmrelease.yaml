@@ -13,6 +13,7 @@ spec:
     replicaCount: 1
     image:
       pullPolicy: IfNotPresent
+    allowedHosts: 192.168.0.0/16
     auth:
       mode: none
     crdGroups:
