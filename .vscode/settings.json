@@ -37,14 +37,14 @@
     "database": "database",
     "external-secrets": "secure",
     "flux-system": "pipe",
-    "kopiur-system": "backup",
     "kube-system": "kubernetes",
     "network": "connection",
     "observability": "event",
     "openebs-system": "base",
     "printing": "tools",
     "rook-ceph": "dump",
-    "system-upgrade": "update"
+    "system-upgrade": "update",
+    "kopiur-system": "aws"
   },
   "terminal.integrated.fontSize": 14,
   "vs-kubernetes": {

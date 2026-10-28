@@ -2,6 +2,7 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
+# Existing chart-owned claims need backup policies without a new PVC or restore.
 resources:
   - ./snapshotpolicy.yaml
   - ./snapshotschedule.yaml

@@ -13,11 +13,8 @@
     commitMessageExtra: "({{manager}})",
     additionalBranchPrefix: "{{manager}}-",
   },
-  // ocharted.homeops.ca is published on envoy-EXTERNAL as well as envoy-internal, so a
-  // GitHub-hosted runner can reach it. The chart deliberately sets no auth.bypassNetworks
-  // (ocharted authorises on the socket peer, which is always an in-cluster envoy pod, so a
-  // 10.42.0.0/16 bypass would also cover public traffic), therefore CI must authenticate.
-  // Credentials come from RENOVATE_SECRETS in .github/workflows/renovate.yaml.
+  // The externally published ocharted registry requires the credentials injected
+  // by .github/workflows/renovate.yaml; an in-cluster proxy address is not a bypass.
   hostRules: [
     {
       description: "Authenticate against the ocharted OCI registry",
@@ -27,20 +24,11 @@
       password: "{{ secrets.OCHARTED_PASSWORD }}",
     },
   ],
-  // librenms is an unfinished scaffold: it has a helmrelease.yaml but no ks.yaml,
-  // no ocirepository.yaml for the chartRef it names, and is not referenced by
-  // kubernetes/apps/observability/kustomization.yaml. Renovate PRs against it can
-  // never render or deploy. Remove this entry once the app is fully wired up.
+  // LibreNMS has no Flux wiring or chart source yet, so its updates cannot deploy.
   ignorePaths: ["kubernetes/apps/observability/librenms/**"],
-  // `customManagers` is mergeable, so these are ADDED to the two in
-  // home-operations/renovate-presets rather than replacing them.
+  // Add to the preset's custom managers; image-volume references need their own capture.
   customManagers: [
     {
-      // A Kubernetes image volume pins its image on `reference:`, which no
-      // built-in manager reads, and the preset's `# renovate:` annotation
-      // manager captures the whole `repo:tag` string as currentValue - so
-      // neither can update it. Without this, etcd-defrag's talosctl would
-      // silently drift behind the nodes (it was already a minor behind).
       customType: "regex",
       managerFilePatterns: ["/^kubernetes/.+\\.ya?ml$/"],
       matchStrings: [
@@ -49,13 +37,11 @@
       datasourceTemplate: "docker",
     },
   ],
+  // The Main ruleset does not require up-to-date branches, and `auto` would
+  // still rebase every automerge PR each time main moves
+  rebaseWhen: "conflicted",
   packageRules: [
-    // ocharted serves manifests by TAG only, so a digest-addressed fetch 404s and leaves
-    // the OCIRepository permanently unready (broke PR #4169). The old overrideDatasource
-    // workarounds for radar and ceph-csi-drivers are gone: with the hostRule above,
-    // Renovate queries ocharted directly on the docker datasource instead of the upstream
-    // Helm repo, so it no longer copies the bare-hex `digest:` out of a Helm index.yaml
-    // (which source-controller rejects with `cannot parse hash`, re-broken by #4290/#4306).
+    // ocharted serves manifests by tag only; digest-addressed pulls return 404.
     {
       description: "ocharted serves by tag only - never pin digests on it",
       matchDatasources: ["docker"],
@@ -87,35 +73,35 @@
       matchManagers: ["github-actions"],
       matchUpdateTypes: ["minor", "patch", "digest"],
       automerge: true,
-      automergeType: "branch",
+      automergeType: "pr",
       minimumReleaseAge: "3 days",
-      ignoreTests: true,
+      ignoreTests: false,
     },
     {
       description: "Auto-merge trusted GitHub Actions",
       matchManagers: ["github-actions"],
-      matchPackageNames: ["/^actions\\//", "/^renovatebot\\//"],
+      matchPackageNames: ["/^actions\\//"],
       matchUpdateTypes: ["minor", "patch", "digest"],
       automerge: true,
-      automergeType: "branch",
+      automergeType: "pr",
       minimumReleaseAge: "1 minute",
-      ignoreTests: true,
+      ignoreTests: false,
     },
     {
       description: "Auto-merge Grafana dashboards",
       matchDatasources: ["custom.grafana-dashboards"],
       matchUpdateTypes: ["major"],
       automerge: true,
-      automergeType: "branch",
-      ignoreTests: true,
+      automergeType: "pr",
+      ignoreTests: false,
     },
     {
       description: "Auto-merge Renovate Presents",
       matchManagers: ["renovate-config"],
       matchUpdateTypes: ["minor", "patch"],
       automerge: true,
-      automergeType: "branch",
-      ignoreTests: true,
+      automergeType: "pr",
+      ignoreTests: false,
     },
     // Grouping rules
     {
@@ -191,8 +177,7 @@
       minimumGroupSize: 2,
     },
     {
-      // After the mise tools catch-all so talos wins its own group; unites the
-      // mise pin, the factory installer image, and the tuppr upgrade version
+      // Unites the factory installer image and the tuppr upgrade version
       description: "Talos Group",
       groupName: "talos",
       matchPackageNames: ["siderolabs/talos"],
@@ -212,19 +197,11 @@
       minimumGroupSize: 2,
     },
     {
-      // A merged Talos bump is not a PR, it is an unattended rolling power-cycle
-      // of all 6 nodes via tuppr. 1.13->1.14 renumbered /dev/dri and broke every
-      // GPU workload. Raise this deliberately, with a maintenance window.
+      // A merged Talos bump triggers tuppr to power-cycle all six nodes.
       description: "Never auto-bump Talos minor/major -- tuppr reboots the whole cluster",
       matchPackageNames: ["siderolabs/talos"],
       matchUpdateTypes: ["major", "minor"],
       dependencyDashboardApproval: true,
-    },
-    {
-      description: "CoreDNS 1.14.3+ prefetch poisons autopath answers, hold until coredns/coredns#8390 is fixed",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["ghcr.io/coredns/charts/coredns"],
-      enabled: false,
     },
     // Labeling rules
     {

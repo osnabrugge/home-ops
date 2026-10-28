@@ -1,23 +1,32 @@
 ---
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: Image Pull
+name: CI
 
 on:
-  pull_request:
+  push:
     branches:
       - main
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
+env:
+  # renovate: datasource=github-releases depName=home-operations/flate
+  FLATE_VERSION: "0.6.5"
+  # renovate: datasource=custom.talos-factory depName=siderolabs/talos
+  TALOS_VERSION: v1.14.5
+
 jobs:
   filter:
+    if: ${{ github.event_name == 'pull_request' }}
     name: Image Pull - Filter
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       pull-requests: read
@@ -49,19 +58,23 @@ jobs:
           persist-credentials: false
 
       - name: Setup Mise
-        uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
+        uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
         with:
           cache: false
-          install_args: github:home-operations/flate
+          install: false
 
       - name: Extract Images
         id: extract
+        env:
+          MISE_GITHUB_TOKEN: ${{ github.token }}
         run: |
-          echo 'images<<EOF' >> $GITHUB_OUTPUT
-          flate diff images -p ./kubernetes/flux/cluster -o json >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
+          {
+            echo 'images<<EOF'
+            mise exec "github:home-operations/flate@${FLATE_VERSION}" -- flate diff images -p ./kubernetes/apps -o json
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
-  pull:
+  image-pull:
     if: >-
       ${{
         needs.extract.outputs.images != '[]' &&
@@ -70,6 +83,8 @@ jobs:
     needs: extract
     name: Image Pull - Pull Images
     runs-on: ${{ github.event.repository.name }}-runner
+    permissions:
+      contents: read
     strategy:
       matrix:
         image: ${{ fromJSON(needs.extract.outputs.images) }}
@@ -77,29 +92,51 @@ jobs:
       fail-fast: false
     steps:
       - name: Setup Mise
-        uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
+        uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
         with:
           cache: false
-          tool_versions: |
-            talosctl latest
+          install: false
 
       - name: Pull Image
         env:
           IMAGE: ${{ matrix.image }}
-        run: talosctl --nodes "$NODE" image pull "$IMAGE"
+          MISE_GITHUB_TOKEN: ${{ github.token }}
+        run: mise exec "talosctl@${TALOS_VERSION}" -- talosctl --nodes "$NODE" image pull "$IMAGE"
 
-  success:
+  zizmor:
+    name: Zizmor
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        with:
+          advanced-security: false
+          annotations: true
+
+  status:
     if: ${{ !cancelled() }}
-    needs: pull
-    name: Image Pull - Success
-    runs-on: ubuntu-latest
+    name: Build Success
+    needs:
+      - filter
+      - extract
+      - image-pull
+      - zizmor
+    runs-on: ubuntu-26.04
+    permissions: {}
     steps:
       - name: Any jobs failed?
-        if: ${{ contains(needs.*.result, 'failure') }}
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: exit 1
 
       - name: All jobs passed or skipped?
-        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        if: ${{ !(contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
         env:
           RESULTS: ${{ toJSON(needs.*.result) }}
         run: echo "All jobs passed or skipped" && echo "$RESULTS"
