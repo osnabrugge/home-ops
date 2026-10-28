@@ -24,7 +24,7 @@ spec:
       enabled: true
     cgroup:
       autoMount:
-        enabled: false
+        enabled: true # Preserve the existing init-container contract during upgrades.
       hostRoot: /sys/fs/cgroup
     cni:
       exclusive: false
