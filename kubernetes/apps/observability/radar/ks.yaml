@@ -44,6 +44,8 @@ kind: Kustomization
 metadata:
   name: radar
 spec:
+  dependsOn:
+    - name: radar-identity
   interval: 1h
   path: ./kubernetes/apps/observability/radar/app
   prune: true

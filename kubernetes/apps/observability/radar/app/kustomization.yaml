@@ -9,3 +9,5 @@ resources:
   - ./ocharted-pull-externalsecret.yaml
   - ./ocirepository.yaml
   - ./operational-rbac.yaml
+  - ./externalsecret.yaml
+  - ./networkpolicy.yaml

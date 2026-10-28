@@ -15,8 +15,17 @@ spec:
       pullPolicy: IfNotPresent
     allowedHosts:
       - radar.homeops.ca
+    trustedOrigins:
+      - https://radar.homeops.ca
     auth:
-      mode: none
+      mode: proxy
+      existingSecret: radar-auth-secret
+      proxy:
+        userHeader: X-Authentik-Username
+        # App access is restricted by Authentik; its slug is a stable role claim.
+        # Directory groups use pipes, while Radar's proxy parser expects commas.
+        groupsHeader: X-Authentik-Meta-App
+        logoutURL: https://radar.homeops.ca/outpost.goauthentik.io/sign_out
     crdGroups:
       all: true # get/list/watch on every API group and resource, including Secrets
     mcp:
