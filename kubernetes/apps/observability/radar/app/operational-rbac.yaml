@@ -4,7 +4,22 @@ kind: ClusterRole
 metadata:
   name: radar-workload-operator
 rules:
-  - apiGroups: ["*"]
+  - apiGroups: [""]
+    resources: ["namespaces", "nodes", "persistentvolumes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups:
+      - admissionregistration.k8s.io
+      - apiextensions.k8s.io
+      - apiregistration.k8s.io
+      - cert-manager.io
+      - cilium.io
+      - gateway.networking.k8s.io
+      - node.k8s.io
+      - rbac.authorization.k8s.io
+      - resource.k8s.io
+      - scheduling.k8s.io
+      - snapshot.storage.k8s.io
+      - storage.k8s.io
     resources: ["*"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["apps"]
@@ -33,6 +48,19 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: radar-workload-operator
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: radar
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: radar-workload-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
 subjects:
   - apiGroup: rbac.authorization.k8s.io
     kind: Group

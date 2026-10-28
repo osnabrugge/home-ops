@@ -526,6 +526,11 @@ Manual remediation path:
 
 ### Radar ingress hostname and authentication
 
+Radar now uses the app-owned Authentik proxy application and native proxy-mode
+authentication. The internal HTTPRoute sends traffic to Authentik; a NetworkPolicy
+allows only the outpost and Prometheus to reach Radar's backend. Only
+`/api/health` is anonymous.
+
 Radar's unauthenticated shared listener checks the request hostname. Its
 `allowedHosts` Helm value is a list of hostnames, not client IP ranges:
 
@@ -543,12 +548,28 @@ After reconciliation, verify both the UI and a fresh MCP initialization. A
 client that cached the earlier initialization failure may need reconnecting.
 The hostname allow-list is not authentication.
 
-The Authentik application operator is available, but enabling Radar's native
-OIDC also requires explicit Kubernetes user/group RBAC bindings and an
-authenticated MCP client path. Radar 1.18.3's standalone authentication
-middleware accepts session cookies or trusted proxy identity, not generic
-OIDC bearer tokens. Do not switch `auth.mode` and silently break existing MCP
-clients, grant `cluster-admin` automatically, or leave an anonymous MCP bypass.
+The operator-managed application admits the existing `authentik Admins` group
+and the native `radar-mcp` service principal. Radar reads the username from
+`X-Authentik-Username` and the app-scoped role from `X-Authentik-Meta-App`.
+Using the app slug avoids treating Authentik's pipe-separated directory groups
+as Radar's comma-separated group list. The corresponding Kubernetes group is
+`radar`, bound to workload operations and read-only views, not `cluster-admin`.
+It can restart/scale workloads and manage Jobs, but cannot delete PVCs or write
+RBAC. `trustedOrigins` retains browser-origin validation through the proxy.
+
+The machine principal has no Authentik groups, roles or administrative API
+credential. Its app password and Radar's persistent cookie-signing secret are
+stored in Key Vault `radar-auth`; ESO delivers only the signing key to Radar.
+MCP clients use the outpost's supported HTTP Basic app-password authentication,
+not an Authentik API token or anonymous alternate route. Keep the header only in
+private, ignored client configuration; never commit it. Reconnect the MCP
+client after changing its authentication configuration.
+
+For validation, use a disposable Deployment: perform the restart through the
+authenticated Radar API/MCP, verify the restart annotation and Ready replica,
+then remove only that fixture. Also verify anonymous MCP/API requests redirect
+to authentication, invalid credentials fail, and an untrusted pod cannot reach
+the backend with forged identity headers.
 
 ### Cluster resource policy audit
 
@@ -557,6 +578,11 @@ requests in `kubectl describe node <name>` with `kubectl top node <name>`.
 A node can have idle CPU and free memory but insufficient unreserved CPU for
 another pod. Check the requested resource and workload placement before
 reducing requests or moving stateful Ceph workloads.
+
+CephFS controller placement is configured through the CSI Driver's supported
+node-affinity values, not by patching its generated Deployments. Prefer workers
+while retaining both replicas, hostname anti-affinity and existing resource
+requests. Verify actual placement and scheduling headroom after reconciliation.
 
 Use this to find containers missing CPU/memory requests/limits:
 
@@ -574,6 +600,28 @@ kubectl get pods -A -o json \
       select(($c.resources.requests.cpu // "")=="" or ($c.resources.requests.memory // "")=="" or ($c.resources.limits.cpu // "")=="" or ($c.resources.limits.memory // "")=="") |
       [$p.metadata.namespace, $p.metadata.name, $c.name] | @tsv' | head -80
 ```
+
+### Download retention and seeding recovery
+
+Arr import completion and tracker seeding completion are different lifecycles.
+Completed torrents can correctly disappear from an Arr queue while still
+needing to seed. Cross-seeds can share one physical download path, so deleting
+one torrent's files can break another torrent's tracker obligations.
+
+Radarr, Sonarr and Lidarr therefore leave completed torrents in qBittorrent;
+`removeCompletedDownloads` is disabled. Cleanrr's `remove_from_client` remains
+false. Do not enable file cleanup merely because an Arr queue is empty.
+TorrentDay retains its configured seed-time target without a ratio-only early
+stop. Agregarr syncs only the owner's configured watchlist, not other users'
+watchlists.
+
+Recover missing payloads only from recorded import paths with matching file
+sizes. Create non-overwriting hardlinks on the existing data filesystem; never
+silently fall back to copying, moving, deleting, or redownloading media. Stop
+only the already-broken torrent, force a hash check, and resume only after the
+entire torrent verifies complete. Incomplete or unavailable data stays stopped
+for an explicit recovery decision. qBittorrent 5.3 share-limit API calls require
+both `shareLimitAction` and `shareLimitsMode` as well as the numeric limits.
 
 ---
 
