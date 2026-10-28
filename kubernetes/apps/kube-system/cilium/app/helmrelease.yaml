@@ -5,6 +5,7 @@ kind: HelmRelease
 metadata:
   name: cilium
 spec:
+  suspend: true
   chartRef:
     kind: OCIRepository
     name: cilium
@@ -15,14 +16,14 @@ spec:
       enabled: true
       bbr: true
     bpf:
-      datapathMode: veth # Requires a separately approved, drained-node migration from netkit.
+      datapathMode: netkit # Existing nodes require a drained-node migration to change device mode.
       masquerade: true
       preallocateMaps: true
     bpfClockProbe: true
     bgpControlPlane:
       enabled: true
     cgroup:
-      automount:
+      autoMount:
         enabled: false
       hostRoot: /sys/fs/cgroup
     cni:
@@ -65,23 +66,18 @@ spec:
     k8sServicePort: 7445
     kubeProxyReplacement: true
     kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
-    l2announcements:
-      enabled: false
     loadBalancer:
       algorithm: maglev
       mode: dsr
+      serviceTopology: true # spegel-registry relies on trafficDistribution: PreferSameNode
     localRedirectPolicies:
       enabled: true
     operator:
       dashboards:
         enabled: true
-        annotations:
-          grafana_folder: Cilium
       prometheus:
-        enabled: true
         serviceMonitor:
           enabled: true
-      replicas: 2
       rollOutPods: true
     pmtuDiscovery:
       enabled: true
@@ -91,6 +87,9 @@ spec:
         enabled: true
         trustCRDsExist: true
     rollOutCiliumPods: true
+    updateStrategy:
+      type: OnDelete
+      rollingUpdate: null
     routingMode: native
     securityContext:
       capabilities:
