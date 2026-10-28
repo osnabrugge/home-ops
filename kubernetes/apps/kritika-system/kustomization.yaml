@@ -9,4 +9,3 @@ components:
 
 resources:
   - ./namespace.yaml
-  - ./kritika/ks.yaml

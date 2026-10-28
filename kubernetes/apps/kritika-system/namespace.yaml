@@ -3,5 +3,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: _
+  # Retain the existing PVC without activating the separately held application.
+  labels:
+    homeops.ca/lifecycle: retained-storage
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
