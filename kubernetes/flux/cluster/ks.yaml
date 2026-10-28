@@ -6,14 +6,16 @@ metadata:
   name: cluster-apps
   namespace: flux-system
 spec:
-  deletionPolicy: WaitForTermination
+  # Transfer fence: the legacy owner must not prune resources adopted by flux-system.
+  deletionPolicy: Orphan
   decryption:
     provider: sops
     secretRef:
       name: sops-age
   interval: 1h
   path: ./kubernetes/apps
-  prune: true
+  prune: false
+  suspend: true
   sourceRef:
     kind: GitRepository
     name: flux-system
