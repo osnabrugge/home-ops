@@ -615,6 +615,12 @@ TorrentDay retains its configured seed-time target without a ratio-only early
 stop. Agregarr syncs only the owner's configured watchlist, not other users'
 watchlists.
 
+The unmanaged legacy Radarr `Any` profile does not automatically upgrade
+existing files. Movie monitoring, missing-movie intake and the Recyclarr-managed
+quality profiles retain their existing behavior. Recovered torrents are held for
+reseeding instead of trusting historical local seed counters while tracker
+obligations are being checked.
+
 Recover missing payloads only from recorded import paths with matching file
 sizes. Create non-overwriting hardlinks on the existing data filesystem; never
 silently fall back to copying, moving, deleting, or redownloading media. Stop
