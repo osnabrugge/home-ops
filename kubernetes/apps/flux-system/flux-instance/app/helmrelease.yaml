@@ -25,8 +25,11 @@ spec:
         interval: 1h
       kustomize:
         patches:
-          - # Add Kustomization defaults for all child Kustomizations
+          - # Preserve the application-root contract and child Kustomization defaults
             patch: |-
+              - op: add
+                path: /spec/interval
+                value: 1h
               - op: add
                 path: /spec/decryption
                 value:

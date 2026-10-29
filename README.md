@@ -44,39 +44,40 @@ Container images are **not** built here. This repo holds manifests only — it c
 
 ## ⛵ Kubernetes
 
-My cluster runs [Talos Linux](https://talos.dev) on 6 Lenovo ThinkCentre M920q nodes — a semi-hyper-converged setup where workloads and block storage share the same hardware, with a Synology NAS providing NFS shares and backups.
+My cluster runs [Talos Linux](https://talos.dev) on 6 Lenovo ThinkCentre M920q nodes — a semi-hyper-converged setup where workloads and block storage share the same hardware. NAS02 provides NFS shares; opted-in PVCs are backed up through Kopiur and Kopia to Garage S3 on NAS01.
 
 ### Core Components
 
-| Component           | Tool                                                                                                                        | Purpose                                                   |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| **CNI**             | [Cilium](https://cilium.io/)                                                                                                | eBPF networking, BGP LoadBalancer, kube-proxy replacement |
-| **Ingress**         | [Envoy Gateway](https://gateway.envoyproxy.io/)                                                                             | L7 ingress (internal + external gateways)                 |
-| **DNS**             | [CoreDNS](https://coredns.io/) + [Unbound](https://unbound.net/)                                                            | Cluster DNS + recursive resolver                          |
-| **Certificates**    | [cert-manager](https://cert-manager.io/)                                                                                    | Automated TLS from Let's Encrypt                          |
-| **Secrets**         | [External Secrets](https://external-secrets.io/) + [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault/) | Secret management via ClusterSecretStore                  |
-| **Storage**         | [Rook-Ceph](https://rook.io/) + [OpenEBS](https://openebs.io/)                                                              | Distributed block (Ceph) + local hostpath (OpenEBS)       |
-| **Backups**         | [VolSync](https://github.com/backube/volsync) + [Kopia](https://kopia.io/)                                                  | PVC backup/restore to NFS                                 |
-| **GitOps**          | [Flux](https://fluxcd.io/) via [Flux Operator](https://github.com/controlplaneio-fluxcd/flux-operator)                      | Cluster reconciliation from this repo                     |
-| **Registry**        | [Spegel](https://github.com/spegel-org/spegel)                                                                              | Stateless cluster-local OCI mirror                        |
-| **External Access** | [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)                         | `*.homeops.ca` via Argo Tunnel                            |
-| **Monitoring**      | [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts) + [Grafana](https://grafana.com/)              | Metrics, alerts, dashboards                               |
-| **CI Runners**      | [Actions Runner Controller](https://github.com/actions/actions-runner-controller)                                           | Self-hosted GitHub Actions                                |
+| Component           | Tool                                                                                                                        | Purpose                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **CNI**             | [Cilium](https://cilium.io/)                                                                                                | eBPF networking, BGP LoadBalancer, kube-proxy replacement      |
+| **Ingress**         | [Envoy Gateway](https://gateway.envoyproxy.io/)                                                                             | L7 ingress (internal + external gateways)                      |
+| **DNS**             | [CoreDNS](https://coredns.io/) + [Unbound](https://unbound.net/)                                                            | Cluster DNS + recursive resolver                               |
+| **Certificates**    | [cert-manager](https://cert-manager.io/)                                                                                    | Automated TLS from Let's Encrypt                               |
+| **Secrets**         | [External Secrets](https://external-secrets.io/) + [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault/) | Secret management via ClusterSecretStore                       |
+| **Storage**         | [Rook-Ceph](https://rook.io/) + [OpenEBS](https://openebs.io/)                                                              | Distributed block (Ceph) + local hostpath (OpenEBS)            |
+| **Backups**         | [Kopiur](kubernetes/apps/kopiur-system/kopiur) + [Kopia](https://kopia.io/)                                                 | PVC snapshots and restores through Garage S3 (`kopiur` bucket) |
+| **GitOps**          | [Flux](https://fluxcd.io/) via [Flux Operator](https://github.com/controlplaneio-fluxcd/flux-operator)                      | Cluster reconciliation from this repo                          |
+| **Registry**        | [Spegel](https://github.com/spegel-org/spegel)                                                                              | Peer-to-peer reuse of node/containerd image caches             |
+| **External Access** | [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)                         | `*.homeops.ca` via Argo Tunnel                                 |
+| **Monitoring**      | [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts) + [Grafana](https://grafana.com/)              | Metrics, alerts, dashboards                                    |
+| **CI Runners**      | [Actions Runner Controller](https://github.com/actions/actions-runner-controller)                                           | Self-hosted GitHub Actions                                     |
 
 ### GitOps
 
-[Flux](https://github.com/fluxcd/flux2) watches the `kubernetes/apps` directory and reconciles the cluster state to match this repository. [Renovate](https://github.com/renovatebot/renovate) creates PRs for dependency updates automatically.
+[Flux](https://github.com/fluxcd/flux2) reconciles `kubernetes/apps` directly through the `flux-system` Kustomization. Namespace builds define app Kustomizations, which own their application resources. The [Flux Instance](kubernetes/apps/flux-system/flux-instance/app/helmrelease.yaml) preserves SOPS decryption and shared Helm remediation defaults; the former `cluster-apps` owner has been retired. [Renovate](https://github.com/renovatebot/renovate) creates PRs for dependency updates automatically.
+
+Ownership changes require a verified prune fence and inventory handoff before removing the old owner. Unapproved applications must stay off main or explicitly suspended: Kritika/gVisor source is held on [`hold/kritika-gvisor-awaiting-credentials-node-approval`](https://github.com/osnabrugge/home-ops/tree/hold/kritika-gvisor-awaiting-credentials-node-approval), with all three Kustomizations suspended. Its namespace remains on main only to preserve the existing PVC; no application or sandbox runtime is active.
 
 ```
 📁 kubernetes
-├── 📁 apps           # Application manifests (HelmReleases, Kustomizations)
-├── 📁 components     # Reusable kustomize components (alerts, volsync, nfs-scaler)
-└── 📁 flux           # Flux system configuration
+├── 📁 apps           # Namespace builds, app resources and Flux Operator configuration
+└── 📁 components     # Reusable components (alerts, kopiur, zeroscaler)
 ```
 
 ### Bootstrap Chain
 
-The [bootstrap helmfile](bootstrap/helmfile.d/01-apps.yaml) installs the critical-path dependencies in order:
+The [bootstrap helmfile](bootstrap/helmfile/apps.yaml) installs the critical-path dependencies in order:
 
 ```
 Cilium → CoreDNS → Spegel → Cert-Manager → External-Secrets + AzureKV → Flux Operator → Flux Instance
