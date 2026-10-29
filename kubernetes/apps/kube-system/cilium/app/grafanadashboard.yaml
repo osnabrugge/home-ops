@@ -1,16 +1,4 @@
 ---
-# yaml-language-server: $schema=https://k8s-schemas.bjw-s.dev/grafana.integreatly.org/grafanafolder_v1beta1.json
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaFolder
-metadata:
-  name: cilium
-spec:
-  allowCrossNamespaceImport: true
-  instanceSelector:
-    matchLabels:
-      dashboards: grafana
-  title: Cilium
----
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafanadashboard_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
@@ -24,7 +12,6 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
-  folderRef: cilium
   configMapRef:
     name: cilium-dashboard
     key: cilium-dashboard.json
@@ -42,7 +29,6 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
-  folderRef: cilium
   configMapRef:
     name: cilium-operator-dashboard
     key: cilium-operator-dashboard.json
