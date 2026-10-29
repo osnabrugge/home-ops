@@ -18,8 +18,9 @@ spec:
       value: http://sonarr.default
     - name: RADARR_URL
       value: http://radarr.default
+    # Match Prowlarr's existing AllowedHosts without widening its whitelist.
     - name: PROWLARR_URL
-      value: http://prowlarr.default
+      value: http://prowlarr.default.svc.cluster.local
   secrets:
     - name: sonarr-mcp-secret
       key: SONARR_API_KEY
