@@ -6,6 +6,7 @@ metadata:
   name: radar
   annotations:
     gatus.home-operations.com/endpoint: |
+      guarded: false
       url: https://radar.homeops.ca/api/health
       conditions:
         - "[STATUS] == 200"
