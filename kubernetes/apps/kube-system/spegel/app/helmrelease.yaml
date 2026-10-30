@@ -14,3 +14,6 @@ spec:
       enabled: true
     spegel:
       containerdRegistryConfigPath: /etc/cri/conf.d/hosts
+      mirroredRegistries:
+        - _default
+        - http://nas01.in.homeops.ca:5000
