@@ -148,11 +148,16 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            # gatus (observability ns) can't TCP the controller cross-namespace
-            # (NetworkPolicy); retain an explicit DNS-resolve check.
-            guarded: true
+            # Keep DNS-only monitoring; backend access is restricted cross-namespace.
+            # Guarded probes use public DNS, not this private split-horizon zone.
+            guarded: false
+            url: kube-dns.kube-system.svc.cluster.local
+            dns:
+              query-name: omada-controller.homeops.ca
+              query-type: A
             conditions:
-              - "len([BODY]) > 0"
+              - "[DNS_RCODE] == NOERROR"
+              - "[BODY] == 192.168.69.121"
         hostnames:
           - "{{ .Release.Name }}.homeops.ca"
         parentRefs:
