@@ -22,7 +22,6 @@ spec:
           conditions: ["[STATUS] == 200"]
       hostnames:
         - "{{ .Release.Name }}.homeops.ca"
-        - external.homeops.ca
       parentRefs:
         - name: envoy-external
           namespace: network
