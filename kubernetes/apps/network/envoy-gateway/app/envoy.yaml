@@ -21,8 +21,6 @@ spec:
               cpu: 100m
             limits:
               memory: 2Gi
-      envoyService:
-        externalTrafficPolicy: Local
   shutdown:
     drainTimeout: 180s
   telemetry:
@@ -50,9 +48,6 @@ kind: Gateway
 metadata:
   name: envoy-external
   annotations:
-    # external-dns v0.22 dropped the `alpha` prefix for these. With the old key the
-    # target is silently ignored, external-dns falls back to the Gateway's LB IP,
-    # and Cloudflare rejects every proxied record with 9003 (RFC1918 target).
     external-dns.kubernetes.io/target: &hostname external.homeops.ca
     gatus.home-operations.com/endpoint: |-
       client:
@@ -68,9 +63,6 @@ spec:
     - name: http
       protocol: HTTP
       port: 80
-      allowedRoutes:
-        namespaces:
-          from: Same
     - name: https
       protocol: HTTPS
       port: 443
@@ -79,8 +71,7 @@ spec:
           from: All
       tls:
         certificateRefs:
-          - kind: Secret
-            name: homeops-ca-tls
+          - name: homeops-ca-tls
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
 apiVersion: gateway.networking.k8s.io/v1
@@ -88,18 +79,10 @@ kind: Gateway
 metadata:
   name: envoy-internal
   annotations:
-    # A-record target (not CNAME): OPNsense Unbound won't chase CNAME->internal.homeops.ca for strict clients.
-    external-dns.kubernetes.io/target: 192.168.69.121
+    external-dns.kubernetes.io/target: &hostname internal.homeops.ca
     gatus.home-operations.com/endpoint: |-
       group: internal
-      # No guarded probe here. It queries 1.1.1.1 and requires an EMPTY answer to
-      # assert the name isn't publicly resolvable, but outbound :53 is redirected
-      # to unbound, so the query never reaches Cloudflare and comes back with
-      # 192.168.69.121 - the 14 bytes in "len([BODY]) (14) == 0". It can never
-      # pass. The sidecar reaches these routes fine (a pod gets 200 from
-      # https://sonarr.homeops.ca), so probe them over HTTPS instead.
-      conditions:
-        - "[STATUS] < 400"
+      guarded: true
       ui:
         hide-hostname: true
         hide-url: true
@@ -107,15 +90,12 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      external-dns.kubernetes.io/hostname: internal.homeops.ca
+      external-dns.kubernetes.io/hostname: *hostname
       lbipam.cilium.io/ips: 192.168.69.121
   listeners:
     - name: http
       protocol: HTTP
       port: 80
-      allowedRoutes:
-        namespaces:
-          from: Same
     - name: https
       protocol: HTTPS
       port: 443
@@ -124,8 +104,7 @@ spec:
           from: All
       tls:
         certificateRefs:
-          - kind: Secret
-            name: homeops-ca-tls
+          - name: homeops-ca-tls
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -141,17 +120,20 @@ spec:
     - type: Gzip
       gzip: {}
   retry:
-    numRetries: 2
     retryOn:
       triggers:
-        - reset
+        - reset-before-request
   targetSelectors:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-  tcpKeepalive: {}
+    - kind: Gateway
+  tcpKeepalive:
+    idleTime: 60s
+    interval: 10s
+    probes: 3
   timeout:
     http:
+      connectionIdleTimeout: 4s
       requestTimeout: 0s
+      streamIdleTimeout: 1h
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -167,11 +149,15 @@ spec:
     onInvalidMessage: TerminateStream
   http3: {}
   targetSelectors:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-  tcpKeepalive: {}
+    - kind: Gateway
+  tcpKeepalive:
+    idleTime: 60s
+    interval: 10s
+    probes: 3
+  timeout:
+    http:
+      idleTimeout: 600s
   tls:
-    minVersion: "1.2"
     alpnProtocols:
       - h2
       - http/1.1
