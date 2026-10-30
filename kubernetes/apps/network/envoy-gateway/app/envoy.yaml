@@ -79,10 +79,13 @@ kind: Gateway
 metadata:
   name: envoy-internal
   annotations:
-    external-dns.kubernetes.io/target: &hostname internal.homeops.ca
+    # Unbound local-data returns the CNAME without resolving its target's A record.
+    external-dns.kubernetes.io/target: &internalAddress 192.168.69.121
     gatus.home-operations.com/endpoint: |-
       group: internal
-      guarded: true
+      guarded: false
+      conditions:
+        - "[STATUS] < 400"
       ui:
         hide-hostname: true
         hide-url: true
@@ -90,8 +93,8 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      external-dns.kubernetes.io/hostname: *hostname
-      lbipam.cilium.io/ips: 192.168.69.121
+      external-dns.kubernetes.io/hostname: internal.homeops.ca
+      lbipam.cilium.io/ips: *internalAddress
   listeners:
     - name: http
       protocol: HTTP

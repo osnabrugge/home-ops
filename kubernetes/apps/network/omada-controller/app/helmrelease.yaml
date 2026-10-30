@@ -149,7 +149,8 @@ spec:
         annotations:
           gatus.home-operations.com/endpoint: |-
             # gatus (observability ns) can't TCP the controller cross-namespace
-            # (NetworkPolicy); fall back to the inherited guarded DNS-resolve check.
+            # (NetworkPolicy); retain an explicit DNS-resolve check.
+            guarded: true
             conditions:
               - "len([BODY]) > 0"
         hostnames:
