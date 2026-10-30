@@ -456,6 +456,40 @@ If sub-interfaces are missing after applying config, re-render and re-apply:
 just talos render-config k8s01 | talosctl apply-config --nodes 192.168.42.51 --file /dev/stdin
 ```
 
+### NVMe-backed OSD reports zero capacity or no BlueStore label
+
+A namespace reporting zero bytes, a dead NVMe controller, or a controller absent
+from PCI enumeration is a hardware-access problem first. `No valid bdev label`
+against a zero-size device does not prove that the original BlueStore metadata
+was erased. Do not purge/recreate the OSD, rewrite labels, or delete PVCs/PVs as
+a shortcut.
+
+1. Verify the remaining Ceph placement groups are active and clean and monitor
+   quorum is healthy. Record the original OSD UUID, cluster FSID, replica count,
+   and persistent PVC identities; identify the boot disk separately.
+2. Wait for in-flight Kopiur backups to reach **Succeeded**, not merely
+   **SourceStaged**. A staging clone can have node affinity, so cordoning its
+   node while its mover is pending can fail the backup without losing the
+   original data PVC.
+3. Keep controller-reset attempts bounded. If supported resets cannot recover
+   the device, plan a genuine AC removal using the verified, dedicated outlet.
+   `talosctl reboot --mode=powercycle` bypasses kexec but is still a firmware
+   reboot, not proof that the NVMe power rails lost power.
+4. Hold only the failed OSD, drain its node through normal evictions/PDBs, and
+   verify application volumes are unmounted. Follow the
+   [PDU safety checks](./OOB-MANAGEMENT.md#safety-features): BIOS Last State and an
+   unavailable WoL link require quiescent, powered-on firmware staging rather
+   than assuming a powered-off node will boot when its outlet turns on. Record
+   the single power request before sending it; never blindly repeat a timeout.
+5. After power returns, discover the actual device again. Require full capacity,
+   native SMART health, and read-only verification of the **original** BlueStore
+   OSD UUID and cluster FSID before restoring its replicas and uncordoning.
+6. Require all configured OSDs up/in, all placement groups active+clean, sustained
+   pod readiness, and no new controller timeout/reset errors. Re-run any
+   maintenance-interrupted backups and verify their successful snapshot IDs.
+   Preserve crash evidence; acknowledge only the exact resolved crash after
+   recovery is stable, not all crashes to make health appear green.
+
 ### CephNodeNetworkBondDegraded on k8s06 / `enp1s0f1`
 
 Known-good desired state in Git:

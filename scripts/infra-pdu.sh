@@ -66,8 +66,8 @@ declare -A NODE_PDU_NAME=(
 
 _snmp_set() {
   local ip="$1" outlet="$2" value="$3"
-  snmpset -v 2c -c "$PDU_COMMUNITY" -r 2 -t 3 \
-    "$ip" "${SNMP_OID_BASE}.${outlet}" integer "$value" >/dev/null 2>&1
+  snmpset -v 2c -c "$PDU_COMMUNITY" -r 0 -t 3 \
+    "$ip" "${SNMP_OID_BASE}.${outlet}" integer "$value" >/dev/null
 }
 
 _snmp_get() {

@@ -1,7 +1,7 @@
 # Out-of-Band Management Guide
 
 > **Scope:** Consolidated access and monitoring for all out-of-band infrastructure management systems.
-> **Updated:** 2026-04-30
+> **Updated:** 2026-10-30
 
 ---
 
@@ -53,6 +53,7 @@ This homelab has a comprehensive out-of-band (OOB) management infrastructure tha
 **Purpose:** Remote keyboard/video/mouse access to any server
 
 #### Features
+
 - **Remote KVM:** Full keyboard/video/mouse control over IP
 - **Mass Storage:** Virtual USB drive mounting for ISO/recovery
 - **GPIO Control:** Wake-on-LAN via GPIO outputs
@@ -62,6 +63,7 @@ This homelab has a comprehensive out-of-band (OOB) management infrastructure tha
 #### Access Methods
 
 ##### Web UI
+
 ```bash
 # Direct browser access
 https://kvm01.in.homeops.ca
@@ -70,6 +72,7 @@ https://kvm01.in.homeops.ca
 ```
 
 ##### CLI (via scripts)
+
 ```bash
 # Switch KVM to a specific node
 just infra kvm-switch k8s01
@@ -89,23 +92,24 @@ just infra console k8s03
 
 #### Node Mapping (TESmart Ports)
 
-| Port | Node | Type |
-|------|------|------|
-| 0 | nas01 | NAS |
-| 1 | k8s01 | Control Plane |
-| 2 | k8s02 | Control Plane |
-| 3 | k8s03 | Control Plane |
-| 4 | k8s04 | Worker |
-| 5 | k8s05 | Worker |
-| 6 | k8s06 | Worker |
-| 7 | pi01 | Raspberry Pi |
-| 8 | pi02 | ConsolePi |
-| 9 | pi03 | ConsolePi |
-| 10 | pi04 | Raspberry Pi |
-| 11 | pve01 | Proxmox |
-| 12 | fw01 | OPNsense |
+| Port | Node  | Type          |
+| ---- | ----- | ------------- |
+| 0    | nas01 | NAS           |
+| 1    | k8s01 | Control Plane |
+| 2    | k8s02 | Control Plane |
+| 3    | k8s03 | Control Plane |
+| 4    | k8s04 | Worker        |
+| 5    | k8s05 | Worker        |
+| 6    | k8s06 | Worker        |
+| 7    | pi01  | Raspberry Pi  |
+| 8    | pi02  | ConsolePi     |
+| 9    | pi03  | ConsolePi     |
+| 10   | pi04  | Raspberry Pi  |
+| 11   | pve01 | Proxmox       |
+| 12   | fw01  | OPNsense      |
 
 #### Scripts
+
 - **Main:** `/home/runner/work/home-ops/home-ops/scripts/infra-pikvm.sh`
 - **Justfile:** `just infra kvm-*` recipes
 - **API:** HTTPS with X-KVMD-User and X-KVMD-Passwd headers
@@ -115,6 +119,7 @@ just infra console k8s03
 ### 2. PDUs (Power Distribution Units)
 
 **Devices:**
+
 - **pdu01:** 192.168.99.15 (CyberPower PDU41001)
 - **pdu02:** 192.168.99.16 (CyberPower PDU41001)
 
@@ -123,27 +128,30 @@ just infra console k8s03
 #### Outlet Mapping
 
 **PDU01 (192.168.99.15):**
-| Outlet | Device | Purpose |
-|--------|--------|---------|
-| 1 | k8s01 | Control Plane Node |
-| 2 | k8s02 | Control Plane Node |
-| 3 | k8s03 | Control Plane Node |
-| 4 | nas01 | NAS (PSU1) |
-| 5 | core01-u1 | Core Switch U1 |
-| 6 | fw01 | OPNsense Firewall |
+
+| Outlet | Device    | Purpose            |
+| ------ | --------- | ------------------ |
+| 1      | k8s01     | Control Plane Node |
+| 2      | k8s02     | Control Plane Node |
+| 3      | k8s03     | Control Plane Node |
+| 4      | nas01     | NAS (PSU1)         |
+| 5      | core01-u1 | Core Switch U1     |
+| 6      | fw01      | OPNsense Firewall  |
 
 **PDU02 (192.168.99.16):**
-| Outlet | Device | Purpose |
-|--------|--------|---------|
-| 1 | k8s04 | Worker Node |
-| 2 | k8s05 | Worker Node |
-| 3 | k8s06 | Worker Node |
-| 4 | nas01-psu2 | NAS (PSU2) |
-| 5 | core01-u2 | Core Switch U2 |
+
+| Outlet | Device     | Purpose        |
+| ------ | ---------- | -------------- |
+| 1      | k8s04      | Worker Node    |
+| 2      | k8s05      | Worker Node    |
+| 3      | k8s06      | Worker Node    |
+| 4      | nas01-psu2 | NAS (PSU2)     |
+| 5      | core01-u2  | Core Switch U2 |
 
 #### Access Methods
 
 ##### CLI (Recommended)
+
 ```bash
 # Power on a node
 just infra pdu-on k8s05
@@ -165,41 +173,65 @@ just infra hard-reboot k8s04
 ```
 
 ##### SNMP Direct
+
 ```bash
+# Load the configured community securely; do not put a literal secret in history.
+: "${PDU_COMMUNITY:?Load the configured PDU community first}"
+
 # Check outlet status
-snmpget -v 2c -c private 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1
+snmpget -v 2c -c "$PDU_COMMUNITY" 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1
 
 # Power on outlet 1
-snmpset -v 2c -c private 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1 integer 1
+snmpset -v 2c -c "$PDU_COMMUNITY" -r 0 -t 3 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1 integer 1
 
 # Power off outlet 1
-snmpset -v 2c -c private 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1 integer 2
+snmpset -v 2c -c "$PDU_COMMUNITY" -r 0 -t 3 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1 integer 2
 
 # Reboot outlet 1
-snmpset -v 2c -c private 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1 integer 3
+snmpset -v 2c -c "$PDU_COMMUNITY" -r 0 -t 3 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1 integer 3
 ```
 
 **SNMP Values:**
+
 - `1` = ON
 - `2` = OFF
 - `3` = REBOOT
 - `4` = CANCEL
 
 #### Scripts
+
 - **Main:** `/home/runner/work/home-ops/home-ops/scripts/infra-pdu.sh`
 - **Justfile:** `just infra pdu-*` recipes
 - **SNMP OID:** `.1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.{outlet}`
 
 #### Safety Features
+
 - Confirmation prompts for power-off/reboot
 - Visual warnings for destructive operations
 - `gum` integration for better UX (falls back to read)
+- No automatic retries of power writes; errors remain visible. A lost response
+  can mean the command succeeded, so inspect outlet state and node boot identity
+  before issuing another command.
+
+An ON command restores outlet power; it does not press the computer's ATX power
+button. Verify the actual BIOS **After Power Loss** setting and a working wake-up
+path before shutting a node down. A configured WoL channel alone is insufficient:
+its MAC, physical link, and firmware wake support must match the target.
+
+With **Last State**, a gracefully powered-off machine can remain off when AC
+returns. For a required cold cycle without a separate power-on path, first drain
+workloads normally and enter the actual firmware setup screen through a graceful
+reboot. This leaves filesystems quiescent and the machine powered on, so Last State
+can restore that state after the outlet cycle. Do not change BIOS settings or
+guess which outlet to switch; verify the exact cable/outlet in NetBox and leave
+other outlets and banks untouched.
 
 ---
 
 ### 3. UPS (Uninterruptible Power Supply)
 
 **Devices:**
+
 - **ups01:** 192.168.99.11
 - **ups02:** 192.168.99.12
 
@@ -208,22 +240,24 @@ snmpset -v 2c -c private 192.168.99.15 .1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.1 integ
 #### Monitoring
 
 ##### SNMP Metrics
+
 Monitored via SNMP Exporter in Kubernetes:
 
 ```yaml
 Targets:
-  - ups01 (192.168.99.11)
-  - ups02 (192.168.99.12)
+    - ups01 (192.168.99.11)
+    - ups02 (192.168.99.12)
 
 Key Metrics:
-  - upsBasicBatteryTimeOnBattery_seconds - Time running on battery
-  - upsAdvBattery_needsreplacing - Battery replacement flag
-  - upsAdvOutputActivePower - Current power output (watts)
-  - upsAdvBatteryCapacity - Battery charge level (%)
-  - upsAdvConfigRatedOutputPower - Max rated power
+    - upsBasicBatteryTimeOnBattery_seconds - Time running on battery
+    - upsAdvBattery_needsreplacing - Battery replacement flag
+    - upsAdvOutputActivePower - Current power output (watts)
+    - upsAdvBatteryCapacity - Battery charge level (%)
+    - upsAdvConfigRatedOutputPower - Max rated power
 ```
 
 ##### Alerts
+
 - **UPSOnBattery** (critical): UPS running on battery > 60 seconds
 - **UPSReplaceBattery** (critical): Battery needs replacement
 - **UPSUnreachable** (warning): SNMP monitoring unavailable
@@ -231,20 +265,22 @@ Key Metrics:
 - **UPSHighLoad** (warning): Load > 80% of rated capacity
 
 ##### Grafana Dashboard
+
 - **Dashboard ID:** 13524 (CyberPower UPS)
 - **URL:** https://grafana.com/api/dashboards/21605/revisions/2/download
 - **Data:** Live metrics from Prometheus
 
 ##### Power Usage Badge
+
 Current cluster power consumption is exposed via Kromgo:
 
 ```yaml
 Metric: cluster_power_usage
 Query: avg(upsAdvOutputActivePower)
 Colors:
-  - Green: 0-400w
-  - Orange: 401-750w
-  - Red: 751-9999w
+    - Green: 0-400w
+    - Orange: 401-750w
+    - Red: 751-9999w
 ```
 
 ---
@@ -252,6 +288,7 @@ Colors:
 ### 4. ConsolePi (Serial Console)
 
 **Devices:**
+
 - **pi02:** 192.168.42.22 (→ Core01-U1 serial)
 - **pi03:** 192.168.42.23 (→ Core01-U2 serial)
 
@@ -272,10 +309,12 @@ consolepi-menu
 ```
 
 #### Connected Devices
+
 - **pi02 → Core01-U1:** Primary core switch (Brocade ICX 6610-48P)
 - **pi03 → Core01-U2:** Secondary core switch (Brocade ICX 6610-48P stack member)
 
 #### Use Cases
+
 - Initial switch configuration
 - Recovery from network misconfigurations
 - Firmware updates
@@ -293,6 +332,7 @@ All OOB devices are monitored on the unified status page:
 **URL:** https://status.homeops.ca
 
 **OOB Management Group:**
+
 - PiKVM (kvm01) - HTTPS health check
 - PDU01 - TCP connect to SNMP port (161)
 - PDU02 - TCP connect to SNMP port (161)
@@ -302,6 +342,7 @@ All OOB devices are monitored on the unified status page:
 - ConsolePi (pi03) - TCP connect to SSH (22)
 
 **Check Intervals:**
+
 - PiKVM: 1 minute
 - PDUs/UPS: 2 minutes
 - ConsolePi: 2 minutes
@@ -312,21 +353,23 @@ LAN connectivity probes monitor OOB devices via ICMP:
 
 ```yaml
 Targets:
-  - kvm01.in.homeops.ca
-  - pdu01.in.homeops.ca
-  - pdu02.in.homeops.ca
-  - ups01.in.homeops.ca
-  - ups02.in.homeops.ca
+    - kvm01.in.homeops.ca
+    - pdu01.in.homeops.ca
+    - pdu02.in.homeops.ca
+    - ups01.in.homeops.ca
+    - ups02.in.homeops.ca
 ```
 
 ### Prometheus & Alertmanager
 
 **Metrics Collection:**
+
 - SNMP Exporter → PDU/UPS SNMP data
 - Blackbox Exporter → ICMP reachability
 - Gatus → HTTP/TCP endpoint health
 
 **Alert Rules:**
+
 - PDU/UPS unreachability
 - UPS battery status
 - UPS on battery power
@@ -439,13 +482,14 @@ All OOB devices reside on VLAN 99 (Management):
 **Gateway:** 192.168.99.4 (Brocade Core01)
 
 **OOB Device IPs:**
-| Device | IP | MAC |
-|--------|----|----|
-| ups01 | 192.168.99.11 | (SNMP) |
-| ups02 | 192.168.99.12 | (SNMP) |
-| pdu01 | 192.168.99.15 | (SNMP) |
-| pdu02 | 192.168.99.16 | (SNMP) |
-| kvm01 | 192.168.99.51 | (HTTPS/API) |
+
+| Device  | IP            | MAC              |
+| ------- | ------------- | ---------------- |
+| ups01   | 192.168.99.11 | (SNMP)           |
+| ups02   | 192.168.99.12 | (SNMP)           |
+| pdu01   | 192.168.99.15 | (SNMP)           |
+| pdu02   | 192.168.99.16 | (SNMP)           |
+| kvm01   | 192.168.99.51 | (HTTPS/API)      |
 | tesmart | 192.168.99.92 | (GPIO via PiKVM) |
 
 **Note:** ConsolePi devices (pi02/pi03) are on Server VLAN (192.168.42.0/24) for direct SSH access.
@@ -464,10 +508,12 @@ ups02.in.homeops.ca → 192.168.99.12
 ### Firewall Rules
 
 Management VLAN (99) is accessible from:
+
 - Server VLAN (42) - for Kubernetes SNMP monitoring
 - Workstation VLAN (10) - for admin access
 
 **fw01 (OPNsense) rules:**
+
 - Allow Server → Management (SNMP, HTTPS, SSH)
 - Allow Workstation → Management (all)
 - Deny all other inbound to Management
@@ -479,16 +525,19 @@ Management VLAN (99) is accessible from:
 ### Authentication
 
 **PiKVM:**
+
 - Username: admin
 - Password: Stored in `.private/pikvm.env` (gitignored)
 - HTTPS only (self-signed cert, `insecure: true` in Gatus)
 
 **PDUs:**
+
 - SNMP Community: Stored in `.private/cyberpower.env` or `PDU_COMMUNITY` env var
 - Default: "private" (should be changed in production)
 - SNMPv2c (plaintext - network isolation is critical)
 
 **ConsolePi:**
+
 - SSH key-based authentication
 - User: pi
 - Direct serial access (no password on serial console)
@@ -583,37 +632,42 @@ ssh -v pi@192.168.42.22
 ### Planned (Dependencies)
 
 - **#3054:** VLAN interfaces for OOB network access
-  - Add bond0.99 interfaces on Talos nodes for direct Management VLAN access
-  - Enable node-level access to PDU/UPS without routing through fw01
+    - Add bond0.99 interfaces on Talos nodes for direct Management VLAN access
+    - Enable node-level access to PDU/UPS without routing through fw01
 
 - **#3064:** Centralized authentication
-  - Integrate PiKVM with SSO (Authelia/LLDAP)
-  - Standardize credentials across all OOB devices
-  - MFA for privileged operations (power control, console access)
+    - Integrate PiKVM with SSO (Authelia/LLDAP)
+    - Standardize credentials across all OOB devices
+    - MFA for privileged operations (power control, console access)
 
 ### Under Consideration
 
 **NUT (Network UPS Tools) Migration:**
+
 - Move UPS monitoring from SNMP Exporter to dedicated NUT server
 - Run `nut-server` in Kubernetes (DaemonSet or Deployment)
 - Encrypted UPS protocol instead of SNMP
 - Automatic shutdown orchestration on critical battery
 
 **PDU Monitoring Enhancement:**
+
 - Per-outlet power monitoring (if PDUs support it)
 - Outlet-level alerts (individual outlet failures)
 - Power usage trending per device
 
 **Serial Console Aggregation:**
+
 - Consolidate ConsolePi functionality into single device or cluster-based solution
 - Serial-over-IP for all critical infrastructure (switches, firewall, NAS)
 
 **Automated Recovery Workflows:**
+
 - Health check → Auto-remediation via PDU reboot
 - Integration with Alertmanager for power cycling failed nodes
 - Safe guards: backoff, max retries, manual approval gates
 
 **Web Dashboard:**
+
 - Unified web UI for all OOB operations (KVM, power, serial)
 - Alternative to vendor-specific UIs (PiKVM, PDU web interfaces)
 - Audit logging for all OOB actions
@@ -633,6 +687,7 @@ ssh -v pi@192.168.42.22
 ## Quick Reference Card
 
 ### Power Control
+
 ```bash
 just infra pdu-status              # Check all PDU outlets
 just infra pdu-on <node>           # Power on
@@ -642,6 +697,7 @@ just infra hard-reboot <node>      # PDU reboot + wait
 ```
 
 ### KVM Access
+
 ```bash
 just infra kvm-switch <node>       # Switch HDMI
 just infra wol <node>              # Wake-on-LAN
@@ -651,6 +707,7 @@ just infra console <node>          # Switch + screenshot
 ```
 
 ### Serial Console
+
 ```bash
 ssh pi@192.168.42.22               # ConsolePi (Core01-U1)
 ssh pi@192.168.42.23               # ConsolePi (Core01-U2)
@@ -658,6 +715,7 @@ screen /dev/ttyUSB0 9600           # Serial session
 ```
 
 ### Monitoring
+
 ```bash
 https://status.homeops.ca          # Gatus unified status
 https://grafana.homeops.ca/d/apc-ups # UPS dashboard
