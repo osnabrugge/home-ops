@@ -12,6 +12,7 @@ resources:
   - ./grafana/ks.yaml
   - ./hass/ks.yaml
   - ./kubectl/ks.yaml
+  - ./kubesearch/ks.yaml
   - ./memory/ks.yaml
   - ./memory-service/ks.yaml
   # - ./mikrotik/ks.yaml
