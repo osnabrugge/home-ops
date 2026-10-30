@@ -30,4 +30,6 @@ spec:
       - group:
           name: authentik Admins
       - user:
+          username: sean
+      - user:
           username: radar-mcp

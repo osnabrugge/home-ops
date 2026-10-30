@@ -548,14 +548,23 @@ After reconciliation, verify both the UI and a fresh MCP initialization. A
 client that cached the earlier initialization failure may need reconnecting.
 The hostname allow-list is not authentication.
 
-The operator-managed application admits the existing `authentik Admins` group
-and the native `radar-mcp` service principal. Radar reads the username from
+The operator-managed application admits the existing `authentik Admins` group,
+explicitly approved application users, and the native `radar-mcp` service principal. Radar reads the username from
 `X-Authentik-Username` and the app-scoped role from `X-Authentik-Meta-App`.
 Using the app slug avoids treating Authentik's pipe-separated directory groups
 as Radar's comma-separated group list. The corresponding Kubernetes group is
 `radar`, bound to workload operations and read-only views, not `cluster-admin`.
 It can restart/scale workloads and manage Jobs, but cannot delete PVCs or write
 RBAC. `trustedOrigins` retains browser-origin validation through the proxy.
+
+Grant application access in that application's `AuthentikApplication`
+`spec.access.rules`, referencing an existing user or a dedicated non-superuser
+group. Commit and reconcile the identity Kustomization, then verify the actual
+policy result for the intended user. Do not add a user to `authentik Admins`
+merely to expose an application: directory administrator status is a separate
+privilege. UI-only bindings on operator-managed applications can be reconciled
+away. Each application's admission policy is independent of its backend role
+mapping, and successful policy evaluation is not proof of a human browser login.
 
 The machine principal has no Authentik groups, roles or administrative API
 credential. Its app password and Radar's persistent cookie-signing secret are
