@@ -18,7 +18,6 @@ spec:
     substitute:
       APP: memory-mcp
       KOPIUR_CAPACITY: 1Gi
-  wait: false
   prune: true
   sourceRef:
     kind: GitRepository

@@ -8,7 +8,6 @@ spec:
     - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/mcp-servers/mikrotik/mcp
-  wait: false
   prune: true
   sourceRef:
     kind: GitRepository

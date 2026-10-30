@@ -7,7 +7,6 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/toolhive/operator/crds
-  wait: false
   prune: true
   sourceRef:
     kind: GitRepository
@@ -25,7 +24,6 @@ spec:
     - name: toolhive-operator-crds
   interval: 1h
   path: ./kubernetes/apps/toolhive/operator/app
-  wait: false
   prune: true
   sourceRef:
     kind: GitRepository
@@ -43,7 +41,6 @@ spec:
     - name: toolhive-operator
   interval: 1h
   path: ./kubernetes/apps/toolhive/operator/config
-  wait: false
   prune: true
   sourceRef:
     kind: GitRepository

@@ -21,7 +21,6 @@ spec:
     substitute:
       APP: memory-service
       KOPIUR_CAPACITY: 5Gi
-  wait: false
   prune: true
   sourceRef:
     kind: GitRepository
