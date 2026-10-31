@@ -112,8 +112,10 @@ def validate_report(report, observed):
     if set(report) != {"status", "summary", "actions_taken"}:
         raise RuntimeError("Unexpected report shape")
     expected = "NO_ACTIVE_FAILURE" if observed["up"] == 1 and observed["http_status"] == 200 else "ESCALATED"
-    if report["status"] != expected or report["actions_taken"] != []:
-        raise RuntimeError("False completion or invented action rejected")
+    if report["status"] != expected:
+        raise RuntimeError(f"Model status conflicts with measured evidence; expected {expected}")
+    if report["actions_taken"] != []:
+        raise RuntimeError("Model supplied actions although no mutations were executed")
     if not isinstance(report["summary"], str) or not report["summary"].strip():
         raise RuntimeError("Missing triage explanation")
 
@@ -170,7 +172,30 @@ def run():
     ]
     response = json_request(
         base + "/v1/chat/completions",
-        {"model": MODEL, "messages": messages, "temperature": 0, "max_tokens": 512, "reasoning_effort": "none", "response_format": {"type": "json_object"}},
+        {
+            "model": MODEL,
+            "messages": messages,
+            "temperature": 0,
+            "max_tokens": 512,
+            "reasoning_effort": "none",
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "readonly_triage",
+                    "strict": True,
+                    "schema": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": ["status", "summary", "actions_taken"],
+                        "properties": {
+                            "status": {"type": "string", "enum": ["NO_ACTIVE_FAILURE", "ESCALATED"]},
+                            "summary": {"type": "string", "minLength": 1},
+                            "actions_taken": {"type": "array", "maxItems": 0, "items": False},
+                        },
+                    },
+                },
+            },
+        },
         headers,
     )
     report = json.loads(response["choices"][0]["message"]["content"])

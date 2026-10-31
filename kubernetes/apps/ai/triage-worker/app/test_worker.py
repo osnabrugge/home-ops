@@ -52,6 +52,9 @@ class WorkerGuardTests(unittest.TestCase):
             mcp.return_value.request.return_value = {"structuredContent": community}
             run()
             self.assertNotIn("tools", request.call_args.args[1])
+            schema = request.call_args.args[1]["response_format"]["json_schema"]["schema"]
+            self.assertEqual(schema["properties"]["status"]["enum"], ["NO_ACTIVE_FAILURE", "ESCALATED"])
+            self.assertEqual(schema["properties"]["actions_taken"]["maxItems"], 0)
             mcp.return_value.request.assert_called_once_with("tools/call", {
                 "name": "kubesearch_search_releases", "arguments": {"query": "smartctl-exporter", "limit": 1},
             })
