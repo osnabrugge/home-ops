@@ -26,23 +26,26 @@ spec:
             - port: "4000"
               protocol: TCP
   egress:
-    - toEndpoints:
-        - matchLabels:
-            ai.homeops.ca/role: local-model
+    - toServices:
+        - k8sService:
+            serviceName: ollama
+            namespace: ai
       toPorts:
         - ports:
             - port: "11434"
               protocol: TCP
-    - toEndpoints:
-        - matchLabels:
-            cnpg.io/cluster: litellm-db
+    - toServices:
+        - k8sService:
+            serviceName: litellm-db-rw
+            namespace: ai
       toPorts:
         - ports:
             - port: "5432"
               protocol: TCP
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: toolhive
+    - toServices:
+        - k8sService:
+            serviceName: mcp-kubesearch-mcp-proxy
+            namespace: toolhive
       toPorts:
         - ports:
             - port: "8080"

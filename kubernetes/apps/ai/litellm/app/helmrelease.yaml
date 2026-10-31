@@ -37,6 +37,7 @@ spec:
                     key: salt-key
               LITELLM_MODE: PRODUCTION
               LITELLM_LOG: INFO
+              LITELLM_LOCAL_MODEL_COST_MAP: "true"
             resources:
               requests:
                 cpu: 100m
