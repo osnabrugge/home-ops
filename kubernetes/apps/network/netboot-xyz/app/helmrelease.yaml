@@ -121,6 +121,14 @@ spec:
               - identifier: app
                 port: *uiport
     persistence:
+      # Keep TFTP data/ACK traffic on the only UDP port exposed by the boot VIP.
+      tftp-config:
+        type: configMap
+        name: netboot-xyz-tftp
+        globalMounts:
+          - path: /etc/dnsmasq.d/tftp-single-port.conf
+            subPath: tftp-single-port.conf
+            readOnly: true
       config:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
