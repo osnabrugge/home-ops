@@ -32,7 +32,9 @@ spec:
       persistentVolume:
         enabled: true
         storageClassName: ceph-block
-        size: 50Gi
+        # Resize the existing PVC first; immutable claim templates require an
+        # orphan-only StatefulSet replacement, never deletion of its data claim.
+        size: 100Gi
       retentionPeriod: 90d
       route:
         enabled: true
