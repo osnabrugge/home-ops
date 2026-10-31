@@ -24,13 +24,13 @@ concurrency:
 env:
   # Public surface served by envoy-external. Anything here must answer from the
   # internet; a name resolving on the LAN proves nothing.
+  # external.homeops.ca is a gateway DNS target, not an HTTP application route.
   ENDPOINTS: >-
     https://requests.homeops.ca
     https://plex.homeops.ca
     https://hass.homeops.ca
     https://auth.homeops.ca
     https://status.homeops.ca
-    https://external.homeops.ca
 
 jobs:
   probe:
