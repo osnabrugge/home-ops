@@ -26,6 +26,19 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: mcp
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 3000
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
           volumeMounts:
             - name: data
               mountPath: /data
