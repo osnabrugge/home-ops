@@ -31,7 +31,10 @@ def policy_matches(info):
     if any(actual.get(field) != value for field, value in expected.items()):
         return False
     return not any(
-        value not in (None, [], {}, False) for field, value in actual.items() if field not in expected
+        value not in (None, [], {}, False)
+        for field, value in actual.items()
+        # The native API returns its row ID alongside the actual grants.
+        if field not in expected and field != "object_permission_id"
     )
 
 
@@ -64,6 +67,8 @@ def main():
     info = result["info"]
     if info["key_alias"] != POLICY["key_alias"]:
         raise RuntimeError("Key ownership mismatch; refusing to overwrite")
+    if info.get("blocked"):
+        raise RuntimeError("Managed key is blocked; refusing to undo revocation")
     if not policy_matches(info):
         request(base, master, "/key/update", {**POLICY, "key": key})
         info = request(base, master, info_path)["info"]
