@@ -106,8 +106,11 @@ spec:
                   type: PathPrefix
                   value: /v1
               - path:
-                  type: PathPrefix
+                  type: Exact
                   value: /mcp
+              - path:
+                  type: Exact
+                  value: /mcp/
               - path:
                   type: Exact
                   value: /health/liveliness

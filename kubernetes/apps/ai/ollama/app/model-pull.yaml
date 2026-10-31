@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ollama-qwen3-06b-pull
+  name: ollama-qwen3-06b-pull-v2
 spec:
   backoffLimit: 4
   activeDeadlineSeconds: 900
@@ -15,6 +15,10 @@ spec:
       restartPolicy: OnFailure
       nodeSelector:
         kubernetes.io/hostname: k8s06
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

@@ -24,6 +24,7 @@ spec:
               OLLAMA_MAX_LOADED_MODELS: "1"
               OLLAMA_CONTEXT_LENGTH: "8192"
               OLLAMA_KEEP_ALIVE: 5m
+              OLLAMA_NO_CLOUD: "true"
             resources:
               requests:
                 cpu: 100m
@@ -56,6 +57,11 @@ spec:
     defaultPodOptions:
       nodeSelector:
         kubernetes.io/hostname: k8s06
+      # Registry names must resolve directly so FQDN egress observes the real name.
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       labels:
         ai.homeops.ca/role: local-model
       securityContext:
