@@ -187,12 +187,16 @@ The direct-chart gateway and native key-policy reconciler do not need a Kubernet
 API token or a new cluster role. The reconciler manages only its predeclared worker
 key and validates models, routes, request/token limits and the one-tool MCP scope.
 
-The worker has exactly two evidence functions: current NAS01 SMART scrape health
+The workflow has exactly two evidence functions: current NAS01 SMART scrape health
 and the community smartctl-exporter release lookup through the existing Kubesearch
 MCP. It has no shell, Kubernetes token, host credential, issue-write credential or
 mutation function. Tool names/arguments, required evidence and the final status
 are validated outside the model; false completion or invented actions fail the
-job visibly. The fixed half-hour schedule observes this known alert only.
+job visibly. The small local model did not pass its initial free-form tool-argument
+test, so this pilot collects fixed-scope evidence before asking the model to explain
+it. It is not a general autonomous agent. The fixed half-hour schedule observes
+this known alert only; model-directed tool planning remains gated on successful
+evaluation with the same controls.
 
 The internal HTTPRoute exposes `/v1`, `/mcp` and the non-sensitive liveness check,
 not the admin UI or management API. API/MCP calls require keys. Cilium policies
