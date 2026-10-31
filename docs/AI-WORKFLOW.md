@@ -193,8 +193,10 @@ MCP. It has no shell, Kubernetes token, host credential, issue-write credential 
 mutation function. Tool names/arguments, required evidence and the final status
 are validated outside the model; false completion or invented actions fail the
 job visibly. The small local model did not pass its initial free-form tool-argument
-test, so this pilot collects fixed-scope evidence before asking the model to explain
-it. It is not a general autonomous agent. The fixed half-hour schedule observes
+or independent status-classification tests. This pilot therefore collects fixed-scope
+evidence and derives the health status outside the model before asking it to explain
+the result. The model cannot change that measured status. It is not a general
+autonomous agent. The fixed half-hour schedule observes
 this known alert only; model-directed tool planning remains gated on successful
 evaluation with the same controls.
 

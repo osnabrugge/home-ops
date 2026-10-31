@@ -108,10 +108,14 @@ def validate_tool(name, arguments):
     raise RuntimeError("Unapproved tool or arguments; no action executed")
 
 
+def measured_status(observed):
+    return "NO_ACTIVE_FAILURE" if observed["up"] == 1 and observed["http_status"] == 200 else "ESCALATED"
+
+
 def validate_report(report, observed):
     if set(report) != {"status", "summary", "actions_taken"}:
         raise RuntimeError("Unexpected report shape")
-    expected = "NO_ACTIVE_FAILURE" if observed["up"] == 1 and observed["http_status"] == 200 else "ESCALATED"
+    expected = measured_status(observed)
     if report["status"] != expected:
         raise RuntimeError(f"Model status conflicts with measured evidence; expected {expected}")
     if report["actions_taken"] != []:
@@ -188,9 +192,9 @@ def run():
                         "additionalProperties": False,
                         "required": ["status", "summary", "actions_taken"],
                         "properties": {
-                            "status": {"type": "string", "enum": ["NO_ACTIVE_FAILURE", "ESCALATED"]},
+                            "status": {"type": "string", "enum": [measured_status(observed)]},
                             "summary": {"type": "string", "minLength": 1},
-                            "actions_taken": {"type": "array", "maxItems": 0, "items": False},
+                            "actions_taken": {"type": "array", "maxItems": 0, "items": {"type": "string"}},
                         },
                     },
                 },
