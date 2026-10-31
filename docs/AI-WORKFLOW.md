@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-10-26. This is the reusable operating policy, not an incident journal.
+Updated 2026-10-31. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Available models and routing
@@ -37,6 +37,7 @@ per-turn Opus prices and assumed credit allowance were not measured facts.
 | [gitops-refactor](../.github/agents/gitops-refactor.agent.md)         | Claude Haiku 5.5 | Inventory first; layout implementation only when requested; preserve runtime contracts and transfer pruning safely |
 | [flux-triage](../.github/agents/flux-triage.agent.md)                 | Claude Haiku 5.5 | Read-only MCP tools, no terminal/edit tools; diagnoses but cannot repair                                           |
 | [gitops-upgrade](../.github/agents/gitops-upgrade.agent.md)           | Claude Haiku 5.5 | Review one pinned PR by default; no merge/deploy without explicit authorization                                    |
+| [home-ops-triage](../.github/agents/home-ops-triage.agent.md)         | Inherits caller  | One alert/issue; bounded reversible fixes, verified persistence, explicit escalation at protected boundaries       |
 | [home-ops-escalation](../.github/agents/home-ops-escalation.agent.md) | GPT-6.1 Sol      | Complex design and supervised changes; does not bypass host/storage/authentication safety rules                    |
 
 Select an agent in VS Code, or launch a bounded CLI task:
@@ -81,6 +82,11 @@ agent owns complex diagnosis and supervised execution. Every implementation
 requires its focused validation plus the repository post-change health checks.
 Smaller models must pass the same acceptance criteria, not weaker ones.
 
+An investigated, escalated or deferred item is not resolved. Keep discovery,
+adoption, authentication and monitoring outcomes separate. A passing DNS probe
+does not prove a device is adoptable; a deployed gateway does not prove an agent
+can complete a task. Report every requested outcome that remains incomplete.
+
 ## Memory and document ownership
 
 - Use `memory-service` for dated decisions, current state, known mistakes,
@@ -95,11 +101,117 @@ Smaller models must pass the same acceptance criteria, not weaker ones.
   explicit reviewed corrections/versioning, not automatic similarity-based
   supersession. Keep old observations identifiable as historical.
 
-## Optional runtime components
+## Selected platform recommendation
 
-No local model endpoint, LiteLLM deployment or Foundry runtime is required for
-these workflows. Their availability must be verified, not inferred from a GPU
-or an old plan. LiteLLM is a model gateway/control plane, not the agent execution
-runtime, and a Copilot subscription does not automatically expose its models as
-a generic LiteLLM backend. Introduce those services only for a separately scoped
-need, with secret handling, budgets and fallback behavior tested.
+This is the target recommendation, not a claim of deployment or approval to
+spend, move credentials, change existing identities, or grant an autonomous
+worker infrastructure access. The current interactive workflows work without
+LiteLLM. The API-backed pilot still requires an approved provider credential and
+budget; do not deploy an empty gateway and call the AI strategy operational.
+
+```text
+Human operator -> VS Code / Copilot SDK -> existing authenticated MCP servers
+                       |
+                       +-> supervised repository agents
+
+Future bounded worker -> LiteLLM virtual key -> approved API model
+                       |
+                       +-> allowed MCP servers -> backend-enforced permissions
+
+Authentik: human SSO and explicitly provisioned automation identities
+ToolHive: lifecycle/proxy ownership of existing tool workloads
+LiteLLM operator: model, MCP registration, team and virtual-key configuration
+Flux / ESO / Key Vault: desired state and secret delivery
+```
+
+| Layer                    | Decision                                                               | Boundary                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Interactive engineering  | Keep Copilot SDK / VS Code and the repository agents                   | The authorized Copilot model picker is not a generic model API entitlement                        |
+| API model gateway        | Select LiteLLM plus the home-operations operator                       | One internal proxy; explicit model selection, credentials, budgets and timeouts                   |
+| Existing tool workloads  | Retain ToolHive ownership                                              | Do not deploy a second copy of each tool through another operator                                 |
+| MCP gateway registration | Use `LiteLLMMCPServer` references to existing endpoints                | Per-team/server allowlists; backend RBAC still decides whether an action is allowed               |
+| Cloudflare               | Use its authenticated native remote Code Mode MCP for interactive work | No redundant ToolHive proxy; unattended access needs separately approved delegated authentication |
+| Resident agent runtime   | Select a read-only Hermes evaluation after the gateway pilot           | Separate from LiteLLM; no cluster-admin, SSH credentials or unrestricted infrastructure actions   |
+| Identity                 | Keep Authentik and its operator/native-blueprint ownership split       | Do not import Kanidm or create ad-hoc local agent accounts                                        |
+| State and observability  | App-owned database resources and existing monitoring/backup mechanisms | Preserve shared `postgres16`, current Dragonfly semantics and protected credentials               |
+
+### Community patterns to reuse, not copy wholesale
+
+The [bjw-s-labs AI configuration](https://github.com/bjw-s-labs/home-ops/tree/main/kubernetes/apps/ai)
+separates `LiteLLMProxy`, model resources, MCP registrations, teams, virtual keys
+and Hermes. Its [CNPG base/version components](https://github.com/bjw-s-labs/home-ops/tree/main/kubernetes/components/cnpg)
+separate common secret/monitoring/backup mechanics from PostgreSQL operands.
+[joryirving's components](https://github.com/joryirving/home-ops/tree/main/kubernetes/components)
+also compose database/cache resources and operator dependencies.
+
+Reuse those ownership boundaries and explicit dependencies. Do not import their
+PostgreSQL 18 clusters, local/miroir storage, recovery archive bypasses, replica
+counts or identity provider. Existing app-owned databases still target the shared
+`postgres16` cluster; its name is not its PostgreSQL major version. A new AI
+database/role must not rename, recreate or migrate existing databases. Cache
+isolation and existing Dragonfly Lua compatibility must be preserved.
+
+Keep provider keys, the LiteLLM master key and credential-encryption salt in
+approved secret storage. Workers receive their own limited virtual keys, not the
+master key. Teams and keys must explicitly select permitted models and MCP
+servers; do not copy `all-proxy-models` or unauthenticated MCP settings as defaults.
+An internal URL is not authentication. A chat-provider OAuth example is not
+permission to copy a work account's tokens into the cluster.
+
+Before activation, review the untracked AI draft: its namespace build currently
+targets `auth`, and the LiteLLM Kustomization repeats the operator's name/path.
+The application directory is empty. Keep it off main until those identities,
+dependencies, credentials and intended runtime resources are complete.
+
+### Acceptance gates for the first API-backed worker
+
+1. Approve the provider account, exact model IDs, spending cap and permitted data
+   before obtaining or using credentials. Do not infer them from Copilot access.
+2. Verify gateway authentication, rejection of unauthorized keys, model/server
+   allowlists, budget exhaustion and visible upstream errors. No silent fallback
+   to a different provider or a more privileged key.
+3. Verify one read-only worker end to end on a known alert: current evidence,
+   accurate resolved/unresolved classification, bounded execution and a usable
+   escalation. Do not grant general shell, host credentials or a Kubernetes token
+   just to make a tool succeed.
+4. Use a redacted fixed evaluation set to compare candidate routine models with
+   the same acceptance checks. Require zero unauthorized actions and no false
+   completion claims; record task quality, tokens, latency and actual cost.
+5. Enable bounded repair only after backend-enforced permissions, approval paths
+   and rollback tests pass. Storage, identity, node, switch/firewall and other
+   protected operations remain supervised.
+
+Use existing Prometheus/Grafana and VictoriaLogs for operational health and
+non-sensitive execution metadata. Log model/key alias, tool/action, outcome,
+latency and usage without credentials or raw private prompts. Add a dedicated
+trace/evaluation service only if this first pilot proves a requirement for it.
+An alert queue, model gateway and resident worker are distinct deliverables.
+
+## Kguardian decision
+
+[Kguardian](https://github.com/kguardian-dev/kguardian) complements Radar and
+Prometheus: it observes traffic/syscalls and generates NetworkPolicy,
+CiliumNetworkPolicy and seccomp proposals, with would-deny policy auditing.
+It does not replace GitOps ownership, incident triage or supervised remediation.
+
+Recommend an evaluation-only pilot, not immediate production enforcement:
+
+- The documented kernel minimum is 6.2. The current Talos kernel meets it and
+  a worker has `vmlinux` BTF; those checks are prerequisites, not proof the eBPF
+  programs load or that every required probe works.
+- The collector is a privileged, host-network DaemonSet. Limit the first pilot
+  to a selected worker and a disposable workload; measure overhead before
+  expanding coverage. Partial observation cannot justify an enforcing policy.
+- Leave `seccomp.distribute: false`, apply no generated policies, disable
+  outbound telemetry and the optional AI assistant initially. Keep observations
+  local. Any later MCP endpoint requires authentication and restricted access.
+- Budget for the broker and PostgreSQL, not just the node collector. Upstream
+  resource measurements are not measurements of this six-node cluster.
+- Review its BSL 1.1 terms before a permanent deployment. The current additional
+  grant covers development/testing/evaluation and non-production use in a
+  non-commercial environment; do not assume a homelab label grants every use.
+
+Promote only reviewed policy proposals through Git after exercising startup,
+restart, backups, failover and rare maintenance paths. If an AI integration is
+later enabled, use the central gateway/key policy rather than a second unrestricted
+assistant with separate provider credentials.
