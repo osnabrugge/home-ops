@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-settings
+data:
+  config.yaml: |
+    model_list:
+      - model_name: local-triage
+        litellm_params:
+          model: ollama_chat/qwen3:0.6b
+          api_base: http://ollama.ai.svc.cluster.local:11434
+        model_info:
+          mode: chat
+          supports_function_calling: true
+          input_cost_per_token: 0
+          output_cost_per_token: 0
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+      database_url: os.environ/DATABASE_URL
+      store_model_in_db: false
+    litellm_settings:
+      drop_params: false
+      num_retries: 0
+      request_timeout: 120
+      set_verbose: false
+      turn_off_message_logging: true
+    mcp_servers:
+      kubesearch:
+        url: http://mcp-kubesearch-mcp-proxy.toolhive.svc.cluster.local:8080/mcp
+        transport: http

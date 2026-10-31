@@ -1,0 +1,75 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ollama
+spec:
+  endpointSelector:
+    matchLabels:
+      ai.homeops.ca/role: local-model
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            ai.homeops.ca/role: gateway
+        - matchLabels:
+            ai.homeops.ca/role: model-loader
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
+    - fromEntities: [host, remote-node]
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"
+    - toFQDNs:
+        - matchName: registry.ollama.ai
+        - matchPattern: "*.ollama.ai"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ollama-model-loader
+spec:
+  endpointSelector:
+    matchLabels:
+      ai.homeops.ca/role: model-loader
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            ai.homeops.ca/role: local-model
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"

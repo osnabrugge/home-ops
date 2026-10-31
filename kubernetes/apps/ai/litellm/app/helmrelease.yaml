@@ -1,0 +1,124 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: litellm
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: litellm
+  interval: 1h
+  values:
+    controllers:
+      litellm:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/berriai/litellm
+              tag: v1.106.6@sha256:37e2dafb088a7723beb998590682957386dfc83ffea1848486f8e0e5cfac0b06
+            args: ["--config", "/etc/litellm/config.yaml", "--port", "4000"]
+            env:
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: litellm-db-app
+                    key: uri
+              LITELLM_MASTER_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: litellm-auth
+                    key: master-key
+              LITELLM_SALT_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: litellm-auth
+                    key: salt-key
+              LITELLM_MODE: PRODUCTION
+              LITELLM_LOG: INFO
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: "1"
+                memory: 1Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/liveliness
+                    port: 4000
+                  timeoutSeconds: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/readiness
+                    port: 4000
+                  timeoutSeconds: 5
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/liveliness
+                    port: 4000
+                  periodSeconds: 5
+                  failureThreshold: 60
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: k8s06
+      labels:
+        ai.homeops.ca/role: gateway
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        ports:
+          http:
+            port: 4000
+    route:
+      app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            guarded: false
+            url: https://litellm.homeops.ca/health/liveliness
+            conditions: ["[STATUS] == 200"]
+        hostnames:
+          - litellm.homeops.ca
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          # Never publish the management API or unauthenticated admin UI.
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /v1
+              - path:
+                  type: PathPrefix
+                  value: /mcp
+              - path:
+                  type: Exact
+                  value: /health/liveliness
+            backendRefs:
+              - identifier: app
+                port: http
+    persistence:
+      config-file:
+        type: configMap
+        name: litellm-settings
+        globalMounts:
+          - path: /etc/litellm/config.yaml
+            subPath: config.yaml
+            readOnly: true

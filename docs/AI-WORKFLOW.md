@@ -106,8 +106,9 @@ can complete a task. Report every requested outcome that remains incomplete.
 This is the target recommendation, not a claim of deployment or approval to
 spend, move credentials, change existing identities, or grant an autonomous
 worker infrastructure access. The current interactive workflows work without
-LiteLLM. The API-backed pilot still requires an approved provider credential and
-budget; do not deploy an empty gateway and call the AI strategy operational.
+LiteLLM. External API backends still require an approved provider credential and budget.
+The first local-only pilot avoids those prerequisites; do not deploy an empty
+gateway and call the AI strategy operational.
 
 ```text
 Human operator -> VS Code / Copilot SDK -> existing authenticated MCP servers
@@ -124,16 +125,16 @@ LiteLLM operator: model, MCP registration, team and virtual-key configuration
 Flux / ESO / Key Vault: desired state and secret delivery
 ```
 
-| Layer                    | Decision                                                               | Boundary                                                                                          |
-| ------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Interactive engineering  | Keep Copilot SDK / VS Code and the repository agents                   | The authorized Copilot model picker is not a generic model API entitlement                        |
-| API model gateway        | Select LiteLLM plus the home-operations operator                       | One internal proxy; explicit model selection, credentials, budgets and timeouts                   |
-| Existing tool workloads  | Retain ToolHive ownership                                              | Do not deploy a second copy of each tool through another operator                                 |
-| MCP gateway registration | Use `LiteLLMMCPServer` references to existing endpoints                | Per-team/server allowlists; backend RBAC still decides whether an action is allowed               |
-| Cloudflare               | Use its authenticated native remote Code Mode MCP for interactive work | No redundant ToolHive proxy; unattended access needs separately approved delegated authentication |
-| Resident agent runtime   | Select a read-only Hermes evaluation after the gateway pilot           | Separate from LiteLLM; no cluster-admin, SSH credentials or unrestricted infrastructure actions   |
-| Identity                 | Keep Authentik and its operator/native-blueprint ownership split       | Do not import Kanidm or create ad-hoc local agent accounts                                        |
-| State and observability  | App-owned database resources and existing monitoring/backup mechanisms | Preserve shared `postgres16`, current Dragonfly semantics and protected credentials               |
+| Layer                    | Decision                                                                         | Boundary                                                                                          |
+| ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Interactive engineering  | Keep Copilot SDK / VS Code and the repository agents                             | The authorized Copilot model picker is not a generic model API entitlement                        |
+| API model gateway        | LiteLLM, initially managed with the existing app-template chart                  | One internal proxy; explicit model selection, credentials, budgets and timeouts                   |
+| Existing tool workloads  | Retain ToolHive ownership                                                        | Do not deploy a second copy of each tool through another operator                                 |
+| MCP gateway registration | Reference existing endpoints in the proxy configuration                          | Per-key server/tool allowlists; backend RBAC still decides whether an action is allowed           |
+| Cloudflare               | Use its authenticated native remote Code Mode MCP for interactive work           | No redundant ToolHive proxy; unattended access needs separately approved delegated authentication |
+| Resident agent runtime   | Bounded native CronJob tool loop for the first pilot; evaluate Hermes separately | Separate from LiteLLM; no cluster-admin, SSH credentials or unrestricted infrastructure actions   |
+| Identity                 | Keep Authentik and its operator/native-blueprint ownership split                 | Do not import Kanidm or create ad-hoc local agent accounts                                        |
+| State and observability  | App-owned database resources and existing monitoring/backup mechanisms           | Preserve shared `postgres16`, current Dragonfly semantics and protected credentials               |
 
 ### Community patterns to reuse, not copy wholesale
 
@@ -158,10 +159,47 @@ servers; do not copy `all-proxy-models` or unauthenticated MCP settings as defau
 An internal URL is not authentication. A chat-provider OAuth example is not
 permission to copy a work account's tokens into the cluster.
 
-Before activation, review the untracked AI draft: its namespace build currently
-targets `auth`, and the LiteLLM Kustomization repeats the operator's name/path.
-The application directory is empty. Keep it off main until those identities,
-dependencies, credentials and intended runtime resources are complete.
+The original AI draft targeted `auth`, repeated the operator's Kustomization
+name/path and had an empty application directory. Correct those deployment
+identities and complete the selected application's dependencies and credentials
+before activation; do not commit the inactive operator or Cloudflare proxy draft
+alongside the pilot.
+
+### Local pilot implementation
+
+The first pilot uses a small local Qwen3 0.6B model with Ollama instead of assuming
+an external API entitlement. It is a narrow triage evaluation, not a replacement
+for the supervised engineering models above. Both runtime and model licenses were
+checked. Inference has a one-CPU limit and runs on worker `k8s06`, not the
+CPU-request-saturated control-plane node.
+
+The AI namespace draft is corrected before publication. LiteLLM uses an isolated
+single-instance `litellm-db` on the existing CNPG operator and PostgreSQL image;
+`postgres16` and its users/databases are unchanged. This pilot database is not HA.
+The model cache and pilot database have pruning fences. New master, salt and
+worker keys are SOPS-encrypted with the existing cluster recipient; the namespace
+root owns decryption because child namespaces do not hold the Flux age key.
+
+The current LiteLLM operator 0.0.25 chart grants cluster-wide deployment and Secret
+create/delete/write access and has no supported namespace watch scope. Keep its
+draft inactive rather than grant those permissions merely to start the pilot.
+The direct-chart gateway and native key-policy reconciler do not need a Kubernetes
+API token or a new cluster role. The reconciler manages only its predeclared worker
+key and validates models, routes, request/token limits and the one-tool MCP scope.
+
+The worker has exactly two evidence functions: current NAS01 SMART scrape health
+and the community smartctl-exporter release lookup through the existing Kubesearch
+MCP. It has no shell, Kubernetes token, host credential, issue-write credential or
+mutation function. Tool names/arguments, required evidence and the final status
+are validated outside the model; false completion or invented actions fail the
+job visibly. The fixed half-hour schedule observes this known alert only.
+
+The internal HTTPRoute exposes `/v1`, `/mcp` and the non-sensitive liveness check,
+not the admin UI or management API. API/MCP calls require keys. Cilium policies
+bound the model, gateway, key reconciler and worker traffic; the model download
+exception is limited to Ollama registry hosts. The outside
+[AI Pilot Exposure workflow](../.github/workflows/ai-pilot-exposure.yaml) must prove
+the public gateway has no AI route before the pilot is declared usable.
 
 ### Acceptance gates for the first API-backed worker
 

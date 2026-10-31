@@ -1,0 +1,32 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: litellm-db
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  # Pilot state is isolated; never migrate or rename the existing postgres16.
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.5-18
+  enableSuperuserAccess: false
+  bootstrap:
+    initdb:
+      database: litellm
+      owner: litellm
+  storage:
+    storageClass: ceph-block
+    size: 5Gi
+  affinity:
+    nodeSelector:
+      kubernetes.io/hostname: k8s06
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  postgresql:
+    parameters:
+      shared_buffers: 128MB
+      max_connections: "100"
