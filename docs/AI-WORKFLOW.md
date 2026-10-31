@@ -201,6 +201,14 @@ limited to the Ollama registry and its verified R2 blob origin. The outside
 [AI Pilot Exposure workflow](../.github/workflows/ai-pilot-exposure.yaml) must prove
 the public gateway has no AI route before the pilot is declared usable.
 
+Packet-level testing on this cluster found the approved database Service's return
+SYN/ACK dropped at gateway ingress, while a direct backend connection worked.
+The gateway therefore has a narrow return-path allowance from its exact database,
+model and Kubesearch peers into the measured TCP client range 32768-60999. It does
+not expose the gateway's API/admin port to those peers. This is a local mitigation,
+not a claim that upstream conntrack behavior is fixed. Remove it only after
+supervised Cilium validation proves the service-return path works without it.
+
 ### Acceptance gates for the first API-backed worker
 
 1. Approve the provider account, exact model IDs, spending cap and permitted data

@@ -8,6 +8,22 @@ spec:
     matchLabels:
       ai.homeops.ca/role: gateway
   ingress:
+    # This cluster drops service-return SYN/ACKs without an explicit client rule.
+    # Allow only the approved backends into the measured ephemeral port range.
+    - fromEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: litellm-db
+            cnpg.io/instanceRole: primary
+        - matchLabels:
+            ai.homeops.ca/role: local-model
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: toolhive
+            toolhive-name: kubesearch-mcp
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: network
