@@ -196,8 +196,8 @@ job visibly. The fixed half-hour schedule observes this known alert only.
 
 The internal HTTPRoute exposes `/v1`, `/mcp` and the non-sensitive liveness check,
 not the admin UI or management API. API/MCP calls require keys. Cilium policies
-bound the model, gateway, key reconciler and worker traffic; the model download
-exception is limited to Ollama registry hosts. The outside
+bound the model, gateway, key reconciler and worker traffic; model downloads are
+limited to the Ollama registry and its verified R2 blob origin. The outside
 [AI Pilot Exposure workflow](../.github/workflows/ai-pilot-exposure.yaml) must prove
 the public gateway has no AI route before the pilot is declared usable.
 

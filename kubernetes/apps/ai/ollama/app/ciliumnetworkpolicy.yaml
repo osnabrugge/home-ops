@@ -39,6 +39,8 @@ spec:
     - toFQDNs:
         - matchName: registry.ollama.ai
         - matchPattern: "*.ollama.ai"
+        # The registry redirects this model's blobs to its R2 download origin.
+        - matchName: dd20bb891979d25aebc8bec07b2b3bbc.r2.cloudflarestorage.com
       toPorts:
         - ports:
             - port: "443"
