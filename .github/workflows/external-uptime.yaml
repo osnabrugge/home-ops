@@ -113,10 +113,11 @@ jobs:
             const title = 'External endpoints unreachable';
             const { FAILED, REPORT } = process.env;
 
-            const existing = (await github.rest.issues.listForRepo({
+            // Label sync can remove labels; the title is this workflow's rolling key.
+            const existing = (await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner, repo: context.repo.repo,
-              state: 'open', labels: 'uptime',
-            })).data.find((i) => i.title === title);
+              state: 'open', per_page: 100,
+            })).find((i) => !i.pull_request && i.title === title);
 
             // A single rolling issue — one per run would bury the repo in noise.
             if (!FAILED) {
