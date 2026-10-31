@@ -200,6 +200,13 @@ autonomous agent. The fixed half-hour schedule observes
 this known alert only; model-directed tool planning remains gated on successful
 evaluation with the same controls.
 
+The local-only gateway has no billed provider configured. Authentication,
+model/tool allowlists and native request limits are validated separately from
+dollar budgets. A synthetic spend update on a zero-priced local key did not
+certify native billing-budget denial; do not report that as a passed budget test.
+An external paid backend remains gated on an approved account, spending cap and
+a real exhaustion test before activation.
+
 The internal HTTPRoute exposes `/v1`, `/mcp` and the non-sensitive liveness check,
 not the admin UI or management API. API/MCP calls require keys. Cilium policies
 bound the model, gateway, key reconciler and worker traffic; model downloads are

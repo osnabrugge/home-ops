@@ -15,14 +15,21 @@ jobs:
           control=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
             --write-out '%{http_code}' https://status.homeops.ca)
           [[ "$control" =~ ^(2|3)[0-9][0-9]$ ]]
-          dns=$(dig +time=5 +tries=1 @1.1.1.1 litellm.homeops.ca A)
-          if grep -q 'status: NXDOMAIN' <<< "$dns"; then
-            echo "PASS: outside positive control is reachable; the internal AI hostname has no public A answer."
+          dns4=$(dig +time=5 +tries=1 @1.1.1.1 litellm.homeops.ca A)
+          dns6=$(dig +time=5 +tries=1 @1.1.1.1 litellm.homeops.ca AAAA)
+          for reply in "$dns4" "$dns6"; do
+            grep -Eq 'status: (NOERROR|NXDOMAIN)' <<< "$reply"
+          done
+          addr4=$(awk '$4 == "A" { print $5 }' <<< "$dns4")
+          addr6=$(awk '$4 == "AAAA" { print $5 }' <<< "$dns6")
+          echo "Public A answers: ${addr4:-none}; AAAA answers: ${addr6:-none}"
+          if [[ -z "$addr4" && -z "$addr6" ]]; then
+            echo "PASS: outside positive control is reachable; authoritative DNS returns no public AI address."
             exit 0
           fi
-          grep -q 'status: NOERROR' <<< "$dns"
-          getent ahostsv4 litellm.homeops.ca >/dev/null
-          code=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+          family=-6
+          [[ -z "$addr4" ]] || family=-4
+          code=$(curl "$family" --silent --show-error --output /dev/null --max-time 20 \
             --write-out '%{http_code}' https://litellm.homeops.ca/v1/models)
           [[ "$code" == "404" ]]
           echo "PASS: outside positive control is reachable; public gateway has no AI route (HTTP 404)."
