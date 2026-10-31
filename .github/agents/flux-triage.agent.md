@@ -54,10 +54,11 @@ handoff to an implementation-capable agent, not an expanded triage permission.
 2. For each failing Kustomization:
     - Read `.status.conditions` (Ready message) — common causes: immutable-field
       dry-run failures, `DependencyNotReady`, build/substitution errors.
-    - Remember app `ks.yaml` objects come from the parent `cluster-apps`; check
-      whether the live CR reflects the latest commit (`.status.lastAppliedRevision`).
-    - **App-level `spec.patches` is clobbered** by the global cluster-apps patch —
-      never recommend that as a fix.
+    - App `ks.yaml` objects come from the active `flux-system` apps-root
+      Kustomization; `cluster-apps` is retired. Check live ownership and whether
+      the CR reflects the latest source (`.status.lastAppliedRevision`).
+    - Shared remediation patches can replace app-level `spec.patches`. Inspect
+      the active Flux Instance/root patch before recommending that surface.
 3. For each failing HelmRelease:
     - Read `.status.conditions` for Stalled / Released / Remediated.
     - Check native Helm history with the read-only Helm tool; do not fetch or dump

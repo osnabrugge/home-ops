@@ -93,8 +93,9 @@ assuming the virtual `/memories/` path is mounted in the shell.
       is proven. Never leave a temporary fence or suspension without explaining it.
 6. Use the repository's focused build/render checks. Commit only the approved
    paths, preserving unrelated staged work, and follow the repository's push and
-   annotation-based reconciliation sequence, including `cluster-apps` first when
-   child Kustomization specifications change.
+   annotation-based reconciliation sequence, including the active `flux-system`
+   apps-root first when child Kustomization specifications change.
+   `cluster-apps` is retired; do not recreate or reconcile it.
 7. Verify actual behavior and data availability, not merely successful YAML
    parsing or Ready pods. Run the full repository health protocol, compare with
    the baseline, update directly related documentation and write learnings to MCP.
