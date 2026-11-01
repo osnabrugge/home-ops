@@ -43,6 +43,9 @@ spec:
       current: status.applied == true
   interval: 1h
   path: ./kubernetes/apps/printing/spoolman/database
+  postBuild:
+    substitute:
+      CNPG_DATABASE: spoolman
   prune: true
   sourceRef:
     kind: GitRepository

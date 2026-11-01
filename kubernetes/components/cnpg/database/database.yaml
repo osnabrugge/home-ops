@@ -1,0 +1,11 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: ${CNPG_DATABASE}
+spec:
+  # Roles and credentials remain owned by the existing shared Cluster.
+  cluster:
+    name: postgres16
+  name: ${CNPG_DATABASE}
+  owner: ${CNPG_DATABASE}

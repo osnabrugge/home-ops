@@ -42,6 +42,9 @@ spec:
       current: status.applied == true
   interval: 1h
   path: ./kubernetes/apps/default/dispatcharr/database
+  postBuild:
+    substitute:
+      CNPG_DATABASE: dispatcharr
   prune: true
   sourceRef:
     kind: GitRepository
