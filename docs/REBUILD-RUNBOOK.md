@@ -424,6 +424,47 @@ Interpretation:
 - If `bond0.70` exists but stays `down` and pods on `net1` show `NO-CARRIER`, this is usually an upstream L2/VLAN path issue (switch trunk / VLAN allow-list / native-tag mismatch) rather than multus annotation syntax.
 - If `bond0.70` does not exist on some nodes, re-render and re-apply Talos configs for all nodes (CP and worker).
 
+### Omada switch commissioning: VLAN 1 bootstrap, VLAN 99 management
+
+Scope one identified switch and back up its configuration before an approved
+reset. Do not reset working devices, change core routing/LAGs, or Forget an
+existing controller record merely to clear its displayed status.
+
+1. Make DHCP available on the selected VLAN 1 bootstrap path before adoption.
+   The cluster controller has direct attachments at `192.168.0.30` on VLAN 1 and
+   `192.168.99.30` on VLAN 99. Verify the actual interfaces and on-link routes,
+   rather than assuming discovery crosses the firewall.
+2. Stage the site with LAN/default VLAN 1 and the intended management VLAN 99.
+   Keep core01's separate default/parking VLAN 4040 and all-tagged PVE links
+   unchanged; the core's default VLAN need not match the Omada site's default.
+3. Match the switch-facing uplink to the existing core port's wire contract:
+
+    | End                             | Native/PVID | Untagged | Tagged                                 |
+    | ------------------------------- | ----------- | -------- | -------------------------------------- |
+    | Core uplink using `dual-mode 1` | 1           | 1        | 99 and other required trunk VLANs      |
+    | Omada uplink profile            | LAN 1       | LAN 1    | Management 99 and matching trunk VLANs |
+
+    VLAN 99 untagged on the Omada end but tagged on the core end can send the
+    management DHCP request into VLAN 1 and retain a bootstrap-subnet address.
+    Resolve profile network IDs against current VLAN definitions after renaming
+    networks; profile names alone are not proof of membership.
+
+4. Configure the switch's management interface for VLAN 99 and its intended DHCP
+   reservation. A VLAN-only site network definition is not proof the management
+   handoff occurred. Do not force a VLAN 99 address onto traffic still using VLAN 1.
+5. Observe the adoption/configuration timeline in VictoriaLogs. Verify the exact
+   device MAC has a VLAN 99 DHCP lease, a fresh management connection to the
+   controller's VLAN 99 address, and stable online/consistent configuration across
+   repeated checks. A stale IP, a green health score, or an initial adoption-success
+   event is not sufficient. Also verify its MAC is learned on the production uplink
+   in VLAN 99 and the intended LAG member is forwarding.
+
+Once the saved profile is correct, use reprovisioning if the management connection
+is still available rather than repeatedly wiping the device. Any reboot or further
+network change needs its own checked scope and rollback. This recipe does not prove
+all firmware supports configuration retention during adoption, nor does the newer
+tagged-native UI option eliminate the factory bootstrap requirement.
+
 ### Multus macvlan NAD VLAN sub-interfaces missing (VLANs 1, 50, 70, 90)
 
 All nodes k8s01–k8s06 should have `bond0.1`, `bond0.50`, `bond0.70`, and `bond0.90` sub-interfaces for macvlan NADs (IoT/Zigbee, blackbox-exporter-vpn, Omada Controller, etc.).
