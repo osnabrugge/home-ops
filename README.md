@@ -85,6 +85,18 @@ Cilium → CoreDNS → Spegel → Cert-Manager → External-Secrets + AzureKV �
 
 After Flux starts, it reconciles all remaining apps from this repo automatically.
 
+### AI workflows
+
+[AI-WORKFLOW.md](docs/AI-WORKFLOW.md) defines model routing, supervised agents, and
+the local LiteLLM/Ollama advisory pilot. The pilot is fixed-scope, not a general
+autonomous repair agent.
+
+For inherited-model, read-only triage through the existing authenticated MCPs,
+run [triage_readonly.py](scripts/triage_readonly.py). It cannot change resources,
+restart services, or post GitHub updates; unresolved incidents return an explicit
+escalation packet. Current incident state belongs in MCP memory, not this
+README's historical activity log.
+
 ---
 
 ## 🌐 Network
