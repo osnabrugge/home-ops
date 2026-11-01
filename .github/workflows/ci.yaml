@@ -120,6 +120,23 @@ jobs:
           advanced-security: false
           annotations: true
 
+  ai-guards:
+    name: AI Guardrails
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test read-only launcher and local pilot guards
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTHONPATH: scripts:kubernetes/apps/ai/litellm/app:kubernetes/apps/ai/triage-worker/app
+        run: python3 -m unittest test_triage_readonly test_key_policy test_worker -v
+
   status:
     if: ${{ !cancelled() }}
     name: Build Success
@@ -128,6 +145,7 @@ jobs:
       - extract
       - image-pull
       - zizmor
+      - ai-guards
     runs-on: ubuntu-26.04
     permissions: {}
     steps:

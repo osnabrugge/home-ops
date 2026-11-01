@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-10-31. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-01. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Available models and routing
@@ -53,6 +53,22 @@ The CLI/SDK model and tool permissions are independent of VS Code frontmatter:
 verify the effective model and enabled tools before a run. Never add an
 all-tools/all-paths bypass to make a workflow start. These agents are manual and
 do not recursively delegate; handoffs present the next task for review.
+
+For a bounded, read-only run against the existing private MCP connections:
+
+```sh
+python3 scripts/triage_readonly.py 'TargetDown: pve01.in.homeops.ca:9100'
+```
+
+This launcher inherits the configured Copilot model and reads the existing
+`~/.copilot/mcp-config.json`; it does not copy credentials or add a model backend.
+It enables only named read tools from Radar, memory-service and the codebase
+graph, disables other configured MCP servers, and denies shell/file writes.
+It cannot repair, post/close GitHub issues or write memories. The twenty-minute
+deadline and nonzero failures are explicit; `ESCALATED` is not a completed fix.
+JSONL output can contain private evidence and must not be published unredacted.
+The supervised agent, local advisory pilot and future resident repair worker
+remain separate workflows.
 
 ## Escalation and supervised rollouts
 
