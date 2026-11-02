@@ -13,6 +13,7 @@
 Added comprehensive OOB management monitoring to Gatus status page at `https://status.homeops.ca`:
 
 **New "oob-management" Group Endpoints:**
+
 - PiKVM (kvm01) - HTTPS health check @ 1min interval
 - PDU01 - TCP connect to SNMP (port 161) @ 2min interval
 - PDU02 - TCP connect to SNMP (port 161) @ 2min interval
@@ -28,12 +29,14 @@ Added comprehensive OOB management monitoring to Gatus status page at `https://s
 Added new alert rules for comprehensive OOB infrastructure monitoring:
 
 **New Alerts:**
+
 - `PDUUnreachable` - PDU SNMP monitoring down (warning, 5min)
 - `UPSUnreachable` - UPS SNMP monitoring down (warning, 5min)
 - `UPSLowBattery` - Battery capacity < 50% (warning, 10min)
 - `UPSHighLoad` - UPS load > 80% capacity (warning, 15min)
 
 **Existing Alerts (preserved):**
+
 - `UPSOnBattery` - UPS on battery > 60 seconds (critical, 5min)
 - `UPSReplaceBattery` - Battery replacement needed (critical, 5min)
 
@@ -45,10 +48,10 @@ Created detailed OOB management guide with:
 
 - Complete architecture overview and component diagrams
 - Detailed documentation for each OOB system:
-  - PiKVM + TESmart KVM switch
-  - PDU (power control)
-  - UPS (battery monitoring)
-  - ConsolePi (serial console)
+    - PiKVM + TESmart KVM switch
+    - PDU (power control)
+    - UPS (battery monitoring)
+    - ConsolePi (serial console)
 - Access methods (CLI scripts, API, web UI)
 - Network architecture and IP mappings
 - Common operational workflows
@@ -61,6 +64,7 @@ Created detailed OOB management guide with:
 ### 4. README Updates
 
 Enhanced README.md with:
+
 - Added UPS monitoring to OOB management table
 - Link to comprehensive OOB management guide
 - Better description of OOB capabilities
@@ -92,15 +96,15 @@ Enhanced README.md with:
 
 ### Monitoring Coverage
 
-| Device | Gatus Health | Blackbox ICMP | SNMP Metrics | Prometheus Alerts |
-|--------|--------------|---------------|--------------|-------------------|
-| PiKVM (kvm01) | ✅ HTTPS | ✅ | ❌ | ❌ |
-| PDU01 | ✅ TCP:161 | ✅ | ✅ | ✅ |
-| PDU02 | ✅ TCP:161 | ✅ | ✅ | ✅ |
-| UPS01 | ✅ TCP:161 | ✅ | ✅ | ✅ |
-| UPS02 | ✅ TCP:161 | ✅ | ✅ | ✅ |
-| ConsolePi (pi02) | ✅ TCP:22 | ❌ | ❌ | ❌ |
-| ConsolePi (pi03) | ✅ TCP:22 | ❌ | ❌ | ❌ |
+| Device           | Gatus Health | Blackbox ICMP | SNMP Metrics | Prometheus Alerts |
+| ---------------- | ------------ | ------------- | ------------ | ----------------- |
+| PiKVM (kvm01)    | ✅ HTTPS     | ✅            | ❌           | ❌                |
+| PDU01            | ✅ TCP:161   | ✅            | ✅           | ✅                |
+| PDU02            | ✅ TCP:161   | ✅            | ✅           | ✅                |
+| UPS01            | ✅ TCP:161   | ✅            | ✅           | ✅                |
+| UPS02            | ✅ TCP:161   | ✅            | ✅           | ✅                |
+| ConsolePi (pi02) | ✅ TCP:22    | ❌            | ❌           | ❌                |
+| ConsolePi (pi03) | ✅ TCP:22    | ❌            | ❌           | ❌                |
 
 ---
 
@@ -143,6 +147,7 @@ https://alertmanager.homeops.ca    # Active alerts
 ## What's NOT Changed
 
 **Intentionally Preserved:**
+
 - Existing scripts (`infra-pikvm.sh`, `infra-pdu.sh`) - no modifications
 - SNMP Exporter configuration - no target changes
 - Blackbox Exporter probes - already monitoring OOB devices
@@ -150,6 +155,7 @@ https://alertmanager.homeops.ca    # Active alerts
 - Existing Prometheus alert rules - preserved and enhanced
 
 **Physical Hardware:**
+
 - PiKVM remains standalone
 - ConsolePi devices remain dedicated (pi02/pi03)
 - PDUs remain SNMP-managed
@@ -164,15 +170,15 @@ This is a **monitoring consolidation**, not a hardware consolidation.
 ### Blocking (mentioned in original issue)
 
 - **#3054 - VLAN interfaces for OOB network access**
-  - Status: Not implemented
-  - Impact: Kubernetes nodes cannot directly access Management VLAN (99)
-  - Current workaround: Access via fw01 routing
-  - Future: Add bond0.99 interfaces to Talos nodes for direct SNMP access
+    - Status: Not implemented
+    - Impact: Kubernetes nodes cannot directly access Management VLAN (99)
+    - Current workaround: Access via fw01 routing
+    - Future: Add bond0.99 interfaces to Talos nodes for direct SNMP access
 
 - **#3064 - Centralized authentication**
-  - Status: Not implemented
-  - Impact: Each OOB device has separate auth (PiKVM, PDU SNMP, ConsolePi SSH)
-  - Future: Integrate with SSO (Authelia/LLDAP), add MFA
+    - Status: Not implemented
+    - Impact: Each OOB device has separate auth (PiKVM, PDU SNMP, ConsolePi SSH)
+    - Future: Integrate with SSO (Authelia/LLDAP), add MFA
 
 ### Unblocked Work
 
@@ -185,63 +191,65 @@ This consolidation can proceed without the above dependencies. The monitoring an
 ### Short-term (Can Implement Now)
 
 1. **Enhanced UPS Monitoring**
-   - Per-outlet power monitoring (if PDUs support it)
-   - Runtime estimation alerts (e.g., "< 10min on battery")
-   - Historical power usage trending
+    - Per-outlet power monitoring (if PDUs support it)
+    - Runtime estimation alerts (e.g., "< 10min on battery")
+    - Historical power usage trending
 
 2. **ConsolePi Monitoring**
-   - Add to Blackbox Exporter ICMP probes
-   - Monitor USB-serial adapter presence
-   - Alert on ConsolePi unavailability
+    - Add to Blackbox Exporter ICMP probes
+    - Monitor USB-serial adapter presence
+    - Alert on ConsolePi unavailability
 
 3. **Automated Recovery**
-   - Alertmanager → PDU power cycle integration
-   - Safe guards: backoff, max retries, approval gates
-   - Health check → auto-remediation workflows
+    - Alertmanager → PDU power cycle integration
+    - Safe guards: backoff, max retries, approval gates
+    - Health check → auto-remediation workflows
 
 ### Long-term (Needs Architecture Decision)
 
 1. **NUT (Network UPS Tools) Migration**
-   - Move from SNMP Exporter to dedicated NUT server in Kubernetes
-   - Encrypted UPS protocol instead of SNMP
-   - Automatic shutdown orchestration on critical battery
-   - **Question:** DaemonSet vs. dedicated pod? Which nodes?
+    - Move from SNMP Exporter to dedicated NUT server in Kubernetes
+    - Encrypted UPS protocol instead of SNMP
+    - Automatic shutdown orchestration on critical battery
+    - **Question:** DaemonSet vs. dedicated pod? Which nodes?
 
 2. **Serial Console Consolidation**
-   - Single serial server vs. multiple ConsolePi devices?
-   - Serial-over-IP for all critical infrastructure?
-   - Alternative: [ser2net](https://github.com/cminyard/ser2net) in Kubernetes?
+    - Single serial server vs. multiple ConsolePi devices?
+    - Serial-over-IP for all critical infrastructure?
+    - Alternative: [ser2net](https://github.com/cminyard/ser2net) in Kubernetes?
 
 3. **Unified Web Dashboard**
-   - Single pane of glass for all OOB operations (KVM, power, serial)?
-   - Replace vendor UIs (PiKVM, PDU web interfaces)?
-   - Audit logging for all OOB actions?
+    - Single pane of glass for all OOB operations (KVM, power, serial)?
+    - Replace vendor UIs (PiKVM, PDU web interfaces)?
+    - Audit logging for all OOB actions?
 
 4. **Hardware Lifecycle**
-   - What happens to ConsolePi hardware if serial is consolidated?
-   - Can PiKVM be extended to handle serial console too?
-   - PDU replacement candidates (SNMPv3, per-outlet monitoring)?
+    - What happens to ConsolePi hardware if serial is consolidated?
+    - Can PiKVM be extended to handle serial console too?
+    - PDU replacement candidates (SNMPv3, per-outlet monitoring)?
 
 ---
 
 ## Questions for Review
 
-1. **NUT Migration:** Should we migrate UPS monitoring from SNMP to NUT?
-   - Pros: Encrypted, better shutdown integration, native UPS protocol
-   - Cons: Additional complexity, new daemon to manage
+1. **UPS action integration:** Keep SNMP monitoring and use an off-cluster NUT
+   server/observer for the shutdown workflow. See
+   [the current shutdown boundary](OOB-MANAGEMENT.md#graceful-cluster-shutdown-extended-outage).
+   Server deployment and synthetic tests are not proof that automatic shutdown
+   has been armed or exercised. NUT does not encrypt SNMPv2 by itself.
 
 2. **Serial Consolidation:** Keep ConsolePi dedicated or consolidate?
-   - Current: 2 dedicated RPi4 for switch serial console
-   - Alternative: ser2net pod? Extend PiKVM? Keep as-is?
+    - Current: 2 dedicated RPi4 for switch serial console
+    - Alternative: ser2net pod? Extend PiKVM? Keep as-is?
 
 3. **Authentication Strategy:** Wait for #3064 or implement partial auth now?
-   - PiKVM can integrate with LDAP today
-   - PDU/UPS could move to SNMPv3 (auth+encryption)
+    - PiKVM can integrate with LDAP today
+    - PDU/UPS could move to SNMPv3 (auth+encryption)
 
 4. **Monitoring Gaps:** What else should be monitored?
-   - TESmart KVM switch itself?
-   - Individual PDU outlets (not just whole PDU)?
-   - PiKVM system metrics (temp, disk, etc.)?
+    - TESmart KVM switch itself?
+    - Individual PDU outlets (not just whole PDU)?
+    - PiKVM system metrics (temp, disk, etc.)?
 
 ---
 
@@ -252,40 +260,46 @@ This consolidation can proceed without the above dependencies. The monitoring an
 Once changes are merged and Flux reconciles:
 
 1. **Gatus Status Page**
-   ```bash
-   curl -sk https://status.homeops.ca/api/v1/endpoints/statuses | \
-     jq '.[] | select(.group=="oob-management") | {name: .name, status: .results[-1].success}'
-   ```
-   Expected: 7 endpoints, all with `success: true`
+
+    ```bash
+    curl -sk https://status.homeops.ca/api/v1/endpoints/statuses | \
+      jq '.[] | select(.group=="oob-management") | {name: .name, status: .results[-1].success}'
+    ```
+
+    Expected: 7 endpoints, all with `success: true`
 
 2. **Prometheus Alerts**
-   ```bash
-   curl -sk https://prometheus.homeops.ca/api/v1/rules | \
-     jq '.data.groups[].rules[] | select(.name | startswith("PDU") or startswith("UPS")) | .name'
-   ```
-   Expected: 6 alert rules (2 existing + 4 new)
+
+    ```bash
+    curl -sk https://prometheus.homeops.ca/api/v1/rules | \
+      jq '.data.groups[].rules[] | select(.name | startswith("PDU") or startswith("UPS")) | .name'
+    ```
+
+    Expected: 6 alert rules (2 existing + 4 new)
 
 3. **SNMP Exporter Targets**
-   ```bash
-   curl -sk https://prometheus.homeops.ca/api/v1/targets | \
-     jq '.data.activeTargets[] | select(.labels.job=="snmp-exporter") | {instance: .labels.instance, health: .health}'
-   ```
-   Expected: 4 targets (pdu01, pdu02, ups01, ups02), all `health: "up"`
+
+    ```bash
+    curl -sk https://prometheus.homeops.ca/api/v1/targets | \
+      jq '.data.activeTargets[] | select(.labels.job=="snmp-exporter") | {instance: .labels.instance, health: .health}'
+    ```
+
+    Expected: 4 targets (pdu01, pdu02, ups01, ups02), all `health: "up"`
 
 4. **Manual Endpoint Tests**
-   ```bash
-   # PiKVM reachable
-   curl -sk -o /dev/null -w "%{http_code}\n" https://kvm01.in.homeops.ca
-   # Expected: 200
+    ```bash
+    # PiKVM reachable
+    curl -sk -o /dev/null -w "%{http_code}\n" https://kvm01.in.homeops.ca
+    # Expected: 200
 
-   # PDU SNMP responsive
-   timeout 3 bash -c "echo >/dev/tcp/pdu01.in.homeops.ca/161" && echo "OK"
-   # Expected: OK
+    # PDU SNMP responsive
+    timeout 3 bash -c "echo >/dev/tcp/pdu01.in.homeops.ca/161" && echo "OK"
+    # Expected: OK
 
-   # ConsolePi SSH reachable
-   timeout 3 bash -c "echo >/dev/tcp/192.168.42.22/22" && echo "OK"
-   # Expected: OK
-   ```
+    # ConsolePi SSH reachable
+    timeout 3 bash -c "echo >/dev/tcp/192.168.42.22/22" && echo "OK"
+    # Expected: OK
+    ```
 
 ---
 
@@ -304,17 +318,20 @@ All changes are additive and non-breaking. Existing monitoring continues to work
 ## Metrics
 
 **Files Changed:** 4
+
 - `kubernetes/apps/observability/gatus/app/resources/config.yaml` (enhanced)
 - `kubernetes/apps/observability/snmp-exporter/app/prometheusrule.yaml` (enhanced)
 - `docs/OOB-MANAGEMENT.md` (new, 776 lines)
 - `README.md` (enhanced)
 
 **New Monitoring:**
+
 - 7 Gatus endpoints
 - 4 Prometheus alert rules
 - 1 comprehensive documentation guide
 
 **Existing Systems Enhanced:**
+
 - Gatus status page (new OOB group)
 - Prometheus alerting (better coverage)
 - Documentation (unified reference)

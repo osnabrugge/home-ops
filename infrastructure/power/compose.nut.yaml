@@ -1,0 +1,32 @@
+services:
+  nut:
+    image: docker.io/instantlinux/nut-upsd:2.8.5-r1@sha256:a186d74a586ec4e10494270f6a52e26bb5e50663d2f8570865f5bd38273e096e
+    user: nut:nut
+    entrypoint: ["/bin/sh", "/opt/nut/server.sh"]
+    environment:
+      NUT_CONFPATH: /etc/nut
+      NUT_STATEPATH: /run/nut
+      NUT_ALTPIDPATH: /run/nut
+    ports:
+      - "127.0.0.1:3493:3493"
+    volumes:
+      - "${UPS_CONFIG_DIR:?Set the reviewed private NUT configuration directory}:/etc/nut:ro"
+      - "./nut-server.sh:/opt/nut/server.sh:ro"
+    tmpfs:
+      - /run/nut:rw,nosuid,nodev,noexec,size=8m,mode=1777
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 96m
+    pids_limit: 32
+    restart: unless-stopped
+    # Override the image's upsmon healthcheck as well as its upsmon entrypoint.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "upsc ups01@localhost ups.status >/dev/null 2>&1 && upsc ups02@localhost ups.status >/dev/null 2>&1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 3

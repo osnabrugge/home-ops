@@ -1,12 +1,20 @@
 # nas01 — design rationale, benchmarks, and migration roadmap
 
-> ## ⚠️ SUPERSEDED — DO NOT USE
+> ## ⚠️ HISTORICAL — DO NOT EXECUTE THIS ROADMAP
+>
+> Current measured inventory, twelve-loaner staging, capacity/rollback gates,
+> tooling and private SMB homes:
+> [NAS01-POST-MIGRATION-DESIGN.md](NAS01-POST-MIGRATION-DESIGN.md)
+> (updated 2026-11-02). The historical inventory below and the architecture
+> document it cites are **not current live state**.
 >
 > This document contains **verified factual errors** and an inadequate dataset
 > design. It is retained only for history. Use
-> [NAS01-STORAGE-ARCHITECTURE.md](NAS01-STORAGE-ARCHITECTURE.md) instead.
+> [NAS01-POST-MIGRATION-DESIGN.md](NAS01-POST-MIGRATION-DESIGN.md) instead.
 >
-> Known errors:
+> Errors identified when this history was originally superseded (not assertions
+> about current hardware; the live boot pool is now mirrored):
+>
 > - Claims `boot-pool` is a 2-device mirror. It is a **single device (`sdm3`)**.
 > - Fails to note that the second SATADOM (`sdn`) is healthy but holds a foreign
 >   Proxmox `rpool`.
@@ -16,11 +24,11 @@
 > - Benchmarks were fio-only at QD1, and its recordsize guidance was later
 >   **disproven by measurement** (16K is ~5× slower than 128K on this pool).
 
-Written in response to: *"I don't see any sort of report as to why you decided to
+Written in response to: _"I don't see any sort of report as to why you decided to
 implement the vdev's and datasets with the settings you decided on and if those
 are ideal or not? I also don't see the results of whatever performance testing you
 did? Do you also have some sort of roadmap on how we are going to handle this
-migration? I don't know what you mean by media pool (tank)."*
+migration? I don't know what you mean by media pool (tank)."_
 
 Fair criticism. This document is the missing accountability.
 
@@ -32,14 +40,14 @@ Fair criticism. This document is the missing accountability.
 
 ### Physical inventory (verified, not assumed)
 
-| Role | Devices | Notes |
-|---|---|---|
-| Boot | 2× SATADOM-MV 3IE 59.6G | mirrored `boot-pool` |
-| **SLOG** | 2× Intel Optane `SSDPEK1A118GA` 110G | **mirrored** |
-| **L2ARC** | 1× Crucial `CT1000P3SSD8` 931G | single, no redundancy needed |
-| Data | 6× 4TB (`ST4000NM017A` ×4, `ST4000VN000` ×2) | |
-| Data | 4× 8TB (`ST8000VN004` ×2, `ST8000VN0022` ×2) | |
-| Data | 2× 10TB (`ST10000VE0008` ×2) | |
+| Role      | Devices                                      | Notes                        |
+| --------- | -------------------------------------------- | ---------------------------- |
+| Boot      | 2× SATADOM-MV 3IE 59.6G                      | mirrored `boot-pool`         |
+| **SLOG**  | 2× Intel Optane `SSDPEK1A118GA` 110G         | **mirrored**                 |
+| **L2ARC** | 1× Crucial `CT1000P3SSD8` 931G               | single, no redundancy needed |
+| Data      | 6× 4TB (`ST4000NM017A` ×4, `ST4000VN000` ×2) |                              |
+| Data      | 4× 8TB (`ST8000VN004` ×2, `ST8000VN0022` ×2) |                              |
+| Data      | 2× 10TB (`ST10000VE0008` ×2)                 |                              |
 
 **12 data drives → 6 mirror vdevs. 34.5 TiB usable. Currently 1.52 MB allocated
 (i.e. effectively empty — nothing has been migrated yet).**
@@ -55,11 +63,11 @@ vault
 
 ### Datasets
 
-| Dataset | recordsize | compression | atime | sync |
-|---|---|---|---|---|
-| `vault` | 128K | lz4 | off | standard |
-| `vault/kopiur` | **1M** | **off** | off | standard |
-| `vault/netboot` | **1M** | lz4 | off | standard |
+| Dataset         | recordsize | compression | atime | sync     |
+| --------------- | ---------- | ----------- | ----- | -------- |
+| `vault`         | 128K       | lz4         | off   | standard |
+| `vault/kopiur`  | **1M**     | **off**     | off   | standard |
+| `vault/netboot` | **1M**     | lz4         | off   | standard |
 
 ---
 
@@ -67,23 +75,23 @@ vault
 
 ### Why mirrors instead of raidz?
 
-| | 6× mirrors (chosen) | raidz2 |
-|---|---|---|
-| Usable from 12 drives | ~34.5 TiB (50%) | ~2/3 |
-| Random IOPS | **6 vdevs = 6× IOPS** | **1 vdev = 1× IOPS** |
-| Resilver time | Minutes–hours, reads only the partner | Days, reads *every* drive |
-| Risk during resilver | Only the 1 partner is stressed | Whole array stressed when most fragile |
-| Expansion | **Add 2 drives at a time** | Add a whole vdev |
+|                       | 6× mirrors (chosen)                   | raidz2                                 |
+| --------------------- | ------------------------------------- | -------------------------------------- |
+| Usable from 12 drives | ~34.5 TiB (50%)                       | ~2/3                                   |
+| Random IOPS           | **6 vdevs = 6× IOPS**                 | **1 vdev = 1× IOPS**                   |
+| Resilver time         | Minutes–hours, reads only the partner | Days, reads _every_ drive              |
+| Risk during resilver  | Only the 1 partner is stressed        | Whole array stressed when most fragile |
+| Expansion             | **Add 2 drives at a time**            | Add a whole vdev                       |
 
 This pool's job is **VM/container/app storage and backup targets** — random,
 concurrent, latency-sensitive I/O. IOPS scale with **vdev count**, not drive
 count. raidz2 across 12 drives would give the random-I/O performance of roughly
-*one* drive.
+_one_ drive.
 
 **Verdict: mirrors are correct for `vault`. Keeping them.**
 
 The capacity cost is real (50% vs ~67%). That is the deliberate trade: you bought
-IOPS and fast resilver with capacity. For *bulk media* that trade is wrong — which
+IOPS and fast resilver with capacity. For _bulk media_ that trade is wrong — which
 is exactly why a second pool is proposed (see §5).
 
 ### Why mirrored SLOG on Optane?
@@ -102,7 +110,7 @@ lose the in-flight transaction group.
 working set of this pool is very unlikely to exceed that.
 
 L2ARC is not free: every L2ARC record consumes an ARC header **in RAM**. A 931 GB
-L2ARC can burn several GB of RAM that would otherwise hold *actual cached data*.
+L2ARC can burn several GB of RAM that would otherwise hold _actual cached data_.
 The classic guidance is that L2ARC only helps once RAM is maxed and still
 insufficient.
 
@@ -113,6 +121,7 @@ not have added it first. Recommend measuring before keeping it:
 ```
 arc_summary | grep -A10 L2ARC     # check hit ratio
 ```
+
 If the L2ARC hit ratio is low single-digit %, remove it (`zpool remove vault <dev>`)
 and repurpose that 1TB SSD — it is a perfectly good special/metadata device or
 scratch disk.
@@ -123,6 +132,7 @@ The 6 mirrors are **not** the same size: 3× 4TB, 2× 8TB, 1× 10TB.
 
 ZFS allocates writes across vdevs **proportionally to free space**. The 10TB
 mirror will receive ~2.5× the writes of a 4TB mirror. Consequences:
+
 - Write throughput is **not** a clean 6× — it is skewed toward the larger vdevs
 - As the pool fills, the small vdevs fill first and allocation gets less balanced
 
@@ -148,13 +158,13 @@ knowing so the benchmark numbers below make sense.
 Measured with `fio` from a **pod in the cluster over NFS** — i.e. the real path,
 not a local-to-nas01 microbenchmark.
 
-| Test | `vault` (6× mirrors) | old `testpool` (raidz1) | Delta |
-|---|---|---|---|
-| Sequential 1M write | **313 MiB/s** | 258 MiB/s | +21% |
-| Sequential 1M read | **417 MiB/s** | 365 MiB/s | +14% |
-| Random 4K read | **3416 IOPS** | 1976 IOPS | **+73%** |
-| Random 4K write | **1479 IOPS** | — | — |
-| Sync 64K QD1 (SLOG path) | **61.8 MiB/s** | not tested | — |
+| Test                     | `vault` (6× mirrors) | old `testpool` (raidz1) | Delta    |
+| ------------------------ | -------------------- | ----------------------- | -------- |
+| Sequential 1M write      | **313 MiB/s**        | 258 MiB/s               | +21%     |
+| Sequential 1M read       | **417 MiB/s**        | 365 MiB/s               | +14%     |
+| Random 4K read           | **3416 IOPS**        | 1976 IOPS               | **+73%** |
+| Random 4K write          | **1479 IOPS**        | —                       | —        |
+| Sync 64K QD1 (SLOG path) | **61.8 MiB/s**       | not tested              | —        |
 
 ### Honest interpretation
 
@@ -163,7 +173,7 @@ That is the workload this pool exists for, and it is a big, real win.
 
 **The sequential numbers are lower than they should be.** Six mirror vdevs of
 7200rpm SATA should sustain well over 600 MiB/s sequential write. Getting
-313 MiB/s means something in the path is limiting — and it is *not* the disks:
+313 MiB/s means something in the path is limiting — and it is _not_ the disks:
 
 - Not the network — 10 GbE is 1250 MB/s, we are at 25% of that
 - Likely **NFS sync semantics + single-threaded fio at low queue depth**
@@ -187,12 +197,12 @@ I used the name `tank` loosely and never defined it. Concretely:
 
 **The proposal is a SECOND pool on nas01, separate from `vault`, for bulk media.**
 
-| | `vault` (exists) | `tank` (proposed) |
-|---|---|---|
-| Layout | 6× mirrors | **raidz2** |
-| Purpose | App configs, VM/container storage, backup targets | Movies, TV, music — large sequential files |
-| Priority | IOPS + low latency | **Capacity + $/TB** |
-| Usable | 50% of raw | ~67–75% of raw |
+|          | `vault` (exists)                                  | `tank` (proposed)                          |
+| -------- | ------------------------------------------------- | ------------------------------------------ |
+| Layout   | 6× mirrors                                        | **raidz2**                                 |
+| Purpose  | App configs, VM/container storage, backup targets | Movies, TV, music — large sequential files |
+| Priority | IOPS + low latency                                | **Capacity + $/TB**                        |
+| Usable   | 50% of raw                                        | ~67–75% of raw                             |
 
 **Why a separate pool rather than growing `vault`:** media is written once and
 read sequentially. It needs no IOPS. Putting it on mirrors wastes half your
@@ -211,6 +221,7 @@ Proposed `tank` members come from drives freed by the nas02 migration
 ## 5. Migration roadmap
 
 ### Current state
+
 - `vault` built, healthy, **essentially empty (1.52 MB)**
 - `vault/kopiur` + `vault/netboot` datasets created, NFS-exported
 - netboot-xyz **already repointed** to `nas01:/mnt/vault/netboot` ✅
@@ -218,20 +229,23 @@ Proposed `tank` members come from drives freed by the nas02 migration
 - `tank` does not exist
 
 ### Phase 1 — stop depending on nas02 (in progress)
-| Step | Status |
-|---|---|
-| Create `vault` + SLOG + datasets | ✅ done |
-| Move netboot assets off nas02 | ✅ done |
-| Move kopiur backup target to `vault/kopiur` | ⏳ next |
-| Purge the old kopia repo on nas02 | ⏳ blocked on above |
+
+| Step                                        | Status              |
+| ------------------------------------------- | ------------------- |
+| Create `vault` + SLOG + datasets            | ✅ done             |
+| Move netboot assets off nas02               | ✅ done             |
+| Move kopiur backup target to `vault/kopiur` | ⏳ next             |
+| Purge the old kopia repo on nas02           | ⏳ blocked on above |
 
 ### Phase 2 — decide what dies (**BLOCKED ON YOU**)
+
 nas02 holds ~66 TB. **I am not deleting any of it without explicit sign-off.**
 
 I need a decision per share: **keep / archive / delete**. This is the single
 biggest blocker in the whole migration — everything downstream needs those drives.
 
 ### Phase 3 — drain nas02
+
 1. Inventory + checksum what is kept
 2. Copy to `vault` temporarily (34.5 TiB — **will not hold all 66 TB**, so Phase 2
    purge decisions are mandatory, not optional)
@@ -239,19 +253,23 @@ biggest blocker in the whole migration — everything downstream needs those dri
 4. Power down nas02, pull its drives
 
 ### Phase 4 — build `tank`
+
 1. Install nas02's 4× 20TB + 4× 12TB + desktop 12TB into nas01 (36 bays, plenty)
 2. Create `tank` as raidz2
 3. Move bulk media from `vault` → `tank`
 4. `vault` returns to being app/backup storage only
 
 ### Phase 5 — decommission
+
 1. nas02 powered off permanently
 2. Desktop drives freed → desktop stops being infrastructure
 
 ### Sequencing risk
+
 Phase 3 copies 66 TB into a 34.5 TiB pool. **That does not fit.** So either:
+
 - Phase 2 purge gets you under ~30 TB, **or**
-- Some nas02 drives move into nas01 *before* the copy, and data is staged in
+- Some nas02 drives move into nas01 _before_ the copy, and data is staged in
   batches (slower, more handling, more risk)
 
 **Preferred: purge first.** Which is why Phase 2 is the critical path.
@@ -260,13 +278,13 @@ Phase 3 copies 66 TB into a 34.5 TiB pool. **That does not fit.** So either:
 
 ## 6. Open items / what I still owe you
 
-| Item | Status |
-|---|---|
-| Re-benchmark with higher QD + tuned NFS mount options | to do |
-| Measure L2ARC hit ratio; likely remove it | to do |
-| kopiur → `vault/kopiur` cutover | next up |
-| nas02 keep/delete decisions | **needs you** |
-| `tank` raidz2 geometry (how many vdevs, spares) | design after Phase 2 |
+| Item                                                  | Status               |
+| ----------------------------------------------------- | -------------------- |
+| Re-benchmark with higher QD + tuned NFS mount options | to do                |
+| Measure L2ARC hit ratio; likely remove it             | to do                |
+| kopiur → `vault/kopiur` cutover                       | next up              |
+| nas02 keep/delete decisions                           | **needs you**        |
+| `tank` raidz2 geometry (how many vdevs, spares)       | design after Phase 2 |
 
 ## 7. Summary of honest critiques of my own build
 

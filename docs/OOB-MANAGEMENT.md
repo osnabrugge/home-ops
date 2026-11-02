@@ -429,27 +429,61 @@ curl -sk https://prometheus.homeops.ca/api/v1/query?query=upsAdvBatteryCapacity 
 
 ### Graceful Cluster Shutdown (Extended Outage)
 
-If UPS is on battery and runtime is limited:
+Do not use PDU outlet cuts as an orderly shutdown procedure, or spend a short
+UPS budget repeatedly draining Ceph nodes. Talos needs its authenticated shutdown
+API; a NUT process inside Kubernetes cannot halt its Talos host.
+
+The off-cluster implementation is under [infrastructure/power](../infrastructure/power/),
+with the bounded observer/sequencer in [ups_shutdown.py](../scripts/ups_shutdown.py).
+NAS01 hosts a separate pinned, server-only NUT Compose project on
+`127.0.0.1:3493`. It polls both existing UPS cards; it runs no `upsmon`, has no
+NUT command users, and never invokes driver shutdown. Existing SNMP dashboards
+remain in place. The approved SNMP credential is provisioned only into private
+host configuration, not the example in Git.
+
+The unarmed `homeops-ups-watch.service` is linked from the persistent deployment
+directory. A TrueNAS `POSTINIT` command re-links and starts that same observer
+after boot; it does not contain `--execute`. This startup record, not a bare
+custom unit under the appliance's OS filesystem, is the persistence mechanism.
+No reboot has been performed to certify a real post-upgrade startup.
+
+**A running NUT server is not armed power protection.** The observer is
+read-only unless `--execute` and a separate root-owned, mode-0600 approval file
+matching the exact policy hash are supplied. The example deliberately leaves
+host finalizers unapproved and Talos/Kubernetes credential paths unprovisioned.
+Do not enable TrueNAS's unconfigured native UPS service with its default
+30-second local-shutdown timer as a shortcut.
+
+Read-only observation on NAS01:
 
 ```bash
-# 1. Check estimated runtime
-# (via Grafana UPS dashboard or SNMP)
-
-# 2. If < 10 minutes, initiate graceful shutdown
-kubectl drain k8s04 k8s05 k8s06 --ignore-daemonsets --delete-emptydir-data
-
-# 3. Wait for workloads to drain (2-3 minutes)
-
-# 4. Power off workers first
-just infra pdu-off k8s04
-just infra pdu-off k8s05
-just infra pdu-off k8s06
-
-# 5. Power off control plane (last)
-just infra pdu-off k8s01
-just infra pdu-off k8s02
-just infra pdu-off k8s03
+sudo python3 /mnt/local/apps/homeops-power/scripts/ups_shutdown.py watch \
+  --config /mnt/local/apps/homeops-power/private/ups-policy.json \
+  --state /mnt/local/apps/homeops-power/private/ups-state.json --once
 ```
+
+The proposed actuator budgets six minutes for quiescing applications, requesting
+parallel worker shutdowns, then control-plane shutdowns, and finally the NAS and
+hypervisor hosts. It takes the minimum reported UPS runtime, never an average.
+Network gear is not powered off by this implementation. It snapshots original
+replica/suspension state and its ownership of Ceph `noout` before mutations,
+records actions before sending them, and requires explicit healthy recovery
+before restoring state. A timeout is unconfirmed, not successful.
+
+Before arming, approve the actual identities and native host shutdown bounds,
+UPS policy, independent credential placement and recovery procedure. In
+particular, the example treats a 45-second telemetry loss as a shutdown reason;
+that availability-versus-data-safety policy needs explicit review, not accidental
+activation during a NUT upgrade. `OL RB` alone does not trigger an outage action.
+No outage, FSD, outlet, host-shutdown or recovery actuator test is implied by the
+synthetic regression suite.
+
+Server-only rollback stops just Compose project `homeops-power`; it does not
+stop Docker, alter existing containers, erase its private state, or change UPS
+settings. Remove an observer startup entry separately before reversing it.
+Stop `homeops-ups-watch.service`, disable only the matching
+`Home-ops UPS observer (unarmed)` native startup record, and retain its journal
+before removing the unit link. Never run `systemctl stop docker` as rollback.
 
 ### Firmware/BIOS Update via KVM
 
@@ -642,12 +676,13 @@ ssh -v pi@192.168.42.22
 
 ### Under Consideration
 
-**NUT (Network UPS Tools) Migration:**
+**NUT (Network UPS Tools) and outage protection:**
 
-- Move UPS monitoring from SNMP Exporter to dedicated NUT server
-- Run `nut-server` in Kubernetes (DaemonSet or Deployment)
-- Encrypted UPS protocol instead of SNMP
-- Automatic shutdown orchestration on critical battery
+- Keep existing SNMP monitoring; use the off-cluster NUT server for outage state.
+- Keep the shutdown observer outside the cluster it must eventually shut down.
+- The current NUT socket is host-loopback only. NUT does not magically encrypt
+  the underlying SNMPv2 link; do not describe it as an encryption upgrade.
+- Automatic shutdown remains a separately approved, tested and armed capability.
 
 **PDU Monitoring Enhancement:**
 

@@ -1,0 +1,36 @@
+{
+  "nut_host": "127.0.0.1",
+  "nut_port": 3493,
+  "poll_seconds": 5,
+  "on_battery_seconds": 60,
+  "communications_seconds": 45,
+  "restore_seconds": 30,
+  "shutdown_budget_seconds": 360,
+  "reserve_seconds": 120,
+  "quiesce_seconds": 70,
+  "worker_seconds": 55,
+  "control_plane_seconds": 55,
+  "kubeconfig": "/mnt/APPROVED/homeops-power/private/kubeconfig",
+  "talosconfig": "/mnt/APPROVED/homeops-power/private/talosconfig",
+  "kubectl": "/mnt/APPROVED/homeops-power/bin/kubectl",
+  "talosctl": "/mnt/APPROVED/homeops-power/bin/talosctl",
+  "quiesce_namespaces": [
+    "actions-runner-system",
+    "ai",
+    "auth",
+    "database",
+    "default",
+    "kopiur-system",
+    "observability",
+    "printing",
+    "system-upgrade",
+    "toolhive"
+  ],
+  "finalizers": {
+    "nas02_ssh_target": null,
+    "nas02_shutdown_api": "synology",
+    "pve01_ssh_target": null,
+    "nas01_midclt": "/usr/bin/midclt",
+    "native_shutdown_bounds_reviewed": false
+  }
+}

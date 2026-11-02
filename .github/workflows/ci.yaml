@@ -121,7 +121,7 @@ jobs:
           annotations: true
 
   ai-guards:
-    name: AI Guardrails
+    name: Automation Guardrails
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -131,11 +131,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Test read-only launcher and local pilot guards
+      - name: Test triage, migration and power safety guards
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           PYTHONPATH: scripts:kubernetes/apps/ai/litellm/app:kubernetes/apps/ai/triage-worker/app
-        run: python3 -m unittest test_triage_readonly test_key_policy test_worker -v
+        run: python3 -m unittest test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown -v
 
   status:
     if: ${{ !cancelled() }}

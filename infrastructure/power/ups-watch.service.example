@@ -1,0 +1,23 @@
+[Unit]
+Description=Home-ops off-cluster UPS observer (actuation DISABLED)
+After=network-online.target docker.service
+Wants=network-online.target
+RequiresMountsFor=/mnt/APPROVED/homeops-power
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/mnt/APPROVED/homeops-power
+# No --execute: this unit never sends shutdown or Kubernetes mutation requests.
+ExecStart=/usr/bin/python3 scripts/ups_shutdown.py watch --config private/ups-policy.json --state private/ups-state.json
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+UMask=0077
+MemoryMax=128M
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target

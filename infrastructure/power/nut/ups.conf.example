@@ -1,0 +1,25 @@
+pollinterval = 5
+
+[ups01]
+    driver = snmp-ups
+    port = 192.168.99.11
+    snmp_version = v2c
+    community = "@@EXISTING_APPROVED_SNMP_COMMUNITY@@"
+    mibs = auto
+    pollfreq = 10
+    snmp_retries = 0
+    snmp_timeout = 2
+    sdorder = -1
+    desc = "CyberPower PR1500RT2UN"
+
+[ups02]
+    driver = snmp-ups
+    port = 192.168.99.12
+    snmp_version = v2c
+    community = "@@EXISTING_APPROVED_SNMP_COMMUNITY@@"
+    mibs = auto
+    pollfreq = 10
+    snmp_retries = 0
+    snmp_timeout = 2
+    sdorder = -1
+    desc = "CyberPower PR1500RT2U"

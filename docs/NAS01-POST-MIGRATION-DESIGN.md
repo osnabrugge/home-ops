@@ -1,321 +1,400 @@
-# nas01 — post-migration design
+# nas01 — loaner-assisted migration and final layout
 
-**Status:** proposed, 2026-09-17. Supersedes the flash/purchase sections of
-[NAS01-STORAGE-ARCHITECTURE.md](NAS01-STORAGE-ARCHITECTURE.md). Every number below
-was measured on the day, not estimated — commands are given so they can be re-run.
+**Updated 2026-11-02. Proposal, not permission to change storage.** Native,
+read-only TrueNAS 25.10.7 and DSM checks supersede the September inventory and
+purchase/purge plan. No pool, dataset, share, ACL, user, service, or source data
+was changed while preparing this plan. No migration copy has run.
 
-The four pools that exist today (`local`, `backups`, `nfs`, `smb`) were chosen to
-maximise landing capacity for the migration. They are **not** a finished design and
-this document does not treat them as one.
+The twelve available 4 TB SATA loaners solve **temporary landing space**, not
+permanent expansion. They must be a **separate disposable pool**, never data
+vdevs added to a production pool. RAIDZ data vdevs cannot be removed individually;
+RAIDZ cannot shrink or become a different parity level. Returning these disks
+does not mean detaching them from a populated pool.
 
----
+## 1. Verified starting point
 
-## 0. Two measurements that change the previous plan
+| Existing pool | Current geometry                                                    | Used / dataset available | Treatment                                                       |
+| ------------- | ------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------- |
+| `nfs`         | 4×8 TB RAIDZ1; mirrored 1 TB P3 special; mirrored 118 GB Optane log | ~14 MB / 23.105 TB       | Production `media` **and** `netboot` NFS exports; preserve      |
+| `smb`         | 6×4 TB RAIDZ1                                                       | 86.755 GB / 18.934 TB    | Production private homes; preserve                              |
+| `backups`     | 2×10 TB mirror                                                      | 2.902 TB / 6.942 TB      | Existing Frigate, photos and PVE backups; **not staging space** |
+| `local`       | 2×512 GB SATA SSD mirror                                            | 99.132 GB / 391.971 GB   | Production Garage, Zot and apps; **not staging space**          |
+| `boot-pool`   | 2×64 GB mirror, plus 64 GB spare                                    | ONLINE                   | Preserve                                                        |
 
-### 0.1 nas01 has 24 free SAS bays, not zero
+All five pools were ONLINE without known data errors. The last displayed data
+pool scrubs were October 4; that is **not** a fresh migration scrub.
 
-The earlier plan assumed every bay was populated, which is what forced the
-"buy 5× 20 TB and absorb nas02 in one cut" conclusion. That assumption was wrong.
+There are eight NVMe devices, **not eight free NVMe devices**:
 
+- Two P3 1 TB devices and both Optanes are already in `nfs`'s special/log mirrors.
+  Removing a special mirror member blindly can lose the whole pool.
+- Two other P3 1 TB devices are not in the live pools. One still has a GPT and
+  partition, although no filesystem signature was reported; it is **not proven
+  safe to erase**. The other reported no partition/signature.
+- Both Samsung PM981 256 GB devices reported no partitions/signatures and no
+  live-pool reference. Ownership, by-id/serial and any unimported pool must still
+  be checked before approved reuse.
+
+Kernel names are observations, not disk-selection instructions. Use serial/by-id
+inventory and explicit owner approval for every future destructive operation.
+Do not add L2ARC, cap ARC, move Garage, or rebuild boot as part of this migration.
+
+### Source scope and capacity
+
+One hardlink-aware `du -sxk` invocation across the three volume1 roots measured:
+
+| NAS02 source      |                  Bytes | Decimal TB |        TiB |
+| ----------------- | ---------------------: | ---------: | ---------: |
+| `/volume1/data`   |     44,942,121,472,000 |     44.942 |     40.875 |
+| `/volume1/homes`  |     16,641,964,244,992 |     16.642 |     15.136 |
+| `/volume1/docker` |         42,891,108,352 |      0.043 |      0.039 |
+| **Subtotal**      | **61,626,976,825,344** | **61.627** | **56.049** |
+
+`df`'s 70.858 TB used on volume1 is **not** the copy payload. Conversely, `du`
+allocated bytes are not a complete logical-byte inventory: compression, sparse
+files and reflinks can change destination demand. Scan a frozen source before
+approving capacity; do not assume ZFS deduplication or compression savings.
+
+**This is not yet a complete NAS02 evacuation inventory.** Volume2 is mounted
+and holds `ActiveBackupforBusiness`; its filesystem reports ~5.513 TB used.
+The deduplicated ABB store needs a separately tested DSM-compatible recovery
+plan or explicit retention decision, not an ordinary `rsync` capacity estimate.
+The old `/volume3` figures are historical; the current check did not show a
+separate mounted filesystem there. Inventory all current shares, snapshots,
+packages and backup obligations before releasing any NAS02 disk.
+
+**Docker bind mounts are not a complete application-state inventory.** The
+current Auditorr SQLite database is `/app/data/auditorr.db` in the container's
+writable layer; only `/config` binds `/volume1/docker/appdata/auditorr`. The
+November 1 restart did not deploy the proposed persistence fix. Copying the
+Docker share alone therefore misses the live database. Before any recreation,
+obtain an SQLite-consistent backup using the online backup API or a fully
+quiesced database/WAL snapshot, verify it without exposing personal payloads,
+and approve an explicit persistent mount and restore test. Do not copy just an
+active `.db`, rely on a container export, or overwrite history with the proposed
+backport's state. Inspect only whitelisted mount/storage metadata, never dump
+environment variables or credentials into migration records.
+
+## 2. Capacity and the final design tradeoff
+
+TB below means 10^12 bytes; TiB means 2^40 bytes. These are **nominal upper
+bounds**, before ZFS slop, padding, metadata, quotas and snapshots.
+
+| Phase / geometry                                      | Raw TB | Parity TB | Stranded TB | Nominal data TB / TiB | 80% target TB |
+| ----------------------------------------------------- | -----: | --------: | ----------: | --------------------: | ------------: |
+| Loaners: 12×4 TB RAIDZ2                               |     48 |         8 |           0 |           40 / 36.380 |          32.0 |
+| Initial final pool: one 8-wide RAIDZ2, 4×12 + 4×20 TB |    128 |        24 |          32 |           72 / 65.484 |          57.6 |
+| Final: above + 4×8 TB RAIDZ2                          |    160 |        40 |          32 |       **88 / 80.036** |      **70.4** |
+| Alternative: three homogeneous 4-wide RAIDZ2 vdevs    |    160 |        80 |           0 |           80 / 72.760 |          64.0 |
+
+**Recommended updated proposal:** one new bulk pool with the two RAIDZ2 data
+vdevs above, separate `data`, per-user `home`, and small infrastructure datasets.
+Keep `downloads` and `media` **directories within the same `data` dataset**.
+Never turn either into a child dataset or separate NFS filesystem.
+
+This deliberately trades the September proposal's separate media/vault failure
+domains for sufficient permanent capacity without retaining loaners. It does
+**not** convert an existing pool. The mixed 8-wide vdev strands 32 TB, but has
+less parity overhead than two 4-wide vdevs and yields 8 TB more usable space.
+Homes remain independently backed up; sharing a pool is not backup isolation.
+
+The old separate-pool design does not fit the measured payload at 80%:
+4×12 RAIDZ2 + 4×8 RAIDZ2 + 6×4 RAIDZ2 gives media only 56 TB nominal,
+44.8 TB at 80%, **less than 44.942 TB before overhead**. Retiring the six 4 TB
+disks makes that gap larger. Separate pools require additional permanent
+capacity or an explicitly approved smaller payload; neither is assumed here.
+
+The 3% planning allowance makes the subtotal **63.476 TB**, not a guaranteed
+ZFS requirement. Even the homogeneous 80 TB option is too tight once real ZFS
+space deductions are included. Measure actual available capacity before each
+phase; stop rather than relax headroom silently.
+
+Final production `backups`, `local` and boot stay unchanged. The six owned 4 TB
+disks can become cold spares **only after** the existing NAS01 homes and any
+staging data have been separately verified, cut over and approved for evacuation.
+Until then, the current SMB pool remains production.
+
+### Free NVMe use
+
+Subject to identification and approval, use the two free P3s as a **standalone
+mirrored flash pool**, and the two PM981s as a second standalone mirror.
+These can hold bounded offline staging shards and Docker/configuration state,
+then become fast application storage after application-specific restore tests.
+No application is moved merely because its source directory was copied.
+
+Do not use consumer P3/PM981 devices as a replacement SLOG. Keep the existing
+Optane log and P3 special mirror attached to `nfs` until that pool is evacuated.
+Afterward, reusing the mirrored Optanes for measured bulk NFS sync traffic is a
+separate approved change. A future special vdev requires a separate design:
+RAIDZ2 needs three-way special redundancy to retain two-failure tolerance;
+adding it is not a reversible cache change. Default here is **no new special**.
+
+## 3. Staging without rebuilding production first
+
+Keep all current pools, exports and home shares. After approval, create **new,
+unshared staging datasets**, not directories inside someone's private home:
+
+- Entire NAS02 homes tree → a new staging dataset on `nfs`.
+- Data → the loaner pool, a new sibling staging dataset on `smb`, and bounded
+  shards on the new flash mirrors if measured capacity requires them.
+- Docker → bounded flash staging, with package/database consistency handled
+  separately. Never consume `local` or `backups` free space.
+
+The loaner pool alone cannot hold the data tree: 40 TB nominal versus 44.942 TB.
+The old suggestion to copy everything into one existing empty pool was wrong.
+
+**These are offline, hardlink-closed shards, not a live split media layout.**
+Every `(filesystem, inode)` hardlink group is assigned intact to exactly one
+staging filesystem. Downloads and all media names linked to them travel in the
+same `rsync -H` list. All shards later reassemble into one final `data` dataset.
+There is no merger filesystem, cross-filesystem hardlink claim, reflink fallback,
+or relocation of stopped torrents/tracker holds.
+
+Illustrative allocation, **not executable budgets**:
+
+| Stage                        | Logical data TB | 3% data allowance TB | Other occupancy                                |
+| ---------------------------- | --------------: | -------------------: | ---------------------------------------------- |
+| Loaner RAIDZ2                |          29.700 |               30.591 | measured filesystem overhead                   |
+| Existing SMB sibling dataset |          14.492 |               14.927 | existing 86.755 GB + production growth reserve |
+| Free P3 mirror               |           0.650 |                0.670 | no existing production data                    |
+| Free PM981 mirror            |           0.100 |                0.103 | Docker ~0.044 TB including allowance           |
+| Existing NFS staging dataset |    homes 16.642 |               17.141 | live exports retained                          |
+
+This is a tight temporary fit, not a promise. Current SMB root measurements with
+20% headroom and 100 GB reserved for production growth give only
+**15,029,992,479,340 additional bytes**. Refresh that number and increase the
+growth reserve if needed. The scanner uses **logical unique-inode bytes**,
+charges each hardlink group once, includes directory allowance, and refuses
+groups that do not fit. If actual datasets or source logical bytes fail the
+budgets, obtain more independent staging capacity; do not overfill production.
+
+**Physical gate:** 12 existing HDDs + 12 loaners = 24 HDDs during staging,
+then **32 simultaneously connected HDDs** while the eight NAS02 donors form
+the new pool. SATA SSD/boot connections are additional. Old documents disagree
+about enclosure bays. Verify trays, SATA compatibility, HBA/expander addressing,
+cables, cooling, PSU spin-up margin and UPS runtime for this peak. No bay or
+power capacity has been established by this plan.
+This is the connection peak of this staging plan, not a proof that every
+alternative requires 32 bays. A 24-bay installation needs at least eight
+additional temporary positions for this plan, or a separately capacity-verified
+replacement/staging design before starting.
+
+## 4. Ordered migration and outages
+
+Every mutating step below is a **future approval gate**, not an instruction to
+execute now. The helper contains no pool-creation, cleanup or copy executor.
+
+1. **Preflight:** verify physical capacity, loaner SMART/serials, fresh scrubs,
+   native config backup, UID/GID and Windows identity map, source ACL semantics,
+   ABB recovery, logical payload and measured destination budgets. Prove an
+   independent, restorable backup of irreplaceable homes/configuration.
+   RAIDZ and a second dataset on NAS01 are not independent backups.
+2. **Freeze a consistent source view:** use an approved read-only DSM snapshot,
+   or quiesce its writers. Capture the metadata/hardlink/content reference from
+   that exact view. Btrfs cannot `zfs send` to ZFS. Do not use a normal walk of
+   a live application tree as a consistency guarantee.
+3. **Seed new staging datasets:** review dry-runs and a small authorized sample
+   first; then use native rsync with hardlink-closed lists. POSIX ACL/xattr
+   transport must be tested separately; Synology ACLs do **not** automatically
+   become correct TrueNAS NFSv4 ACLs. Verify the merged staging roots against the
+   frozen source, including hardlink topology and SHA-256 contents.
+4. **Final source gate:** stop writers, retain torrent resume state and the
+   original 99-torrent baseline, account for every later change, and verify
+   the final frozen reference again. The helper does not implement incremental
+   shard reconciliation. Moving/deleted names or changed hardlink groups require
+   an approved destination-only reconciliation; never blanket `--delete` and
+   never source cleanup. With no tested delta protocol, keep writers frozen
+   throughout the authoritative copy and verification instead of promising a
+   short outage.
+5. **Release NAS02 disks only after explicit approval:** all source shares and
+   ABB obligations accounted for, critical-data backup restore tested, staging
+   checks complete. Reusing the eight disks ends NAS02 as a disk-based rollback
+   option. Do not describe the remaining staging RAIDZ as a second source copy.
+6. **Create the new 8-wide donor RAIDZ2 pool after approval.** Reassemble only
+   a capacity-bounded first batch of data—**35 TB logical is an illustrative
+   upper batch, not 44.942 TB**—then migrate homes from NFS staging. With 3%
+   allowance, 35 TB + homes + Docker is ~53.236 TB, below the nominal initial
+   57.6 TB target. Actual ZFS measurements decide. Leave the remainder safely
+   in its staging shards. Never delete from another shard while merging.
+7. **Evacuate current NFS deliberately:** verify homes on the new pool and the
+   independent backup; separately migrate the existing `media`/`netboot`
+   datasets, exports and clients. Capture native config and test each client.
+   Only with no remaining production references and explicit destruction
+   approval may the old `nfs` pool be retired and its four 8 TB disks form the
+   second, RAIDZ2 vdev of the new pool. Until this gate, its special/log devices
+   remain mandatory. No renaming alone removes client dependencies.
+8. **Finish reassembly:** copy the remaining data into the same final dataset;
+   verify against the saved frozen source reference. Apply only the reviewed
+   identity/ACL translation to user homes and test with ordinary user accounts.
+   Cut over each client and retain verified staging for the agreed rollback
+   period. Source SHA equivalence alone is not an application restore test.
+9. **Return all twelve loaners together:** clean final scrub, full reference
+   verification, approved ACL differences, no hardlink inflation, all clients
+   using final paths, torrent state/holds unchanged, independent backups and
+   restore checks passing, and rollback retention satisfied. Only then approve
+   disposal of the staging pool. Do not detach individual RAIDZ disks or erase
+   loaners as an automatic cleanup step.
+
+**Copy floor:** every retained byte travels NAS02 → staging → final, about
+123.254 TB for the current subtotal, plus deltas and verification reads.
+This plan avoids a third full copy by moving homes before recycling the NFS
+disks and postponing the last data batch until capacity grows. It also avoids
+repeated full-array resilvers just to replace loaners.
+
+At **measured sustained** 300–600 MB/s, one 61.627 TB pass alone is ~57–29 hours;
+these rates are examples, not current benchmarks. SHA passes and scrub time are
+additional. With the delivered frozen-source helper and no incremental
+reconciliation protocol, budget both authoritative copy passes: roughly
+57–114 hours of copying, plus verification, while writers remain frozen.
+Keeping the source live during a preliminary snapshot seed does not eliminate
+the later tested delta/reconciliation gate. Do not book a short cutover until
+that protocol or additional staging capacity has been proved. Homes may cut
+over earlier after their independent security tests.
+Current NAS01 Garage/backups/SMB remain online; the existing NFS clients need
+an explicitly scheduled final remount/export cutover.
+
+An in-place loaner replacement is not the recommended shortcut: a 12-wide
+loaner vdev has twelve slots but only eight large donor replacements; the last
+four do not disappear. For example, adding that vdev to current NFS gives
+24 + 40 = 64 TB nominal. Replacing eight members with donors and four with
+owned 4 TB disks leaves the RAIDZ minimum member size at 4 TB: **still 64 TB**.
+The 63.476 TB allowance would be ~99.2% full even before ZFS deductions, versus
+an 80% target of 51.2 TB. Evacuating SMB to free those four owned disks therefore
+hits a concrete **12.276 TB headroom deficit**; the old NFS RAIDZ1 vdev also
+cannot later be removed to improve parity.
+
+The explicit second copy is measured at **61,626,976,825,344 additional logical
+bytes**, rather than hiding I/O under the word “resilver.” For replacements,
+measure the actual allocated fragment bytes `A` of each candidate member first:
+each replacement writes approximately `A`, and reconstructing a RAIDZ stripe
+reads multiple surviving columns. A fully occupied 4 TB member in 12-wide
+RAIDZ2 illustrates the scale: roughly 4 TB replacement writes and order
+40 TB reconstruction reads, per member; eight such replacements would be order
+32 TB writes / 320 TB reads. These are geometry illustrations, **not measured
+loaner allocations or promises about OpenZFS scan I/O**. Replacing all twelve
+would add more I/O and twelve degraded-vdev intervals without fixing the
+capacity deadlock. A genuinely viable replacement option needs extra permanent
+capacity and its own measured allocation/backup plan. Do not sell it as a
+zero-copy final RAIDZ2 migration.
+
+## 5. Safe helper commands and limits
+
+[`scripts/nas01_migration.py`](../scripts/nas01_migration.py) uses Python's
+standard library. Default invocation only prints capacity estimates.
+`preflight` only prints its fixed inventory commands unless `--run` is supplied;
+even then it runs read-only inventory/version queries, never a transfer.
+`rsync-plan` **always** renders `--dry-run`; it never executes rsync transfers,
+creates mounts/datasets, stops applications, changes ACLs or deletes files.
+
+```bash
+python3 -B scripts/nas01_migration.py
+python3 -B scripts/nas01_migration.py preflight --host nas01 --ssh ADMIN@192.168.42.45
+python3 -B scripts/nas01_migration.py preflight --host nas02 --ssh nas02.in.homeops.ca
+python3 -B scripts/nas01_migration.py budget \
+  --used-bytes 86754527840 --available-bytes 18934179231136 \
+  --growth-reserve-bytes 100000000000
+python3 -B scripts/nas01_migration.py rsync-plan \
+  --source READER@nas02.in.homeops.ca:/volume1/data/ \
+  --destination /mnt/loaner/nas02-stage-data/ --sharded
 ```
-$ for e in /sys/class/enclosure/*/; do echo "$e $(cat $e/components)"; done
-0:0:12:0  24 components   expander 0x50030480008035bf   12 occupied, 12 empty
-0:0:13:0  12 components   expander 0x500304800083f1bf    0 occupied, 12 empty
-16:0:0:0   8 components   SATA backplane                 4 occupied (SSDs)
-7:0:0:0    6 components   SATA backplane                 1 occupied (boot SATADOM)
+
+`ADMIN`/`READER` are placeholders for the already documented authorized
+identities, not requests to create accounts. Use only separately tested POSIX
+ACL paths with `--posix-acls-tested`. Native versions are DSM rsync **3.1.2** and
+TrueNAS **3.2.7**; do not assume newer source options such as nanosecond mtime
+comparison. The fingerprint compares POSIX mode/UID/GID, whole-second mtime,
+symlink targets, hardlink groups and optional contents; **not ACLs, xattrs,
+birth times, DOS attributes or application semantics**.
+
+The direct DSM SSH command `rsync --version` was denied, while the existing
+authorized `sudo -n /usr/bin/rsync --version` succeeded. Preflight uses the latter.
+If the approved migration operator needs that same established sudo path,
+`rsync-plan --source-sudo` renders the fixed
+`--rsync-path='sudo -n /usr/bin/rsync'` option; it still cannot execute a copy.
+Do not grant new sudo rights, weaken the SSH command policy, or guess passwords
+to make a transfer work.
+
+Run the following on an approved read-only view with the helper available;
+replace every budget with freshly calculated **additional** bytes after
+headroom and production growth reservations:
+
+```text
+nas01_migration.py shards --root /READ_ONLY_VIEW/data \
+  --budget loaner=MEASURED_BYTES --budget smb=MEASURED_BYTES \
+  --budget flash=MEASURED_BYTES --budget smallflash=MEASURED_BYTES
 ```
 
-Both SAS expanders are live and enumerated by the kernel on `host0`. That is
-**36 SAS bays with 12 in use**. Bays are not the scarce resource; money, power and
-drive age are.
+The summary contains no personal filenames. `--files-for SHARD` emits a
+NUL-delimited list only with the matching `--expect-signature` from that frozen
+scan. Stream that list to the rendered NAS01-side rsync command's stdin.
+`--no-recursive --dirs` is intentional: listing directories must **not**
+recursively pull unassigned files into a shard. Keep all lists, logs, identity
+maps and reference JSON private and outside Git; never publish file inventories.
 
-### 0.2 nas02's drives are older than most of nas01's
+`fingerprint --root ROOT --checksum` prints a reference JSON without filenames.
+`verify --root STAGE1 --root STAGE2 ... --baseline REFERENCE.json --checksum`
+merges offline shards by relative path, rejects conflicting names and checks
+the reference. Metadata-only fingerprints cannot pass `verify`. Roots must
+not cross filesystems or contain links outside their scope. Ordinary source
+changes detected during validation cause a stop, not an automatic copy fallback.
+Full checksumming reads
+every unique file and must be scheduled, not run as a casual health probe.
 
-This is the single most important input to the purchase decision, and it confirms
-Sean's instinct to rank by hours rather than capacity.
+Tests, using generated fixtures only:
 
-| Rank | Drives                           |           Hours |     Years | Currently in    |
-| ---: | -------------------------------- | --------------: | --------: | --------------- |
-|    1 | 2× ST4000VN000-1H4168 (sdc, sdg) |          61,7xx |       7.0 | nas01 `smb`     |
-|    2 | 2× ST8000VN0022 (sdb, sde)       |          44,9xx |       5.1 | nas01 `nfs`     |
-|    3 | 4× ST12000VN0008                 |      41,3–41,5k |       4.7 | **nas02**       |
-|    4 | 4× ST20000NE000                  |          37,665 |       4.3 | **nas02**       |
-|    5 | 4× ST4000NM017A (SAS)            |          24,47x |       2.8 | nas01 `smb`     |
-|    6 | ST8000VN004 sdl / sdh            | 21,490 / 16,827 | 2.5 / 1.9 | nas01 `nfs`     |
-|    7 | 2× ST10000VE0008                 |           5,698 |       0.7 | nas01 `backups` |
-
-Every one of the 20 drives reports **0 reallocated sectors / 0 grown defects**.
-Age is the only differentiator, so it is the only sane ranking.
-
-**Consequence:** the 4× 20 TB drives the old plan was going to build the new vault
-around are rank 4 — older than eight of the twelve drives already in nas01. The
-irreplaceable-data pool therefore **must** be raidz2. At 20 TB a raidz1 resilver
-runs for days and a second failure inside that window is a real probability, not a
-tail risk.
-
-### 0.3 The migration payload is smaller than 74 TiB
-
-```
-$ du -sh …                          $ df -h
-/volume1/data                 51T   volume1  75T size, 67T used
-/volume1/homes                16T   volume2  9.4T size, 5.3T used
-/volume2/ActiveBackupforBusiness  40T   volume3  4.7T size, 1.8T used
-/volume3/frigate             1.5T
-/volume3/pve                 301G
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover \
+  -s scripts -p 'test_nas01_migration.py'
 ```
 
-`ActiveBackupforBusiness` reads 40 TiB by `du` but the volume holding it is only
-5.3 TiB used — Synology ABB deduplicates internally. **It also cannot be migrated:**
-the store is only readable by ActiveBackup running on DSM. Do not budget capacity
-for it; re-establish those backups natively on nas01 and retire the Synology store.
+## 6. `\\nas01\home`: per-authenticated-user access
 
-| Share                              | Migrate? | Lands as         |
-| ---------------------------------- | -------- | ---------------- |
-| `/volume1/data` 51 TiB             | yes      | `media`          |
-| `/volume1/homes` 16 TiB            | yes      | `vault`          |
-| `/volume3/frigate` 1.5 TiB         | yes      | `nvr`            |
-| `/volume3/pve` 301 GiB             | yes      | `vault`          |
-| `/volume2/ActiveBackupforBusiness` | **no**   | re-seed natively |
+**The required server-side behavior is already configured.** Native API and
+`testparm -s` on 2026-11-02 showed one enabled share:
 
-**Real payload ≈ 69 TiB.**
-
-> ⚠️ **Resolve this before spending money.** `data` measured 39.7 TiB on 2026-08-17
-> and 51 TiB on 2026-09-17. If +11 TiB/month is genuine, no purchase survives contact
-> with it and the fix is retention/churn, not disks. If the earlier figure was simply
-> wrong, the sizing below stands. Re-measure before Phase 2.
-
----
-
-## 1. (a) Pool → workload
-
-| Pool                    | Topology                                        |       Usable | Workload                                               |
-| ----------------------- | ----------------------------------------------- | -----------: | ------------------------------------------------------ |
-| `apps` (today `local`)  | mirror 2× 512 GB SATA SSD                       |     0.45 TiB | Garage S3 for kopiur, docker/compose state, app config |
-| `nvr` (today `backups`) | mirror 2× 10 TB Skyhawk AI                      |     9.09 TiB | **Frigate only**                                       |
-| `vault`                 | raidz2 4× 20 TB (ex-nas02)                      |     36.4 TiB | homes, documents, photos, pve, backups-of-record       |
-| `media`                 | raidz2 6× 8 TB **+** raidz2 4× 12 TB (ex-nas02) |     50.9 TiB | bulk media, cluster NFS exports                        |
-|                         |                                                 | **96.8 TiB** | 69 TiB payload → **71 % full**                         |
-
-**Garage / kopiur stays on `apps`.** The repo is 28.5 GiB against 457 GiB of SSD
-mirror, and kopia's access pattern is many small objects with frequent fsync — the
-worst possible fit for a 2-spindle mirror and the best fit for flash. (This is where
-it already lives; it was briefly moved to `backups` on the strength of a pool _name_
-and a _provisioned_ 758 GiB figure instead of the STORED 123 GiB. Both were wrong.)
-
-**Frigate gets `nvr` (the Skyhawks) for three independent reasons:** those drives are
-literally NVR-rated, they are the newest in the box at 0.7 years, and giving the 24/7
-sequential write stream its own spindles stops it interleaving with media reads on
-`media`. 1.5 TiB into 9.09 TiB leaves ample retention headroom.
-
-**Retire the 6× 4 TB.** The two at 61.7 k hours come out first. The four SAS
-ST4000NM017A at 24.5 k hours are healthy — keep them as cold spares rather than
-burning four bays and ~28 W on 3.64 TiB each.
-
----
-
-## 2. (b) SLOG — 2× Optane P1600X, mirrored, on `media`
-
-A SLOG only ever accelerates **sync** writes. Ranking the four pools by sync
-pressure, which is the only question that matters:
-
-| Pool    | Sync profile                                                | SLOG value                                                                                             |
-| ------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `nvr`   | Frigate writes large sequential segments asynchronously     | **none** — ZFS would not route them through it                                                         |
-| `vault` | SMB; Windows/macOS clients write async unless `strict sync` | low, bursty                                                                                            |
-| `apps`  | Garage/kopia fsync a lot — but the pool is already flash    | real, but small. Optane in front of SATA SSD is a ~5× QD1 win, not the ~1000× you get in front of rust |
-| `media` | **NFS exports to Kubernetes, sync by default**              | **highest**                                                                                            |
-
-`media` wins because it is the only workload in the machine that is simultaneously
-sync-heavy, latency-sensitive, small-block **and** HDD-backed. Every `*arr` import,
-rename, hardlink and `.nfsXXXX` unlink is a synchronous metadata write; on raidz2
-spinning rust each costs a read-modify-write plus a ZIL commit (~10 ms) and they
-serialise behind one another. That is precisely the stall a SLOG removes.
-
-The P1600X is the right _device_ for the job because SLOG is a QD1, small-block,
-write-only, high-endurance workload — 3D XPoint's strongest axis and consumer NAND's
-weakest. Do not use a Crucial P3 here.
-
-- **Mirror it.** Losing the SLOG during an unclean shutdown loses the in-flight sync
-  transaction groups.
-- **This one is reversible.** `zpool remove <log>` works online. If Postgres/CNPG or
-  iSCSI ever lands on nas01, that pool outranks `media` and the SLOG should move.
-
----
-
-## 3. (c) special / metadata vdevs
-
-Two constraints to internalise **before** creating the pools, because neither can be
-walked back:
-
-1. **A special vdev is a pool-killer.** It holds all metadata; lose it, lose the pool.
-2. **It can never be removed from a pool that contains a raidz vdev.** `zpool remove`
-   only evacuates mirror/stripe vdevs, and only in pools with no raidz. On a raidz2
-   pool this choice is permanent for the life of the pool.
-
-And the mismatch that usually goes unnoticed: **a 2-way mirror special vdev on a
-raidz2 pool silently downgrades the whole pool to single-failure tolerance.** The
-special vdev must be **3-way** to match raidz2.
-
-| Pool    | special vdev                                             |  Usable |
-| ------- | -------------------------------------------------------- | ------: |
-| `media` | **3-way mirror, 3× Crucial P3 1 TB**                     | 931 GiB |
-| `vault` | **3-way mirror, 1× Crucial P3 1 TB + 2× Samsung 256 GB** | 232 GiB |
-| `nvr`   | none                                                     |       — |
-| `apps`  | none (already flash)                                     |       — |
-
-That consumes all eight free NVMe (3+1 P3, 2 Samsung, 2 Optane).
-
-`nvr` deliberately gets nothing: Frigate is a handful of very large sequential files,
-its metadata volume is trivial, ARC covers it, and adding a special vdev to a 2-way
-mirror pool would only add a failure domain.
-
-Set **`special_small_blocks=0`** on both (metadata only, no small-file offload) until
-actual usage is measured. You can raise it later; you cannot shrink the vdev.
-
-Capacity sanity check — metadata runs ~0.3 % of pool data for large files, up to ~2 %
-for many small ones:
-
-- `media`, 51 TiB of large files → ~150–300 GiB. 931 GiB is ample.
-- `vault`, 16 TiB of homes with many small files → ~160–330 GiB. **232 GiB is tight.**
-  If it fills, ZFS spills metadata back to the pool — degraded, not fatal. If it passes
-  ~70 %, replace the two 256 GB Samsungs with 1 TB drives; a _mirror_ can be grown by
-  replace-and-expand, unlike the vdev itself.
-
-**L2ARC stays ruled out.** 251 GB of ECC RAM means ARC already holds the hot set, and
-every one of these devices earns more as a special vdev. Settled; not reopening it.
-
----
-
-## 4. (d) Can this be migrated in place?
-
-**Yes — with no single-copy moment at any point — and only because there are 24 free
-SAS bays.**
-
-But the existing pools cannot be _converted_. You cannot reshape raidz1 into raidz2,
-cannot remove a raidz vdev, and cannot change vdev width. `nfs` and `smb` must be
-**destroyed and rebuilt** — but that happens at the _end_, when they are already
-empty, so no data is ever at risk.
-
-The hard constraint is unchanged: nas02's `md2` spans all 8 spindles, so **not one
-nas02 drive can be pulled until all ~69 TiB is off it.** nas02 is all-or-nothing.
-
-Landing capacity available today, before buying anything:
-`local 0.45 + backups 9.09 + nfs 21.0 + smb 17.3 = 47.85 TiB` against a 67 TiB
-data+homes payload. **Short by ~20 TiB.**
-
-### Ordering
-
-**Phase 0 — free, no purchase, do it now**
-
-1. Repoint Frigate from nas02 `/volume3/frigate` to nas01 `backups`/`nvr`. Frees
-   1.5 TiB on nas02 and moves the NVR onto NVR-rated drives.
-2. Repoint netboot-xyz to `nfs/netboot` (already created) — also closes the open
-   "netboot NFS mount fails, exit 32" backlog item.
-3. Move `/volume3/pve` (301 GiB).
-4. Leave Garage/kopiur on `apps`. Already done.
-
-**Phase 1 — measure, then decide**
-Re-measure `data` growth (§0.3). If it really is +11 TiB/month, stop and fix
-retention/churn before buying anything.
-
-**Phase 2 — buy ~20 TiB of landing space** (§5) and build it into the free bays.
-Nothing existing is disturbed.
-
-**Phase 3 — evacuate nas02 over 10 GbE.** `data` → new pool, `homes` → the empty
-`smb`/`nfs` pools temporarily.
-
-**Phase 4 — pull nas02's 8 drives, install into free bays.** Build `vault` =
-raidz2 4× 20 TB + its special vdev. Move `homes` + `pve` onto it.
-
-**Phase 5 — destroy the now-empty `nfs` and `smb`.** Rebuild the 4× 8 TB into the
-`media` raidz2 alongside the purchased drives; add the 4× 12 TB as `media`'s second
-vdev. Retire the two 61.7 k-hour 4 TB drives.
-
-At no point does a dataset exist in only one place.
-
----
-
-## 5. (e) Buy / don't buy — **don't buy. Purge.**
-
-Budget is $400. The gap is ~20 TiB. **Measurement says the gap closes for $0.**
-
-### This is a capacity problem, not a performance one
-
-Every pool reports **0 % fragmentation** and is essentially empty. Nothing is slow.
-The shortfall is pure arithmetic: ~69 TiB of payload against 47.85 TiB of landing
-space. Buying disks is not the only lever, and it is the expensive one.
-
-### Where the 51 TiB actually is
-
-```
-/volume1/data/media/movies   27T      /volume1/data/downloads   830G
-/volume1/data/media/tv       14T      /volume1/data/kopiur       67G
-/volume1/data/media/other   8.8T      /volume1/data/apps         50G
-/volume1/data/media/music   962G
+```text
+name = home
+purpose = PRIVATE_DATASETS_SHARE
+configured dataset path = /mnt/smb/home
+generated Samba path = /mnt/smb/home/%U
+access based share enum = Yes
+read only = No
 ```
 
-Radarr: **1,200 films on disk, 26.7 TiB, mean 22.8 GB.**
+TrueNAS 25.10's supported
+[Private Dataset Share](https://www.truenas.com/docs/scale/25.10/scaletutorials/shares/smb/smbprivatedatasetshare/)
+substitutes the authenticated username. The configured dataset path intentionally
+does not contain `%U`; middleware adds it. Do **not** append another username,
+switch to legacy `[homes]`, edit generated Samba configuration, or broadly
+rewrite ACLs. `browsable=true` advertises the share name; it is not a diagnosis
+of home-directory exposure. Access-based share enumeration is not folder ACLs.
 
-| Movie size         | Films |   Space |
-| ------------------ | ----: | ------: |
-| >60 GB 2160p remux |    99 | 7.2 TiB |
-| 40–60 GB           |   171 | 8.4 TiB |
-| 20–40 GB           |   209 | 5.5 TiB |
-| 10–20 GB           |   262 | 3.8 TiB |
-| <10 GB             |   459 | 1.8 TiB |
+Start with read-only checks on the actual affected Windows client:
 
-**479 films — 40 % of the library — hold 21.1 TiB, or 79 % of the space.**
-Re-grabbing only those at 1080p (~8 GB) frees **17.4 TiB**, against a ~20 TiB gap.
-The 8.8 TiB in `media/other` (largely 2160p site-rip packs) covers the remainder
-several times over.
+```powershell
+Get-SmbConnection |
+  Where-Object ServerName -in @('nas01', 'nas01.in.homeops.ca', '192.168.42.45') |
+  Select-Object ServerName, ShareName, UserName, Dialect
+net use \\nas01\home
+```
 
-Root cause: the **`Remux-2160p` profile is active in Radarr** with
-`upgradeAllowed: true`. A 2160p remux is 60–90 GB. That profile, not the drive
-count, is what made this a 51 TiB problem — and it is why `data` grew 39.7 → 51 TiB
-in a month. Left alone it will consume any disk purchase within a year.
+Use **`\\nas01\home`**, not `\\nas01\home\USERNAME`. Compare the displayed SMB
+identity with the intended ordinary user's account; Explorer can reuse an
+administrator's cached connection, and Windows treats hostname/IP aliases as
+different sessions. A directory copied with an extra `homes`/username nesting
+can also look like the parent tree **inside** the correctly substituted home.
+Neither possibility has been proven on the affected client; do not browse other
+users' contents to guess.
 
-### Recommendation: spend $0
+If the identity is wrong, first obtain approval to disconnect only the affected
+NAS01 mappings and reconnect as the intended NAS01 SMB account, prompting for
+the password locally. Do not issue global `net use * /delete`, clear unrelated
+credentials, disable authentication, or give normal users admin privileges.
+If identity and nesting are correct but isolation fails, capture the specific
+share/path/identity evidence and review only that user's dataset/share ACL in
+TrueNAS before proposing a narrowly scoped, backed-up change.
 
-1. Switch the affected films from `Remux-2160p` to `Remux-1080p`, then run a search
-   for the 479 files >20 GB. Frees ~17.4 TiB and stops the growth at source.
-2. Prune `media/other` to taste — anything there is a straight subtraction.
-3. Re-measure. Only if still short, revisit buying.
-
-### If you do end up buying, $/TB is the wrong metric
-
-Use **$ per TB per 1000 remaining hours**, taking ~45,000 h as a working service
-life for this class:
-
-| Option                      | Price | Disclosed hours | Remaining |            $/TB/1000 h |
-| --------------------------- | ----: | --------------: | --------: | ---------------------: |
-| 4 TB @ $45                  |   $45 |         ~50,000 |        ~0 |          effectively ∞ |
-| **8 TB SAS @ C$160 (eBay)** | C$160 |     **~63,000** |    **~0** | **effectively ∞ — NO** |
-| 8 TB @ $120, 20 k h         |  $120 |          20,000 |   ~25,000 |              **$0.60** |
-
-⛔ **The C$160 "Dell Enterprise Plus 8 TB" listing is a trap.** The seller honestly
-states *"approximately 63k hours or less per drive"*. nas01's oldest drive is
-61.7 k hours — the one being retired. Six of those is C$960 to install drives
-**older than the ones they replace**. Credit to the seller for disclosing; the
-answer is still no.
-
-- **Do not buy 4 TB at any price** — used stock is the same 2016–2018 vintage.
-- **Do not buy 5× new 20 TB** (the previous plan). That pays new-drive prices to
-  share a failure domain with 4.3-year-old drives.
-- **Never buy without disclosed SMART hours.** The whole ranking rests on it.
-
-### Mixed ages within a vdev are a feature
-
-A `media` 8 TB vdev mixing 44.9 k, 21.5 k and 16.8 k hour drives is **good**: it
-de-correlates failures. Six identical drives from one batch tend to fail together,
-which is exactly what raidz2 is least able to absorb.
-
----
-
-## 6. What this design fixes about today's layout
-
-| Today                     | Problem                                                                                                                                                 | Fixed by                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `smb` raidz1 6× 4 TB      | two 7.0-year drives striped with four 2.8-year drives, single parity — the highest-probability pool loss in the box, and it was earmarked for **homes** | homes moves to `vault` raidz2; the 61.7 k-hour drives are retired      |
-| `nfs` raidz1 4× 8 TB      | single parity on 8 TB members; earmarked for 51 TiB of media                                                                                            | rebuilt into `media` raidz2                                            |
-| `backups` mirror 2× 10 TB | labelled for backups, but a 2-spindle mirror is a poor target for kopia's many small objects                                                            | renamed `nvr`, given Frigate, which is what those drives are built for |
-| all four pools            | no SLOG, no special vdev, 8 NVMe sitting idle                                                                                                           | §2, §3                                                                 |
+Acceptance requires two ordinary users: each opens the same UNC and reaches
+their own root, an intentionally tested other-user path is denied, and existing
+application clients remain working. No user/ACL/share change or client-session
+reset has been performed or claimed by this plan.
