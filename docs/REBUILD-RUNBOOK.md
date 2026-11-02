@@ -465,6 +465,39 @@ network change needs its own checked scope and rollback. This recipe does not pr
 all firmware supports configuration retention during adoption, nor does the newer
 tagged-native UI option eliminate the factory bootstrap requirement.
 
+### Frigate camera stream failures
+
+Check `/api/stats` and go2rtc's `/api/streams` from inside the Frigate container.
+A healthy main-stream producer does not prove that the separate detection
+substream works. A `404` on RTSP `DESCRIBE` can mean that the selected camera
+substream is disabled; it is not proof of a VLAN fault or bad credentials.
+
+Use the bundled `ffprobe` under `/usr/lib/ffmpeg/` to verify the exact subtype,
+codec and dimensions without printing password-bearing URLs. Cam01 and cam02
+currently provide their 1280x720 detection feeds on subtype 2; cam03 uses subtype 1.
+Keep the go2rtc URL and Frigate's declared detection dimensions consistent.
+After a configuration rollout, require advancing frame counts and approximately
+5 camera/process FPS on every enabled camera, not only a Ready pod.
+
+Camera web access is separate from RTSP. Test explicit HTTP and HTTPS before
+changing browser security or network configuration. An HTTP-only camera and a
+browser's cached HTTPS upgrade can produce different results across browser
+profiles; do not clear parent-domain HSTS or disable IPv6 as a generic repair.
+
+### Container OOM notifications
+
+Correlate the terminated container, node kernel cgroup and Prometheus restart
+history before increasing resources. `CONSTRAINT_MEMCG` identifies a container
+budget failure; available node RAM can remain plentiful. A deleted old pod's
+missing status does not erase its historical OOMs.
+
+Autobrr has a 512Mi container limit and a 384MiB Go soft memory limit, leaving
+headroom outside the managed heap. Verify the runtime's reported memory limit,
+RSS and restart count after rollout. This is resource budgeting, not proof that
+an upstream leak is fixed; a successful idle interval is not a maintenance-cycle
+stress test. Do not trigger release cleanup, downloads or tracker operations
+just to generate load.
+
 ### Multus macvlan NAD VLAN sub-interfaces missing (VLANs 1, 50, 70, 90)
 
 All nodes k8s01–k8s06 should have `bond0.1`, `bond0.50`, `bond0.70`, and `bond0.90` sub-interfaces for macvlan NADs (IoT/Zigbee, blackbox-exporter-vpn, Omada Controller, etc.).
