@@ -35,6 +35,9 @@ spec:
       containers:
         - name: mcp
           env:
+            # The image's loader accepts STREAMABLE, not ToolHive's transport spelling.
+            - name: MCP_TRANSPORT
+              value: STREAMABLE
             - name: MCP_API_KEY
               valueFrom:
                 secretKeyRef:
