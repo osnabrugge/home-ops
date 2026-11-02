@@ -25,6 +25,7 @@ spec:
   podTemplateSpec:
     spec:
       automountServiceAccountToken: false
+      enableServiceLinks: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -38,9 +39,9 @@ spec:
           command:
             ["/usr/bin/env", "MCP_TRANSPORT=STREAMABLE", "python", "-m", "proxmox_mcp.server"]
           env:
-            # Packet-verified upstream Host, not the backend pod's IP address.
+            # The proxy uses DNS for initialization and the Service IP for sessions.
             - name: MCP_ALLOWED_HOSTS
-              value: "mcp-proxmox-mcp:8000,mcp-proxmox.homeops.ca,mcp-proxmox.homeops.ca:*,localhost:*,127.0.0.1:*"
+              value: "mcp-proxmox-mcp:8000,$(MCP_PROXMOX_MCP_SERVICE_HOST):8000,mcp-proxmox.homeops.ca,mcp-proxmox.homeops.ca:*,localhost:*,127.0.0.1:*"
             - name: MCP_API_KEY
               valueFrom:
                 secretKeyRef:
