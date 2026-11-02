@@ -285,6 +285,10 @@ authentication is configured; a private route alone is not authentication.
 Do not substitute a full administrator key for a missing read-only identity,
 recover API keys from appliance databases, or bypass expired Azure MFA.
 Platform-account creation and write access remain separate approvals.
+The [Infrastructure MCP Exposure workflow](../.github/workflows/infra-mcp-exposure.yaml)
+checks public A/AAAA absence from a GitHub-hosted runner with an outside HTTPS
+positive control. LAN resolution and the proxy's `/health` endpoint are not
+proof of public isolation or authenticated backend usability.
 
 ## Kguardian decision
 

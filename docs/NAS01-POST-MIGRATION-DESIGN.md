@@ -356,14 +356,16 @@ PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover \
 
 ## 6. `\\nas01\home`: per-authenticated-user access
 
-**The required server-side behavior is already configured.** Native API and
-`testparm -s` on 2026-11-02 showed one enabled share:
+**Username substitution works, but it currently stops one level above the
+account's real home.** Native API, active SMB session metadata and `testparm -s`
+on 2026-11-02 confirmed:
 
 ```text
 name = home
 purpose = PRIVATE_DATASETS_SHARE
 configured dataset path = /mnt/smb/home
 generated Samba path = /mnt/smb/home/%U
+account home = /mnt/smb/home/USERNAME/USERNAME
 access based share enum = Yes
 read only = No
 ```
@@ -371,10 +373,28 @@ read only = No
 TrueNAS 25.10's supported
 [Private Dataset Share](https://www.truenas.com/docs/scale/25.10/scaletutorials/shares/smb/smbprivatedatasetshare/)
 substitutes the authenticated username. The configured dataset path intentionally
-does not contain `%U`; middleware adds it. Do **not** append another username,
-switch to legacy `[homes]`, edit generated Samba configuration, or broadly
-rewrite ACLs. `browsable=true` advertises the share name; it is not a diagnosis
-of home-directory exposure. Access-based share enumeration is not folder ACLs.
+does not contain `%U`; middleware adds it. The outer user path is a ZFS dataset;
+the inner, user-owned directory is the account's actual home. Opening the share
+therefore shows the extra username directory even under the correct SMB identity.
+This is not evidence that the client used the wrong account.
+
+Two supported corrections have different tradeoffs:
+
+1. **Share-only compatibility correction:** keep the existing share name `home`
+   and base dataset, use `LEGACY_SHARE` options with `path_suffix = %U/%U` and
+   `home = false`. This targets the existing inner home without moving data or
+   changing ACLs. The compatibility preset is not SMB1 and does not create the
+   special `[homes]` share, but it no longer automatically creates private
+   datasets for new users.
+2. **Normalize the account/dataset layout:** retain `PRIVATE_DATASETS_SHARE`,
+   take a recoverable backup, and deliberately make the account home and share
+   root agree. This needs a reviewed data/ACL migration and verification of SSH
+   authorized-key paths and other home-directory consumers.
+
+Choose and approve one correction before applying it. Do not change the private
+dataset naming schema to create a dataset over an existing populated directory,
+edit generated Samba files, or broadly rewrite ACLs. `browsable=true` advertises
+the share name; access-based share enumeration is not folder ACLs.
 
 Start with read-only checks on the actual affected Windows client:
 
@@ -385,13 +405,10 @@ Get-SmbConnection |
 net use \\nas01\home
 ```
 
-Use **`\\nas01\home`**, not `\\nas01\home\USERNAME`. Compare the displayed SMB
-identity with the intended ordinary user's account; Explorer can reuse an
-administrator's cached connection, and Windows treats hostname/IP aliases as
-different sessions. A directory copied with an extra `homes`/username nesting
-can also look like the parent tree **inside** the correctly substituted home.
-Neither possibility has been proven on the affected client; do not browse other
-users' contents to guess.
+The desired entry point remains **`\\nas01\home`**, not a manually appended
+username. Compare the displayed identity during acceptance testing, but do not
+repeat a cached-administrator diagnosis when current session metadata proves the
+intended user is already authenticated.
 
 If the identity is wrong, first obtain approval to disconnect only the affected
 NAS01 mappings and reconnect as the intended NAS01 SMB account, prompting for
