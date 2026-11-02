@@ -87,7 +87,7 @@ bounds**, before ZFS slop, padding, metadata, quotas and snapshots.
 | Final: above + 4×8 TB RAIDZ2                          |    160 |        40 |          32 |       **88 / 80.036** |      **70.4** |
 | Alternative: three homogeneous 4-wide RAIDZ2 vdevs    |    160 |        80 |           0 |           80 / 72.760 |          64.0 |
 
-**Recommended updated proposal:** one new bulk pool with the two RAIDZ2 data
+**Capacity-maximizing candidate, not an approved layout:** one new bulk pool with the two RAIDZ2 data
 vdevs above, separate `data`, per-user `home`, and small infrastructure datasets.
 Keep `downloads` and `media` **directories within the same `data` dataset**.
 Never turn either into a child dataset or separate NFS filesystem.
@@ -97,6 +97,13 @@ domains for sufficient permanent capacity without retaining loaners. It does
 **not** convert an existing pool. The mixed 8-wide vdev strands 32 TB, but has
 less parity overhead than two 4-wide vdevs and yields 8 TB more usable space.
 Homes remain independently backed up; sharing a pool is not backup isolation.
+
+The mixed eight-disk group uses only 12 TB per disk: 96 TB participates,
+24 TB is parity, and 32 TB of the larger drives is stranded. It is not a
+space-efficient default. The alternative homogeneous groups avoid that
+stranding but have different parity overhead. Select the final layout only
+after a consistent logical-byte inventory and explicit capacity, failure-domain
+and outage tradeoffs; the table alone does not choose the design.
 
 The old separate-pool design does not fit the measured payload at 80%:
 4×12 RAIDZ2 + 4×8 RAIDZ2 + 6×4 RAIDZ2 gives media only 56 TB nominal,

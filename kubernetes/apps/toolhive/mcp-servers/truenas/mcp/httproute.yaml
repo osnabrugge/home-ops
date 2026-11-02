@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mcp-truenas
+  annotations:
+    gatus.home-operations.com/endpoint: |-
+      path: /health
+spec:
+  hostnames:
+    - mcp-truenas.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: mcp-truenas-mcp-proxy
+          port: 8080

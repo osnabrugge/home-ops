@@ -24,6 +24,8 @@ resources:
   - ./printer/ks.yaml
   - ./printguard/ks.yaml
   - ./prometheus/ks.yaml
+  - ./proxmox/ks.yaml
   - ./spoolman/ks.yaml
   - ./talos/ks.yaml
+  - ./truenas/ks.yaml
   - ./victorialogs/ks.yaml

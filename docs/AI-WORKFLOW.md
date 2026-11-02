@@ -262,6 +262,30 @@ latency and usage without credentials or raw private prompts. Add a dedicated
 trace/evaluation service only if this first pilot proves a requirement for it.
 An alert queue, model gateway and resident worker are distinct deliverables.
 
+## Infrastructure MCP access
+
+ProxmoxMCP-Plus and TrueNAS MCP are separate, internal-only ToolHive workloads.
+They are not added to the shared virtual-MCP group until delegated backend
+authentication is configured; a private route alone is not authentication.
+
+- Proxmox exposes only `get_nodes`, `get_vms`, `get_containers` and `get_storage`.
+  Its existing exporter token was verified to have only audit privileges.
+  Shell execution is denied, backend TLS verification remains enabled, and
+  clients need the separate SOPS-managed MCP transport key.
+- TrueNAS uses cedricziel's released HTTP implementation with writes disabled,
+  strict backend TLS and no host socket or Kubernetes API token. HTTP clients
+  supply their own read-only TrueNAS API key. Liveness does not certify backend
+  authentication; verify actual pool/share reads with the approved identity.
+- The vendor's `truenas/truenas-mcp` now also supports read-only mode, tool
+  filtering and redaction. Its research-preview stdio/binary distribution is a
+  valid alternative, not inherently unsafe. The community implementation was
+  selected for its existing container image, native HTTP and per-user keys;
+  deploying both is unnecessary.
+
+Do not substitute a full administrator key for a missing read-only identity,
+recover API keys from appliance databases, or bypass expired Azure MFA.
+Platform-account creation and write access remain separate approvals.
+
 ## Kguardian decision
 
 [Kguardian](https://github.com/kguardian-dev/kguardian) complements Radar and

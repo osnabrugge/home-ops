@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: proxmox-mcp-auth
+  namespace: toolhive
+type: Opaque
+stringData:
+  api-key: ENC[AES256_GCM,data:OJDrJxl9FXDN+BJkt0miI/YAfLRu2H2wDvhCvI1Ji+AN+4MNigGCkigkv0eE3M/Ut+RDUEmZH6BVgonN4pAt4A==,iv:sdiPxupcRC7LB1WSRMoZj8jQDt2HIzW1cEGvxnqBX4E=,tag:/nxsq6VDmPjn7EBt1J0gnw==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB3My9WTmdSanRPVXVPdzlz
+        Z28yN0t1bzhzV0V2amsyQVdlRU9UaVV1ckRvCjRUWm1XWHc0alZ4UkMvZk5CZWRW
+        YWJLSjlGaXA5eCsyYXpZS3VXV3h5WWsKLS0tIHNhL0ZVT042cEtUd256dHJHWnJo
+        dEFTRVJibm9QOXpUZ0hCRnVobHpVQXcKC7hbbZ2skc0OxiMgmzaInhmEIyZ45I79
+        iz2Bbb1xgc3Lnt7671q+4uf1kka7plLuTiocsmMEsU8C2nu1pjnrWw==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1zq3xj6j6qvfq4x55yzwr67myz0k3j3gjf8amtp3zz7hmxc4daq8qt677g5
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-02T22:57:24Z"
+  mac: ENC[AES256_GCM,data:hltqG+iLP4/BoP1uGW+3DH1K6Wbko0qm2TWe4IpWzhxaSduOV+cNMQgVzTux4rraIQ8S4/6YS4I/4TxkaKQqKYnm3RyIhtQknHqV5NGiBil47xzfh6P/tIencETPPZ6vdG8S2NpTsFzbMWAFSv0IjxQeC25paWwPdXZI1hMIpks=,iv:q3UwqXuZ6k3r82MpGFuYkiSd9/l3lX1op81ac2iL+Q8=,tag:ZkvNGim51zYa9HotNCcBzw==,type:str]
+  version: 3.13.3

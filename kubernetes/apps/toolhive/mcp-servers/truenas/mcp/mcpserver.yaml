@@ -1,0 +1,56 @@
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: truenas-mcp
+spec:
+  image: ghcr.io/cedricziel/truenas-mcp:0.4.2@sha256:1a165c9b3831b8cf546c78231857896431c27a4465d2fcb16260c7d578bbee55
+  transport: streamable-http
+  proxyMode: streamable-http
+  proxyPort: 8080
+  mcpPort: 8080
+  env:
+    - name: TRUENAS_MCP_TARGET
+      value: nas01.in.homeops.ca
+    - name: TRUENAS_MCP_LISTEN
+      value: ":8080"
+    - name: TRUENAS_MCP_ALLOW_PLAINTEXT
+      value: "true"
+    - name: TRUENAS_MCP_TARGET_INSECURE
+      value: "false"
+    - name: TRUENAS_MCP_ENABLE_WRITES
+      value: "false"
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  # Clients supply their own read-only API key; never give this service a host socket.
+  podTemplateSpec:
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: mcp
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 20
+            timeoutSeconds: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault

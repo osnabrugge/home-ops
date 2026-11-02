@@ -441,6 +441,19 @@ NUT command users, and never invokes driver shutdown. Existing SNMP dashboards
 remain in place. The approved SNMP credential is provisioned only into private
 host configuration, not the example in Git.
 
+Its host file is `/mnt/local/apps/homeops-power/compose.nut.yaml`, not the main
+`/mnt/local/docker-compose.yml`. The separate project avoids changing Garage,
+Zot and the existing exporters. Its source is version-controlled here, but the
+host deployment is not Flux-reconciled; these are different guarantees.
+
+An in-cluster NUT server and exporter are valid monitoring deployments. Their
+placement does not itself provide orderly Talos shutdown. The current observer
+uses an independent local server so it retains UPS state while the cluster is
+unavailable. The shutdown actuator is kept outside the cluster for that
+failure-domain reason, not because NUT can never run in Kubernetes. Adding
+GitOps-managed NUT monitoring must preserve this independent outage path and
+must not introduce USB privilege or a second shutdown authority unnecessarily.
+
 The unarmed `homeops-ups-watch.service` is linked from the persistent deployment
 directory. A TrueNAS `POSTINIT` command re-links and starts that same observer
 after boot; it does not contain `--execute`. This startup record, not a bare
