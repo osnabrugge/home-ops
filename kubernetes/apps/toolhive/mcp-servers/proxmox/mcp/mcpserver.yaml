@@ -38,6 +38,13 @@ spec:
           command:
             ["/usr/bin/env", "MCP_TRANSPORT=STREAMABLE", "python", "-m", "proxmox_mcp.server"]
           env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            # The proxy uses this exact backend address as its upstream Host.
+            - name: MCP_ALLOWED_HOSTS
+              value: "mcp-proxmox.homeops.ca,mcp-proxmox.homeops.ca:*,proxmox-mcp,proxmox-mcp:*,localhost:*,127.0.0.1:*,$(POD_IP):8000"
             - name: MCP_API_KEY
               valueFrom:
                 secretKeyRef:
