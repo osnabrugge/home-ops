@@ -45,6 +45,11 @@ data:
         }
       },
       "governance": {
+        "auth_config": {
+          "is_enabled": true,
+          "admin_username": "env.BIFROST_ADMIN_USERNAME",
+          "admin_password": "env.BIFROST_ADMIN_PASSWORD"
+        },
         "rate_limits": [{
           "id": "local-pilot",
           "request_max_limit": 30,

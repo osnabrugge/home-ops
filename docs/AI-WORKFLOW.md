@@ -318,8 +318,11 @@ The initial configuration allows only the existing `qwen3:0.6b` Ollama model:
 one concurrent call, four buffered requests, and an inference-key allowance of
 30 requests and 20,000 tokens per hour. This is not a paid-provider spending
 approval. Network policy permits only Ollama and DNS, and the gateway has no
-Kubernetes API token or production MCP tools. Native UI login is replaced by
-the full Authentik proxy; OIDC inside Bifrost itself is not claimed.
+Kubernetes API token or production MCP tools. Authentik protects entry, and
+Bifrost's native admin login separately unlocks its management API. The
+`BIFROST_ADMIN_USERNAME` and `BIFROST_ADMIN_PASSWORD` fields are in the same Key
+Vault secret. This initial OSS setup has two login layers, not seamless SSO;
+native Bifrost OIDC is not claimed. A setup token is not used as a login bypass.
 The checked-in local model/pricing catalog avoids startup downloads. Its zero
 price describes external API charges, not electricity or hardware costs.
 

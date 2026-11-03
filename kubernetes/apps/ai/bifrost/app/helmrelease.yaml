@@ -32,6 +32,16 @@ spec:
                   secretKeyRef:
                     name: bifrost-secret
                     key: BIFROST_LOCAL_VK
+              BIFROST_ADMIN_USERNAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: bifrost-secret
+                    key: BIFROST_ADMIN_USERNAME
+              BIFROST_ADMIN_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: bifrost-secret
+                    key: BIFROST_ADMIN_PASSWORD
             probes:
               liveness: &health
                 enabled: true
