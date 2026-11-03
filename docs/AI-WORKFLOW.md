@@ -269,9 +269,17 @@ They are not added to the shared virtual-MCP group until delegated backend
 authentication is configured; a private route alone is not authentication.
 
 - Proxmox exposes only `get_nodes`, `get_vms`, `get_containers` and `get_storage`.
-  Its existing exporter token was verified to have only audit privileges.
+  Both `pve01` and `pve02` are standalone, explicitly read-only targets. Every
+  call must select `target: "pve01"` or `target: "pve02"`; an omitted selector
+  must fail rather than silently reading the wrong installation.
+  `pve01` retains its existing audit-only exporter credential. `pve02` uses a
+  separate privilege-separated `PVEAuditor` token on an existing principal,
+  stored in Key Vault as `pve02-mcp`; no additional local account is required.
   Shell execution is denied, backend TLS verification remains enabled, and
-  clients need the separate SOPS-managed MCP transport key.
+  clients need the separate SOPS-managed MCP transport key. The backend loads
+  its configuration at startup: after a configuration/key change, wait for
+  External Secrets to refresh, restart the stateless MCP backend pod, and
+  verify actual reads against both targets.
 - TrueNAS uses cedricziel's released HTTP implementation with writes disabled,
   strict backend TLS and no host socket or Kubernetes API token. HTTP clients
   supply their own read-only TrueNAS API key. Liveness does not certify backend
@@ -285,6 +293,14 @@ authentication is configured; a private route alone is not authentication.
 Do not substitute a full administrator key for a missing read-only identity,
 recover API keys from appliance databases, or bypass expired Azure MFA.
 Platform-account creation and write access remain separate approvals.
+TrueNAS Community Edition does not support AD/LDAP user-linked API keys;
+[that feature requires Enterprise](https://www.truenas.com/docs/scale/25.10/scaletutorials/toptoolbar/managingapikeys/).
+An Authentik-protected MCP gateway can centralize caller policy, but native
+backend keys still need explicit least-privilege ownership and revocation.
+This gateway/broker architecture is not yet a deployed universal identity.
+Cloudflare uses the official remote OAuth MCP directly; the inactive ToolHive
+proxy draft is not required for that connection. Reauthorize the normal OAuth
+connection when challenged rather than substituting a DNS-controller token.
 The [Infrastructure MCP Exposure workflow](../.github/workflows/infra-mcp-exposure.yaml)
 checks public A/AAAA absence from a GitHub-hosted runner with an outside HTTPS
 positive control. LAN resolution and the proxy's `/health` endpoint are not

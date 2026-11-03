@@ -128,6 +128,35 @@ machine credentials or a separately designed certificate-based network flow.
 A normal CE service account is distinct from the paid delegated agent-account
 feature. See [Enterprise boundaries](https://docs.goauthentik.io/enterprise/enterprise-features/).
 
+### Wi-Fi RADIUS and controller migration
+
+The LAN RADIUS endpoint `192.168.69.132` is FreeRADIUS, with UDP 1812 for
+authentication and UDP 1813 for accounting. Its current directory backend is
+LLDAP, not the Authentik LDAP provider.
+
+For normal WPA-Enterprise, the AP is the RADIUS client; the controller
+distributes configuration. Keep a LAN-reachable endpoint in the WLAN profile,
+not a `*.svc.cluster.local` address. Cluster DNS is appropriate for the
+FreeRADIUS-to-directory connection. The current controller's RADIUS proxy is
+disabled. If enabling a proxy later, authorize its actual packet source;
+a controller's LoadBalancer address is not automatically its outbound address.
+Controller-hosted captive-portal authentication is a different traffic flow.
+
+Keep SkyBridge's existing security, password, VLAN and PMF settings unchanged
+during AP adoption. Pilot the new authentication on a separately named SSID.
+An existing AP still managed by oc01 can broadcast that pilot before controller
+migration; alternatively, use one spare or low-impact AP on the new controller.
+Backend EAP tests can run before either over-the-air test.
+
+A healthy pod and listening UDP ports do not establish working Wi-Fi access.
+Verify the AP source-IP allowlist, shared secret, selected EAP method, directory
+authorization, server-certificate validation and actual client reconnection.
+A PAP `radtest` is not an EAP test. Do not assume PEAP/MSCHAPv2 can validate
+against a generic LDAP bind or Authentik's password hashes. Accounting must
+also be configured and tested separately; publishing port 1813 is insufficient.
+The existing controller-only client entries and image-default EAP configuration
+are not a completed Authentik-backed Wi-Fi deployment.
+
 ### Next controlled migration stages
 
 1. Keep the verified operator/canary and inventory actual consumers, recovery,
