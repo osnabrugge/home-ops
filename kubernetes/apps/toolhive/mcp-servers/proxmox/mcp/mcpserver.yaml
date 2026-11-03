@@ -52,6 +52,11 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            periodSeconds: 2
+            timeoutSeconds: 1
           volumeMounts:
             - name: config
               mountPath: /config
