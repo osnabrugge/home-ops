@@ -32,6 +32,11 @@ spec:
                   secretKeyRef:
                     name: bifrost-secret
                     key: BIFROST_LOCAL_VK
+              BIFROST_TRIAGE_VK:
+                valueFrom:
+                  secretKeyRef:
+                    name: bifrost-secret
+                    key: BIFROST_TRIAGE_VK
               BIFROST_ADMIN_USERNAME:
                 valueFrom:
                   secretKeyRef:

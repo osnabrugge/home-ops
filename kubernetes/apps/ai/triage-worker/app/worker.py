@@ -128,7 +128,16 @@ def run():
     base = os.environ["LITELLM_BASE_URL"].rstrip("/")
     key = os.environ["LITELLM_API_KEY"]
     prometheus = os.environ["PROMETHEUS_URL"].rstrip("/")
-    headers = {"Authorization": "Bearer " + key}
+    model_settings = ("MODEL_BASE_URL", "MODEL_API_KEY", "MODEL_NAME")
+    if any(name in os.environ for name in model_settings):
+        if not all(os.environ.get(name) for name in model_settings):
+            raise RuntimeError("MODEL_BASE_URL, MODEL_API_KEY and MODEL_NAME must all be set")
+        model_base = os.environ["MODEL_BASE_URL"].rstrip("/")
+        model_key = os.environ["MODEL_API_KEY"]
+        model_name = os.environ["MODEL_NAME"]
+    else:
+        model_base, model_key, model_name = base, key, MODEL
+    headers = {"Authorization": "Bearer " + model_key}
     mcp = MCP(base, key)
     search_name = mcp.initialize()
     validate_tool("smartctl_scrape_status", {})
@@ -175,9 +184,9 @@ def run():
         },
     ]
     response = json_request(
-        base + "/v1/chat/completions",
+        model_base + "/v1/chat/completions",
         {
-            "model": MODEL,
+            "model": model_name,
             "messages": messages,
             "temperature": 0,
             "max_tokens": 512,
@@ -208,7 +217,7 @@ def run():
         "report": report,
         "evidence": observed,
         "tools_executed": ["kubesearch_search_releases", "smartctl_scrape_status"],
-        "model": MODEL,
+        "model": model_name,
         "workflow_mode": "fixed-scope-evidence",
         "mutations": 0,
     }))

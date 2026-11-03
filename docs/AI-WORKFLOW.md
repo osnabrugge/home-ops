@@ -309,12 +309,12 @@ proof of public isolation or authenticated backend usability.
 ## Bifrost gateway and Kritika activation
 
 [Bifrost](https://bifrost.homeops.ca) is the local-only gateway evaluation.
-its management UI is behind Authentik's full proxy, the existing
+Its management UI is behind Authentik's full proxy, the existing
 administrator-group binding and an app-specific binding for the regular owner
 account. This does not add that account to global administrator groups. Verify
 the intended human account is allowed as well as a service account being denied;
 an anonymous redirect alone does not establish usable access.
-The backend accepts only the Authentik server and
+The management backend accepts only the Authentik server and
 node probes; do not create a direct dashboard route. The scoped inference key
 and database encryption key come from the `bifrost` Key Vault secret.
 
@@ -335,8 +335,22 @@ logging is disabled; usage metadata has 30-day retention. Do not scale multiple
 OSS replicas against the same SQLite volume or assume shared Postgres makes
 their in-memory governance counters consistent. UI changes to file-owned
 configuration are reconciled on restart. This evaluation does not replace the
-existing LiteLLM/MCP advisory worker or prove that the small local model is a
+existing LiteLLM/MCP tool boundary or prove that the small local model is a
 reliable reviewer.
+
+The existing fixed-scope SMART advisory worker now sends its model calls through
+Bifrost every 30 minutes. Its separate key permits only `ollama/qwen3:0.6b`,
+six requests and 10,000 tokens per hour. Cilium permits that worker only
+`POST /v1/chat/completions`, not the management API. MCP calls retain their
+existing LiteLLM key and one-tool allowlist; model and MCP credentials are not
+interchangeable. Evidence collection and status validation remain deterministic,
+and the worker has no repair or GitHub publication authority.
+
+In the UI, select a time range containing activity and inspect **LLM Logs**,
+**Models**, and the virtual-key filters. **Prompt Repository** provides a
+playground for saved prompts. An idle dashboard is not an agent failure:
+only clients routed through this gateway appear here. Interactive Copilot
+sessions are not automatically routed through Bifrost.
 
 [Kritika](https://github.com/home-operations/kritika) is a pull-request reviewer
 with queued, per-run Jobs, not a resident cluster-repair agent. Its dashboard is
@@ -347,21 +361,60 @@ The existing held Kritika namespace/database volume must remain intact. Real
 review activation requires all of:
 
 1. A dedicated GitHub App installed only on selected repositories, with reviewed
-   permissions, webhook exposure and explicit consent to post automated reviews.
+   permissions and explicit consent to post automated reviews.
    Do not reuse the interactive CLI's token or silently enable approvals.
 2. A supported model credential and explicit budget: a dedicated API key through
    Bifrost, or Kritika's supported personal ChatGPT browser sign-in. A work Copilot
    entitlement is neither credential. Start with low concurrency and bounded
    token/review limits; no unapproved paid fallback.
 3. Verified runner isolation, admission rules and network policy. The current
-   workers do not have the gVisor extension installed. Adding a RuntimeClass
+   workers do not have the gVisor extension installed. A restricted native
+   user-namespace Pod (`hostUsers: false`) was tested successfully on k8s06;
+   this is shared-kernel isolation, not gVisor or full runner certification.
+   Adding a RuntimeClass
    alone cannot install a runtime; a Talos extension rollout and any node reboot
    need their own maintenance approval.
-4. A compatible VectorChord Postgres installation and separate owner/application
+4. Postgres 18 with VectorChord/pgvector and separate owner/application
    roles. Inspect the retained volume's database version before mounting or
    migrating it; do not repurpose the shared application database as cleanup.
 5. One measured review on an explicitly enabled test repository, including denied
    publication and model/budget exhaustion checks, before broader activation.
+
+### Creating the Kritika GitHub App
+
+The current deployment is **not a running Kritika service**: only the held
+namespace and original database volume exist. Bifrost is a separate application.
+
+Create a private app in [GitHub Developer settings](https://github.com/settings/apps/new)
+for this account, not all accounts:
+
+| Repository permission | Initial access |
+| --------------------- | -------------- |
+| Contents              | Read-only      |
+| Metadata              | Read-only      |
+| Pull requests         | Read and write |
+| Issues                | Read-only      |
+| Commit statuses       | Read and write |
+
+Install it on selected repositories only, initially this repository. Do not
+grant Contents write or administration merely to make startup pass. Save the
+**Client ID** (not only the App ID), generate a private key, and place the PEM
+in Key Vault through an approved private file path; never paste it into chat or
+Git. A GitHub OAuth sign-in alone is not the App's server credential.
+
+For an internal-only first pilot, polling is supported:
+`config.pollInterval: 10m`. The GitHub App's webhook can remain inactive.
+PR updates then wait for polling; **bot mentions/follow-up commands do not work
+without webhooks**. Full webhook integration requires a separately approved
+public path `/hooks/github`, a shared webhook secret and the documented events,
+not publication of the whole admin dashboard.
+
+Model authentication is independent of the GitHub App. A dedicated API key can
+be routed through Bifrost with an approved cap. Alternatively, Kritika supports
+personal ChatGPT plan sign-in through its own `chatgpt login` browser flow; this
+does not reuse a work Copilot token. No paid fallback is implied. Keep automatic
+PR approval off and new repositories disabled until one authorized test review
+passes.
 
 ### Authentik MCP is not one interchangeable product
 
