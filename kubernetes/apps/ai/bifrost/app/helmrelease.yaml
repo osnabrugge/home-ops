@@ -91,6 +91,8 @@ spec:
           - path: /app/data/config.json
             subPath: config.json
             readOnly: true
+          - path: /etc/bifrost
+            readOnly: true
       tmp:
         type: emptyDir
         globalMounts:

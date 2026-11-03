@@ -10,6 +10,13 @@ data:
       "source_of_truth": "config.json",
       "encryption_key": "env.BIFROST_ENCRYPTION_KEY",
       "disable_onboarding": true,
+      "framework": {
+        "pricing": {
+          "pricing_url": "file:///etc/bifrost/catalog.json",
+          "model_parameters_url": "file:///etc/bifrost/catalog.json",
+          "pricing_sync_interval": 86400
+        }
+      },
       "client": {
         "initial_pool_size": 8,
         "drop_excess_requests": true,
@@ -74,4 +81,19 @@ data:
         {"name": "logging", "enabled": true, "config": {}},
         {"name": "telemetry", "enabled": true, "config": {}}
       ]
+    }
+  catalog.json: |
+    {
+      "qwen3:0.6b": {
+        "provider": "ollama",
+        "base_model": "qwen3:0.6b",
+        "mode": "chat",
+        "max_input_tokens": 8192,
+        "max_output_tokens": 1024,
+        "max_tokens": 8192,
+        "input_cost_per_token": 0,
+        "output_cost_per_token": 0,
+        "supports_system_messages": true,
+        "model_parameters": []
+      }
     }

@@ -320,6 +320,8 @@ one concurrent call, four buffered requests, and an inference-key allowance of
 approval. Network policy permits only Ollama and DNS, and the gateway has no
 Kubernetes API token or production MCP tools. Native UI login is replaced by
 the full Authentik proxy; OIDC inside Bifrost itself is not claimed.
+The checked-in local model/pricing catalog avoids startup downloads. Its zero
+price describes external API charges, not electricity or hardware costs.
 
 One replica owns the retained Ceph-backed SQLite config/log volume. Content
 logging is disabled; usage metadata has 30-day retention. Do not scale multiple
