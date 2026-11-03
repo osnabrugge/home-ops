@@ -309,8 +309,12 @@ proof of public isolation or authenticated backend usability.
 ## Bifrost gateway and Kritika activation
 
 [Bifrost](https://bifrost.homeops.ca) is the local-only gateway evaluation.
-Its management UI is behind Authentik's full proxy and the existing
-administrator-group binding. The backend accepts only the Authentik server and
+its management UI is behind Authentik's full proxy, the existing
+administrator-group binding and an app-specific binding for the regular owner
+account. This does not add that account to global administrator groups. Verify
+the intended human account is allowed as well as a service account being denied;
+an anonymous redirect alone does not establish usable access.
+The backend accepts only the Authentik server and
 node probes; do not create a direct dashboard route. The scoped inference key
 and database encryption key come from the `bifrost` Key Vault secret.
 
