@@ -1,0 +1,97 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: bifrost
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: bifrost
+  interval: 1h
+  values:
+    controllers:
+      bifrost:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/maximhq/bifrost
+              tag: v2.4.0@sha256:a1c90607dcfd13c1fb2f9476ceb3bb24407a50ade7fdf3e61a59fb42b09e5c57
+            env:
+              TZ: America/Toronto
+              HOME: /tmp
+              BIFROST_ENCRYPTION_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: bifrost-secret
+                    key: BIFROST_ENCRYPTION_KEY
+              BIFROST_LOCAL_VK:
+                valueFrom:
+                  secretKeyRef:
+                    name: bifrost-secret
+                    key: BIFROST_LOCAL_VK
+            probes:
+              liveness: &health
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  timeoutSeconds: 5
+              readiness: *health
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  periodSeconds: 5
+                  failureThreshold: 60
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: "1"
+                memory: 512Mi
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      labels:
+        ai.homeops.ca/role: bifrost
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        ports:
+          http:
+            port: 8080
+    persistence:
+      data:
+        existingClaim: bifrost
+        globalMounts:
+          - path: /app/data
+      config-file:
+        type: configMap
+        name: bifrost-settings
+        globalMounts:
+          - path: /app/data/config.json
+            subPath: config.json
+            readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

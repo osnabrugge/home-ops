@@ -1,0 +1,28 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: bifrost
+spec:
+  slug: bifrost
+  name: Bifrost
+  group: AI
+  deletionPolicy: Retain
+  adopt: Never
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-implicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    proxy:
+      proxy:
+        externalHost: https://bifrost.homeops.ca
+        internalHost: http://bifrost.ai.svc.cluster.local:8080
+      outpost:
+        name: authentik Embedded Outpost
+  access:
+    mode: Any
+    rules:
+      - group:
+          name: authentik Admins

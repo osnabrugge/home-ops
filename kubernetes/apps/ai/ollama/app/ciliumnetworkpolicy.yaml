@@ -12,6 +12,8 @@ spec:
         - matchLabels:
             ai.homeops.ca/role: gateway
         - matchLabels:
+            ai.homeops.ca/role: bifrost
+        - matchLabels:
             ai.homeops.ca/role: model-loader
       toPorts:
         - ports:

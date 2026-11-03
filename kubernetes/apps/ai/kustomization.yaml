@@ -12,6 +12,7 @@ resources:
   - ./namespace.yaml
   # The flux-system root owns decryption; child namespaces do not hold its age key.
   - ./secret.sops.yaml
+  - ./bifrost/ks.yaml
   - ./litellm/ks.yaml
   - ./ollama/ks.yaml
   - ./triage-worker/ks.yaml

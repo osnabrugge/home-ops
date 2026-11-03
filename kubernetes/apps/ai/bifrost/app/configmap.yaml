@@ -1,0 +1,77 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bifrost-settings
+data:
+  config.json: |
+    {
+      "$schema": "https://www.getbifrost.ai/schema",
+      "source_of_truth": "config.json",
+      "encryption_key": "env.BIFROST_ENCRYPTION_KEY",
+      "disable_onboarding": true,
+      "client": {
+        "initial_pool_size": 8,
+        "drop_excess_requests": true,
+        "allowed_origins": ["https://bifrost.homeops.ca"],
+        "enable_logging": true,
+        "disable_content_logging": true,
+        "log_retention_days": 30,
+        "enforce_auth_on_inference": true,
+        "allow_direct_keys": false,
+        "max_request_body_size_mb": 1
+      },
+      "providers": {
+        "ollama": {
+          "keys": [{
+            "name": "local-ollama",
+            "models": ["qwen3:0.6b"],
+            "weight": 1,
+            "ollama_key_config": {"url": "http://ollama.ai.svc.cluster.local:11434"}
+          }],
+          "network_config": {
+            "default_request_timeout_in_seconds": 120,
+            "max_retries": 0,
+            "allow_private_network": true
+          },
+          "concurrency_and_buffer_size": {"concurrency": 1, "buffer_size": 4}
+        }
+      },
+      "governance": {
+        "rate_limits": [{
+          "id": "local-pilot",
+          "request_max_limit": 30,
+          "request_reset_duration": "1h",
+          "token_max_limit": 20000,
+          "token_reset_duration": "1h"
+        }],
+        "virtual_keys": [{
+          "id": "local-pilot",
+          "name": "Local inference pilot",
+          "value": "env.BIFROST_LOCAL_VK",
+          "is_active": true,
+          "allow_all_providers": false,
+          "rate_limit_id": "local-pilot",
+          "provider_configs": [{
+            "provider": "ollama",
+            "allowed_models": ["qwen3:0.6b"],
+            "key_ids": ["*"]
+          }]
+        }]
+      },
+      "config_store": {
+        "enabled": true,
+        "type": "sqlite",
+        "config": {"path": "/app/data/config.db"}
+      },
+      "logs_store": {
+        "enabled": true,
+        "type": "sqlite",
+        "config": {"path": "/app/data/logs.db"}
+      },
+      "plugins": [
+        {"name": "governance", "enabled": true, "config": {}},
+        {"name": "logging", "enabled": true, "config": {}},
+        {"name": "telemetry", "enabled": true, "config": {}}
+      ]
+    }

@@ -48,6 +48,22 @@ existing memberships only. The audience matches Omada's published Entity ID
 HTTPS/443. RelayState remains the documented Base64 of `resourceId_omadaId`.
 See [TP-Link's SAML configuration and -1001 troubleshooting guide](https://www.omadanetworks.com/us/document/26917/).
 
+### Omada SAML is controller login, not network access
+
+The [Omada integration guide](https://integrations.goauthentik.io/networking/omada-controller/)
+configures SAML browser sign-in to the controller. It does not configure
+WPA-Enterprise Wi-Fi, wired 802.1X, RADIUS accounting or the controller's OpenAPI
+machine credentials.
+
+The native blueprint adopted the existing `omada` application and
+`Provider for Omada SAML`; it did not create an alternate login integration.
+The controller's SAML settings and Authentik's provider are the two necessary
+ends of that same trust, not redundant configuration. Do not remove either
+side or create another provider by following the guide again. Change managed
+SAML attributes in the app-owned blueprint so reconciliation does not undo a
+manual UI edit. A newer guide's entitlement mapping is a separate access-model
+change, not permission to rewrite existing memberships or administrator grants.
+
 ### Operator and native-blueprint ownership
 
 [SlashNephy/authentik-operator](https://github.com/SlashNephy/authentik-operator/blob/main/docs/spec.md)

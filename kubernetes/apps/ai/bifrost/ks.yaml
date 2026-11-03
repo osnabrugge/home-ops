@@ -1,0 +1,42 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: bifrost-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: bifrost
+      namespace: auth
+  interval: 1h
+  path: ./kubernetes/apps/ai/bifrost/identity
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: bifrost
+spec:
+  dependsOn:
+    - name: bifrost-identity
+    - name: ollama
+    - name: azurekv
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/ai/bifrost/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: ai
+  wait: true

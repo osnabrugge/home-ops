@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-11-01. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-03. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Available models and routing
@@ -305,6 +305,72 @@ The [Infrastructure MCP Exposure workflow](../.github/workflows/infra-mcp-exposu
 checks public A/AAAA absence from a GitHub-hosted runner with an outside HTTPS
 positive control. LAN resolution and the proxy's `/health` endpoint are not
 proof of public isolation or authenticated backend usability.
+
+## Bifrost gateway and Kritika activation
+
+[Bifrost](https://bifrost.homeops.ca) is the local-only gateway evaluation.
+Its management UI is behind Authentik's full proxy and the existing
+administrator-group binding. The backend accepts only the Authentik server and
+node probes; do not create a direct dashboard route. The scoped inference key
+and database encryption key come from the `bifrost` Key Vault secret.
+
+The initial configuration allows only the existing `qwen3:0.6b` Ollama model:
+one concurrent call, four buffered requests, and an inference-key allowance of
+30 requests and 20,000 tokens per hour. This is not a paid-provider spending
+approval. Network policy permits only Ollama and DNS, and the gateway has no
+Kubernetes API token or production MCP tools. Native UI login is replaced by
+the full Authentik proxy; OIDC inside Bifrost itself is not claimed.
+
+One replica owns the retained Ceph-backed SQLite config/log volume. Content
+logging is disabled; usage metadata has 30-day retention. Do not scale multiple
+OSS replicas against the same SQLite volume or assume shared Postgres makes
+their in-memory governance counters consistent. UI changes to file-owned
+configuration are reconciled on restart. This evaluation does not replace the
+existing LiteLLM/MCP advisory worker or prove that the small local model is a
+reliable reviewer.
+
+[Kritika](https://github.com/home-operations/kritika) is a pull-request reviewer
+with queued, per-run Jobs, not a resident cluster-repair agent. Its dashboard is
+separate from Bifrost's gateway usage dashboard. Four account concurrency slots
+do not mean four models are continuously doing useful work while idle.
+
+The existing held Kritika namespace/database volume must remain intact. Real
+review activation requires all of:
+
+1. A dedicated GitHub App installed only on selected repositories, with reviewed
+   permissions, webhook exposure and explicit consent to post automated reviews.
+   Do not reuse the interactive CLI's token or silently enable approvals.
+2. A supported model credential and explicit budget: a dedicated API key through
+   Bifrost, or Kritika's supported personal ChatGPT browser sign-in. A work Copilot
+   entitlement is neither credential. Start with low concurrency and bounded
+   token/review limits; no unapproved paid fallback.
+3. Verified runner isolation, admission rules and network policy. The current
+   workers do not have the gVisor extension installed. Adding a RuntimeClass
+   alone cannot install a runtime; a Talos extension rollout and any node reboot
+   need their own maintenance approval.
+4. A compatible VectorChord Postgres installation and separate owner/application
+   roles. Inspect the retained volume's database version before mounting or
+   migrating it; do not repurpose the shared application database as cleanup.
+5. One measured review on an explicitly enabled test repository, including denied
+   publication and model/budget exhaustion checks, before broader activation.
+
+### Authentik MCP is not one interchangeable product
+
+The official [platform MCP](https://github.com/goauthentik/platform/tree/main/ak-cli/src/mcp)
+is a pre-alpha CLI client for delegated application access: list applications,
+create an agent identity, request access, exchange tokens and call the approved
+application. It is not a user/group/provider administration server. Delegated
+[agent accounts require Enterprise](https://docs.goauthentik.io/users-sources/user/account-types/agent-accounts/);
+this is not a free replacement for every appliance's native API credentials.
+
+[nikitatsym/authentik-mcp](https://github.com/nikitatsym/authentik-mcp) instead
+wraps administrative APIs. It targets 2026.8.3, while this installation runs
+2026.8.5; HTTP mode has no built-in authentication, and its repository currently
+declares no license file. Do not deploy it with a full administrator key or the
+operator's reconciliation credential. Any future evaluation needs a verified
+license, authenticated transport, explicit tool/operation restrictions and a
+separate least-privilege identity. Read groups include credential-related
+domains, so a tool named read-only is not by itself a safe disclosure boundary.
 
 ## Kguardian decision
 
