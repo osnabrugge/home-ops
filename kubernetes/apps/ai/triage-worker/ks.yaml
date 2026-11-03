@@ -6,7 +6,6 @@ metadata:
 spec:
   dependsOn:
     - name: litellm
-    - name: bifrost
   interval: 1h
   path: ./kubernetes/apps/ai/triage-worker/app
   prune: true

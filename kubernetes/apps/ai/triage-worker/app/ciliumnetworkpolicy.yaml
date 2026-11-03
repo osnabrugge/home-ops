@@ -10,13 +10,6 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            ai.homeops.ca/role: bifrost
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
             ai.homeops.ca/role: gateway
       toPorts:
         - ports:

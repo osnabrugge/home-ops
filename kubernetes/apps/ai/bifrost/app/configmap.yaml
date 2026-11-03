@@ -56,12 +56,6 @@ data:
           "request_reset_duration": "1h",
           "token_max_limit": 20000,
           "token_reset_duration": "1h"
-        }, {
-          "id": "triage-worker",
-          "request_max_limit": 6,
-          "request_reset_duration": "1h",
-          "token_max_limit": 10000,
-          "token_reset_duration": "1h"
         }],
         "virtual_keys": [{
           "id": "local-pilot",
@@ -70,18 +64,6 @@ data:
           "is_active": true,
           "allow_all_providers": false,
           "rate_limit_id": "local-pilot",
-          "provider_configs": [{
-            "provider": "ollama",
-            "allowed_models": ["qwen3:0.6b"],
-            "key_ids": ["*"]
-          }]
-        }, {
-          "id": "triage-worker",
-          "name": "Read-only triage worker",
-          "value": "env.BIFROST_TRIAGE_VK",
-          "is_active": true,
-          "allow_all_providers": false,
-          "rate_limit_id": "triage-worker",
           "provider_configs": [{
             "provider": "ollama",
             "allowed_models": ["qwen3:0.6b"],

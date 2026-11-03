@@ -4,6 +4,7 @@ kind: CronJob
 metadata:
   name: ai-triage-worker
 spec:
+  suspend: false
   # Pilot observes only the known SMART alert; it cannot repair or close issues.
   schedule: "7,37 * * * *"
   concurrencyPolicy: Forbid
@@ -44,15 +45,6 @@ spec:
                     secretKeyRef:
                       name: litellm-auth
                       key: triage-key
-                - name: MODEL_BASE_URL
-                  value: http://bifrost.ai.svc.cluster.local:8080
-                - name: MODEL_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: bifrost-secret
-                      key: BIFROST_TRIAGE_VK
-                - name: MODEL_NAME
-                  value: ollama/qwen3:0.6b
                 - name: PROMETHEUS_URL
                   value: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090
               resources:

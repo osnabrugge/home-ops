@@ -10,18 +10,6 @@ spec:
   ingress:
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: ai
-            ai.homeops.ca/role: triage-worker
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-          rules:
-            http:
-              - method: POST
-                path: "^/v1/chat/completions$"
-    - fromEndpoints:
-        - matchLabels:
             k8s:io.kubernetes.pod.namespace: auth
             app.kubernetes.io/name: authentik
             app.kubernetes.io/instance: authentik

@@ -45,54 +45,24 @@ class WorkerGuardTests(unittest.TestCase):
         response = {"choices": [{"message": {"content": json.dumps({
             "status": "NO_ACTIVE_FAILURE", "summary": "Current checks pass", "actions_taken": [],
         })}}]}
-        env = {"LITELLM_BASE_URL": "http://mcp.invalid", "LITELLM_API_KEY": "mcp-test", "PROMETHEUS_URL": "http://prometheus.invalid"}
-        cases = [
-            ({}, "http://mcp.invalid", "mcp-test", "local-triage"),
-            ({
-                "MODEL_BASE_URL": "http://model.invalid/",
-                "MODEL_API_KEY": "model-test",
-                "MODEL_NAME": "ollama/qwen3:0.6b",
-            }, "http://model.invalid", "model-test", "ollama/qwen3:0.6b"),
-        ]
-        for model_env, model_base, model_key, model_name in cases:
-            output = io.StringIO()
-            with self.subTest(model_env=model_env), patch.dict("os.environ", env | model_env, clear=True), patch("worker.MCP") as mcp, patch("worker.scrape_status", return_value=evidence), patch("worker.json_request", return_value=response) as request, contextlib.redirect_stdout(output):
-                mcp.return_value.initialize.return_value = "kubesearch_search_releases"
-                mcp.return_value.request.return_value = {"structuredContent": community}
-                run()
-                mcp.assert_called_once_with("http://mcp.invalid", "mcp-test")
-                self.assertEqual(request.call_args.args[0], model_base + "/v1/chat/completions")
-                self.assertEqual(request.call_args.args[2], {"Authorization": "Bearer " + model_key})
-                self.assertEqual(request.call_args.args[1]["model"], model_name)
-                self.assertNotIn("tools", request.call_args.args[1])
-                schema = request.call_args.args[1]["response_format"]["json_schema"]["schema"]
-                self.assertEqual(schema["properties"]["status"]["enum"], ["NO_ACTIVE_FAILURE"])
-                self.assertEqual(schema["properties"]["actions_taken"]["maxItems"], 0)
-                mcp.return_value.request.assert_called_once_with("tools/call", {
-                    "name": "kubesearch_search_releases", "arguments": {"query": "smartctl-exporter", "limit": 1},
-                })
-            report = json.loads(output.getvalue())
-            self.assertEqual(report["workflow_mode"], "fixed-scope-evidence")
-            self.assertEqual(report["model"], model_name)
-
-    def test_partial_model_configuration_fails_before_network(self):
-        env = {"LITELLM_BASE_URL": "http://mcp.invalid", "LITELLM_API_KEY": "mcp-test", "PROMETHEUS_URL": "http://prometheus.invalid"}
-        cases = [
-            {"MODEL_BASE_URL": "http://model.invalid"},
-            {"MODEL_API_KEY": "model-test"},
-            {"MODEL_NAME": "ollama/qwen3:0.6b"},
-            {"MODEL_BASE_URL": "", "MODEL_API_KEY": "", "MODEL_NAME": ""},
-        ]
-        for model_env in cases:
-            with self.subTest(model_env=model_env), patch.dict("os.environ", env | model_env, clear=True), patch("worker.MCP") as mcp, patch("worker.json_request") as request:
-                with self.assertRaisesRegex(RuntimeError, "must all be set"):
-                    run()
-                mcp.assert_not_called()
-                request.assert_not_called()
+        env = {"LITELLM_BASE_URL": "http://example.invalid", "LITELLM_API_KEY": "test", "PROMETHEUS_URL": "http://example.invalid"}
+        output = io.StringIO()
+        with patch.dict("os.environ", env), patch("worker.MCP") as mcp, patch("worker.scrape_status", return_value=evidence), patch("worker.json_request", return_value=response) as request, contextlib.redirect_stdout(output):
+            mcp.return_value.initialize.return_value = "kubesearch_search_releases"
+            mcp.return_value.request.return_value = {"structuredContent": community}
+            run()
+            self.assertNotIn("tools", request.call_args.args[1])
+            schema = request.call_args.args[1]["response_format"]["json_schema"]["schema"]
+            self.assertEqual(schema["properties"]["status"]["enum"], ["NO_ACTIVE_FAILURE"])
+            self.assertEqual(schema["properties"]["actions_taken"]["maxItems"], 0)
+            mcp.return_value.request.assert_called_once_with("tools/call", {
+                "name": "kubesearch_search_releases", "arguments": {"query": "smartctl-exporter", "limit": 1},
+            })
+        self.assertEqual(json.loads(output.getvalue())["workflow_mode"], "fixed-scope-evidence")
 
     def test_evidence_failure_stops_before_model(self):
         env = {"LITELLM_BASE_URL": "http://example.invalid", "LITELLM_API_KEY": "test", "PROMETHEUS_URL": "http://example.invalid"}
-        with patch.dict("os.environ", env, clear=True), patch("worker.MCP"), patch("worker.scrape_status", side_effect=RuntimeError("No sample")), patch("worker.json_request") as request:
+        with patch.dict("os.environ", env), patch("worker.MCP"), patch("worker.scrape_status", side_effect=RuntimeError("No sample")), patch("worker.json_request") as request:
             with self.assertRaisesRegex(RuntimeError, "No sample"):
                 run()
             request.assert_not_called()

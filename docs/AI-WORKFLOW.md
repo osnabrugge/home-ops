@@ -314,7 +314,7 @@ administrator-group binding and an app-specific binding for the regular owner
 account. This does not add that account to global administrator groups. Verify
 the intended human account is allowed as well as a service account being denied;
 an anonymous redirect alone does not establish usable access.
-The management backend accepts only the Authentik server and
+The backend accepts only the Authentik server and
 node probes; do not create a direct dashboard route. The scoped inference key
 and database encryption key come from the `bifrost` Key Vault secret.
 
@@ -335,22 +335,21 @@ logging is disabled; usage metadata has 30-day retention. Do not scale multiple
 OSS replicas against the same SQLite volume or assume shared Postgres makes
 their in-memory governance counters consistent. UI changes to file-owned
 configuration are reconciled on restart. This evaluation does not replace the
-existing LiteLLM/MCP tool boundary or prove that the small local model is a
+existing LiteLLM/MCP advisory worker or prove that the small local model is a
 reliable reviewer.
-
-The existing fixed-scope SMART advisory worker now sends its model calls through
-Bifrost every 30 minutes. Its separate key permits only `ollama/qwen3:0.6b`,
-six requests and 10,000 tokens per hour. Cilium permits that worker only
-`POST /v1/chat/completions`, not the management API. MCP calls retain their
-existing LiteLLM key and one-tool allowlist; model and MCP credentials are not
-interchangeable. Evidence collection and status validation remain deterministic,
-and the worker has no repair or GitHub publication authority.
 
 In the UI, select a time range containing activity and inspect **LLM Logs**,
 **Models**, and the virtual-key filters. **Prompt Repository** provides a
 playground for saved prompts. An idle dashboard is not an agent failure:
 only clients routed through this gateway appear here. Interactive Copilot
 sessions are not automatically routed through Bifrost.
+
+The existing fixed-scope SMART advisory worker remains on its working LiteLLM
+model/MCP path. A Bifrost routing attempt was rolled back after the actual
+gateway failed constrained JSON, output-token and no-thinking checks that passed
+directly against Ollama. A successful free-form answer is not proof that these
+controls work. Do not route this worker or claim a constrained reviewer is
+commissioned until the exact gateway request contract passes those controls.
 
 [Kritika](https://github.com/home-operations/kritika) is a pull-request reviewer
 with queued, per-run Jobs, not a resident cluster-repair agent. Its dashboard is
@@ -410,11 +409,11 @@ public path `/hooks/github`, a shared webhook secret and the documented events,
 not publication of the whole admin dashboard.
 
 Model authentication is independent of the GitHub App. A dedicated API key can
-be routed through Bifrost with an approved cap. Alternatively, Kritika supports
-personal ChatGPT plan sign-in through its own `chatgpt login` browser flow; this
-does not reuse a work Copilot token. No paid fallback is implied. Keep automatic
-PR approval off and new repositories disabled until one authorized test review
-passes.
+be routed through a verified gateway with an approved cap. Alternatively, Kritika
+supports personal ChatGPT plan sign-in through its own `chatgpt login` browser
+flow; this does not reuse a work Copilot token. No paid fallback is implied.
+Keep automatic PR approval off and new repositories disabled until one
+authorized test review passes.
 
 ### Authentik MCP is not one interchangeable product
 
