@@ -28,7 +28,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: pull
-          image: docker.io/ollama/ollama:0.40.13
+          image: docker.io/ollama/ollama:0.40.14
           command: ["/bin/ollama", "pull", "qwen3:0.6b"]
           env:
             - name: OLLAMA_HOST
