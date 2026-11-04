@@ -246,8 +246,8 @@ spec:
                       roles: [detect]
                 detect:
                   enabled: true
-                  width: 704
-                  height: 480
+                  width: 1280
+                  height: 720
                   fps: 5
             # cam04 (192.168.70.74): still boxed / not deployed.
             version: 0.17-0
