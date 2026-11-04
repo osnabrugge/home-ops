@@ -77,6 +77,11 @@ jobs:
             --header 'X-GitHub-Event: ping' \
             --header "X-Hub-Signature-256: $PING_SIGNATURE" \
             --data '{"zen":"kritika synthetic public ping"}' "$base/hooks/github")
+          echo "Signed synthetic ping returned HTTP $code"
+          if [[ ! "$code" =~ ^2[0-9][0-9]$ ]]; then
+            python3 -c 'import json; d=json.load(open("ping-response.json")); print("Webhook rejection:", d.get("error", {}).get("message", "unclassified JSON response"))'
+            exit 1
+          fi
           [[ "$code" =~ ^2[0-9][0-9]$ ]]
           python3 -c 'import json; assert json.load(open("ping-response.json"))["accepted"] is True'
           rm ping-response.json
