@@ -1,0 +1,146 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: network-ups-tools
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: network-ups-tools
+  interval: 1h
+  values:
+    controllers:
+      network-ups-tools:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          nut:
+            image:
+              repository: docker.io/instantlinux/nut-upsd
+              tag: 2.8.5-r1@sha256:a186d74a586ec4e10494270f6a52e26bb5e50663d2f8570865f5bd38273e096e
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                upsdrvctl -u nut start
+                exec upsd -F -u nut
+            env:
+              TZ: America/Toronto
+              NUT_CONFPATH: /etc/nut
+              NUT_STATEPATH: /run/nut
+              NUT_ALTPIDPATH: /run/nut
+            probes:
+              liveness: &nut-health
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - /bin/sh
+                      - -ec
+                      - upsc ups01@127.0.0.1 ups.status >/dev/null 2>&1 && upsc ups02@127.0.0.1 ups.status >/dev/null 2>&1
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+              readiness: *nut-health
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - /bin/sh
+                      - -ec
+                      - upsc ups01@127.0.0.1 ups.status >/dev/null 2>&1 && upsc ups02@127.0.0.1 ups.status >/dev/null 2>&1
+                  periodSeconds: 5
+                  timeoutSeconds: 10
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 96Mi
+            securityContext:
+              runAsUser: 100
+              runAsGroup: 101
+              runAsNonRoot: true
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+          exporter:
+            image:
+              repository: ghcr.io/druggeri/nut_exporter
+              tag: 3.3.0@sha256:276460d141c732772f8b1fcd785a7de272473e6d39fd85c32b163efc2999cb9a
+            args:
+              - --nut.server=127.0.0.1
+              - --nut.serverport=3493
+              - --nut.vars_enable=battery.charge,battery.runtime,battery.voltage,input.voltage,output.voltage,ups.load,ups.realpower,ups.status
+            probes:
+              liveness: &exporter-health
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /metrics
+                    port: 9199
+                  timeoutSeconds: 5
+              readiness: *exporter-health
+              startup: *exporter-health
+            resources:
+              requests:
+                cpu: 5m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+            securityContext:
+              runAsUser: 65534
+              runAsGroup: 65534
+              runAsNonRoot: true
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        ports:
+          metrics:
+            port: 9199
+    serviceMonitor:
+      app:
+        endpoints:
+          - port: metrics
+            path: /ups_metrics
+            interval: 30s
+            scrapeTimeout: 10s
+            params:
+              ups: [ups01]
+          - port: metrics
+            path: /ups_metrics
+            interval: 30s
+            scrapeTimeout: 10s
+            params:
+              ups: [ups02]
+    persistence:
+      config:
+        type: secret
+        name: network-ups-tools-config
+        advancedMounts:
+          network-ups-tools:
+            nut:
+              - path: /etc/nut
+                readOnly: true
+      runtime:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 8Mi
+        advancedMounts:
+          network-ups-tools:
+            nut:
+              - path: /run/nut

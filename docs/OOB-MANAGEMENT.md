@@ -454,6 +454,16 @@ failure-domain reason, not because NUT can never run in Kubernetes. Adding
 GitOps-managed NUT monitoring must preserve this independent outage path and
 must not introduce USB privilege or a second shutdown authority unnecessarily.
 
+GitOps now also declares a separate, read-only `network-ups-tools` monitoring
+pod with a NUT server and `nut_exporter`. It polls the two cards through their
+existing read-only SNMP identity; it does not depend on exposing NAS01's
+loopback listener. Only exporter port 9199 is a Service, and Prometheus scrapes
+each UPS separately. The [NUT dashboard](https://grafana.homeops.ca/d/nut-ups)
+shows live UPS status, charge, runtime, load and voltage. It is not an actuator
+or an armed-state dashboard. The independent NAS01 observer remains unchanged.
+There is no `upsmon`, NUT command user, FSD action or power-cut hook in this
+monitoring workload.
+
 The unarmed `homeops-ups-watch.service` is linked from the persistent deployment
 directory. A TrueNAS `POSTINIT` command re-links and starts that same observer
 after boot; it does not contain `--execute`. This startup record, not a bare

@@ -16,10 +16,8 @@ resources:
   - ./grafana-operator/ks.yaml
   - ./kromgo/ks.yaml
   - ./kube-prometheus-stack/ks.yaml
-  # NUT deliberately does NOT live in this cluster. In an outage the cluster must
-  # shut down BEFORE nas01, which serves it NFS — so the orchestrator cannot be a
-  # workload that dies with the cluster. It runs on nas01, which already ships the
-  # snmp-ups driver the container image lacks. snmp-exporter covers UPS metrics.
+  # Read-only telemetry only; shutdown authority remains off-cluster on NAS01.
+  - ./network-ups-tools/ks.yaml
   - ./prometheus-adapter/ks.yaml
   - ./radar/ks.yaml
   - ./silence-operator/ks.yaml

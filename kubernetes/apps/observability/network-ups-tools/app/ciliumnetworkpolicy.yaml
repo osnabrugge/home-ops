@@ -1,0 +1,31 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: network-ups-tools
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: network-ups-tools
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "9199"
+              protocol: TCP
+    - fromEntities: [host, remote-node]
+      toPorts:
+        - ports:
+            - port: "9199"
+              protocol: TCP
+  egress:
+    - toCIDR:
+        - 192.168.99.11/32
+        - 192.168.99.12/32
+      toPorts:
+        - ports:
+            - port: "161"
+              protocol: UDP

@@ -1,0 +1,93 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: nut-ups
+spec:
+  allowCrossNamespaceImport: true
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasources:
+    - datasourceName: prometheus
+      inputName: DS_PROMETHEUS
+  json: |
+    {
+      "uid": "nut-ups",
+      "title": "UPS - NUT telemetry",
+      "description": "Read-only in-cluster NUT telemetry. The independent NAS01 shutdown observer is not controlled by this dashboard; these panels do not certify its armed state.",
+      "tags": ["ups", "nut"],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {"from": "now-6h", "to": "now"},
+      "templating": {"list": [{
+        "name": "ups",
+        "label": "UPS",
+        "type": "custom",
+        "query": "ups01,ups02",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {"text": "All", "value": "$__all"}
+      }]},
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Online",
+          "gridPos": {"x": 0, "y": 0, "w": 8, "h": 4},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [{"refId": "A", "expr": "network_ups_tools_ups_status{namespace=\"observability\",ups=~\"$ups\",flag=\"OL\"}", "instant": true, "legendFormat": "{{ups}}"}],
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "Not online", "color": "red"}, "1": {"text": "Online", "color": "green"}}}]}}
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Estimated runtime remaining",
+          "gridPos": {"x": 8, "y": 0, "w": 8, "h": 4},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [{"refId": "A", "expr": "network_ups_tools_battery_runtime{namespace=\"observability\",ups=~\"$ups\"}", "instant": true, "legendFormat": "{{ups}}"}],
+          "fieldConfig": {"defaults": {"unit": "s", "min": 0}}
+        },
+        {
+          "id": 3,
+          "type": "gauge",
+          "title": "Battery charge",
+          "gridPos": {"x": 16, "y": 0, "w": 8, "h": 4},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [{"refId": "A", "expr": "network_ups_tools_battery_charge{namespace=\"observability\",ups=~\"$ups\"}", "instant": true, "legendFormat": "{{ups}}"}],
+          "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}}
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "Load",
+          "gridPos": {"x": 0, "y": 4, "w": 12, "h": 7},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [{"refId": "A", "expr": "network_ups_tools_ups_load{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}}"}],
+          "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}}
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Runtime",
+          "gridPos": {"x": 12, "y": 4, "w": 12, "h": 7},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [{"refId": "A", "expr": "network_ups_tools_battery_runtime{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}}"}],
+          "fieldConfig": {"defaults": {"unit": "s", "min": 0}}
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Input and output voltage",
+          "gridPos": {"x": 0, "y": 11, "w": 24, "h": 7},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "targets": [
+            {"refId": "A", "expr": "network_ups_tools_input_voltage{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}} input"},
+            {"refId": "B", "expr": "network_ups_tools_output_voltage{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}} output"}
+          ],
+          "fieldConfig": {"defaults": {"unit": "volt"}}
+        }
+      ]
+    }
