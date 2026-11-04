@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kritika-repository-policy-v2
+  name: kritika-repository-policy-v3
 spec:
   backoffLimit: 2
   activeDeadlineSeconds: 120
@@ -53,9 +53,34 @@ spec:
               ALTER TABLE accounts ADD CONSTRAINT homeops_pilot_account
                 CHECK (NOT enabled OR (forge = 'github' AND name = 'osnabrugge'));
               ALTER TABLE repositories DROP CONSTRAINT IF EXISTS homeops_pilot_repository;
+              -- enabled records forge reachability; turned_on is dashboard enablement.
+              -- Disable privacy/name/account changes rather than retaining stale public state.
+              CREATE OR REPLACE FUNCTION public.homeops_pilot_repository_guard()
+                RETURNS trigger LANGUAGE plpgsql
+                SET search_path = pg_catalog, public AS $guard$
+              BEGIN
+                IF NEW.name <> 'osnabrugge/home-ops' OR NEW.visibility <> 'public'
+                  OR NOT EXISTS (
+                    SELECT 1 FROM public.accounts
+                    WHERE id = NEW.account_id AND forge = 'github'
+                      AND name = 'osnabrugge' AND enabled
+                  )
+                THEN
+                  NEW.turned_on := false;
+                  NEW.turned_at := clock_timestamp();
+                END IF;
+                RETURN NEW;
+              END;
+              $guard$;
+              DROP TRIGGER IF EXISTS homeops_pilot_repository_guard ON repositories;
+              CREATE TRIGGER homeops_pilot_repository_guard
+                BEFORE INSERT OR UPDATE ON repositories
+                FOR EACH ROW EXECUTE FUNCTION public.homeops_pilot_repository_guard();
+              UPDATE repositories SET turned_on = false
+                WHERE name <> 'osnabrugge/home-ops' OR visibility <> 'public';
               ALTER TABLE repositories ADD CONSTRAINT homeops_pilot_repository
-                CHECK ((NOT enabled AND turned_on IS DISTINCT FROM true)
-                  OR (name = 'home-ops' AND visibility = 'public'));
+                CHECK (turned_on IS DISTINCT FROM true
+                  OR (name = 'osnabrugge/home-ops' AND visibility = 'public'));
               COMMIT;
               SELECT 'public_homeops_only_policy_installed' AS result;
               SQL

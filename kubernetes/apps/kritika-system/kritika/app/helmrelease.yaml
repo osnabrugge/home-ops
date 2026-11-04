@@ -8,6 +8,25 @@ spec:
     kind: OCIRepository
     name: kritika
   interval: 1h
+  # Canonical lookups avoid learning public GitHub IPs under cluster search suffixes.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: kritika
+            patch: |-
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: kritika
+              spec:
+                template:
+                  spec:
+                    dnsConfig:
+                      options:
+                        - name: ndots
+                          value: "1"
   values:
     replicas: 1
     image:
@@ -43,6 +62,9 @@ spec:
       comments:
         dashboard: false
       trigger:
+        # Manual owner requests bypass the admin's include list; automatic runs do not.
+        include:
+          - { name: owner-manual-pilot, expr: "false" }
         limit: 1
         settle: 90s
         exclude:
