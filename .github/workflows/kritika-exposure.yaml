@@ -1,0 +1,83 @@
+---
+name: Kritika Exposure
+on:
+  workflow_dispatch:
+    inputs:
+      ping_signature:
+        description: SHA-256 signature for the workflow's fixed synthetic ping
+        required: true
+        type: string
+      denied_repository_signature:
+        description: SHA-256 signature for the fixed unapproved-repository fixture
+        required: true
+        type: string
+      private_repository_signature:
+        description: SHA-256 signature for the fixed private-repository fixture
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  public-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify the exact public webhook and reject every dashboard route
+        shell: bash
+        env:
+          PING_SIGNATURE: ${{ inputs.ping_signature }}
+          DENIED_SIGNATURE: ${{ inputs.denied_repository_signature }}
+          PRIVATE_SIGNATURE: ${{ inputs.private_repository_signature }}
+        run: |
+          set -euo pipefail
+          for signature in "$PING_SIGNATURE" "$DENIED_SIGNATURE" "$PRIVATE_SIGNATURE"; do
+            echo "::add-mask::$signature"
+            [[ "$signature" =~ ^sha256=[0-9a-f]{64}$ ]]
+          done
+          control=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+            --write-out '%{http_code}' https://status.homeops.ca)
+          [[ "$control" =~ ^(2|3)[0-9][0-9]$ ]]
+          echo "PASS: unrelated outside HTTPS positive control ($control)"
+          base=https://kritika.homeops.ca
+          for path in / /api/v1/meta /v1/models /hooks/github /hooks/github/; do
+            code=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+              --write-out '%{http_code}' "$base$path")
+            [[ "$code" == "404" ]]
+            echo "PASS: outside GET $path is not published ($code)"
+          done
+          code=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+            --write-out '%{http_code}' --header 'Content-Type: application/json' \
+            --header 'X-GitHub-Event: ping' --data '{}' "$base/hooks/github")
+          [[ "$code" == "401" ]]
+          echo "PASS: unsigned webhook denied ($code)"
+          code=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+            --write-out '%{http_code}' --header 'Content-Type: application/json' \
+            --header 'X-GitHub-Event: ping' --header 'X-Hub-Signature-256: sha256=invalid' \
+            --data '{}' "$base/hooks/github")
+          [[ "$code" == "401" ]]
+          echo "PASS: invalid HMAC denied ($code)"
+          code=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+            --write-out '%{http_code}' --header 'Content-Type: application/json' \
+            --header 'X-GitHub-Event: pull_request' \
+            --header "X-Hub-Signature-256: $DENIED_SIGNATURE" \
+            --data '{"repository":{"full_name":"osnabrugge/not-approved","private":false,"owner":{"login":"osnabrugge"}}}' \
+            "$base/hooks/github")
+          [[ "$code" == "403" ]]
+          echo "PASS: correctly signed unapproved repository denied ($code)"
+          code=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+            --write-out '%{http_code}' --header 'Content-Type: application/json' \
+            --header 'X-GitHub-Event: pull_request' \
+            --header "X-Hub-Signature-256: $PRIVATE_SIGNATURE" \
+            --data '{"repository":{"full_name":"osnabrugge/home-ops","private":true,"owner":{"login":"osnabrugge"}}}' \
+            "$base/hooks/github")
+          [[ "$code" == "403" ]]
+          echo "PASS: correctly signed private repository denied ($code)"
+          code=$(curl -4 --silent --show-error --output ping-response.json --max-time 20 \
+            --write-out '%{http_code}' --header 'Content-Type: application/json' \
+            --header 'X-GitHub-Event: ping' \
+            --header "X-Hub-Signature-256: $PING_SIGNATURE" \
+            --data '{"zen":"kritika synthetic public ping"}' "$base/hooks/github")
+          [[ "$code" =~ ^2[0-9][0-9]$ ]]
+          python3 -c 'import json; assert json.load(open("ping-response.json"))["accepted"] is True'
+          rm ping-response.json
+          echo "PASS: signed synthetic ping accepted ($code); no review requested"

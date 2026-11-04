@@ -1,0 +1,304 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kritika-serve
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kritika
+      app.kubernetes.io/instance: kritika
+      app.kubernetes.io/component: server
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: auth
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/instance: authentik
+            app.kubernetes.io/component: server
+        - matchLabels:
+            app.kubernetes.io/name: kritika-policy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            kritika.home-operations.com/role: runner
+      toPorts:
+        - ports:
+            - port: "8082"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+    - fromEntities: [host, remote-node]
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*"
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: kritika-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kritika-policy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: api.github.com
+        - matchName: github.com
+        - matchName: raw.githubusercontent.com
+        - matchName: codeload.github.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toEntities: [kube-apiserver]
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kritika-policy
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kritika-policy
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kritika
+            app.kubernetes.io/instance: kritika
+            app.kubernetes.io/component: server
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-external
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+    - fromEntities: [host, remote-node]
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchName: openrouter.ai
+              - matchPattern: "*.kritika-system.svc.cluster.local"
+    - toFQDNs:
+        - matchName: openrouter.ai
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kritika
+            app.kubernetes.io/instance: kritika
+            app.kubernetes.io/component: server
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kritika-runner
+spec:
+  endpointSelector:
+    matchLabels:
+      kritika.home-operations.com/role: runner
+  ingress:
+    - {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*.svc.cluster.local"
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kritika
+            app.kubernetes.io/instance: kritika
+            app.kubernetes.io/component: server
+      toPorts:
+        - ports:
+            - port: "8082"
+              protocol: TCP
+---
+# If the Cilium L7 DNS policy is rejected, runners still cannot escape.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kritika-runner-fail-closed
+spec:
+  podSelector:
+    matchLabels:
+      kritika.home-operations.com/role: runner
+  policyTypes: [Ingress, Egress]
+  ingress: []
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: kritika
+              app.kubernetes.io/instance: kritika
+              app.kubernetes.io/component: server
+      ports:
+        - port: 8082
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kritika-default-deny
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kritika-db
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: kritika-db
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kritika
+            app.kubernetes.io/component: server
+        - matchLabels:
+            app.kubernetes.io/name: kritika-repository-policy
+        - matchLabels:
+            cnpg.io/cluster: kritika-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: cloudnative-pg
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - fromEntities: [host, remote-node]
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*.cluster.local"
+    - toEntities: [kube-apiserver]
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kritika-repository-policy
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kritika-repository-policy
+  ingress:
+    - {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*.kritika-system.svc.cluster.local"
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: kritika-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

@@ -1,0 +1,58 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kritika-repository-policy-v1
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 120
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kritika-repository-policy
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 26
+        runAsGroup: 26
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: install-policy
+          image: ghcr.io/cloudnative-pg/postgresql:18.6-standard-bookworm@sha256:fedcc3ff1abb4024997e065f449c2201d92cbf093dca238efbc9147004023ab9
+          env:
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: kritika-db-owner
+                  key: uri
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              psql --no-psqlrc --set ON_ERROR_STOP=1 <<'SQL'
+              BEGIN;
+              ALTER TABLE accounts DROP CONSTRAINT IF EXISTS homeops_pilot_account;
+              ALTER TABLE accounts ADD CONSTRAINT homeops_pilot_account
+                CHECK (NOT enabled OR (forge = 'github' AND name = 'osnabrugge'));
+              ALTER TABLE repositories DROP CONSTRAINT IF EXISTS homeops_pilot_repository;
+              ALTER TABLE repositories ADD CONSTRAINT homeops_pilot_repository
+                CHECK ((NOT enabled AND turned_on IS DISTINCT FROM true)
+                  OR (name = 'home-ops' AND visibility = 'public'));
+              COMMIT;
+              SELECT 'public_homeops_only_policy_installed' AS result;
+              SQL
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi

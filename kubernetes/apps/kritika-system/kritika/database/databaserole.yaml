@@ -1,0 +1,13 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: kritika-db-app
+spec:
+  cluster:
+    name: kritika-db
+  name: kritika_app
+  login: true
+  passwordSecret:
+    name: kritika-db-app
+  databaseRoleReclaimPolicy: retain

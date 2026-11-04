@@ -1,0 +1,37 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kritika
+spec:
+  hostnames:
+    - kritika.homeops.ca
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        # Full-proxy Authentik first, then Kritika's native admin login.
+        - name: authentik-server
+          namespace: auth
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kritika-webhook
+spec:
+  hostnames:
+    - kritika.homeops.ca
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  rules:
+    - matches:
+        - method: POST
+          path:
+            type: Exact
+            value: /hooks/github
+      backendRefs:
+        - name: kritika-policy
+          port: 8081

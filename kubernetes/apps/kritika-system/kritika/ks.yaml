@@ -1,0 +1,98 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kritika-credentials
+spec:
+  dependsOn:
+    - name: azurekv
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/kritika-system/kritika/credentials
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: kritika-system
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kritika-db
+spec:
+  dependsOn:
+    - name: kritika-credentials
+    - name: cloudnative-pg
+      namespace: database
+  healthChecks:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: kritika-db
+      namespace: kritika-system
+  interval: 1h
+  path: ./kubernetes/apps/kritika-system/kritika/database
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: kritika-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kritika-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: kritika
+      namespace: auth
+  interval: 1h
+  path: ./kubernetes/apps/kritika-system/kritika/identity
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kritika
+spec:
+  dependsOn:
+    - name: kritika-db
+    - name: kritika-identity
+  interval: 1h
+  path: ./kubernetes/apps/kritika-system/kritika/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: kritika-system
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kritika-repository-policy
+spec:
+  dependsOn:
+    - name: kritika
+  interval: 1h
+  path: ./kubernetes/apps/kritika-system/kritika/repository-policy
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: kritika-system
+  wait: true

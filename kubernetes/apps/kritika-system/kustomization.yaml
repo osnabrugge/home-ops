@@ -9,3 +9,5 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./limits.yaml
+  - ./kritika/ks.yaml

@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: kritika-workspace
+spec:
+  limits:
+    - type: Container
+      # Includes the runner's emptyDir, which otherwise has no storage bound.
+      default:
+        ephemeral-storage: 1Gi
+      defaultRequest:
+        ephemeral-storage: 16Mi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: kritika-pilot
+spec:
+  hard:
+    pods: "8"
+    count/jobs.batch: "12"
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "6"
+    limits.memory: 5Gi
+    limits.ephemeral-storage: 8Gi
+    persistentvolumeclaims: "3"
+    requests.storage: 20Gi

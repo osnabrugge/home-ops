@@ -3,8 +3,11 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: _
-  # Retain the existing PVC without activating the separately held application.
+  # The old kritika-postgres-1 PVC is retained, never attached to this pilot.
   labels:
-    homeops.ca/lifecycle: retained-storage
+    homeops.ca/lifecycle: bounded-pilot
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled

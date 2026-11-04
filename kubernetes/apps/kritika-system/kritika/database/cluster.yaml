@@ -1,0 +1,43 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  # Deliberately separate from the retained kritika-postgres-1 volume.
+  name: kritika-db
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-bookworm@sha256:fedcc3ff1abb4024997e065f449c2201d92cbf093dca238efbc9147004023ab9
+  enableSuperuserAccess: false
+  postgresql:
+    extensions:
+      - name: vchord
+        image:
+          reference: ghcr.io/tensorchord/vchord-scratch:pg18-v1.1.1@sha256:bdea43bed2a414e21bbf71767bf6f0739747ac480b267b51772dc214ac28dcb3
+        dynamic_library_path:
+          - /usr/lib/postgresql/18/lib/
+        extension_control_path:
+          - /usr/share/postgresql/18/
+    shared_preload_libraries:
+      - vchord
+    parameters:
+      max_connections: "50"
+      shared_buffers: 128MB
+      max_wal_size: 1GB
+  storage:
+    size: 5Gi
+    storageClass: ceph-block
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  bootstrap:
+    initdb:
+      database: kritika
+      owner: kritika
+      secret:
+        name: kritika-db-owner

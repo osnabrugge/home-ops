@@ -1,0 +1,14 @@
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: kritika-authentik
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: kritika-system
+  to:
+    - group: ""
+      kind: Service
+      name: authentik-server

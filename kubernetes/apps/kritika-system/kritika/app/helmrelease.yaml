@@ -1,0 +1,119 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kritika
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: kritika
+  interval: 1h
+  values:
+    replicas: 1
+    image:
+      digest: sha256:66f1ff0e0772543001ebbc7956b582f18ab3f7595a3b0a5de471b61baf5e055e
+    deploymentAnnotations:
+      secret.reloader.stakater.com/auto: "true"
+    config:
+      webUrl: https://kritika.homeops.ca
+      enabled: false
+      auth:
+        admin:
+          password: { env: KRITIKA_AUTH_ADMIN_PASSWORD }
+      apps:
+        github:
+          accounts: [osnabrugge]
+          clientId: { env: KRITIKA_GITHUB_CLIENT_ID }
+          privateKey: { env: KRITIKA_GITHUB_PRIVATE_KEY }
+          webhookSecret: { env: KRITIKA_GITHUB_WEBHOOK_SECRET }
+      providers:
+        free:
+          type: openrouter
+          baseUrl: http://kritika-policy:8080/v1
+          # This is only the local gateway credential, not an OpenRouter key.
+          apiKey: { env: KRITIKA_GATEWAY_KEY }
+          retries: 0
+      review:
+        model: free/cohere/north-mini-code:free
+        fallback: ""
+        approve: false
+        replies: false
+        fixes: false
+      # No embedding or confidence model: neither can silently incur charges.
+      comments:
+        dashboard: false
+      trigger:
+        limit: 1
+        settle: 90s
+        exclude:
+          - { name: forks, expr: pr.fork }
+      agent:
+        steps: 6
+        output: 8192
+        tokens: 20000
+        prompt: 8000
+        parts: 1
+        timeout: 5m
+        commandTimeout: 15s
+        fetches: 1
+      limits:
+        concurrency: 1
+        reviewsPerDay: 1
+        tokensPerMonth: 20000
+      reviewWorkers: 1
+      indexWorkers: 1
+      threadWorkers: 1
+      pollInterval: 10m
+      transcriptRetention: 24h
+      diffRetention: 24h
+      egress:
+        allow:
+          - raw.githubusercontent.com
+          - codeload.github.com
+        deny:
+          - 10.0.0.0/8
+          - 172.16.0.0/12
+          - 192.168.0.0/16
+          - 169.254.0.0/16
+          - "*.internal"
+    envFrom:
+      - secretRef:
+          name: kritika-secret
+    database:
+      app:
+        existingSecret: kritika-db-app
+      owner:
+        existingSecret: kritika-db-owner
+    runner:
+      jobTemplate:
+        spec:
+          activeDeadlineSeconds: 600
+          ttlSecondsAfterFinished: 300
+      podTemplate:
+        spec:
+          # Verified native user namespaces, NOT gVisor or a separate kernel.
+          hostUsers: false
+          nodeSelector:
+            kubernetes.io/hostname: k8s06
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      admissionPolicy:
+        enabled: true
+    # The chart permits every peer on the dashboard port; use our narrower policies.
+    networkPolicy:
+      enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+    monitoring:
+      serviceMonitor:
+        enabled: true
