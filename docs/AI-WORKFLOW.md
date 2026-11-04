@@ -366,34 +366,66 @@ with queued, per-run Jobs, not a resident cluster-repair agent. Its dashboard is
 separate from Bifrost's gateway usage dashboard. Four account concurrency slots
 do not mean four models are continuously doing useful work while idle.
 
-The existing held Kritika namespace/database volume must remain intact. Real
-review activation requires all of:
+### Kritika bounded free-only pilot
 
-1. A GitHub App server credential and explicit consent to post automated reviews.
-   The existing bot App can be reused after verifying its installation and
-   permissions; creating another App is not a prerequisite. Do not reuse the
-   interactive CLI's token or silently enable approvals.
-2. A supported model credential and explicit budget: a dedicated API key through
-   Bifrost, or Kritika's supported personal ChatGPT browser sign-in. A work Copilot
-   entitlement is neither credential. Start with low concurrency and bounded
-   token/review limits; no unapproved paid fallback.
-3. Verified runner isolation, admission rules and network policy. The current
-   workers do not have the gVisor extension installed. A restricted native
-   user-namespace Pod (`hostUsers: false`) was tested successfully on k8s06;
-   this is shared-kernel isolation, not gVisor or full runner certification.
-   Adding a RuntimeClass
-   alone cannot install a runtime; a Talos extension rollout and any node reboot
-   need their own maintenance approval.
-4. Postgres 18 with VectorChord/pgvector and separate owner/application
-   roles. Inspect the retained volume's database version before mounting or
-   migrating it; do not repurpose the shared application database as cleanup.
-5. One measured review on an explicitly enabled test repository, including denied
-   publication and model/budget exhaustion checks, before broader activation.
+Kritika 0.0.117 is now deployed in `kritika-system`, with one service replica and
+a separate PostgreSQL 18.6 cluster, `kritika-db` (pgvector 0.8.7 and VectorChord
+1.1.1). Its owner and application roles are non-superusers; the application role
+does not own tables or bypass row-level security. The original
+`kritika-postgres-1` 10Gi PVC remains Bound and unmounted. It was not migrated or
+reinitialized, and the shared application database was not changed.
+
+Open [Kritika](https://kritika.homeops.ca) on the LAN. Authentik's full proxy
+allows the regular owner account and existing administrator group through
+app-specific bindings. Kritika then requires its native login: `admin`, with
+the password in Key Vault `keyvault-kube` → `kritika` →
+`KRITIKA_AUTH_ADMIN_PASSWORD`. These are two login layers, not seamless OIDC.
+Native login/logout and session revocation passed; a human MFA session was not
+impersonated.
+
+The local model-policy gateway receives the real OpenRouter key; runners and
+Kritika receive only scoped gateway access. It permits exactly
+`cohere/north-mini-code:free`, rechecks live zero pricing/tool/context support,
+forces provider maximum prices to zero, disables provider fallbacks, and rejects
+aliases, routing overrides, paid models and embedding requests. Confidence and
+embeddings are unconfigured. A deployed synthetic fixture returned the expected
+`submit_review` tool and arguments using 798 tokens at reported zero API cost.
+This is contract smoke-test evidence, not production review-quality certification.
+Kritika usage appears in its own dashboard; its model calls are not routed
+through Bifrost.
+
+The initial limits are one concurrent model call, one review per day and 20,000
+tokens per month. A run has six agent steps, an 8,000-token initial prompt, one
+part and a five-minute timeout. Model output requests are capped at 2,048 tokens.
+No paid fallback, Foundry deployment or subscription entitlement is implied.
+
+Runners use non-root, read-only-root, capability-free, tokenless native user
+namespaces on k8s06, with 1 CPU, 1Gi memory and 1Gi ephemeral-storage bounds.
+The installed admission policy rejected forged Jobs/arbitrary Secrets, and a
+real synthetic runner could reach its gateway but not the Kubernetes API,
+database, dashboard, provider-credential gateway, direct internet or external DNS.
+This is shared-kernel isolation, **not gVisor/Kata**; untrusted fork execution
+is not approved by this pilot. No Talos extension or node reboot was performed.
+
+All discovered repositories remain dashboard-disabled, automatic review triggers
+are held, and no real review was published. Only public `osnabrugge/home-ops` is
+eligible for enablement. Database enforcement rejects other repositories/accounts
+and turns a repository off if it becomes private. Native `enabled` indicates
+forge reachability; the dashboard switch is `turned_on`.
+
+The next gate is explicit owner approval of one trusted public PR test. Enable
+only home-ops, allow its metadata polling, then manually request that approved PR
+through the dashboard. The manual rerun API addresses a PR, not a pre-existing
+review:
+`POST /api/v1/accounts/github/osnabrugge/pulls/osnabrugge/home-ops/<number>/rerun`.
+Webhook activation and automatic-review enablement are separate owner decisions.
+Do not treat repository discovery, a healthy pod or the synthetic model fixture
+as evidence that a real review has been published successfully.
 
 ### Reusing the existing GitHub App
 
-The current deployment is **not a running Kritika service**: only the held
-namespace and original database volume exist. Bifrost is a separate application.
+The deployed Kritika service reuses the existing bot credential; Bifrost is a
+separate application.
 
 Like onedr0p's `bot-vila-bot` ExternalSecret, this installation already has a
 bot App credential. The `github-bot` Key Vault JSON supplies
@@ -423,17 +455,18 @@ Do not grant Contents write or administration merely to make startup pass.
 No new App, permission, installation or webhook was created by this inspection.
 A GitHub OAuth sign-in alone is not the App's server credential.
 
-For an internal-only first pilot, polling is supported:
-`config.pollInterval: 10m`. The GitHub App's webhook can remain inactive.
-PR updates then wait for polling; **bot mentions/follow-up commands do not work
-without webhooks**. The intended full webhook URL is
-`https://kritika.homeops.ca/hooks/github`. It is not a live webhook until the
-Kritika service and that narrowly scoped public route are deployed. Keep the
-dashboard private. Use a Kritika-specific HMAC secret and the documented
-pull-request/comment/push events; leave the existing Flux and other integration
-webhooks unchanged. An App has only one App-level webhook destination: use a
-separate repository webhook or an explicitly designed fan-out rather than
-overwriting an existing integration.
+Polling is configured at `10m`, but repositories and automatic reviews remain
+held as described above. The GitHub App's webhook was left owner-disabled.
+**Bot mentions/follow-up commands do not work without webhooks.**
+
+Only `POST https://kritika.homeops.ca/hooks/github` is publicly routed, with the
+supplied HMAC secret required. Public dashboard/API/model paths and wrong
+methods return 404; unsigned/invalid signatures return 401; signed unapproved
+or private-repository fixtures return 403. Two consecutive GitHub-hosted tests
+with an unrelated HTTPS positive control accepted a signed synthetic ping with 202. This proves callback readiness, not enabled App delivery or a real review.
+The dashboard stays private. No App permissions, installations, events or
+webhook settings were changed; existing Flux and other integration hooks remain
+unchanged.
 
 Model authentication is independent of the GitHub App. A dedicated API key can
 be routed through a verified gateway with an approved cap. Alternatively, Kritika
