@@ -42,13 +42,13 @@ spec:
   healthCheckExprs:
     - apiVersion: postgresql.cnpg.io/v1
       kind: Cluster
-      current: has(status) && has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
     - apiVersion: postgresql.cnpg.io/v1
       kind: Database
-      current: has(status) && has(status.applied) && status.applied == true
+      current: has(status.applied) && status.applied == true
     - apiVersion: postgresql.cnpg.io/v1
       kind: DatabaseRole
-      current: has(status) && has(status.applied) && status.applied == true
+      current: has(status.applied) && status.applied == true
   interval: 1h
   path: ./kubernetes/apps/kritika-system/kritika/database
   prune: true
@@ -75,7 +75,7 @@ spec:
   healthCheckExprs:
     - apiVersion: authentik.starry.blue/v1alpha1
       kind: AuthentikApplication
-      current: has(status) && has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
   interval: 1h
   path: ./kubernetes/apps/kritika-system/kritika/identity
   prune: true
