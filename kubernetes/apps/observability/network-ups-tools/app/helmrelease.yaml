@@ -121,12 +121,18 @@ spec:
             scrapeTimeout: 10s
             params:
               ups: [ups01]
+            relabelings:
+              - targetLabel: ups
+                replacement: ups01
           - port: metrics
             path: /ups_metrics
             interval: 30s
             scrapeTimeout: 10s
             params:
               ups: [ups02]
+            relabelings:
+              - targetLabel: ups
+                replacement: ups02
     persistence:
       config:
         type: secret
