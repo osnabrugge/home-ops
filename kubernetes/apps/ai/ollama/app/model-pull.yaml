@@ -3,6 +3,9 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: ollama-qwen3-06b-pull-v2
+  annotations:
+    # This bootstrap Job is immutable; rename it only for an intentional rerun.
+    kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
 spec:
   backoffLimit: 4
   activeDeadlineSeconds: 900

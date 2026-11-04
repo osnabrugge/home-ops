@@ -308,6 +308,16 @@ proof of public isolation or authenticated backend usability.
 
 ## Bifrost gateway and Kritika activation
 
+The completed Ollama model-loader Job uses Flux's `IfNotPresent` SSA annotation.
+Image updates must not attempt to patch its immutable pod template. Change the
+Job name deliberately when a model bootstrap needs to run again; the model data
+remains on Ollama's existing PVC.
+
+The single-instance LiteLLM pilot database does not publish an unused
+replica-only `-ro` Service. Its operator-owned primary disruption budget remains
+enabled: blocking a voluntary eviction of the sole database pod is intentional,
+not permission to weaken that safeguard to clear a dashboard warning.
+
 [Bifrost](https://bifrost.homeops.ca) is the local-only gateway evaluation.
 Its management UI is behind Authentik's full proxy, the existing
 administrator-group binding and an app-specific binding for the regular owner
