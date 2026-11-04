@@ -8,9 +8,6 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  datasources:
-    - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
   json: |
     {
       "uid": "nut-ups",
@@ -22,6 +19,13 @@ spec:
       "refresh": "30s",
       "time": {"from": "now-6h", "to": "now"},
       "templating": {"list": [{
+        "name": "datasource",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "hide": 2,
+        "refresh": 1
+      }, {
         "name": "ups",
         "label": "UPS",
         "type": "custom",
@@ -37,7 +41,7 @@ spec:
           "type": "stat",
           "title": "Online",
           "gridPos": {"x": 0, "y": 0, "w": 8, "h": 4},
-          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "datasource": {"type": "prometheus", "uid": "$datasource"},
           "targets": [{"refId": "A", "expr": "network_ups_tools_ups_status{namespace=\"observability\",ups=~\"$ups\",flag=\"OL\"}", "instant": true, "legendFormat": "{{ups}}"}],
           "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "Not online", "color": "red"}, "1": {"text": "Online", "color": "green"}}}]}}
         },
@@ -46,7 +50,7 @@ spec:
           "type": "stat",
           "title": "Estimated runtime remaining",
           "gridPos": {"x": 8, "y": 0, "w": 8, "h": 4},
-          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "datasource": {"type": "prometheus", "uid": "$datasource"},
           "targets": [{"refId": "A", "expr": "network_ups_tools_battery_runtime{namespace=\"observability\",ups=~\"$ups\"}", "instant": true, "legendFormat": "{{ups}}"}],
           "fieldConfig": {"defaults": {"unit": "s", "min": 0}}
         },
@@ -55,7 +59,7 @@ spec:
           "type": "gauge",
           "title": "Battery charge",
           "gridPos": {"x": 16, "y": 0, "w": 8, "h": 4},
-          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "datasource": {"type": "prometheus", "uid": "$datasource"},
           "targets": [{"refId": "A", "expr": "network_ups_tools_battery_charge{namespace=\"observability\",ups=~\"$ups\"}", "instant": true, "legendFormat": "{{ups}}"}],
           "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}}
         },
@@ -64,7 +68,7 @@ spec:
           "type": "timeseries",
           "title": "Load",
           "gridPos": {"x": 0, "y": 4, "w": 12, "h": 7},
-          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "datasource": {"type": "prometheus", "uid": "$datasource"},
           "targets": [{"refId": "A", "expr": "network_ups_tools_ups_load{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}}"}],
           "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}}
         },
@@ -73,7 +77,7 @@ spec:
           "type": "timeseries",
           "title": "Runtime",
           "gridPos": {"x": 12, "y": 4, "w": 12, "h": 7},
-          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "datasource": {"type": "prometheus", "uid": "$datasource"},
           "targets": [{"refId": "A", "expr": "network_ups_tools_battery_runtime{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}}"}],
           "fieldConfig": {"defaults": {"unit": "s", "min": 0}}
         },
@@ -82,7 +86,7 @@ spec:
           "type": "timeseries",
           "title": "Input and output voltage",
           "gridPos": {"x": 0, "y": 11, "w": 24, "h": 7},
-          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "datasource": {"type": "prometheus", "uid": "$datasource"},
           "targets": [
             {"refId": "A", "expr": "network_ups_tools_input_voltage{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}} input"},
             {"refId": "B", "expr": "network_ups_tools_output_voltage{namespace=\"observability\",ups=~\"$ups\"}", "legendFormat": "{{ups}} output"}
