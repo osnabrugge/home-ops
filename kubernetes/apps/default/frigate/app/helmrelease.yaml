@@ -179,7 +179,7 @@ spec:
             # record and live view all consume the local restream (rtsp://127.0.0.1:8554)
             # so each EmpireTech/Dahua camera only sees a single RTSP session — important
             # for the PTZ domes, which limit concurrent streams. subtype=0 = main;
-            # cam01/cam02 use subtype=2 for detection, cam03 uses subtype=1. Frigate substitutes
+            # All three cameras use subtype=2 for 1280x720 detection. Frigate substitutes
             # {FRIGATE_RTSP_PASSWORD} (from frigate-secret) across the whole config incl.
             # this go2rtc block. User `viewer`; percent-encode the pw in Key Vault if it
             # ever contains RTSP-reserved chars (@ : / ? # & % =).
@@ -196,7 +196,7 @@ spec:
                 cam03:
                   - rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.73:554/cam/realmonitor?channel=1&subtype=0
                 cam03_sub:
-                  - rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.73:554/cam/realmonitor?channel=1&subtype=1
+                  - rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@192.168.70.73:554/cam/realmonitor?channel=1&subtype=2
             cameras:
               cam01:
                 ffmpeg:

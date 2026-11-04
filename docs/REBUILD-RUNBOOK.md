@@ -474,8 +474,20 @@ substream is disabled; it is not proof of a VLAN fault or bad credentials.
 
 Use the bundled `ffprobe` under `/usr/lib/ffmpeg/` to verify the exact subtype,
 codec and dimensions without printing password-bearing URLs. Cam01 and cam02
-currently provide their 1280x720 detection feeds on subtype 2; cam03 uses subtype 1.
+currently provide their 1280x720 detection feeds on subtype 2, including cam03.
 Keep the go2rtc URL and Frigate's declared detection dimensions consistent.
+
+For USB Coral troubleshooting, check the loaded `/api/config` detector type,
+`/api/stats` inference time and the detector process's open `/dev/bus/usb` file
+descriptors. CPU utilization reported for that process does not mean inference
+uses the CPU. NFD labels identify USB devices but do not allocate them; this
+workload uses the mounted USB bus. USB Corals do not require the PCIe
+`gasket-driver` extension or `/dev/apex_*`.
+
+Frigate+ model selection is separate from accelerator discovery. An empty
+`/api/plus/models` catalogue does not mean a Coral is unsupported. Select a
+Frigate+ YOLOv9 `edgetpu` variant for Coral, and verify that the account's
+catalogue supplies a compatible model before changing the deployed model.
 After a configuration rollout, require advancing frame counts and approximately
 5 camera/process FPS on every enabled camera, not only a Ready pod.
 
