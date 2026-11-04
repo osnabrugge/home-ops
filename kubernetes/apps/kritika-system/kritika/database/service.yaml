@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kritika-db-direct
+spec:
+  # Direct endpoints avoid the observed same-node service-VIP return-path denial.
+  clusterIP: None
+  selector:
+    cnpg.io/cluster: kritika-db
+    cnpg.io/instanceRole: primary
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432

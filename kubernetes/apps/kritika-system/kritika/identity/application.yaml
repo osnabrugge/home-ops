@@ -18,7 +18,7 @@ spec:
     proxy:
       proxy:
         externalHost: https://kritika.homeops.ca
-        internalHost: http://kritika.kritika-system.svc.cluster.local:8080
+        internalHost: http://kritika-api-direct.kritika-system.svc.cluster.local:8080
       outpost:
         name: authentik Embedded Outpost
   access:

@@ -213,10 +213,10 @@ class Handler(BaseHTTPRequestHandler):
                     if name in self.headers
                 }
                 headers["Content-Type"] = "application/json"
-                status, raw = request_json(
-                    "http://kritika:8080/hooks/github", data=body, headers=headers
+                request_json(
+                    "http://kritika-api-direct:8080/hooks/github", data=body, headers=headers
                 )
-                self.send(status, {"accepted": True})
+                self.send(202, {"accepted": True})
             elif self.server.kind == "models" and self.path == "/v1/chat/completions":
                 self.authorized()
                 payload = completion(json.loads(self.body()))

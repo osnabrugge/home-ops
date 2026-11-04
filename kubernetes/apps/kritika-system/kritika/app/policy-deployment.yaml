@@ -86,3 +86,31 @@ spec:
     - name: webhooks
       port: 8081
       targetPort: webhooks
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kritika-policy-direct
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: kritika-policy
+  ports:
+    - name: models
+      port: 8080
+      targetPort: models
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kritika-api-direct
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: kritika
+    app.kubernetes.io/instance: kritika
+    app.kubernetes.io/component: server
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

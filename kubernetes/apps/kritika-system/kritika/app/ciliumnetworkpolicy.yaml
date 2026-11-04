@@ -132,7 +132,7 @@ spec:
           rules:
             dns:
               - matchName: openrouter.ai
-              - matchName: kritika.kritika-system.svc.cluster.local
+              - matchName: kritika-api-direct.kritika-system.svc.cluster.local
     - toFQDNs:
         - matchName: openrouter.ai
       toPorts:

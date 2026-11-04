@@ -29,7 +29,7 @@ spec:
       providers:
         free:
           type: openrouter
-          baseUrl: http://kritika-policy:8080/v1
+          baseUrl: http://kritika-policy-direct:8080/v1
           # This is only the local gateway credential, not an OpenRouter key.
           apiKey: { env: KRITIKA_GATEWAY_KEY }
           retries: 0
@@ -107,6 +107,16 @@ spec:
     # The chart permits every peer on the dashboard port; use our narrower policies.
     networkPolicy:
       enabled: false
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                # The fixed-node runner uses the chart's gateway service VIP.
+                # Keep that hop cross-node; other internal clients use headless services.
+                - key: kubernetes.io/hostname
+                  operator: NotIn
+                  values: [k8s06]
     resources:
       requests:
         cpu: 50m

@@ -95,6 +95,8 @@ class HTTPPolicyTests(unittest.TestCase):
 
     def upstream(self, url, **kwargs):
         self.calls.append((url, kwargs))
+        if url.endswith("/hooks/github"):
+            return 204, b""
         value = self.catalogue if url.endswith("/models") else self.reply
         return 200, json.dumps(value).encode()
 
@@ -163,8 +165,10 @@ class HTTPPolicyTests(unittest.TestCase):
     def test_signed_ping_is_forwarded_unsigned_or_invalid_is_not(self):
         self.assertEqual(self.hook({}, valid=False)[0], 401)
         self.assertEqual(self.calls, [])
-        self.assertEqual(self.hook({})[0], 200)
-        self.assertEqual(self.calls[0][0], "http://kritika:8080/hooks/github")
+        status, response = self.hook({})
+        self.assertEqual(status, 202)
+        self.assertTrue(response["accepted"])
+        self.assertEqual(self.calls[0][0], "http://kritika-api-direct:8080/hooks/github")
 
     def test_public_repository_allowlist_and_private_rejection(self):
         repo = {
@@ -180,7 +184,7 @@ class HTTPPolicyTests(unittest.TestCase):
             with self.subTest(payload=payload):
                 self.assertIn(self.hook(payload, "pull_request")[0], (400, 403))
         self.assertEqual(self.calls, [])
-        self.assertEqual(self.hook({"repository": repo}, "pull_request")[0], 200)
+        self.assertEqual(self.hook({"repository": repo}, "pull_request")[0], 202)
 
     def test_public_listener_has_no_dashboard_api_or_model_route(self):
         for path in ("/", "/api/v1/meta", "/v1/models", "/hooks/github"):
