@@ -1,0 +1,94 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kritika-isolation-check-v1
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 90
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kritika
+        app.kubernetes.io/component: runner
+        kritika.home-operations.com/role: runner
+    spec:
+      # A synthetic network/isolation check; never fetches code or calls a model.
+      serviceAccountName: kritika-runner
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      hostUsers: false
+      nodeSelector:
+        kubernetes.io/hostname: k8s06
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "3"
+          - name: timeout
+            value: "1"
+          - name: attempts
+            value: "1"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: check
+          image: docker.io/library/python:3.13-alpine@sha256:7984cf56ceaddebe4fefeb75d64000b9f45d8b77b11a09b24524da6cdc3af0c8
+          command:
+            - python3
+            - -Buc
+            - |
+              import json, os, socket
+              uid_map = open("/proc/self/uid_map").read().split()
+              assert int(uid_map[0]) == 0 and int(uid_map[1]) != 0, uid_map
+              assert os.geteuid() == 65532
+              status = dict(line.split(":", 1) for line in open("/proc/self/status") if ":" in line)
+              assert int(status["CapEff"].strip(), 16) == 0
+              assert status["NoNewPrivs"].strip() == "1"
+              assert status["Seccomp"].strip() == "2"
+              assert not os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount/token")
+              root = next(line for line in open("/proc/self/mountinfo") if line.split()[4] == "/")
+              assert "ro" in root.split()[5].split(",")
+              gateway = "kritika-gateway.kritika-system.svc.cluster.local"
+              with socket.create_connection((gateway, 8082), timeout=5):
+                  pass
+              denied = []
+              for name, host, port in [
+                  ("kubernetes-api", os.environ["KUBERNETES_SERVICE_HOST"], 443),
+                  ("database", os.environ["KRITIKA_DB_RW_SERVICE_HOST"], 5432),
+                  ("dashboard", os.environ["KRITIKA_SERVICE_HOST"], 8080),
+                  ("provider-credential-gateway", os.environ["KRITIKA_POLICY_SERVICE_HOST"], 8080),
+                  ("direct-internet", "1.1.1.1", 443),
+              ]:
+                  try:
+                      with socket.create_connection((host, port), timeout=3):
+                          raise AssertionError(name + " unexpectedly reachable")
+                  except OSError:
+                      denied.append(name)
+              try:
+                  socket.getaddrinfo("openrouter.ai.", 443)
+                  raise AssertionError("external DNS unexpectedly allowed")
+              except socket.gaierror:
+                  denied.append("external-dns")
+              print(json.dumps({
+                  "user_namespace_host_uid": int(uid_map[1]),
+                  "container_uid": os.geteuid(),
+                  "root_read_only": True, "capabilities": 0, "api_token": False,
+                  "gateway_reachable": True, "denied": denied,
+                  "runtime": "native-userns-shared-kernel-not-gvisor",
+              }))
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

@@ -132,7 +132,7 @@ spec:
           rules:
             dns:
               - matchName: openrouter.ai
-              - matchPattern: "*.kritika-system.svc.cluster.local"
+              - matchName: kritika.kritika-system.svc.cluster.local
     - toFQDNs:
         - matchName: openrouter.ai
       toPorts:
@@ -172,7 +172,7 @@ spec:
               protocol: TCP
           rules:
             dns:
-              - matchPattern: "*.svc.cluster.local"
+              - matchName: kritika-gateway.kritika-system.svc.cluster.local
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: kritika
