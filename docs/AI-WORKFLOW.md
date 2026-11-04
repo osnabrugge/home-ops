@@ -369,9 +369,10 @@ do not mean four models are continuously doing useful work while idle.
 The existing held Kritika namespace/database volume must remain intact. Real
 review activation requires all of:
 
-1. A dedicated GitHub App installed only on selected repositories, with reviewed
-   permissions and explicit consent to post automated reviews.
-   Do not reuse the interactive CLI's token or silently enable approvals.
+1. A GitHub App server credential and explicit consent to post automated reviews.
+   The existing bot App can be reused after verifying its installation and
+   permissions; creating another App is not a prerequisite. Do not reuse the
+   interactive CLI's token or silently enable approvals.
 2. A supported model credential and explicit budget: a dedicated API key through
    Bifrost, or Kritika's supported personal ChatGPT browser sign-in. A work Copilot
    entitlement is neither credential. Start with low concurrency and bounded
@@ -389,13 +390,26 @@ review activation requires all of:
 5. One measured review on an explicitly enabled test repository, including denied
    publication and model/budget exhaustion checks, before broader activation.
 
-### Creating the Kritika GitHub App
+### Reusing the existing GitHub App
 
 The current deployment is **not a running Kritika service**: only the held
 namespace and original database volume exist. Bifrost is a separate application.
 
-Create a private app in [GitHub Developer settings](https://github.com/settings/apps/new)
-for this account, not all accounts:
+Like onedr0p's `bot-vila-bot` ExternalSecret, this installation already has a
+bot App credential. The `github-bot` Key Vault JSON supplies
+`GITHUB_BOT_APP_CLIENT_ID` and `GITHUB_BOT_APP_PRIVATE_KEY_B64`; decode the latter
+in the ExternalSecret template, as Konflate does. The App and its installation
+were authenticated read-only. Do not ask for a new App or another private key
+merely because Kritika has not been configured.
+
+The existing App has broader permissions and repository access than Kritika
+needs. Reusing it does not authorize expanding those grants. Kritika should
+serve only the intended account, keep new repositories disabled by default,
+and begin with one explicitly enabled test repository. Its runner token must
+remain restricted to repository reads. A dedicated App remains an optional
+least-privilege improvement, not a rollout requirement.
+
+Minimum repository permissions for a new dedicated App would be:
 
 | Repository permission | Initial access |
 | --------------------- | -------------- |
@@ -405,18 +419,21 @@ for this account, not all accounts:
 | Issues                | Read-only      |
 | Commit statuses       | Read and write |
 
-Install it on selected repositories only, initially this repository. Do not
-grant Contents write or administration merely to make startup pass. Save the
-**Client ID** (not only the App ID), generate a private key, and place the PEM
-in Key Vault through an approved private file path; never paste it into chat or
-Git. A GitHub OAuth sign-in alone is not the App's server credential.
+Do not grant Contents write or administration merely to make startup pass.
+No new App, permission, installation or webhook was created by this inspection.
+A GitHub OAuth sign-in alone is not the App's server credential.
 
 For an internal-only first pilot, polling is supported:
 `config.pollInterval: 10m`. The GitHub App's webhook can remain inactive.
 PR updates then wait for polling; **bot mentions/follow-up commands do not work
-without webhooks**. Full webhook integration requires a separately approved
-public path `/hooks/github`, a shared webhook secret and the documented events,
-not publication of the whole admin dashboard.
+without webhooks**. The intended full webhook URL is
+`https://kritika.homeops.ca/hooks/github`. It is not a live webhook until the
+Kritika service and that narrowly scoped public route are deployed. Keep the
+dashboard private. Use a Kritika-specific HMAC secret and the documented
+pull-request/comment/push events; leave the existing Flux and other integration
+webhooks unchanged. An App has only one App-level webhook destination: use a
+separate repository webhook or an explicitly designed fan-out rather than
+overwriting an existing integration.
 
 Model authentication is independent of the GitHub App. A dedicated API key can
 be routed through a verified gateway with an approved cap. Alternatively, Kritika
@@ -424,6 +441,20 @@ supports personal ChatGPT plan sign-in through its own `chatgpt login` browser
 flow; this does not reuse a work Copilot token. No paid fallback is implied.
 Keep automatic PR approval off and new repositories disabled until one
 authorized test review passes.
+
+An Anthropic provider can use a custom `baseUrl`, including a compatible
+gateway or a deployed Claude endpoint ending in `/anthropic` on Foundry.
+This changes transport, not pricing or entitlement. Claude-on-Foundry is a
+Marketplace offering; do not assume monthly Azure benefit credits pay for it.
+Verify the actual subscription/offer eligibility and a separate cap before
+enabling it. Foundry is not intrinsically a break-glass-only service; that is
+the chosen usage policy here.
+
+For a low-cost pilot, use explicit OpenRouter `:free` model allowlists or a
+tested local desktop model, with no paid fallback by default. Free quotas and
+tool/context capability must be tested per model. Keep a separately budgeted
+paid escalation optional and Foundry independently gated; a provider key, a
+subscription login and an Azure credit allowance are not interchangeable.
 
 ### Authentik MCP is not one interchangeable product
 
