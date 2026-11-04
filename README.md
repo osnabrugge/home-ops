@@ -67,7 +67,7 @@ My cluster runs [Talos Linux](https://talos.dev) on 6 Lenovo ThinkCentre M920q n
 
 [Flux](https://github.com/fluxcd/flux2) reconciles `kubernetes/apps` directly through the `flux-system` Kustomization. Namespace builds define app Kustomizations, which own their application resources. The [Flux Instance](kubernetes/apps/flux-system/flux-instance/app/helmrelease.yaml) preserves SOPS decryption and shared Helm remediation defaults; the former `cluster-apps` owner has been retired. [Renovate](https://github.com/renovatebot/renovate) creates PRs for dependency updates automatically.
 
-Ownership changes require a verified prune fence and inventory handoff before removing the old owner. Unapproved applications must stay off main or explicitly suspended: Kritika/gVisor source is held on [`hold/kritika-gvisor-awaiting-credentials-node-approval`](https://github.com/osnabrugge/home-ops/tree/hold/kritika-gvisor-awaiting-credentials-node-approval), with all three Kustomizations suspended. Its namespace remains on main only to preserve the existing PVC; no application or sandbox runtime is active.
+Ownership changes require a verified prune fence and inventory handoff before removing the old owner. Unapproved applications must stay off main or explicitly suspended. The [bounded free-only Kritika pilot](docs/AI-WORKFLOW.md#kritika-bounded-free-only-pilot) now runs with restricted native user-namespace runners, not the held gVisor proposal. Its original database PVC remains preserved and unmounted. Repositories and automatic reviews remain disabled pending an owner-approved public PR test; no gVisor extension rollout or node reboot is authorized by this pilot.
 
 ```
 📁 kubernetes

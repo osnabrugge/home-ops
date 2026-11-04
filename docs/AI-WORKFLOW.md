@@ -407,6 +407,12 @@ database, dashboard, provider-credential gateway, direct internet or external DN
 This is shared-kernel isolation, **not gVisor/Kata**; untrusted fork execution
 is not approved by this pilot. No Talos extension or node reboot was performed.
 
+Internal calls use headless services after an observed same-node service-VIP
+return-path denial; the fixed-node runner gateway hop stays cross-node.
+Native serve/model-gateway DNS uses `ndots: 1` so public GitHub addresses are not
+learned under cluster search-suffix names. These are pilot-local settings, not
+authorization to change cluster-wide Cilium or firewall configuration.
+
 All discovered repositories remain dashboard-disabled, automatic review triggers
 are held, and no real review was published. Only public `osnabrugge/home-ops` is
 eligible for enablement. Database enforcement rejects other repositories/accounts

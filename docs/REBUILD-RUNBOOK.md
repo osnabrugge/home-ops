@@ -496,6 +496,25 @@ changing browser security or network configuration. An HTTP-only camera and a
 browser's cached HTTPS upgrade can produce different results across browser
 profiles; do not clear parent-domain HSTS or disable IPv6 as a generic repair.
 
+### Kritika pilot recovery
+
+The running pilot uses a separate `kritika-db` PostgreSQL/VectorChord cluster.
+Do not attach, reinitialize or delete the original held `kritika-postgres-1`
+volume as startup recovery. Verify all six Kritika Kustomizations, its
+HelmRelease and the database are Ready before investigating the application.
+The singleton database's primary PDB deliberately blocks voluntary eviction;
+preserve it and plan database maintenance rather than clearing the warning by
+weakening protection.
+
+The private dashboard has both Authentik and native application login.
+Only signed `POST /hooks/github` callbacks are publicly routed; unsigned requests
+return 401 and public dashboard/API requests return 404. Endpoint readiness does
+not mean GitHub delivery or real reviews have been enabled. Do not recover model
+quota/capacity errors by enabling paid fallbacks, or silently enable repositories,
+automatic reviews or the owner's webhook. See
+[the verified pilot and first-review gate](AI-WORKFLOW.md#kritika-bounded-free-only-pilot)
+for credentials, local network-path constraints and owner-authorized testing.
+
 ### Container OOM notifications
 
 Correlate the terminated container, node kernel cgroup and Prometheus restart
