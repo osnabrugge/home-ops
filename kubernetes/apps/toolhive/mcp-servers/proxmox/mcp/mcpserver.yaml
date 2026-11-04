@@ -4,7 +4,7 @@ kind: MCPServer
 metadata:
   name: proxmox-mcp
 spec:
-  image: ghcr.io/rekklesna/proxmoxmcp-plus:0.6.8@sha256:46ecf53b960f9487bd5a1573018016b51e8267b718c51ff4e29b4ceed385fa8c
+  image: ghcr.io/rekklesna/proxmoxmcp-plus:v0.6.9@sha256:10846f44bf87f620104fab0fdc8b6322de5e63c38ef66b9a15341a0dbc19e1e7
   transport: streamable-http
   proxyMode: streamable-http
   proxyPort: 8080
