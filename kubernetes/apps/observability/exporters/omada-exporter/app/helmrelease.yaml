@@ -18,7 +18,7 @@ spec:
               repository: ghcr.io/charlie-haley/omada_exporter
               tag: 0.13.1
             env:
-              OMADA_HOST: https://oc01.in.homeops.ca:8043
+              OMADA_HOST: https://omada-controller.network.svc.cluster.local:8043
               OMADA_INSECURE: true
               OMADA_REQUEST_TIMEOUT: 60
             envFrom:
