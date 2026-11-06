@@ -153,6 +153,26 @@ class LabSafetyTests(unittest.TestCase):
                 lab.stage()
             upload.assert_not_called()
 
+    def test_scoped_inspection_keeps_strict_key_checking(self):
+        self.write_inventory()
+        known_hosts = self.state / "known_hosts"
+        known_hosts.write_text("independently verified test fixture")
+        report = {
+            "hostname": "pi04", "model": "Raspberry Pi 4 Model B Rev 1.5",
+            "serial": "1000000012345678", "links": [{"address": self.data["pi04"]["mac"]}],
+        }
+        with mock.patch.object(lab, "run", return_value=subprocess.CompletedProcess(
+            [], 0, stdout=json.dumps(report),
+        )) as ssh:
+            lab.inspect_node("pi04", "known-user", known_hosts)
+            arguments = ssh.call_args.args[0]
+            self.assertIn(f"UserKnownHostsFile={known_hosts.resolve()}", arguments)
+            self.assertIn("StrictHostKeyChecking=yes", arguments)
+            self.assertIn("UpdateHostKeys=no", arguments)
+            self.assertIn("ForwardAgent=no", arguments)
+        with self.assertRaisesRegex(ValueError, "missing or empty"):
+            lab.inspect_node("pi04", "known-user", self.state / "nonexistent")
+
     @unittest.skipUnless(shutil.which("talosctl"), "talosctl is required for config integration")
     def test_actual_talos_templates_and_exact_serial_patch_validate(self):
         lab.configs()

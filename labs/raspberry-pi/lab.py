@@ -348,15 +348,24 @@ print(json.dumps({"time":time.time(),"hostname":socket.gethostname(),"model":mod
 """
 
 
-def inspect_node(name, user):
+def inspect_node(name, user, known_hosts=None):
     data = inventory()
     if not re.fullmatch(r"[a-z_][a-z0-9_-]*", user):
         raise ValueError("An explicitly known SSH username is required")
+    trust_options = []
+    if known_hosts is not None:
+        known_hosts = Path(known_hosts)
+        if not known_hosts.is_file() or not known_hosts.stat().st_size:
+            raise ValueError("The independently verified private known_hosts file is missing or empty")
+        trust_options = [
+            "-o", f"UserKnownHostsFile={known_hosts.resolve()}",
+            "-o", "HostKeyAlgorithms=ssh-ed25519", "-o", "UpdateHostKeys=no",
+        ]
     try:
         result = run([
             "ssh", "-4", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes",
             "-o", "ForwardAgent=no", "-o", "ForwardX11=no", "-o", "ClearAllForwardings=yes",
-            "-o", "ConnectTimeout=5", f"{user}@{name}",
+            *trust_options, "-o", "ConnectTimeout=5", f"{user}@{name}",
             "python3 -c " + shlex.quote(INSPECT),
         ], capture_output=True)
     except subprocess.CalledProcessError as error:
@@ -448,12 +457,13 @@ def main():
     inspect_parser = sub.add_parser("inspect")
     inspect_parser.add_argument("node", choices=ADDRESSES)
     inspect_parser.add_argument("--user", required=True)
+    inspect_parser.add_argument("--known-hosts", type=Path)
     configure_parser = sub.add_parser("configure")
     configure_parser.add_argument("node", choices=ADDRESSES)
     configure_parser.add_argument("--disk-serial", required=True)
     args = parser.parse_args()
     if args.command == "inspect":
-        inspect_node(args.node, args.user)
+        inspect_node(args.node, args.user, args.known_hosts)
     elif args.command == "configure":
         configure_node(args.node, args.disk_serial)
     else:

@@ -180,6 +180,9 @@ private identity inventory.
 ```bash
 # Use only an already-established SSH identity; do not guess usernames/passwords.
 python3 labs/raspberry-pi/lab.py inspect pi04 --user '<known-user>'
+# When a replacement key has been independently verified on the physical console:
+python3 labs/raspberry-pi/lab.py inspect pi04 --user '<known-user>' \
+  --known-hosts labs/raspberry-pi/.state/known_hosts
 # Upload only new, allowlisted MAC/verified-serial directories to the existing PVC.
 KUBECONFIG=./kubeconfig python3 labs/raspberry-pi/lab.py stage
 python3 labs/raspberry-pi/lab.py verify
@@ -203,6 +206,30 @@ For blank-SSD installation followed by normal local boot, `BOOT_ORDER=0xf124`
 tries **USB, network, SD, repeat**. Leaving network first (`0xf142`) creates an
 unnecessary boot-server dependency after installation; confirm the intended
 post-install USB-first order on each board.
+
+If EEPROM only loops through SD and USB (`0xf41`), staged Ethernet firmware
+cannot make it attempt network boot. A verified PiKVM console may offer a
+one-time boot-mode selection. If keyboard input is unavailable in firmware,
+the existing KVM virtual-media device can provide a separate, reversible
+maintenance attempt: use the **uncompressed** Image Factory
+`metal-arm64.raw` built with the same `rpi_generic` schematic, attached as a
+**read-only USB disk**, not a CD-ROM and not the compressed `.raw.xz`.
+Verify the uploaded image checksum and actual selected Pi channel first.
+Preserve the previous disconnected-media state and console channel for rollback;
+do not reset KVM services or change network equipment. Neither a successful
+upload nor a configured USB gadget proves that the board booted it: require
+the maintenance API, its matching wired MAC, and actual disk model/serial
+before applying any configuration.
+
+If that pre-OS USB path never enumerates, do not keep changing shared KVM
+settings or power-cycle unknown targets. Restore the original USB functions,
+disconnected-media state and console channel, and verify working HID input.
+The bounded attended fallback is to boot the first identified Pi from the same
+public native image on a **separate, confirmed-empty USB boot medium** using
+Raspberry Pi Imager's **Use custom** option. Do not select its SATA SSD.
+The prepared image is `labs/raspberry-pi/.state/metal-arm64.raw`; it contains
+board firmware and U-Boot, unlike a raw ARM64 EFI executable. This starts
+maintenance only and does not authorize clearing existing SSD data.
 
 The standalone lab identity is `pi-playground`, with planned control planes
 `pi01`–`pi03`, worker `pi04`, API `https://192.168.42.21:6443`, pod network
