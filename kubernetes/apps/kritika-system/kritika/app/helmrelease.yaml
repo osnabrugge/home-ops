@@ -59,15 +59,13 @@ spec:
           apiKey: { env: KRITIKA_EMBEDDING_KEY }
           retries: 0
           pricing:
-            "nomic-embed-text:v1.5": { input: 0, output: 0 }
+            "granite-embedding:30m": { input: 0, output: 0 }
       embedding:
-        model: local/nomic-embed-text:v1.5
-        dims: 768
+        model: local/granite-embedding:30m
+        dims: 384
         maxBatch: 8
-        maxBatchChars: 12000
-        maxItemChars: 4000
-        queryPrompt: "search_query: "
-        documentPrompt: "search_document: "
+        maxBatchChars: 9600
+        maxItemChars: 1200
         similarFloor: 0.3
       review:
         model: free/cohere/north-mini-code:free

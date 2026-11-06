@@ -397,13 +397,16 @@ through Bifrost.
 Repository indexing needs an embedder even when reviews use a working model.
 Without one, the native index queue cancels with
 `worker: no embedder is configured, indexing is off`; successful account/repository
-discovery does not prove indexing. `local/nomic-embed-text:v1.5` now supplies
-768-dimensional embeddings through a separate private Ollama service. Only
+discovery does not prove indexing. `local/granite-embedding:30m` supplies
+384-dimensional embeddings through a separate private Ollama service. Only
 Kritika's server and the model-bootstrap client can reach it; no embedding text
-is sent to an external provider. Its 274 MB model has a dedicated 2Gi retained
-cache, 1 CPU/1Gi memory limits and bounded batches, separate from the existing
+is sent to an external provider. Its 63 MB English retrieval model has a dedicated
+2Gi retained cache, 1.5 CPU/1Gi memory limits and bounded batches, separate from the existing
 SMART advisory model. Model-weight downloads are allowed; external inference
-and paid fallback are not.
+and paid fallback are not. Cloud inference is disabled explicitly. At most eight
+inputs and 9,600 characters are sent per request; each embedding input is bounded
+to 1,200 characters. Stored source chunks remain available in full. This small
+retrieval model is not a multilingual or code-review-quality certification.
 
 The root `enabled` default is true so the index worker does not inherit a false
 effective configuration after the owner enables a repository. New discoveries

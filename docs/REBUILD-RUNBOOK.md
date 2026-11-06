@@ -508,7 +508,7 @@ weakening protection.
 
 An index job cancelled with `no embedder is configured` is a real configuration
 gap, not a GitHub App permission failure. Check `kritika-embeddings`, its
-`nomic-embed-text:v1.5` model-bootstrap Job and the configured local 768-dimension
+`granite-embedding:30m` model-bootstrap Job and the configured local 384-dimension
 embedder. Require a completed native `index_runs` generation with nonzero chunks,
 not merely a Ready server or a discovered repository. The monthly token ceiling
 includes local indexing; the per-review bound is separate. Automatic PRs skipped

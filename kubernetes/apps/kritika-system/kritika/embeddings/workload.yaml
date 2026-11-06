@@ -69,9 +69,13 @@ spec:
             - name: OLLAMA_KEEP_ALIVE
               value: 5m
             - name: OLLAMA_CONTEXT_LENGTH
-              value: "2048"
+              value: "512"
             - name: OLLAMA_NOHISTORY
               value: "true"
+            - name: OLLAMA_NO_CLOUD
+              value: "true"
+            - name: OLLAMA_MAX_QUEUE
+              value: "8"
           ports:
             - name: http
               containerPort: 11434
@@ -101,7 +105,7 @@ spec:
               memory: 256Mi
               ephemeral-storage: 64Mi
             limits:
-              cpu: "1"
+              cpu: 1500m
               memory: 1Gi
               ephemeral-storage: 256Mi
           volumeMounts:
