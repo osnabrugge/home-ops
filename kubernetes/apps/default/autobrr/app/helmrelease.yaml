@@ -27,7 +27,7 @@ spec:
               AUTOBRR__METRICS_PORT: &metricsPort 9094
               AUTOBRR__CHECK_FOR_UPDATES: false
               AUTOBRR__LOG_LEVEL: INFO
-              GOMEMLIMIT: 384MiB
+              GOMEMLIMIT: 768MiB
             probes:
               liveness:
                 enabled: true
@@ -57,9 +57,10 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
+                memory: 256Mi
               limits:
-                memory: 512Mi
+                # List refresh has reached ~812Mi Go-managed memory; allow SQLite/cache headroom.
+                memory: 1536Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
