@@ -9,6 +9,19 @@ spec:
     kind: OCIRepository
     name: smtp-relay
   interval: 1h
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: smtp-relay
+            # Remove legacy pull-secret injection; this image is public.
+            patch: |-
+              - op: add
+                path: /spec/template/spec/imagePullSecrets
+                value: []
   values:
     controllers:
       smtp-relay:
