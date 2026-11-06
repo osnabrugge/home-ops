@@ -17,11 +17,11 @@ spec:
               version: v1
               kind: Deployment
               name: smtp-relay
-            # Remove legacy pull-secret injection; this image is public.
+            # Null removes the legacy live list; an empty merge-keyed list does not.
             patch: |-
               - op: add
                 path: /spec/template/spec/imagePullSecrets
-                value: []
+                value: null
   values:
     controllers:
       smtp-relay:
