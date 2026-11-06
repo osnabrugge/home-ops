@@ -35,7 +35,8 @@ spec:
       secret.reloader.stakater.com/auto: "true"
     config:
       webUrl: https://kritika.homeops.ca
-      enabled: false
+      # Index workers also inherit this default; repository switches and policy stay authoritative.
+      enabled: true
       auth:
         admin:
           password: { env: KRITIKA_AUTH_ADMIN_PASSWORD }
@@ -97,7 +98,8 @@ spec:
       limits:
         concurrency: 1
         reviewsPerDay: 1
-        tokensPerMonth: 20000
+        # Native accounting includes the local index; each review still has 20k tokens.
+        tokensPerMonth: 5000000
       reviewWorkers: 1
       indexWorkers: 1
       threadWorkers: 1

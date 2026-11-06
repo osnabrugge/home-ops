@@ -388,15 +388,35 @@ Kritika receive only scoped gateway access. It permits exactly
 `cohere/north-mini-code:free`, rechecks live zero pricing/tool/context support,
 forces provider maximum prices to zero, disables provider fallbacks, and rejects
 aliases, routing overrides, paid models and embedding requests. Confidence and
-embeddings are unconfigured. A deployed synthetic fixture returned the expected
+paid embeddings remain unconfigured. A deployed synthetic fixture returned the expected
 `submit_review` tool and arguments using 798 tokens at reported zero API cost.
 This is contract smoke-test evidence, not production review-quality certification.
 Kritika usage appears in its own dashboard; its model calls are not routed
 through Bifrost.
 
-The initial limits are one concurrent model call, one review per day and 20,000
-tokens per month. A run has six agent steps, an 8,000-token initial prompt, one
-part and a five-minute timeout. Model output requests are capped at 2,048 tokens.
+Repository indexing needs an embedder even when reviews use a working model.
+Without one, the native index queue cancels with
+`worker: no embedder is configured, indexing is off`; successful account/repository
+discovery does not prove indexing. `local/nomic-embed-text:v1.5` now supplies
+768-dimensional embeddings through a separate private Ollama service. Only
+Kritika's server and the model-bootstrap client can reach it; no embedding text
+is sent to an external provider. Its 274 MB model has a dedicated 2Gi retained
+cache, 1 CPU/1Gi memory limits and bounded batches, separate from the existing
+SMART advisory model. Model-weight downloads are allowed; external inference
+and paid fallback are not.
+
+The root `enabled` default is true so the index worker does not inherit a false
+effective configuration after the owner enables a repository. New discoveries
+still wait for a dashboard choice, and database policy permits only the selected
+public repository. Keep the automatic-trigger include expression false; that
+is the review-publication hold, not the root indexing default.
+
+The limits remain one concurrent model call, one review per day and 20,000
+tokens per review. Native monthly accounting also includes local index tokens,
+so its shared ceiling is now 5,000,000 rather than the former 20,000; otherwise
+the first local index would consume the review allowance. This is not a paid
+model budget. A run has six agent steps, an 8,000-token initial prompt, one part
+and a five-minute timeout. Model output requests are capped at 2,048 tokens.
 No paid fallback, Foundry deployment or subscription entitlement is implied.
 
 Runners use non-root, read-only-root, capability-free, tokenless native user
@@ -413,18 +433,22 @@ Native serve/model-gateway DNS uses `ndots: 1` so public GitHub addresses are no
 learned under cluster search-suffix names. These are pilot-local settings, not
 authorization to change cluster-wide Cilium or firewall configuration.
 
-All discovered repositories remain dashboard-disabled, automatic review triggers
-are held, and no real review was published. Only public `osnabrugge/home-ops` is
-eligible for enablement. Database enforcement rejects other repositories/accounts
+The owner enabled public `osnabrugge/home-ops`; other discovered repositories
+remain dashboard-disabled. Automatic review triggers are still held, and no real
+review was published. Only public `osnabrugge/home-ops` is eligible for enablement.
+Database enforcement rejects other repositories/accounts
 and turns a repository off if it becomes private. Native `enabled` indicates
 forge reachability; the dashboard switch is `turned_on`.
 
-The next gate is explicit owner approval of one trusted public PR test. Enable
-only home-ops, allow its metadata polling, then manually request that approved PR
+The next publication gate is explicit owner approval of one trusted public PR
+test. Keep only home-ops enabled, allow its metadata polling, then manually request that approved PR
 through the dashboard. The manual rerun API addresses a PR, not a pre-existing
 review:
 `POST /api/v1/accounts/github/osnabrugge/pulls/osnabrugge/home-ops/<number>/rerun`.
 Webhook activation and automatic-review enablement are separate owner decisions.
+The `owner-manual-pilot` include expression `false` intentionally skips automatic
+PR reviews with reason `filter`; it does not prevent an explicit manual rerun.
+Do not remove that hold merely to make a queue counter nonzero.
 Do not treat repository discovery, a healthy pod or the synthetic model fixture
 as evidence that a real review has been published successfully.
 
@@ -461,8 +485,8 @@ Do not grant Contents write or administration merely to make startup pass.
 No new App, permission, installation or webhook was created by this inspection.
 A GitHub OAuth sign-in alone is not the App's server credential.
 
-Polling is configured at `10m`, but repositories and automatic reviews remain
-held as described above. The GitHub App's webhook was left owner-disabled.
+Polling is configured at `10m` for the owner-enabled repository, but automatic
+reviews remain held as described above. The GitHub App's webhook was left owner-disabled.
 **Bot mentions/follow-up commands do not work without webhooks.**
 
 Only `POST https://kritika.homeops.ca/hooks/github` is publicly routed, with the
