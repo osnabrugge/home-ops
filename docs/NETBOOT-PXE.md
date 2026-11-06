@@ -139,6 +139,95 @@ For native Talos Pi images, use the `rpi_generic` overlay described in the
 [Talos boot-assets guide](https://docs.siderolabs.com/talos/v1.14/platform-specific-installations/boot-assets).
 Do not substitute a generic ARM64 image for the board-specific firmware stage.
 
+### Isolated four-Pi playground
+
+The reproducible preparation tool is `labs/raspberry-pi/lab.py`. This directory is
+**outside production Flux discovery**. It does not import production Talos secrets,
+bootstrap production workloads, change gateway DHCP, or write any disk. The native
+boot route uses complete Raspberry Pi firmware, an ARM64 Linux kernel and initramfs;
+it does not require the separate pftf UEFI stage.
+
+Pinned boot recipe: **Talos v1.14.5**, Image Factory `rpi_generic`, and the matching
+**sbc-raspberrypi v0.2.2** overlay. The newer overlay release must not be substituted
+without consulting the Talos release's `ghcr.io/siderolabs/overlays` manifest.
+The tool checks the ARM64 kernel header, pins the firmware OCI digest, and records
+checksums for all boot files. Talos v1.14's `kernel-arm64` is an EFI zboot wrapper,
+not a ROM-loadable kernel: the tool reads its Linux zboot header and uses `zstd`
+to extract and verify the actual native ARM64 `Image`. It never hands the EFI
+wrapper to the Pi ROM. Install prerequisites are Python 3.11+, `curl`, `crane`,
+`zstd`, `kubectl` and the matching `talosctl`.
+
+Run commands from the repository root:
+
+```bash
+python3 -m unittest discover -s labs/raspberry-pi -p 'test_*.py'
+python3 labs/raspberry-pi/lab.py assets
+python3 labs/raspberry-pi/lab.py configs
+```
+
+All downloaded assets, node inventory, disk/EEPROM evidence, **PKI and rendered
+configuration** stay in ignored `labs/raspberry-pi/.state/` (directory mode 0700,
+secret files 0600). Back up the private lab PKI through the approved secret backup
+mechanism before relying on the cluster. Never commit it, upload it to general
+memory, or copy it to a TFTP/HTTP root.
+
+Create `.state/inventory.json` privately from the exact NetBox/DHCP records:
+four keys `pi01`–`pi04`, each with `ip` and wired `mac`. Only the four reserved
+addresses are accepted. Optional `serial` is the **measured board serial**, never
+derived from its MAC. The preparation tool deliberately does not publish this
+private identity inventory.
+
+```bash
+# Use only an already-established SSH identity; do not guess usernames/passwords.
+python3 labs/raspberry-pi/lab.py inspect pi04 --user '<known-user>'
+# Upload only new, allowlisted MAC/verified-serial directories to the existing PVC.
+KUBECONFIG=./kubeconfig python3 labs/raspberry-pi/lab.py stage
+python3 labs/raspberry-pi/lab.py verify
+```
+
+`stage` preserves the existing menus, daemon configuration, image, PVC and VIP, and
+refuses to overwrite any existing board directory. No root-level `start4.elf`,
+`config.txt`, default iPXE policy, DHCP override or auto-install config is created.
+The existing daemon's `tftp-single-port` setting remains required. Firmware and
+maintenance-mode Talos are available only under the allowlisted board prefixes.
+A failed/partial upload requires inspection of those exact directories before
+retrying; never delete the whole menu tree.
+
+For MAC directories, EEPROM must already include network boot and `TFTP_PREFIX=2`.
+Alternatively, a **verified** serial directory supports `TFTP_PREFIX=0`. With
+neither a running OS nor network-enabled EEPROM, a one-time attended recovery/OS
+boot is still necessary. Do not change switch/PoE state or gateway DHCP to work
+around that gate. An SSH host-key change is also a gate: independently verify the
+new key rather than disabling strict checking or deleting the old trust record.
+For blank-SSD installation followed by normal local boot, `BOOT_ORDER=0xf124`
+tries **USB, network, SD, repeat**. Leaving network first (`0xf142`) creates an
+unnecessary boot-server dependency after installation; confirm the intended
+post-install USB-first order on each board.
+
+The standalone lab identity is `pi-playground`, with planned control planes
+`pi01`–`pi03`, worker `pi04`, API `https://192.168.42.21:6443`, pod network
+`10.142.0.0/16`, service network `10.143.0.0/16`, and domain `lab.cluster.local`.
+Talos v1.14 typed configuration documents are used; legacy `machine.network` and
+`cluster.network` patches conflict with generated v1.14 defaults.
+Cluster discovery is disabled. Templates intentionally name the impossible
+`/dev/LAB_DISK_NOT_VERIFIED` target. RAM capacity/topology and USB compatibility
+must be measured before installation.
+
+After read-only inspection, `configure NODE --disk-serial '<measured-serial>'`
+creates a node-specific config **only** for a blank, unmounted, unpartitioned
+240 GB-class USB disk with a successful empty `wipefs --no-act` report. Old disk
+evidence, mounted OS disks, unknown serials, existing signatures and production
+addresses are rejected. This is not permission to clear existing data.
+
+Before any `talosctl apply-config --insecure`, verify the maintenance API's board
+MAC and disk serial against that evidence. Apply only the corresponding private
+node config, with explicit node/endpoint and the private lab `talosconfig`.
+Bootstrap **pi01 once**, obtain the kubeconfig into `.state/`, then verify API
+`/readyz`, all intended nodes Ready and three healthy etcd members. Do not install
+pi04 until an independently booted replacement/control-plane path is verified;
+its current desktop OS is the bootstrap lifeline. No production kubeconfig,
+Talos client context, nodes, NAS disks or production Flux bootstrap belong here.
+
 ---
 
 ## Custom Boot Menus
@@ -315,9 +404,15 @@ netboot.xyz includes built-in entries for:
 
 ### ARM64 / Raspberry Pi not booting
 
-- Confirm the ARM64 DHCP match (`option:client-arch,11`) is being sent by the Pi firmware
-- For Pi 4/5 without UEFI: direct PXE boot (not EFI) requires firmware-specific TFTP files
-  in `/config/tftp/<pi-mac>/`
+- The ARM64 DHCP match (`option:client-arch,11`) applies **after UEFI**, not to the
+  Pi's initial EEPROM/firmware exchange.
+- For native Pi 4 boot, verify network-enabled EEPROM and the actual
+  `TFTP_PREFIX` value. Firmware-specific files belong under
+  `/config/menus/<hyphenated-mac>/` or the measured eight-character serial prefix.
+- Confirm target MACs in current DHCP/ARP and switch MAC tables. NetBox cable
+  records and switch port labels can be stale; neither proves live board identity.
+- A powered PoE HAT is not proof of network boot. Link-down, missing DHCP and no
+  firmware requests require board/cable/EEPROM diagnosis, not a global PXE override.
 
 ### SecureBoot rejection
 
