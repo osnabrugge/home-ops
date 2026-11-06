@@ -22,7 +22,17 @@ spec:
               - /bin/sh
               - -ec
               - |
-                upsdrvctl -u nut start
+                # An offline card must not prevent the other driver's telemetry.
+                for ups in ups01 ups02; do
+                  (
+                    while :; do
+                      rm -f "/run/nut/snmp-ups-$ups" "/run/nut/snmp-ups-$ups.pid"
+                      /usr/lib/nut/snmp-ups -F -u nut -a "$ups" || true
+                      printf '%s driver exited; retrying in 15 seconds\n' "$ups" >&2
+                      sleep 15
+                    done
+                  ) &
+                done
                 exec upsd -F -u nut
             env:
               TZ: America/Toronto
@@ -38,7 +48,8 @@ spec:
                     command:
                       - /bin/sh
                       - -ec
-                      - upsc ups01@127.0.0.1 ups.status >/dev/null 2>&1 && upsc ups02@127.0.0.1 ups.status >/dev/null 2>&1
+                      # Device failures remain visible on their individual scrapes.
+                      - upsc -l 127.0.0.1 >/dev/null 2>&1
                   periodSeconds: 30
                   timeoutSeconds: 10
               readiness: *nut-health
@@ -50,7 +61,7 @@ spec:
                     command:
                       - /bin/sh
                       - -ec
-                      - upsc ups01@127.0.0.1 ups.status >/dev/null 2>&1 && upsc ups02@127.0.0.1 ups.status >/dev/null 2>&1
+                      - upsc -l 127.0.0.1 >/dev/null 2>&1
                   periodSeconds: 5
                   timeoutSeconds: 10
                   failureThreshold: 30
