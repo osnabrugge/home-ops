@@ -496,12 +496,46 @@ changing browser security or network configuration. An HTTP-only camera and a
 browser's cached HTTPS upgrade can produce different results across browser
 profiles; do not clear parent-domain HSTS or disable IPv6 as a generic repair.
 
+### Grafana operator dashboards
+
+Dashboard datasource names and generated UIDs are different. Keep datasource
+variables/runtime substitutions wired through Grafana Operator instead of
+hardcoding a generated UID into imported JSON. Preserve pinned dashboard
+provenance and validate the variables and actual panel queries after import.
+
+The CloudNativePG dashboard selects `cnpg_cluster`, not Prometheus's estate-wide
+`cluster` label. All three database clusters need their own healthy PodMonitor;
+Kritika's database permits only Prometheus on TCP 9187. A single-instance cluster
+has primary metrics but legitimately no replica series. External Secrets'
+error-only panels can be empty when there are no errors; that alone is not
+broken collection. Check real metrics before adding success-shaped zeros.
+
+For Omada, verify the exporter can authenticate to the current controller and
+its selected site before changing dashboard filters. A healthy `/metrics`
+endpoint alone does not prove that device/client series are fresh.
+
+### SMTP and model-key policy recovery
+
+Maddy's public image needs no registry pull credentials. Inspect the failed
+pull, Pod and ServiceAccount references before changing mail configuration;
+retired registry credentials can produce a 403 even for a public image.
+An EHLO/NOOP check must not send real mail or weaken SMTP authentication.
+
+LiteLLM's key-policy controller retries bounded read-only lookups for transient
+HTTP/transport failures. Exhausted retries remain failures; writes and key
+creation are not retried blindly. Require a new native CronJob success and
+preserved policy before treating an older failed Job as obsolete history.
+
 ### Kritika pilot recovery
 
 The running pilot uses a separate `kritika-db` PostgreSQL/VectorChord cluster.
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`
 volume as startup recovery. Verify all eight Kritika Kustomizations, its
 HelmRelease and the database are Ready before investigating the application.
+The namespace allows four PVCs within the unchanged 20Gi aggregate storage
+ceiling: the held database, running database and embedding cache use three,
+leaving one bounded maintenance claim slot rather than operating at a full
+claim-count quota. This does not authorize creating or replacing a volume.
 The singleton database's primary PDB deliberately blocks voluntary eviction;
 preserve it and plan database maintenance rather than clearing the warning by
 weakening protection.
@@ -539,12 +573,12 @@ history before increasing resources. `CONSTRAINT_MEMCG` identifies a container
 budget failure; available node RAM can remain plentiful. A deleted old pod's
 missing status does not erase its historical OOMs.
 
-Autobrr has a 512Mi container limit and a 384MiB Go soft memory limit, leaving
-headroom outside the managed heap. Verify the runtime's reported memory limit,
-RSS and restart count after rollout. This is resource budgeting, not proof that
-an upstream leak is fixed; a successful idle interval is not a maintenance-cycle
-stress test. Do not trigger release cleanup, downloads or tracker operations
-just to generate load.
+Autobrr has a 1536Mi container limit, a 768MiB Go soft memory limit and a 256Mi
+request, leaving headroom outside the managed heap. Verify the runtime's reported
+memory limit, RSS and restart count after rollout. This is mitigation for measured
+cgroup OOMs, not proof that an upstream leak is fixed; verify across the natural
+six-hour refresh (including 06:00 UTC), not only an idle interval. Do not trigger
+release cleanup, downloads or tracker operations just to generate load.
 
 ### Multus macvlan NAD VLAN sub-interfaces missing (VLANs 1, 50, 70, 90)
 

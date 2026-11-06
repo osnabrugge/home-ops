@@ -452,6 +452,12 @@ Webhook activation and automatic-review enablement are separate owner decisions.
 The `owner-manual-pilot` include expression `false` intentionally skips automatic
 PR reviews with reason `filter`; it does not prevent an explicit manual rerun.
 Do not remove that hold merely to make a queue counter nonzero.
+The rerun endpoint still needs a pull request and head already known to Kritika.
+On a fresh, fully filtered installation the PR list can be empty, so an unknown
+PR cannot be queued with that endpoint. After owner approval, an include rule
+restricted to that exact trusted PR can ingest and test it without enabling
+every open PR. Do not seed unsupported database rows or claim the first public
+review was tested from a successful index.
 Do not treat repository discovery, a healthy pod or the synthetic model fixture
 as evidence that a real review has been published successfully.
 

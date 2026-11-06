@@ -464,6 +464,12 @@ or an armed-state dashboard. The independent NAS01 observer remains unchanged.
 There is no `upsmon`, NUT command user, FSD action or power-cut hook in this
 monitoring workload.
 
+Drivers are started independently: an unreachable card must not prevent the
+other UPS or `upsd` from serving telemetry. Availability probes test the server,
+not the conjunction of every UPS feed. Each exporter scrape still reports its
+own feed's failure; do not turn an unreachable UPS into a healthy zero reading
+or silence its independent SNMP/ICMP alarms to make the dashboard green.
+
 The unarmed `homeops-ups-watch.service` is linked from the persistent deployment
 directory. A TrueNAS `POSTINIT` command re-links and starts that same observer
 after boot; it does not contain `--execute`. This startup record, not a bare
