@@ -93,7 +93,7 @@ spec:
   dependsOn:
     - name: kritika-db
     - name: kritika-identity
-    - name: kritika-embeddings
+    - name: kritika-embedding-model
   interval: 1h
   path: ./kubernetes/apps/kritika-system/kritika/app
   prune: true
@@ -111,6 +111,24 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/kritika-system/kritika/embeddings
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: kritika-system
+  timeout: 10m
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kritika-embedding-model
+spec:
+  dependsOn:
+    - name: kritika-embeddings
+  interval: 1h
+  path: ./kubernetes/apps/kritika-system/kritika/embeddings/model
   prune: true
   sourceRef:
     kind: GitRepository

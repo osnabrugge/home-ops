@@ -500,7 +500,7 @@ profiles; do not clear parent-domain HSTS or disable IPv6 as a generic repair.
 
 The running pilot uses a separate `kritika-db` PostgreSQL/VectorChord cluster.
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`
-volume as startup recovery. Verify all seven Kritika Kustomizations, its
+volume as startup recovery. Verify all eight Kritika Kustomizations, its
 HelmRelease and the database are Ready before investigating the application.
 The singleton database's primary PDB deliberately blocks voluntary eviction;
 preserve it and plan database maintenance rather than clearing the warning by
@@ -513,6 +513,11 @@ embedder. Require a completed native `index_runs` generation with nonzero chunks
 not merely a Ready server or a discovered repository. The monthly token ceiling
 includes local indexing; the per-review bound is separate. Automatic PRs skipped
 with reason `filter` are deliberately held until an approved manual test.
+
+Bootstrap is ordered: `kritika-embeddings` waits for the server API, then
+`kritika-embedding-model` pulls the model, and only then can Kritika start using
+it. Do not combine server startup and its first client Job into a race or make
+the server wait for a model whose bootstrap is waiting for that server.
 
 The isolation-check-only Kustomization recreates its stateless Job when an image
 update changes the immutable pod template. Do not copy its `force: true` setting
