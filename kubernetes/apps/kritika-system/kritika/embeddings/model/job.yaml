@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kritika-embeddings-nomic-v1-5-ready
+  name: kritika-embeddings-granite-30m-v1
   annotations:
     # This initializes a retained cache; routine image updates do not rerun it.
     kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
@@ -29,7 +29,7 @@ spec:
       containers:
         - name: pull
           image: docker.io/ollama/ollama:0.40.14@sha256:ebaef4f4c5d93660e1f25f8ad085a112f51ccfb0e8458073e71793959dba91c9
-          args: [pull, "nomic-embed-text:v1.5"]
+          args: [pull, "granite-embedding:30m"]
           env:
             - name: OLLAMA_HOST
               value: http://kritika-embeddings.kritika-system.svc.cluster.local:11434
