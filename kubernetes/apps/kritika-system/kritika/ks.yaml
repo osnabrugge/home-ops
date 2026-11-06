@@ -112,6 +112,8 @@ spec:
     - name: kritika-repository-policy
   interval: 1h
   path: ./kubernetes/apps/kritika-system/kritika/validation
+  # Only this stateless check is recreated when its immutable pod template changes.
+  force: true
   prune: true
   sourceRef:
     kind: GitRepository
