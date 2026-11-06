@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -47,8 +48,25 @@ def request(base, master_key, path, body=None):
             "Content-Type": "application/json",
         },
     )
-    with urllib.request.urlopen(req, timeout=30) as response:
-        return json.load(response)
+    delays = (2, 4, 8)
+    for attempt in range(len(delays) + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=15) as response:
+                return json.load(response)
+        except (urllib.error.URLError, TimeoutError) as error:
+            # Retrying a read is safe; an interrupted mutation may have succeeded.
+            if (
+                body is not None
+                or attempt == len(delays)
+                or (
+                    isinstance(error, urllib.error.HTTPError)
+                    and error.code not in (408, 429, 500, 502, 503, 504)
+                )
+            ):
+                raise
+            if isinstance(error, urllib.error.HTTPError):
+                error.close()
+            time.sleep(delays[attempt])
 
 
 def main():

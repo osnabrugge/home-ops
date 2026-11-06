@@ -1,8 +1,10 @@
 import copy
+import io
 import unittest
-from unittest.mock import patch
+import urllib.error
+from unittest.mock import MagicMock, call, patch
 
-from key_policy import POLICY, main, policy_matches
+from key_policy import POLICY, main, policy_matches, request
 
 
 class KeyPolicyTests(unittest.TestCase):
@@ -41,6 +43,51 @@ class KeyPolicyTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "blocked"):
                 main()
             self.assertEqual(request.call_count, 1)
+
+    def test_transient_lookup_failure_is_retried(self):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = b'{"info": {}}'
+        for error in (
+            urllib.error.URLError(ConnectionRefusedError()),
+            urllib.error.HTTPError("http://example.invalid", 503, "Unavailable", {}, io.BytesIO()),
+            TimeoutError(),
+        ):
+            with self.subTest(error=type(error).__name__):
+                with patch("key_policy.urllib.request.urlopen", side_effect=[error, response]) as open_url:
+                    with patch("key_policy.time.sleep") as pause:
+                        self.assertEqual(request("http://example.invalid", "test", "/key/info"), {"info": {}})
+                self.assertEqual(open_url.call_count, 2)
+                pause.assert_called_once_with(2)
+
+    def test_lookup_retries_are_bounded(self):
+        with patch("key_policy.urllib.request.urlopen", side_effect=urllib.error.URLError("unavailable")) as open_url:
+            with patch("key_policy.time.sleep") as pause:
+                with self.assertRaises(urllib.error.URLError):
+                    request("http://example.invalid", "test", "/key/info")
+        self.assertEqual(open_url.call_count, 4)
+        self.assertEqual(pause.call_args_list, [call(2), call(4), call(8)])
+
+    def test_auth_and_missing_key_errors_are_not_retried(self):
+        for status in (400, 401, 403, 404):
+            with self.subTest(status=status):
+                error = urllib.error.HTTPError("http://example.invalid", status, "Rejected", {}, io.BytesIO())
+                self.addCleanup(error.close)
+                with patch("key_policy.urllib.request.urlopen", side_effect=error) as open_url:
+                    with patch("key_policy.time.sleep") as pause:
+                        with self.assertRaises(urllib.error.HTTPError):
+                            request("http://example.invalid", "test", "/key/info")
+                open_url.assert_called_once()
+                pause.assert_not_called()
+
+    def test_key_mutations_are_not_retried(self):
+        for path in ("/key/generate", "/key/update"):
+            with self.subTest(path=path):
+                with patch("key_policy.urllib.request.urlopen", side_effect=urllib.error.URLError("unavailable")) as open_url:
+                    with patch("key_policy.time.sleep") as pause:
+                        with self.assertRaises(urllib.error.URLError):
+                            request("http://example.invalid", "test", path, {"key": "test"})
+                open_url.assert_called_once()
+                pause.assert_not_called()
 
 
 if __name__ == "__main__":
