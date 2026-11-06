@@ -9,6 +9,8 @@ spec:
     kind: OCIRepository
     name: smtp-relay
   interval: 1h
+  driftDetection:
+    mode: enabled
   postRenderers:
     - kustomize:
         patches:
@@ -17,7 +19,7 @@ spec:
               version: v1
               kind: Deployment
               name: smtp-relay
-            # Null removes the legacy live list; an empty merge-keyed list does not.
+            # This public image must not inherit obsolete registry credentials.
             patch: |-
               - op: add
                 path: /spec/template/spec/imagePullSecrets
