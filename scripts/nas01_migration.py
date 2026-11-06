@@ -267,14 +267,21 @@ def capacity():
     vdevs = {
         "current_nfs": (32, 8, 0),
         "current_smb": (24, 4, 0),
+        "loaner_11x4_raidz1": (44, 4, 0),
+        "loaner_11x4_raidz2": (44, 8, 0),
         "loaner_12x4_raidz2": (48, 8, 0),
+        "smb_17wide_raidz1_expanded": (68, 4, 0),
+        "smb_17wide_raidz2_recreated": (68, 8, 0),
+        "donor_two_4wide_raidz1": (128, 32, 0),
         "donor_8wide_raidz2": (128, 24, 32),
         "final_donor8_plus_4x8_raidz2": (160, 40, 32),
         "final_three_4wide_raidz2": (160, 80, 0),
     }
     return {
         "mode": "READ_ONLY_ESTIMATE_NOT_A_CAPACITY_APPROVAL",
-        "measurement_date": "2026-11-02",
+        "measurement_date": "2026-11-06",
+        "source_measurement_date": "2026-11-02",
+        "detected_loaner_disks": 11,
         "source_bytes": SOURCE_BYTES,
         "source_total_bytes": sum(SOURCE_BYTES.values()),
         "source_total_tib": sum(SOURCE_BYTES.values()) / 2**40,
@@ -292,6 +299,7 @@ def capacity():
             "reserve ongoing production growth; never consume local/backups as staging",
             "verify physical bays, power, HBA, SMART, independent critical-data backup and ABB recovery",
             "all loans form a disposable staging pool, not permanent vdevs",
+            "17-wide comparisons do not authorize growing production SMB; RAIDZ cannot shrink or change parity",
         ],
     }
 

@@ -1,15 +1,73 @@
 # nas01 — loaner-assisted migration and final layout
 
-**Updated 2026-11-02. Proposal, not permission to change storage.** Native,
+**Inventory updated 2026-11-06; source measurements remain 2026-11-02.
+Proposal, not permission to change storage.** Native,
 read-only TrueNAS 25.10.7 and DSM checks supersede the September inventory and
 purchase/purge plan. No pool, dataset, share, ACL, user, service, or source data
 was changed while preparing this plan. No migration copy has run.
 
-The twelve available 4 TB SATA loaners solve **temporary landing space**, not
+The detected 4 TB SATA loaners solve **temporary landing space**, not
 permanent expansion. They must be a **separate disposable pool**, never data
 vdevs added to a production pool. RAIDZ data vdevs cannot be removed individually;
 RAIDZ cannot shrink or become a different parity level. Returning these disks
 does not mean detaching them from a populated pool.
+
+### Current eleven-drive gate and the owner's alternatives
+
+The November 6 read-only kernel and TrueNAS middleware inventories both see
+**eleven new 4 TB WD drives**: ten WD4000FYYZ and one WD4002FYYZ. TrueNAS lists
+all eleven as unused; their logical/physical sectors are 512/512 bytes. This
+does not prove an old filesystem is disposable or that SMART/extended tests
+have passed. The twelfth drive's broken connector is an owner-reported physical
+gate. The five additional desktop drives are absent from both inventories,
+not merely hidden from the pool-creation UI.
+
+Desktop SATA is supported by this installation: existing IronWolf drives and
+the new WD SATA drives already operate behind the SAS HBA. Desktop does not
+mean SMR, and CMR/SMR recording does not determine whether a disk enumerates.
+Identify the five exact models and test each in a known-good bay/cable/power
+path before blaming recording technology. Power-disable behavior, seating,
+power supply, link negotiation or a failed disk remain possibilities, not
+diagnosed causes. SMART/kernel-journal reads were unavailable to the current
+SSH identity; no permission or appliance configuration was changed to obtain
+them. Do not use the damaged drive as a required member before it is qualified.
+
+Assuming eleven **4 TB** loaners, these are nominal upper bounds, not actual
+ZFS available space:
+
+| Comparison                                         | Nominal data TB |   TiB | 80% target TB |
+| -------------------------------------------------- | --------------: | ----: | ------------: |
+| Separate 11-wide RAIDZ1                            |              40 | 36.38 |          32.0 |
+| Separate 11-wide RAIDZ2                            |              36 | 32.74 |          28.8 |
+| Expand current 6-wide SMB RAIDZ1 to 17-wide RAIDZ1 |              64 | 58.21 |          51.2 |
+| Evacuate/recreate all 17 as RAIDZ2                 |              60 | 54.57 |          48.0 |
+
+These are **TB/TiB, not GB**. RAIDZ expansion is enabled on the existing SMB
+pool and can widen its current RAIDZ1 vdev; it cannot change that vdev to
+RAIDZ2 or later remove the eleven loaners. Existing blocks also retain their
+old data/parity ratio until rewritten. Recreating as RAIDZ2 requires verified
+evacuation, share/home recovery and separate destruction approval. Adding a
+second RAIDZ2 vdev instead would leave the original RAIDZ1 vdev's protection
+unchanged; it would not convert the whole pool to RAIDZ2.
+
+Prefer a separate disposable staging pool over a very wide production SMB
+expansion: it preserves the live homes/failure domain and makes the loaners'
+eventual removal explicit. RAIDZ1 buys 4 TB more staging capacity here but
+tolerates only one failed member; eleven old disks and a long migration make
+that a real risk decision, not a free capacity upgrade. Even its 40 TB nominal
+capacity cannot hold the measured 44.942 TB data tree alone, before homes.
+RAIDZ2 with eleven drives loses 4 TB nominal and 3.2 TB of the 80% allowance
+versus the twelve-drive example below. That example is **not a verified
+eleven-drive allocation**. Repair/qualify the twelfth drive, recover additional
+independent staging capacity, or recalculate every hardlink-closed shard from
+fresh logical bytes and actual destination budgets before approving a copy.
+
+The owner's later preferred final candidate is homogeneous 4×20 TB RAIDZ1
+plus 4×12 TB RAIDZ1: 60 + 36 = **96 TB nominal**, with a 76.8 TB 80% target.
+The older RAIDZ2 alternatives below remain comparisons, not a decision to
+override that preference or execute pool creation. If both vdevs share a pool,
+two failures in either lose the pool; downloads/media must still share one
+dataset for hardlinks.
 
 ## 1. Verified starting point
 
@@ -82,7 +140,10 @@ bounds**, before ZFS slop, padding, metadata, quotas and snapshots.
 
 | Phase / geometry                                      | Raw TB | Parity TB | Stranded TB | Nominal data TB / TiB | 80% target TB |
 | ----------------------------------------------------- | -----: | --------: | ----------: | --------------------: | ------------: |
-| Loaners: 12×4 TB RAIDZ2                               |     48 |         8 |           0 |           40 / 36.380 |          32.0 |
+| Detected loaners: 11×4 TB RAIDZ1                      |     44 |         4 |           0 |           40 / 36.380 |          32.0 |
+| Detected loaners: 11×4 TB RAIDZ2                      |     44 |         8 |           0 |           36 / 32.742 |          28.8 |
+| Conditional twelve-drive example: 12×4 TB RAIDZ2      |     48 |         8 |           0 |           40 / 36.380 |          32.0 |
+| Owner-preferred donor candidate: two 4-wide RAIDZ1    |    128 |        32 |           0 |           96 / 87.311 |          76.8 |
 | Initial final pool: one 8-wide RAIDZ2, 4×12 + 4×20 TB |    128 |        24 |          32 |           72 / 65.484 |          57.6 |
 | Final: above + 4×8 TB RAIDZ2                          |    160 |        40 |          32 |       **88 / 80.036** |      **70.4** |
 | Alternative: three homogeneous 4-wide RAIDZ2 vdevs    |    160 |        80 |           0 |           80 / 72.760 |          64.0 |
@@ -157,7 +218,8 @@ same `rsync -H` list. All shards later reassemble into one final `data` dataset.
 There is no merger filesystem, cross-filesystem hardlink claim, reflink fallback,
 or relocation of stopped torrents/tracker holds.
 
-Illustrative allocation, **not executable budgets**:
+Twelve-drive RAIDZ2 illustrative allocation, **not executable budgets or a
+current eleven-drive fit**:
 
 | Stage                        | Logical data TB | 3% data allowance TB | Other occupancy                                |
 | ---------------------------- | --------------: | -------------------: | ---------------------------------------------- |
@@ -175,15 +237,17 @@ charges each hardlink group once, includes directory allowance, and refuses
 groups that do not fit. If actual datasets or source logical bytes fail the
 budgets, obtain more independent staging capacity; do not overfill production.
 
-**Physical gate:** 12 existing HDDs + 12 loaners = 24 HDDs during staging,
-then **32 simultaneously connected HDDs** while the eight NAS02 donors form
-the new pool. SATA SSD/boot connections are additional. Old documents disagree
+**Physical gate:** 12 existing HDDs + 11 detected loaners = 23 HDDs during staging,
+then **31 simultaneously connected HDDs** while the eight NAS02 donors form
+the new pool. A qualified twelfth loaner restores the original 24/32 HDD
+connection requirement. SATA SSD/boot connections are additional. Old documents disagree
 about enclosure bays. Verify trays, SATA compatibility, HBA/expander addressing,
 cables, cooling, PSU spin-up margin and UPS runtime for this peak. No bay or
 power capacity has been established by this plan.
 This is the connection peak of this staging plan, not a proof that every
-alternative requires 32 bays. A 24-bay installation needs at least eight
-additional temporary positions for this plan, or a separately capacity-verified
+alternative requires 31 or 32 bays. A 24-bay installation needs at least seven
+additional temporary positions with eleven loaners, or eight with twelve,
+or a separately capacity-verified
 replacement/staging design before starting.
 
 ## 4. Ordered migration and outages

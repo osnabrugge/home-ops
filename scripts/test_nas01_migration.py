@@ -40,6 +40,28 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(donor["raw_tb"] - donor["parity_tb"] - donor["stranded_tb"], 72)
         self.assertEqual(layouts["final_donor8_plus_4x8_raidz2"]["nominal_usable_tb"], 88)
 
+    def test_capacity_uses_eleven_detected_loaners_and_distinct_expansion_cases(self):
+        result = migration.capacity()
+        layouts = result["layouts"]
+        self.assertEqual(result["detected_loaner_disks"], 11)
+        expected = {
+            "loaner_11x4_raidz1": 40,
+            "loaner_11x4_raidz2": 36,
+            "smb_17wide_raidz1_expanded": 64,
+            "smb_17wide_raidz2_recreated": 60,
+            "donor_two_4wide_raidz1": 96,
+        }
+        for name, usable_tb in expected.items():
+            with self.subTest(layout=name):
+                self.assertEqual(layouts[name]["nominal_usable_tb"], usable_tb)
+                self.assertAlmostEqual(layouts[name]["nominal_usable_tib"], usable_tb * 10**12 / 2**40)
+                self.assertAlmostEqual(layouts[name]["nominal_80_percent_tb"], usable_tb * 0.8)
+        self.assertEqual(layouts["loaner_11x4_raidz2"]["nominal_80_percent_tb"], 28.8)
+        self.assertLess(
+            layouts["loaner_11x4_raidz1"]["nominal_80_percent_tb"] * 10**12,
+            result["source_bytes"]["data"],
+        )
+
     def test_budget_reserves_headroom_and_production_growth(self):
         result = migration.additional_budget(100, 900, 50)
         self.assertEqual(result["additional_budget_bytes"], 650)
