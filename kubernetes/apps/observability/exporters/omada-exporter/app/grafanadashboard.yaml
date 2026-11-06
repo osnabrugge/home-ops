@@ -9,9 +9,7 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  datasources:
-    - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
+  # Resolve DS_PROMETHEUS in Grafana; substituting the name creates an invalid UID.
   folder: home
   configMapRef:
     name: omada-exporter-dashboard

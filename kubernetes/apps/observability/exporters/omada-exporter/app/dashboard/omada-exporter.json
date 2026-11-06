@@ -22,7 +22,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_port_power_watts{site=~\"$site\"})",
+          "expr": "sum(omada_port_power_watts{site=~\"$site\",device=~\"$device\"})",
           "range": true,
           "instant": false,
           "format": "time_series",
@@ -138,7 +138,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_port_link_status{site=~\"$site\"})",
+          "expr": "sum(omada_port_link_status{site=~\"$site\",device=~\"$device\"})",
           "range": true,
           "instant": false,
           "format": "time_series",
@@ -264,7 +264,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_device_cpu_percentage{site=~\"$site\"}) by (ip, device, device_type, mac, model, site)",
+          "expr": "sum(omada_device_cpu_percentage{site=~\"$site\",device=~\"$device\"}) by (ip, device, device_type, mac, model, site)",
           "legendFormat": "{{ device }} {{ device_type }} {{ ip }}",
           "range": true,
           "instant": false,
@@ -346,7 +346,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_device_mem_percentage{site=~\"$site\"}) by (ip, device, device_type, mac, model, site)",
+          "expr": "sum(omada_device_mem_percentage{site=~\"$site\",device=~\"$device\"}) by (ip, device, device_type, mac, model, site)",
           "legendFormat": "{{ device }} {{ device_type }} {{ ip }}",
           "range": true,
           "instant": false,
@@ -428,7 +428,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_device_rx_rate{site=~\"$site\"}) by (ip, device, device_type, mac, model, site)",
+          "expr": "sum(omada_device_rx_rate{site=~\"$site\",device=~\"$device\"}) by (ip, device, device_type, mac, model, site)",
           "legendFormat": "Rx - {{ device }} {{ device_type }} {{ ip }}",
           "range": true,
           "instant": false,
@@ -437,7 +437,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "-sum(omada_device_tx_rate{site=~\"$site\"}) by (ip, device, device_type, mac, model, site)",
+          "expr": "-sum(omada_device_tx_rate{site=~\"$site\",device=~\"$device\"}) by (ip, device, device_type, mac, model, site)",
           "legendFormat": "Tx - {{ device }} {{ device_type }} {{ ip }}",
           "range": true,
           "instant": false,
@@ -518,7 +518,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_device_uptime_seconds{site=~\"$site\"}) by (ip, device, device_type, mac, model, site)",
+          "expr": "sum(omada_device_uptime_seconds{site=~\"$site\",device=~\"$device\"}) by (ip, device, device_type, mac, model, site)",
           "legendFormat": "{{ device }} {{ device_type }} {{ ip }}",
           "range": true,
           "instant": false,
@@ -599,7 +599,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_device_poe_remain_watts{site=~\"$site\"}) by (ip, device, device_type, mac, model, site)",
+          "expr": "sum(omada_device_poe_remain_watts{site=~\"$site\",device=~\"$device\"}) by (ip, device, device_type, mac, model, site)",
           "legendFormat": "{{ device }} {{ device_type }} {{ ip }}",
           "range": true,
           "instant": false,
@@ -1353,7 +1353,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(omada_port_link_status{site=~\"$site\"}) by (client, device, name, profile, site, switch_port, vlan_id)",
+          "expr": "sum(omada_port_link_status{site=~\"$site\",device=~\"$device\"}) by (client, device, name, profile, site, switch_port, vlan_id)",
           "range": false,
           "instant": true,
           "format": "table",
@@ -1361,7 +1361,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "sum(increase(omada_port_link_rx{site=~\"$site\"}[$__range])) by (switch_port)",
+          "expr": "sum(increase(omada_port_link_rx{site=~\"$site\",device=~\"$device\"}[$__range])) by (switch_port)",
           "range": false,
           "instant": true,
           "format": "table",
@@ -1369,7 +1369,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "sum(increase(omada_port_link_tx{site=~\"$site\"}[$__range])) by (switch_port)",
+          "expr": "sum(increase(omada_port_link_tx{site=~\"$site\",device=~\"$device\"}[$__range])) by (switch_port)",
           "range": false,
           "instant": true,
           "format": "table",
@@ -1377,7 +1377,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "sum(omada_port_link_speed_mbps{site=~\"$site\"}) by (client, device, name, profile, site, switch_port, vlan_id)",
+          "expr": "sum(omada_port_link_speed_mbps{site=~\"$site\",device=~\"$device\"}) by (client, device, name, profile, site, switch_port, vlan_id)",
           "range": false,
           "instant": true,
           "format": "table",
@@ -1385,7 +1385,7 @@
         },
         {
           "editorMode": "code",
-          "expr": "sum(omada_port_power_watts{site=~\"$site\"}) by (client, device, name, profile, site, switch_port, vlan_id)",
+          "expr": "sum(omada_port_power_watts{site=~\"$site\",device=~\"$device\"}) by (client, device, name, profile, site, switch_port, vlan_id)",
           "range": false,
           "instant": true,
           "format": "table",
@@ -1556,7 +1556,7 @@
   "schemaVersion": 36,
   "tags": ["omada-controller"],
   "timezone": "browser",
-  "description": "Dashboard for omada-controller",
+  "description": "Dashboard for omada-controller. Device selection filters device and switch-port panels; controller and client panels remain site-wide.",
   "time": {
     "from": "now-6h",
     "to": "now"
@@ -1590,6 +1590,12 @@
         "type": "query",
         "label": "Site",
         "name": "site",
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
         "query": "label_values(omada_device_uptime_seconds, site)",
         "sort": 1,
         "refresh": 2
@@ -1602,11 +1608,17 @@
         "datasource": {
           "uid": "${DS_PROMETHEUS}"
         },
-        "hide": 2,
+        "hide": 0,
         "type": "query",
         "label": "Device",
         "name": "device",
-        "query": "label_values(omada_device_uptime_seconds{site=\"$Site\"}, device)",
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "query": "label_values(omada_device_uptime_seconds{site=~\"$site\"}, device)",
         "sort": 1,
         "refresh": 2
       }

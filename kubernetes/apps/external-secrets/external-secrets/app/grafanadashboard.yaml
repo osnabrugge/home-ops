@@ -9,9 +9,7 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  datasources:
-    - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
+  # External Secrets chart 2.14.0 dashboard, with multi-select controller matching.
   configMapRef:
-    name: external-secrets-dashboard
+    name: external-secrets-dashboard-custom
     key: external-secrets.json

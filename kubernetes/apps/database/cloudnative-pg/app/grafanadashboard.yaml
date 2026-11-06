@@ -9,7 +9,8 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  datasources:
-    - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
-  url: https://grafana.com/api/dashboards/20417/revisions/4/download
+  # Grafana.com 20417 revision 4, with local datasource/label fixes.
+  # Keep the datasource variable: datasourceName substitution is not a UID lookup.
+  configMapRef:
+    name: cloudnative-pg-dashboard-custom
+    key: cloudnative-pg.json
