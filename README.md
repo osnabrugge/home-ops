@@ -137,30 +137,35 @@ Cilium advertises LoadBalancer IPs (192.168.69.0/24) via BGP to the Brocade core
 
 ## ⚙️ Hardware
 
-| Device                         | Count | Role                         | IP(s)            | OS            |
-| ------------------------------ | ----- | ---------------------------- | ---------------- | ------------- |
-| Lenovo ThinkCentre M920q       | 6     | Kubernetes (3 CP + 3 worker) | 192.168.42.51–56 | Talos v1.13.4 |
-| Synology DS1821+               | 1     | NAS + temporary app host     | 192.168.42.10    | DSM           |
-| Brocade ICX 6610-48P (stacked) | 2     | Core L3 switch               | VIP: .4/vlan     | FastIron      |
-| Protectli FW6C                 | 1     | Firewall (OPNsense)          | 192.168.0.10     | OPNsense      |
-| PiKVM V4 Plus                  | 1     | KVM-over-IP                  | 192.168.99.51    | PiKVM OS      |
-| TESmart HKS1601-E23-USBK       | 1     | 16-port HDMI KVM switch      | 192.168.99.92    | —             |
-| CyberPower PDU41001-V          | 2     | Switched PDU (SNMP)          | 192.168.99.15–16 | —             |
-| Raspberry Pi 4B                | 4     | ConsolePi, misc              | 192.168.42.21–24 | Raspbian      |
-| CyberPower UPS                 | 4     | Battery backup               | —                | —             |
+| Device                         | Count | Role                                       | IP(s)            | OS                                              |
+| ------------------------------ | ----- | ------------------------------------------ | ---------------- | ----------------------------------------------- |
+| Lenovo ThinkCentre M920q       | 6     | Kubernetes (3 CP + 3 worker)               | 192.168.42.51–56 | Talos v1.13.4                                   |
+| Synology DS1821+               | 1     | NAS + temporary app host                   | 192.168.42.10    | DSM                                             |
+| Brocade ICX 6610-48P (stacked) | 2     | Core L3 switch                             | VIP: .4/vlan     | FastIron                                        |
+| Protectli FW6C                 | 1     | Firewall (OPNsense)                        | 192.168.0.10     | OPNsense                                        |
+| PiKVM V4 Plus                  | 1     | KVM-over-IP                                | 192.168.99.51    | PiKVM OS                                        |
+| TESmart HKS1601-E23-USBK       | 1     | 16-port HDMI KVM switch                    | 192.168.99.92    | —                                               |
+| CyberPower PDU41001-V          | 2     | Switched PDU (SNMP)                        | 192.168.99.15–16 | —                                               |
+| Raspberry Pi 4B                | 4     | Isolated Talos lab (staged, not installed) | 192.168.42.21–24 | pi04: Raspberry Pi OS; others: boot diagnostics |
+| CyberPower UPS                 | 4     | Battery backup                             | —                | —                                               |
 
 ### Out-of-Band Management
 
 Comprehensive OOB infrastructure for remote access, power control, and monitoring:
 
-| Tool                                       | Access                         | Purpose                         |
-| ------------------------------------------ | ------------------------------ | ------------------------------- |
-| PiKVM + TESmart                            | `just infra kvm-switch <node>` | Remote KVM console for any node |
-| PDU (SNMP)                                 | `just infra pdu-reboot <node>` | Hard power cycle any node       |
-| UPS (SNMP)                                 | Prometheus/Grafana             | Battery backup monitoring       |
-| ConsolePi (pi02→Core01-U1, pi03→Core01-U2) | SSH serial                     | Core switch serial console      |
+| Tool                             | Access                         | Purpose                                                   |
+| -------------------------------- | ------------------------------ | --------------------------------------------------------- |
+| PiKVM + TESmart                  | `just infra kvm-switch <node>` | Remote KVM console for any node                           |
+| PDU (SNMP)                       | `just infra pdu-reboot <node>` | Hard power cycle any node                                 |
+| UPS (SNMP)                       | Prometheus/Grafana             | Battery backup monitoring                                 |
+| Former pi02/pi03 serial consoles | Currently unavailable          | Lab repurposing; replacement serial path not commissioned |
 
 **📘 See [OOB Management Guide](docs/OOB-MANAGEMENT.md) for detailed documentation and workflows.**
+
+The [Pi lab boot guide](docs/NETBOOT-PXE.md) covers the separate ARM64 playground.
+Boot assets and private configuration templates are prepared, but a real
+maintenance boot is still required. Use a confirmed-empty spare USB medium for
+that first boot, not an unverified SATA SSD; pi04's existing desktop is preserved.
 
 ### Rack01 Elevation (Dynamic)
 

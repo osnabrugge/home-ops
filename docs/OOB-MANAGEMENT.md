@@ -1,13 +1,19 @@
 # Out-of-Band Management Guide
 
 > **Scope:** Consolidated access and monitoring for all out-of-band infrastructure management systems.
-> **Updated:** 2026-10-30
+> **Updated:** 2026-11-06
 
 ---
 
 ## Overview
 
 This homelab has a comprehensive out-of-band (OOB) management infrastructure that enables remote access, power control, and monitoring even when the primary network or Kubernetes cluster is down.
+
+The ConsolePi portions below describe the historical pi02/pi03 serial design,
+not a currently available fallback: these boards are in pre-OS boot diagnostics
+and reserved for the [isolated Pi lab](NETBOOT-PXE.md). PiKVM/TESmart console
+access remains available; a replacement core-switch serial path has not been
+commissioned. Do not rely on the old Pi-backed SSH serial entry points.
 
 ### Architecture
 

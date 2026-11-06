@@ -739,7 +739,7 @@ possible and **sell off surplus**.
 - [ ] P2: Decide whether this box becomes a second NAS, a second PVE node, or is sold.
 - [ ] P2: Produce a sell/keep list once inventory is complete.
 
-### F.2 Raspberry Pi dev environment — 4 nodes, NOT PROVISIONED (raised 2026-09-18)
+### F.2 Raspberry Pi dev environment — boot staged, nodes not installed
 
 Verified via NetBox 2026-09-18: **PI Rack** (device id 72) is a UCTRONICS
 _Pi Rack Pro for Raspberry Pi 4B_, 4-bay hot-swap chassis with SSD storage,
@@ -756,30 +756,35 @@ Each Pi has a **SATA SSD attached over USB**. Sean's stated goal: use these as a
 **dev/test Kubernetes environment** so changes are not tried out on the
 production cluster.
 
-- [ ] P1: **Get netboot.xyz working first — it is the hard dependency.** PXE/HTTP
-      boot has never worked here, and its NFS `assets` mount currently fails
-      (exit 32) against the wiped nas01. Repoint it at nas02 and prove a single
-      successful network boot before touching the Pis.
-- [ ] P1: Raspberry Pi 4B netboot specifics — the Pi bootloader does TFTP/HTTP
-      boot, **not** standard x86 PXE. Confirm bootloader version and boot order
-      (`BOOT_ORDER`) on each unit, and that the EEPROM is current.
-- [ ] P1: Talos on arm64 for Pi 4B — build/obtain the correct Talos image via the
-      Image Factory with the required overlays, and confirm which Talos release
-      still supports Pi 4B.
-- [ ] P1: Boot from the **USB-attached SATA SSD**, not SD. Verify USB boot is
-      enabled and that the USB-SATA bridge does not need a quirks/TRIM
-      workaround (common failure on these adapters).
-- [ ] P2: Decide the topology — 1 control-plane + 3 workers, or 3 CP for a
-      realistic etcd quorum. 4 GB vs 8 GB RAM per Pi decides what is testable.
-- [ ] P2: Decide whether this dev cluster is Flux-managed from the **same repo**
-      (separate path/branch) or its own repo. Same-repo risks a bad manifest
-      reaching production; separate repo risks drift from prod.
-- [ ] P2: Populate NetBox properly for pi01–04 — device type, platform, primary
-      IPs, and the SSDs as inventory items. They are currently bay entries with
-      little else.
-- [ ] P2: Network placement — which VLAN, DHCP reservations, and whether they need
-      switch ports configured (see the zig01 precedent where a missing port
-      assignment masqueraded as a device fault).
+- [x] P1: Restore routed TFTP transport. ARM64 and x86 UEFI transfers are
+      byte-verified, with `tftp-single-port` retained. Four scoped public
+      Pi firmware/Talos bundles are staged on the existing PVC; no NAS export
+      migration is needed for this path. This is not proof of a Pi boot.
+- [x] P1: Pin Talos v1.14.5 with `rpi_generic`/`sbc-raspberrypi` v0.2.2 and
+      separate private PKI/templates. See the [boot guide](NETBOOT-PXE.md) and
+      [lab helper](../labs/raspberry-pi/lab.py); no machine secrets are served.
+- [ ] P1: Prove the first identified Pi's real maintenance boot. Native firmware,
+      read-only KVM USB and boot-input recovery attempts did not produce a
+      Talos API. Boot pi01 from the prepared native image using a separate,
+      confirmed-empty USB stick of at least 4GB, not its SATA SSD.
+- [ ] P1: Inspect exact SSD model/serial/filesystem evidence before installation.
+      Pi04's desktop occupies its USB SATA SSD and remains preserved.
+- [ ] P1: Confirm each board's EEPROM/boot order. Pi04 is current but its
+      `0xf41` order is SD/USB/repeat, without Ethernet; do not make a global
+      DHCP or network-first override to compensate.
+- [x] P2: Prepare an isolated three-control-plane/one-worker topology. Observed
+      RAM is 4GB on pi01/pi02/pi04 and 2GB on pi03; verify actual maintenance
+      hardware and workload headroom before commissioning.
+- [ ] P2: Decide lab Flux ownership after commissioning. Preparation is outside
+      production discovery under `labs/raspberry-pi`; no production bootstrap
+      or integration has been performed.
+- [ ] P2: Extend the existing NetBox Pi4B/IP/wired-interface records with measured
+      SSD identities. Reconcile stale cable/port records against live observations,
+      rather than treating inventory status as boot evidence.
+- [ ] P2: Prove the remaining pre-OS network path. Reserved VLAN42 addresses are
+      known and pi04's live attribution/SSH identity is verified; pi01–pi03
+      have no observed DHCP/boot/API traffic. Investigate board boot/physical
+      state before changing protected switch or gateway configuration.
 
 ---
 
