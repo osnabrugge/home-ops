@@ -148,7 +148,7 @@ bounds**, before ZFS slop, padding, metadata, quotas and snapshots.
 | Final: above + 4×8 TB RAIDZ2                          |    160 |        40 |          32 |       **88 / 80.036** |      **70.4** |
 | Alternative: three homogeneous 4-wide RAIDZ2 vdevs    |    160 |        80 |           0 |           80 / 72.760 |          64.0 |
 
-**Capacity-maximizing candidate, not an approved layout:** one new bulk pool with the two RAIDZ2 data
+**Older all-RAIDZ2 comparison, not the owner-preferred default:** one new bulk pool with the two RAIDZ2 data
 vdevs above, separate `data`, per-user `home`, and small infrastructure datasets.
 Keep `downloads` and `media` **directories within the same `data` dataset**.
 Never turn either into a child dataset or separate NFS filesystem.
@@ -177,7 +177,10 @@ ZFS requirement. Even the homogeneous 80 TB option is too tight once real ZFS
 space deductions are included. Measure actual available capacity before each
 phase; stop rather than relax headroom silently.
 
-Final production `backups`, `local` and boot stay unchanged. The six owned 4 TB
+Under the owner-preferred 96 TB donor candidate, production `nfs`, `backups`,
+`local` and boot stay unchanged. The older 88 TB all-RAIDZ2 alternative below
+would additionally require an approved NFS evacuation/rebuild.
+The six owned 4 TB
 disks can become cold spares **only after** the existing NAS01 homes and any
 staging data have been separately verified, cut over and approved for evacuation.
 Until then, the current SMB pool remains production.
@@ -281,19 +284,19 @@ execute now. The helper contains no pool-creation, cleanup or copy executor.
    ABB obligations accounted for, critical-data backup restore tested, staging
    checks complete. Reusing the eight disks ends NAS02 as a disk-based rollback
    option. Do not describe the remaining staging RAIDZ as a second source copy.
-6. **Create the new 8-wide donor RAIDZ2 pool after approval.** Reassemble only
-   a capacity-bounded first batch of data—**35 TB logical is an illustrative
-   upper batch, not 44.942 TB**—then migrate homes from NFS staging. With 3%
-   allowance, 35 TB + homes + Docker is ~53.236 TB, below the nominal initial
-   57.6 TB target. Actual ZFS measurements decide. Leave the remainder safely
-   in its staging shards. Never delete from another shard while merging.
-7. **Evacuate current NFS deliberately:** verify homes on the new pool and the
-   independent backup; separately migrate the existing `media`/`netboot`
-   datasets, exports and clients. Capture native config and test each client.
-   Only with no remaining production references and explicit destruction
-   approval may the old `nfs` pool be retired and its four 8 TB disks form the
-   second, RAIDZ2 vdev of the new pool. Until this gate, its special/log devices
-   remain mandatory. No renaming alone removes client dependencies.
+6. **Create the owner-preferred donor pool only after separate approval:**
+   homogeneous 4×20 TB RAIDZ1 plus 4×12 TB RAIDZ1, not a mixed-width 8-disk
+   RAIDZ2 vdev. Its nominal 96 TB/76.8 TB headroom target exceeds the current
+   63.476 TB planning allowance, but actual available space and frozen logical
+   bytes still decide. Reassemble data into one final `data` dataset, with
+   separate reviewed private-home/infrastructure datasets. Never delete from
+   another staging shard while merging.
+7. **Preserve the current NFS pool:** this 96 TB candidate does not require
+   retiring its four 8 TB disks or moving its mandatory special/log mirrors.
+   Existing `media`/`netboot` exports and clients remain live. Its temporary
+   staging datasets are not disposable until verified final copies,
+   independent backups and approved rollback retention exist. Any later
+   export/client cutover or pool retirement needs its own explicit approval.
 8. **Finish reassembly:** copy the remaining data into the same final dataset;
    verify against the saved frozen source reference. Apply only the reviewed
    identity/ACL translation to user homes and test with ordinary user accounts.
@@ -306,10 +309,18 @@ execute now. The helper contains no pool-creation, cleanup or copy executor.
    disposal of the staging pool. Do not detach individual RAIDZ disks or erase
    loaners as an automatic cleanup step.
 
+If the owner instead selects the older **mixed 8-wide RAIDZ2** alternative,
+its initial 72 TB nominal/57.6 TB target cannot hold the current allowance.
+That alternative needs a bounded first batch (for example 35 TB data plus
+homes/Docker, ~53.236 TB with 3%), followed by separately approved evacuation
+of current NFS and addition of its four 8 TB disks as RAIDZ2, reaching 88 TB.
+It is not the default sequence above and does not authorize destroying NFS.
+
 **Copy floor:** every retained byte travels NAS02 → staging → final, about
 123.254 TB for the current subtotal, plus deltas and verification reads.
-This plan avoids a third full copy by moving homes before recycling the NFS
-disks and postponing the last data batch until capacity grows. It also avoids
+The preferred 96 TB candidate avoids a third full copy without recycling the
+current NFS pool or postponing part of the final dataset for capacity growth.
+It also avoids
 repeated full-array resilvers just to replace loaners.
 
 At **measured sustained** 300–600 MB/s, one 61.627 TB pass alone is ~57–29 hours;
@@ -324,7 +335,8 @@ over earlier after their independent security tests.
 Current NAS01 Garage/backups/SMB remain online; the existing NFS clients need
 an explicitly scheduled final remount/export cutover.
 
-An in-place loaner replacement is not the recommended shortcut: a 12-wide
+The earlier twelve-loaner in-place alternative is not the recommended shortcut
+or a current eleven-drive fit: a 12-wide
 loaner vdev has twelve slots but only eight large donor replacements; the last
 four do not disappear. For example, adding that vdev to current NFS gives
 24 + 40 = 64 TB nominal. Replacing eight members with donors and four with
