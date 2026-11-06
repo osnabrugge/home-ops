@@ -52,13 +52,29 @@ spec:
           # This is only the local gateway credential, not an OpenRouter key.
           apiKey: { env: KRITIKA_GATEWAY_KEY }
           retries: 0
+        local:
+          type: openai
+          baseUrl: http://kritika-embeddings.kritika-system.svc.cluster.local:11434/v1
+          apiKey: { env: KRITIKA_EMBEDDING_KEY }
+          retries: 0
+          pricing:
+            "nomic-embed-text:v1.5": { input: 0, output: 0 }
+      embedding:
+        model: local/nomic-embed-text:v1.5
+        dims: 768
+        maxBatch: 8
+        maxBatchChars: 12000
+        maxItemChars: 4000
+        queryPrompt: "search_query: "
+        documentPrompt: "search_document: "
+        similarFloor: 0.3
       review:
         model: free/cohere/north-mini-code:free
         fallback: ""
         approve: false
         replies: false
         fixes: false
-      # No embedding or confidence model: neither can silently incur charges.
+      # Only embeddings run locally; confidence and paid fallbacks remain off.
       comments:
         dashboard: false
       trigger:
@@ -98,6 +114,9 @@ spec:
           - 192.168.0.0/16
           - 169.254.0.0/16
           - "*.internal"
+    env:
+      # Ollama requires no credential; the OpenAI client requires a nonempty key.
+      KRITIKA_EMBEDDING_KEY: local-only
     envFrom:
       - secretRef:
           name: kritika-secret

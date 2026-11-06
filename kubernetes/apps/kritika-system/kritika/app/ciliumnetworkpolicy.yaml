@@ -70,6 +70,13 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kritika-embeddings
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
     - toFQDNs:
         - matchName: api.github.com
         - matchName: github.com
