@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: docker.io/maximhq/bifrost
-              tag: v2.4.0@sha256:a1c90607dcfd13c1fb2f9476ceb3bb24407a50ade7fdf3e61a59fb42b09e5c57
+              tag: v2.5.0@sha256:b5258c5f11c79064fc8280e49513f54c0b1da81c78bd11d3b4c1f62f8926d1ab
             env:
               TZ: America/Toronto
               HOME: /tmp
