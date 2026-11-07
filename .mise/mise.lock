@@ -172,9 +172,9 @@ checksum = "sha256:d38bd5e5a2ddce6bbb5ce45e46e208337da4d51fffe611e567fd32073d643
 url = "https://nodejs.org/dist/v26.13.0/node-v26.13.0-darwin-arm64.tar.gz"
 
 [[tools.oxfmt]]
-version = "0.76.0"
+version = "0.77.0"
 backend = "npm:oxfmt"
-specifiers = ["0.76.0"]
+specifiers = ["0.77.0"]
 
 [[tools.shellcheck]]
 version = "0.11.0"
