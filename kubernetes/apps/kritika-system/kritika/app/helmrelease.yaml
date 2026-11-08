@@ -29,8 +29,7 @@ spec:
                           value: "1"
   values:
     replicas: 1
-    image:
-      digest: sha256:a96447521cd9e3aa2c53c74d50d8067b49be0b8974cdd1419365f9446b4883f6
+    # The pinned chart supplies matching immutable application and runner-tools digests.
     deploymentAnnotations:
       secret.reloader.stakater.com/auto: "true"
     config:
