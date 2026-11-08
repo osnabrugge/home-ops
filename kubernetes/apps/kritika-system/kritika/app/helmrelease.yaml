@@ -30,7 +30,7 @@ spec:
   values:
     replicas: 1
     image:
-      digest: sha256:66f1ff0e0772543001ebbc7956b582f18ab3f7595a3b0a5de471b61baf5e055e
+      digest: sha256:a96447521cd9e3aa2c53c74d50d8067b49be0b8974cdd1419365f9446b4883f6
     deploymentAnnotations:
       secret.reloader.stakater.com/auto: "true"
     config:
@@ -71,7 +71,6 @@ spec:
         model: free/cohere/north-mini-code:free
         fallback: ""
         approve: false
-        replies: false
         fixes: false
       # Only embeddings run locally; confidence and paid fallbacks remain off.
       comments:

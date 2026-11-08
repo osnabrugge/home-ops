@@ -41,7 +41,7 @@ spec:
             - python3
             - -Buc
             - |
-              import json, os, socket
+              import json, os, socket, subprocess, sys
               uid_map = open("/proc/self/uid_map").read().split()
               assert int(uid_map[0]) == 0 and int(uid_map[1]) != 0, uid_map
               assert os.geteuid() == 65532
@@ -52,7 +52,8 @@ spec:
               assert not os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount/token")
               root = next(line for line in open("/proc/self/mountinfo") if line.split()[4] == "/")
               assert "ro" in root.split()[5].split(",")
-              gateway = "kritika-gateway.kritika-system.svc.cluster.local"
+              gateway = "kritika-gateway.kritika-system.svc.cluster.local."
+              print("checking scoped gateway DNS and TCP", flush=True)
               with socket.create_connection((gateway, 8082), timeout=5):
                   pass
               denied = []
@@ -63,15 +64,23 @@ spec:
                   ("provider-credential-gateway", os.environ["KRITIKA_POLICY_SERVICE_HOST"], 8080),
                   ("direct-internet", "1.1.1.1", 443),
               ]:
+                  print("checking denial: " + name, flush=True)
                   try:
                       with socket.create_connection((host, port), timeout=3):
                           raise AssertionError(name + " unexpectedly reachable")
                   except OSError:
                       denied.append(name)
+              print("checking denial: external-dns", flush=True)
               try:
-                  socket.getaddrinfo("openrouter.ai.", 443)
-                  raise AssertionError("external DNS unexpectedly allowed")
-              except socket.gaierror:
+                  result = subprocess.run(
+                      [sys.executable, "-Bc", 'import socket; socket.getaddrinfo("openrouter.ai.", 443)'],
+                      capture_output=True, timeout=5, check=False,
+                  )
+                  if result.returncode != 0:
+                      denied.append("external-dns")
+                  else:
+                      raise AssertionError("external DNS unexpectedly allowed")
+              except subprocess.TimeoutExpired:
                   denied.append("external-dns")
               print(json.dumps({
                   "user_namespace_host_uid": int(uid_map[1]),
