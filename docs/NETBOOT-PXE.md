@@ -208,6 +208,26 @@ neither a running OS nor network-enabled EEPROM, a one-time attended recovery/OS
 boot is still necessary. Do not change switch/PoE state or gateway DHCP to work
 around that gate. An SSH host-key change is also a gate: independently verify the
 new key rather than disabling strict checking or deleting the old trust record.
+
+A running, independently identified Pi can have network boot enabled remotely
+with the supported `rpi-eeprom-config` / `rpi-eeprom-update` tools; an SD-card
+installation is not required for that case. Preserve the current firmware
+version/configuration and a checked rollback image, verify the scoped TFTP
+bundle, then apply the boot configuration with a Pi-only graceful reboot.
+For an initial network attempt, `BOOT_ORDER=0xf142` retains USB/SD fallbacks,
+`TFTP_PREFIX=2` selects the MAC directory, and `TFTP_IP=192.168.69.131` selects
+this boot server. `NET_BOOT_MAX_RETRIES=0` means no additional retries; `-1`
+would retry indefinitely and is not the bounded test.
+
+Pi04's November 8 remote update was read back after reboot with these exact
+network-first settings. It fell back to its preserved desktop; the subsequent
+native interface report showed `NO-CARRIER` and no IPv4 address. That is **not**
+a successful Talos network boot or an installed lab. A local renegotiation did
+not restore the carrier. The recorded switch endpoint was down and in a different
+VLAN than the inventory description, so do not mutate that port based solely on
+the old cable record. Verify the actual physical/network path before repeating
+reboots or declaring TFTP staging to be node commissioning.
+
 For blank-SSD installation followed by normal local boot, `BOOT_ORDER=0xf124`
 tries **USB, network, SD, repeat**. Leaving network first (`0xf142`) creates an
 unnecessary boot-server dependency after installation; confirm the intended
