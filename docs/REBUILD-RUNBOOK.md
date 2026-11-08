@@ -498,6 +498,14 @@ profiles; do not clear parent-domain HSTS or disable IPv6 as a generic repair.
 
 ### Grafana operator dashboards
 
+`Login failed / User sync failed` together with `attempt to write a readonly
+database` is an application-storage failure, not proof of an IdP/password error.
+Check the actual data mount for `emergency_ro`, RBD watcher/client health and
+native database writes. Do not switch issuers, reset users or replace a PVC as
+login recovery. A watchless shared node client needs the approved coordinated
+remount procedure; restarting one container or clearing a blocklist alone can
+leave the poisoned client in place.
+
 Dashboard datasource names and generated UIDs are different. Keep datasource
 variables/runtime substitutions wired through Grafana Operator instead of
 hardcoding a generated UID into imported JSON. Preserve pinned dashboard
@@ -527,6 +535,12 @@ creation are not retried blindly. Require a new native CronJob success and
 preserved policy before treating an older failed Job as obsolete history.
 
 ### Kritika pilot recovery
+
+Keep the application/tools image digests paired through the pinned chart.
+For the 0.0.118 upgrade, remove retired `review.replies` and validate the actual
+application configuration. Confirm native UI assets, login/logout/session
+revocation, indexed generation and isolated runner behavior; a proxy's HTTP
+response is not a human-login or review-publication test.
 
 The running pilot uses a separate `kritika-db` PostgreSQL/VectorChord cluster.
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`

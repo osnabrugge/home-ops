@@ -1,7 +1,102 @@
 # AI workflow and escalation
 
-Updated 2026-11-03. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-08. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
+
+## Start here: what each application actually does
+
+These are different layers, not one commissioned fleet of autonomous agents.
+An idle gateway dashboard is not a scheduler, and a successful repository index
+is not a completed PR review.
+
+| Component             | Current role                                                                                       | What it does not do                                                                              |
+| --------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| VS Code / Copilot SDK | Interactive engineering through the selected Copilot model and authorized MCP tools                | It is not automatically routed through either cluster model gateway                              |
+| Kritika               | Repository indexing and queued PR-review Jobs; the first public review is still owner-gated        | It does not autonomously create fix PRs for the owner to approve                                 |
+| LiteLLM               | The active local advisory's model/MCP gateway, with scoped keys and request limits                 | Its gateway and optional admin UI do not themselves run an agent loop                            |
+| LiteLLM Operator      | An inactive draft, not a deployed controller                                                       | It is not required to run the current chart-managed LiteLLM proxy                                |
+| Bifrost               | A separate local-only gateway evaluation                                                           | No scheduled production client is routed through it; old test activity is not ongoing agent work |
+| Ollama                | Local model serving; the advisory uses Qwen, while a separate instance supplies Kritika embeddings | It is not a PR reviewer, MCP lifecycle controller or task scheduler                              |
+| ToolHive              | MCP server lifecycle, transport proxies and caller/backend authorization boundaries                | It is not an LLM inference gateway; its operator is not a universal browser dashboard            |
+| The triage CronJob    | Two fixed evidence checks and a bounded local explanation at minutes 7 and 37                      | It cannot repair infrastructure, publish issues or make arbitrary tool plans                     |
+
+The deliberately simple active paths are:
+
+```text
+Owner -> VS Code / Copilot SDK -> authorized MCP endpoints -> backend permissions
+
+Scheduled SMART advisory -> LiteLLM -> private Ollama generation model
+                        -> one allowlisted existing Kubesearch MCP
+
+Kritika -> private local embedding service -> its repository index
+        -> isolated per-run Jobs -> approved zero-price review gateway
+        -> GitHub publication only after the owner's explicit test approval
+
+Bifrost -> local Ollama evaluation only; not in the paths above
+```
+
+LiteLLM and Bifrost overlap as inference gateways. LiteLLM remains the active
+gateway because the actual constrained advisory contract works there; the
+Bifrost attempt was rolled back after that contract failed. Keep Bifrost
+identified as an evaluation, not a required hop or a claim of useful continuous
+activity. Do not add another operator, model provider or gateway to resolve this
+confusion. Consolidation or retiring the evaluation is a separately reviewed
+change, not something to do by silently rerouting working clients.
+
+LiteLLM does have an admin dashboard, but this pilot deliberately publishes only
+keyed `/v1` and `/mcp` paths plus liveness, not `/ui` or its management APIs.
+Bifrost has its own private native admin dashboard. Kritika has a separate
+review/index dashboard. ToolHive's MCP management facilities do not mean a
+cluster browser console has been deployed. Human login and machine API keys
+are separate concerns; see [the authentication strategy](AUTH-ARCHITECTURE.md).
+
+### Observability is also a separate layer
+
+The existing Prometheus/Grafana and VictoriaLogs collection stack should remain
+the default. ToolHive has a Prometheus telemetry configuration, and Kritika and
+database metrics have their own monitoring resources. That does not establish
+complete inference metrics, request traces or healthy log storage for every AI
+app. Bifrost's telemetry plugin and retained SQLite usage records are not proof
+of an OpenTelemetry collector or distributed traces being wired.
+
+Use native scrape endpoints/ServiceMonitors for rate, errors, latency, tokens
+and queue status; retain application logs in the existing log pipeline. Restore
+VictoriaLogs storage before calling that pipeline healthy. OpenTelemetry can
+add correlated request/run traces through an explicitly configured collector
+and trace backend, but is not required merely to make a gateway or dashboard
+work. No new trace platform or paid observability service is selected here.
+Never capture provider keys, MCP credentials, prompts or repository content in
+general telemetry by default.
+
+### Source ownership is not the same as runtime namespace
+
+The target convention is central controllers/shared infrastructure, with
+consumer-owned declarations beside the consumer: database CRs, identity, MCP,
+dashboards, scrape configuration and alert rules. Those declarations can still
+target the controller's required namespace. General remote-service MCPs without
+a local consumer can remain central.
+
+The repository has not finished that layout migration: MCP implementations are
+still grouped under ToolHive, and several exporters remain grouped under
+observability. This is ownership debt, not evidence that every proxy/exporter
+must be redeployed or that two reconcilers should own the same resource.
+Transfers must preserve live names, namespaces, service addresses, Secrets,
+PVCs and Flux inventories under a prune-safe handoff.
+
+`database/omada-db` is a standalone MongoDB operand dedicated to Omada, not a
+general MongoDB operator named incorrectly. Changing its folder is not the same
+as renaming its Helm release, databases or PVC. Shared CNPG and Dragonfly
+controllers belong centrally; application database/cache operands belong with
+their consumers when safely transferable.
+
+Use chart-owned persistence when a chart's normal PVC lifecycle meets the
+application's needs. Explicit PVCs are justified for retained identity,
+independent ownership or restore metadata; Kopiur's component creates a PVC with
+an immutable `dataSourceRef` that the HelmRelease consumes via `existingClaim`.
+Do not turn that into a fresh default claim or let Helm and Flux both create it.
+The reference checkout also has an explicit Home Assistant cache PVC.
+Frigate's `ResourceClaimTemplate` allocates an Intel GPU through DRA: it is not a
+storage PVC and is separate from its USB Coral detector.
 
 ## Available models and routing
 
@@ -368,12 +463,18 @@ do not mean four models are continuously doing useful work while idle.
 
 ### Kritika bounded free-only pilot
 
-Kritika 0.0.117 is now deployed in `kritika-system`, with one service replica and
+Kritika 0.0.118 is deployed in `kritika-system`, with one service replica and
 a separate PostgreSQL 18.6 cluster, `kritika-db` (pgvector 0.8.7 and VectorChord
 1.1.1). Its owner and application roles are non-superusers; the application role
 does not own tables or bypass row-level security. The original
 `kritika-postgres-1` 10Gi PVC remains Bound and unmounted. It was not migrated or
 reinitialized, and the shared application database was not changed.
+
+The chart owns the matching immutable application and tools image pair. A
+chart-only update must not retain an older overridden application digest.
+Release 0.0.118 removed `review.replies`; its strict configuration rejects that
+retired key. Validate the actual application parser, native login/index APIs and
+runner isolation after upgrades, not only the chart render or a Ready service.
 
 Open [Kritika](https://kritika.homeops.ca) on the LAN. Authentik's full proxy
 allows the regular owner account and existing administrator group through
