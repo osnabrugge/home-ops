@@ -27,6 +27,7 @@ def scrape_status(prometheus):
     if up not in (0, 1):
         raise RuntimeError("Invalid Prometheus up value")
     request = urllib.request.Request("http://" + INSTANCE + "/metrics")
+    transport_error = None
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
             status = response.status
@@ -34,10 +35,15 @@ def scrape_status(prometheus):
     except urllib.error.HTTPError as error:
         status = error.code
         body = error.read(32768).decode()
+    except (urllib.error.URLError, OSError) as error:
+        status = None
+        body = ""
+        transport_error = type(getattr(error, "reason", error)).__name__
     return {
         "up": up,
         "http_status": status,
         "unregistered_descriptor_errors": body.count("with unregistered descriptor"),
+        "transport_error": transport_error,
     }
 
 
@@ -161,6 +167,7 @@ def run():
                 "Evidence has already been collected by the two fixed read-only functions. "
                 "Do not run shell, mutate anything, or invent a repair. "
                 "Use NO_ACTIVE_FAILURE only if Prometheus up=1 and actual HTTP status=200; otherwise ESCALATED. "
+                "A null HTTP status is a transport failure, not a successful scrape. "
                 "Community deployment metadata is not scrape proof. Return only JSON with exactly "
                 "status, summary and actions_taken; actions_taken must be an empty array."
             ),

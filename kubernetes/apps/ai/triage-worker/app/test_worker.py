@@ -2,9 +2,10 @@ import contextlib
 import io
 import json
 import unittest
+import urllib.error
 from unittest.mock import patch
 
-from worker import run, validate_report, validate_tool
+from worker import run, scrape_status, validate_report, validate_tool
 
 
 class WorkerGuardTests(unittest.TestCase):
@@ -25,8 +26,26 @@ class WorkerGuardTests(unittest.TestCase):
                 validate_tool(name, arguments)
 
     def test_health_requires_both_proofs(self):
-        for up, status, result in [(1, 200, "NO_ACTIVE_FAILURE"), (0, 500, "ESCALATED"), (1, 500, "ESCALATED"), (0, 200, "ESCALATED")]:
+        for up, status, result in [(1, 200, "NO_ACTIVE_FAILURE"), (0, 500, "ESCALATED"), (1, 500, "ESCALATED"), (0, 200, "ESCALATED"), (1, None, "ESCALATED"), (0, None, "ESCALATED")]:
             validate_report({"status": result, "summary": "Observed evidence", "actions_taken": []}, {"up": up, "http_status": status})
+
+    def test_transport_failure_is_evidence_not_a_crash_or_success(self):
+        sample = {"status": "success", "data": {"result": [{"value": [0, "0"]}]}}
+        for error in [TimeoutError("timed out"), urllib.error.URLError(TimeoutError("timed out")), ConnectionResetError("reset")]:
+            with self.subTest(error=error), patch("worker.json_request", return_value=sample), patch("worker.urllib.request.urlopen", side_effect=error):
+                evidence = scrape_status("http://example.invalid")
+                self.assertEqual(evidence["up"], 0)
+                self.assertIsNone(evidence["http_status"])
+                self.assertEqual(evidence["unregistered_descriptor_errors"], 0)
+                self.assertEqual(evidence["transport_error"], type(getattr(error, "reason", error)).__name__)
+                validate_report({"status": "ESCALATED", "summary": "The scrape could not be reached", "actions_taken": []}, evidence)
+
+    def test_missing_authoritative_sample_still_fails_closed(self):
+        sample = {"status": "success", "data": {"result": []}}
+        with patch("worker.json_request", return_value=sample), patch("worker.urllib.request.urlopen") as request:
+            with self.assertRaisesRegex(RuntimeError, "No authoritative"):
+                scrape_status("http://example.invalid")
+            request.assert_not_called()
 
     def test_false_success_invented_actions_and_missing_fields_fail(self):
         reports = [
