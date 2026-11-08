@@ -1,5 +1,6 @@
 import copy
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -152,6 +153,107 @@ class LabSafetyTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 lab.stage()
             upload.assert_not_called()
+
+    def existing_boot_run(self, files, new_prefix=None, special=""):
+        def execute(args, **kwargs):
+            command = args[args.index("--") + 1:]
+            if command[0] == "id":
+                return subprocess.CompletedProcess(args, 0, stdout="1000")
+            if command[:3] == ["test", "!", "-e"]:
+                if command[3].endswith("/" + str(new_prefix)):
+                    return subprocess.CompletedProcess(args, 0, stdout="")
+                raise subprocess.CalledProcessError(1, args)
+            if command[:2] == ["test", "-d"]:
+                return subprocess.CompletedProcess(args, 0, stdout="")
+            if command[0] == "find":
+                output = special
+                if "sha256sum" in command:
+                    output = "".join(
+                        f"{checksum}  {command[1]}/{name}\n"
+                        for name, checksum in files.items()
+                    )
+                return subprocess.CompletedProcess(args, 0, stdout=output)
+            raise AssertionError(command)
+        return execute
+
+    def test_add_missing_rejects_existing_checksum_changes_before_upload(self):
+        self.write_inventory()
+        with (
+            mock.patch.object(lab, "verify_local_assets", return_value={
+                "files": {"config.txt": "1" * 64},
+            }),
+            mock.patch.object(lab, "run", side_effect=self.existing_boot_run({
+                "config.txt": "2" * 64,
+            })),
+            mock.patch.object(subprocess, "Popen") as upload,
+        ):
+            with self.assertRaisesRegex(ValueError, "checksum/file mismatch"):
+                lab.stage(add_missing=True)
+            upload.assert_not_called()
+
+    def test_add_missing_rejects_symlinks_before_reading_or_uploading(self):
+        self.write_inventory()
+        with (
+            mock.patch.object(lab, "verify_local_assets", return_value={"files": {}}),
+            mock.patch.object(lab, "run", side_effect=self.existing_boot_run(
+                {}, special="/config/menus/unknown-link\n",
+            )) as command,
+            mock.patch.object(subprocess, "Popen") as upload,
+        ):
+            with self.assertRaisesRegex(ValueError, "non-regular"):
+                lab.stage(add_missing=True)
+            self.assertFalse(any("sha256sum" in call.args[0] for call in command.call_args_list))
+            upload.assert_not_called()
+
+    def test_add_missing_uploads_only_new_verified_serial_directory(self):
+        self.data["pi04"]["serial"] = "1000000012345678"
+        self.write_inventory()
+        boot = self.state / "boot"
+        boot.mkdir()
+        (boot / "config.txt").write_text("maintenance-only boot")
+        files = {"config.txt": lab.digest(boot / "config.txt")}
+
+        class UploadBuffer(io.BytesIO):
+            def close(self):
+                self.uploaded = self.getvalue()
+                super().close()
+
+        process = mock.Mock()
+        process.stdin = UploadBuffer()
+        process.wait.return_value = 0
+        process.poll.return_value = 0
+        with (
+            mock.patch.object(lab, "verify_local_assets", return_value={"files": files}),
+            mock.patch.object(lab, "run", side_effect=self.existing_boot_run(
+                files, new_prefix="12345678",
+            )),
+            mock.patch.object(subprocess, "Popen", return_value=process) as upload,
+        ):
+            lab.stage(add_missing=True)
+            upload.assert_called_once()
+        with lab.tarfile.open(fileobj=io.BytesIO(process.stdin.uploaded)) as archive:
+            self.assertEqual(archive.getnames(), ["12345678/config.txt"])
+        receipt = json.loads((self.state / "staged.json").read_text())
+        self.assertEqual(len(receipt["prefixes"]), 5)
+
+    def test_add_missing_with_all_matching_prefixes_does_not_upload(self):
+        self.write_inventory()
+        files = {"config.txt": "1" * 64}
+        with (
+            mock.patch.object(lab, "verify_local_assets", return_value={"files": files}),
+            mock.patch.object(lab, "run", side_effect=self.existing_boot_run(files)),
+            mock.patch.object(subprocess, "Popen") as upload,
+        ):
+            lab.stage(add_missing=True)
+            upload.assert_not_called()
+
+    def test_stage_add_missing_cli_is_explicit(self):
+        with (
+            mock.patch.object(lab, "stage") as stage,
+            mock.patch("sys.argv", ["lab.py", "stage", "--add-missing"]),
+        ):
+            lab.main()
+            stage.assert_called_once_with(True)
 
     def test_scoped_inspection_keeps_strict_key_checking(self):
         self.write_inventory()

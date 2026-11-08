@@ -220,7 +220,7 @@ def kubectl(*args):
     return ["kubectl", "--kubeconfig", str(KUBECONFIG), "-n", "network", *args]
 
 
-def stage():
+def stage(add_missing=False):
     data = inventory()
     receipt = verify_local_assets()
     uid = int(run(
@@ -234,19 +234,51 @@ def stage():
     all_prefixes = [prefix for item in data.values() for prefix in prefixes(item)]
     if len(all_prefixes) != len(set(all_prefixes)):
         raise ValueError("Duplicate board boot prefixes")
+    upload_prefixes = []
     # Never overwrite an existing boot policy, even for an allowlisted address.
     for prefix in all_prefixes:
-        run(kubectl(
-            "exec", "deploy/netboot-xyz", "--", "test", "!", "-e",
-            f"/config/menus/{prefix}",
-        ), capture_output=True)
+        directory = f"/config/menus/{prefix}"
+        try:
+            run(kubectl(
+                "exec", "deploy/netboot-xyz", "--", "test", "!", "-e", directory,
+            ), capture_output=True)
+        except subprocess.CalledProcessError:
+            if not add_missing:
+                raise
+            run(kubectl(
+                "exec", "deploy/netboot-xyz", "--", "test", "-d", directory,
+            ), capture_output=True)
+            special = run(kubectl(
+                "exec", "deploy/netboot-xyz", "--", "find", directory,
+                "!", "-type", "f", "!", "-type", "d",
+            ), capture_output=True).stdout
+            if special.strip():
+                raise ValueError(f"Existing boot prefix has non-regular entries: {prefix}")
+            checksums = run(kubectl(
+                "exec", "deploy/netboot-xyz", "--", "find", directory,
+                "-type", "f", "-exec", "sha256sum", "{}", "+",
+            ), capture_output=True).stdout
+            found = {}
+            for line in checksums.splitlines():
+                checksum, separator, filename = line.partition("  ")
+                if not separator or not re.fullmatch(r"[0-9a-f]{64}", checksum):
+                    raise ValueError(f"Invalid existing boot checksum report: {prefix}")
+                relative = PurePosixPath(filename).relative_to(directory)
+                found[str(relative)] = checksum
+            if found != receipt["files"]:
+                raise ValueError(f"Existing boot prefix checksum/file mismatch: {prefix}")
+            continue
+        upload_prefixes.append(prefix)
+    if not upload_prefixes:
+        print("All allowlisted boot prefixes already match; no upload or overwrite")
+        return
     process = subprocess.Popen(
         kubectl("exec", "-i", "deploy/netboot-xyz", "--", "tar", "xf", "-", "-C", "/config/menus"),
         stdin=subprocess.PIPE,
     )
     try:
         with tarfile.open(fileobj=process.stdin, mode="w|") as archive:
-            for prefix in all_prefixes:
+            for prefix in upload_prefixes:
                 for name in receipt["files"]:
                     source = STATE / "boot" / name
                     info = archive.gettarinfo(str(source), arcname=f"{prefix}/{name}")
@@ -452,8 +484,13 @@ def main():
     os.umask(0o077)
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("assets", "stage", "verify", "configs"):
+    for name in ("assets", "verify", "configs"):
         sub.add_parser(name)
+    stage_parser = sub.add_parser("stage")
+    stage_parser.add_argument(
+        "--add-missing", action="store_true",
+        help="Verify complete existing prefixes and upload only new allowlisted directories",
+    )
     inspect_parser = sub.add_parser("inspect")
     inspect_parser.add_argument("node", choices=ADDRESSES)
     inspect_parser.add_argument("--user", required=True)
@@ -466,6 +503,8 @@ def main():
         inspect_node(args.node, args.user, args.known_hosts)
     elif args.command == "configure":
         configure_node(args.node, args.disk_serial)
+    elif args.command == "stage":
+        stage(args.add_missing)
     else:
         globals()[args.command]()
 

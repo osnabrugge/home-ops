@@ -196,6 +196,12 @@ maintenance-mode Talos are available only under the allowlisted board prefixes.
 A failed/partial upload requires inspection of those exact directories before
 retrying; never delete the whole menu tree.
 
+When inspection adds a verified serial after MAC-only staging, use
+`lab.py stage --add-missing`. This checks the complete file set and every checksum
+in existing board directories, rejects symlinks or changed/missing/extra files,
+and uploads only new allowlisted prefixes. It never repairs or overwrites an
+existing directory. Run `lab.py verify` afterward.
+
 For MAC directories, EEPROM must already include network boot and `TFTP_PREFIX=2`.
 Alternatively, a **verified** serial directory supports `TFTP_PREFIX=0`. With
 neither a running OS nor network-enabled EEPROM, a one-time attended recovery/OS
