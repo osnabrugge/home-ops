@@ -105,7 +105,13 @@ def existing_issues():
             match = re.fullmatch(r"\[alert\] (.+?)(?: — \d+ firing)?", issue.get("title") or "")
             if match:
                 names.add(match.group(1))
-            fingerprints.update(re.findall(rf"{MARKER}:([0-9a-f]+)", issue.get("body") or ""))
+            body = issue.get("body") or ""
+            markers = re.findall(rf"{MARKER}:([0-9a-f]+)", body)
+            fingerprints.update(markers)
+            if markers:
+                match = re.search(r"^## `([^`\n]+)`$", body, re.MULTILINE)
+                if match:
+                    names.add(match.group(1))
         if len(issues) < 100:
             break
         page += 1

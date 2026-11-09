@@ -63,6 +63,19 @@ class AlertTriageTests(unittest.TestCase):
             self.assertEqual(triage.main(), 0)
         self.assertEqual(http.call_count, 1)
 
+    def test_renamed_legacy_issue_with_replaced_instances_is_still_tracked(self):
+        alerts = [alert("LanProbeFailed", "new")]
+        legacy = triage.fingerprint("LanProbeFailed", alert("LanProbeFailed", "old")["labels"])
+        existing = [{
+            "title": "Renamed issue",
+            "body": f"## `LanProbeFailed`\n\n<!-- {triage.MARKER}:{legacy} -->",
+        }]
+        with patch.object(triage, "fetch_alerts", return_value=alerts), \
+             patch.object(triage, "eligible", return_value=True), \
+             patch.object(triage, "http", return_value=existing) as http:
+            self.assertEqual(triage.main(), 0)
+        self.assertEqual(http.call_count, 1)
+
     def test_new_alert_is_filed_and_list_failure_fails_closed(self):
         alerts = [alert("LanProbeFailed", "ups")]
         with patch.object(triage, "fetch_alerts", return_value=alerts), \
