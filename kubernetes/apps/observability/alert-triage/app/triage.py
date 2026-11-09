@@ -3,8 +3,7 @@
 
 Design notes:
   * Pure stdlib (no pip install at runtime, no supply-chain surface).
-  * Idempotent: every issue carries a hidden fingerprint marker, and we refuse to
-    open a second issue for a fingerprint that already has an open issue.
+  * Idempotent: one open issue per alert name, including issues filed by older runs.
   * Conservative: only alerts firing longer than MIN_FIRING_MINUTES are eligible,
     so transient blips never create issues.
   * Fails soft: a GitHub API error for one alert never aborts the whole run.
@@ -91,20 +90,26 @@ def eligible(alert):
     return age >= timedelta(minutes=MIN_FIRING_MINUTES)
 
 
-def existing_fingerprints():
-    """All fingerprints that already have an OPEN triage issue."""
-    seen = set()
+def existing_issues():
+    """Alert names and fingerprints already tracked by open issues."""
+    names, fingerprints = set(), set()
     page = 1
-    while page <= 10:
-        q = urllib.parse.urlencode({"state": "open", "labels": LABEL, "per_page": 100, "page": page})
-        issues = http(f"{API}/repos/{REPO}/issues?{q}", token=True) or []
-        if not issues:
-            break
+    while True:
+        q = urllib.parse.urlencode({"state": "open", "per_page": 100, "page": page})
+        issues = http(f"{API}/repos/{REPO}/issues?{q}", token=True)
+        if not isinstance(issues, list):
+            raise ValueError("unexpected GitHub issues response")
         for issue in issues:
-            for m in re.findall(rf"{MARKER}:([0-9a-f]+)", issue.get("body") or ""):
-                seen.add(m)
+            if "pull_request" in issue:
+                continue
+            match = re.fullmatch(r"\[alert\] (.+?)(?: — \d+ firing)?", issue.get("title") or "")
+            if match:
+                names.add(match.group(1))
+            fingerprints.update(re.findall(rf"{MARKER}:([0-9a-f]+)", issue.get("body") or ""))
+        if len(issues) < 100:
+            break
         page += 1
-    return seen
+    return names, fingerprints
 
 
 def triage_steps(alertname, labels):
@@ -231,7 +236,7 @@ def build_issue(name, alerts, all_alerts):
     labels = alerts[0].get("labels", {})
     routing_labels = merged_labels(alerts)
     ann = alerts[0].get("annotations", {})
-    fp = fingerprint(name, labels)
+    fp = fingerprint(name, {})
     severity = labels.get("severity", "unknown")
     oldest, newest = firing_window(alerts)
 
@@ -348,11 +353,14 @@ def main():
         return 0
 
     try:
-        known = existing_fingerprints()
+        known_names, known_fingerprints = existing_issues()
     except urllib.error.HTTPError as exc:
         print(f"FATAL: cannot list issues: {exc.code}", file=sys.stderr)
         return 1
-    print(f"github: {len(known)} fingerprints already tracked")
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        print(f"FATAL: cannot list issues: {exc}", file=sys.stderr)
+        return 1
+    print(f"github: {len(known_names)} alert names, {len(known_fingerprints)} fingerprints already tracked")
 
     filed = 0
     for name, group in sorted(grouped.items(), key=lambda kv: -len(kv[1])):
@@ -360,7 +368,8 @@ def main():
             print(f"reached MAX_NEW_ISSUES={MAX_NEW_ISSUES}; deferring the rest to the next run")
             break
         fp, title, body, severity = build_issue(name, group, active)
-        if fp in known:
+        legacy_fingerprints = {fingerprint(name, a.get("labels", {})) for a in group}
+        if name in known_names or fp in known_fingerprints or legacy_fingerprints & known_fingerprints:
             print(f"skip  {name} (already tracked, fp={fp})")
             continue
         if DRY_RUN:
