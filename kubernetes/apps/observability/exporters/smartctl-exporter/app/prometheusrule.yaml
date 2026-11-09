@@ -70,15 +70,15 @@ spec:
 
         # TrueNAS 25.10 removed smartd and every smart.* middleware method, so nas01
         # schedules its own self-tests from cron and publishes the outcome through the
-        # node-exporter textfile collector. Without these two rules a failed self-test
-        # would only ever exist in the drive's own log.
+        # node-exporter textfile collector. Collection failures must not look like
+        # successful reads or remove the previous hardware-failure snapshot.
         - alert: Nas01SmartSelfTestFailed
           expr: |-
             nas01_smart_selftest_failed == 1
           for: 5m
           annotations:
             summary: >-
-              nas01 drive {{ $labels.device }} ({{ $labels.model }} {{ $labels.serial }}) failed its most recent SMART self-test
+              nas01 drive {{ $labels.device }} ({{ $labels.model }} {{ $labels.serial }}) failed its most recent completed SMART self-test
           labels:
             severity: critical
 
@@ -89,5 +89,18 @@ spec:
           annotations:
             summary: >-
               nas01 has not published SMART self-test results for over 4h — the cron job or smartctl is broken
+          labels:
+            severity: warning
+
+        - alert: Nas01SmartSelfTestCollectionFailed
+          expr: |-
+            nas01_smart_selftest_report_success == 0
+          for: 5m
+          annotations:
+            summary: >-
+              nas01 SMART log collection is incomplete; previous self-test results were retained
+            description: >-
+              Inspect the native reporter cron job and per-disk nas01_smart_selftest_probe_success.
+              A blocked smartctl child requires storage-controller diagnosis, not more scans.
           labels:
             severity: warning

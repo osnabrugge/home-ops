@@ -920,17 +920,48 @@ Garage or change pool/disk configuration for an exporter problem.
   `quay.io/prometheuscommunity/smartctl-exporter:v0.14.0` digest
   `sha256:cfe22c36d7d2fac48ebf619707305acb65eb0fb670656eb80f356e606d782bc1`.
   This is a rollback mitigation, not a claim that the upstream bug is fixed.
-- Coverage is 24 readable physical disks: four SAS, twelve SATA and eight NVMe.
+- After the HDD additions and unavailable 8 TB member, the expected inventory is
+  34 physical disks: four SAS, twenty-two SATA and eight NVMe.
   The previously unmonitored SATADOM remains omitted: its duplicate ATA
   attribute ID 1 causes duplicate Prometheus samples. A native SMART read
   passes health but reports an unsupported-command bit; do not call it a
   failed disk or claim complete SATADOM telemetry.
 - Verify `/metrics` returns HTTP 200 after a full five-minute repoll,
-  `smartctl_devices` is 24, all expected device series exist, and the Prometheus
+  `smartctl_devices` is 34, all expected device series exist, and the Prometheus
   target is up. Preserve real historical-error bitmasks; never zero or suppress
   them just to make monitoring green.
 - Original Compose rollback copies are retained beside the host source.
   Confirm other container identities and `zpool status -x` are unchanged.
+
+### NAS01 stalled shutdown and self-test reporter
+
+- PiKVM **Shortcuts -> Alt+SysRq** provides kernel recovery independent of
+  systemd. `S` attempts sync and `U` attempts read-only remount; wait for actual
+  completion messages. `B` is an emergency reboot without an implicit flush,
+  not a guaranteed clean shutdown. Verify the selected NAS channel, emergency
+  reset approval, new boot ID, native jobs and pool state. Do not blindly use
+  every REISUB key: the configured bitmask may allow only some operations.
+- [nas01_smart_report.py](../scripts/nas01_smart_report.py) is the source for
+  `/mnt/local/scripts/smart-report.py`, called by the existing native cron task.
+  It discovers every nonzero-capacity rotational `sd*` disk through sysfs and
+  opens stable whole-disk `by-id` paths with automatic SAS/SATA detection.
+  It reads existing self-test logs; it never starts tests or changes disks.
+- The inherited lock and bounded kill/reap prevent a stuck SMART child from
+  wedging the reporter or causing subsequent invocations to launch more probes.
+  They do not repair uninterruptible kernel I/O or a failing controller.
+- `nas01_smart_selftest_probe_success` covers every discovered HDD.
+  `nas01_smart_selftest_available=0` means no completed stored test, not a
+  fabricated pass. Aborted, reset-interrupted or in-progress entries are skipped
+  in favor of the most recent completed test, preserving a preceding failure.
+  On collection failure the script exits nonzero, reports failure explicitly,
+  and retains the previous failed-test/age snapshot and timestamp. The timestamp
+  advances only after a complete successful collection; collection and hardware
+  failures have separate alerts.
+- Before updating the host, retain a protected exact-source rollback copy,
+  preserve owner/mode and the existing cron command, and validate:
+  `python3 -m unittest discover -s scripts -p test_nas01_smart_report.py`.
+  Check native cron completion and actual per-disk Prometheus coverage after
+  deployment. Never dismiss real disk failures just to make monitoring green.
 
 ### Unpackerr v1 insights and recovery
 
