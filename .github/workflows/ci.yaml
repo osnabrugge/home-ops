@@ -135,7 +135,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           PYTHONPATH: scripts:kubernetes/apps/ai/litellm/app:kubernetes/apps/ai/triage-worker/app
-        run: python3 -m unittest test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown -v
+        run: python3 -m unittest test_alert_triage test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown -v
 
   status:
     if: ${{ !cancelled() }}
