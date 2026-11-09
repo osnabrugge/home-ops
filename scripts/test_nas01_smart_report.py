@@ -118,13 +118,38 @@ class SmartReportTests(unittest.TestCase):
             subprocess.TimeoutExpired("smartctl", report.PROBE_TIMEOUT), (b"", b""),
         ]
         with patch.object(report.subprocess, "Popen", return_value=process):
-            with self.assertRaisesRegex(ValueError, "exceeded"):
+            with self.assertRaisesRegex(report.ProbeTimeout, "exceeded"):
                 report.smart(self.ids / "wwn-disk", 7)
         process.kill.assert_called_once_with()
         self.assertEqual(
             [call.kwargs["timeout"] for call in process.communicate.call_args_list],
             [report.PROBE_TIMEOUT, report.REAP_TIMEOUT],
         )
+
+    def test_original_read_budget_allows_native_sixty_second_command_timeout(self):
+        process = Mock(returncode=0)
+
+        def communicate(*, timeout):
+            if timeout < 60:
+                raise subprocess.TimeoutExpired("smartctl", timeout)
+            return json.dumps(ata()).encode(), b""
+
+        process.communicate.side_effect = communicate
+        with patch.object(report.subprocess, "Popen", return_value=process):
+            data = report.smart(self.ids / "wwn-disk", 7)
+        self.assertEqual(report.PROBE_TIMEOUT, 180)
+        self.assertEqual(report.newest_entry(data), (False, 90))
+        process.kill.assert_not_called()
+
+    def test_reaped_timeout_also_stops_remaining_probes(self):
+        self.disk("sda", alias="wwn-a")
+        self.disk("sdb", alias="wwn-b")
+        with patch.object(report, "smart", side_effect=report.ProbeTimeout("read timeout")) as probe:
+            code, output, errors = self.run_report()
+        self.assertEqual(code, 1)
+        probe.assert_called_once()
+        self.assertIn("previous SMART probe exceeded its deadline", errors)
+        self.assertIn("nas01_smart_selftest_report_success 0\n", output)
 
     def test_unreapable_child_stops_further_probes_and_retains_failed_snapshot(self):
         self.disk("sda", alias="wwn-a")

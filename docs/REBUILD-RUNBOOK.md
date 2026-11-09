@@ -946,7 +946,10 @@ Garage or change pool/disk configuration for an exporter problem.
   It discovers every nonzero-capacity rotational `sd*` disk through sysfs and
   opens stable whole-disk `by-id` paths with automatic SAS/SATA detection.
   It reads existing self-test logs; it never starts tests or changes disks.
-- The inherited lock and bounded kill/reap prevent a stuck SMART child from
+- Preserve the original 180-second read budget: a healthy drive's native
+  command timeout can be 60 seconds. After a read timeout, kill/reap has a
+  separate three-second bound and no further devices are probed in that run.
+  The inherited lock and bounded kill/reap prevent a stuck SMART child from
   wedging the reporter or causing subsequent invocations to launch more probes.
   They do not repair uninterruptible kernel I/O or a failing controller.
 - `nas01_smart_selftest_probe_success` covers every discovered HDD.

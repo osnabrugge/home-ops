@@ -16,7 +16,7 @@ DEV = Path("/dev")
 BY_ID = DEV / "disk/by-id"
 OUT = Path("/mnt/local/scripts/textfile/smart_selftest.prom")
 LOCK = Path("/run/lock/nas01-smart-report.lock")
-PROBE_TIMEOUT = 15
+PROBE_TIMEOUT = 180
 REAP_TIMEOUT = 3
 STATUS_METRICS = (
     "nas01_smart_selftest_probe_success",
@@ -25,7 +25,11 @@ STATUS_METRICS = (
 )
 
 
-class BlockedProbe(RuntimeError):
+class ProbeTimeout(RuntimeError):
+    pass
+
+
+class BlockedProbe(ProbeTimeout):
     pass
 
 
@@ -80,7 +84,7 @@ def smart(identity, lock_fd):
                 f"{identity}: smartctl PID {process.pid} did not exit after SIGKILL; "
                 "stopping further probes; controller recovery may be required"
             ) from error
-        raise ValueError(f"{identity}: SMART read exceeded {PROBE_TIMEOUT}s")
+        raise ProbeTimeout(f"{identity}: SMART read exceeded {PROBE_TIMEOUT}s; stopping further probes")
     if process.returncode < 0 or process.returncode & 7:
         detail = errors.decode(errors="replace").strip()[:300]
         raise ValueError(f"{identity}: smartctl read failed ({process.returncode}): {detail}")
@@ -189,7 +193,7 @@ def collect(lock_fd):
         probe_labels = labels(device=name, identity=identity.name)
         probe_success = False
         if blocked:
-            print(f"Not probing {identity}: previous SMART child is blocked", file=sys.stderr)
+            print(f"Not probing {identity}: previous SMART probe exceeded its deadline", file=sys.stderr)
         else:
             try:
                 data = smart(identity, lock_fd)
@@ -209,7 +213,7 @@ def collect(lock_fd):
                 status.append(f"nas01_smart_selftest_available{{{probe_labels}}} {int(entry is not None)}")
                 probe_success = True
                 completed += 1
-            except BlockedProbe as error:
+            except ProbeTimeout as error:
                 blocked = True
                 print(error, file=sys.stderr)
             except (OSError, ValueError, KeyError, TypeError) as error:
