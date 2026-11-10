@@ -92,7 +92,9 @@ required.
 The two namespaces explicitly opt in to Kopiur's `stream-exec-movers` feature.
 Its dedicated stream-mover ServiceAccount can exec in those namespaces to run
 the declared `pg_dump`; no cluster-wide exec or Secret-read grant is added.
-Kritika's restricted Pod Security enforcement is unchanged.
+Both namespace Kustomizations include `kopiur/secret` so repository credentials
+are available where the movers run. Kritika's restricted Pod Security
+enforcement is unchanged.
 
 Restore the dump with Kopiur's `target.streamExec` into a matching PostgreSQL
 major version using `pg_restore --exit-on-error`. Validate restoration in an

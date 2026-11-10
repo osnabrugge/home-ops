@@ -383,6 +383,41 @@ Targets:
 
 **Alertmanager URL:** https://alertmanager.homeops.ca
 
+### Proxmox exporter lifecycle and account setup
+
+- The existing `sh.brew.node_exporter.service` is a user service. Keep it enabled
+  and enable linger for its existing owner with `sudo loginctl enable-linger
+  <service-owner>`. Verify Prometheus remains up after the SSH session closes;
+  testing only during login can hide a nonpersistent exporter.
+- `openibd` is the legacy OFED/DOCA loader name for Mellanox Ethernet/RDMA as
+  well as InfiniBand. On pve01 both ConnectX-4 LX functions are bound to
+  `vfio-pci` and passed to gw01, so there is no host HCA for it to initialize.
+  Keep the unused host boot loader disabled; do not run its stop/restart
+  actions, unload drivers, or rebind devices on the running firewall host.
+  Re-enable only as part of a reviewed change returning a NIC to the host.
+- The read-only `monitoring` PVE role contains
+  `Datastore.Audit,SDN.Audit,Sys.Audit,VM.Audit`. The existing account is
+  `monitoring@pve`, with the `monitoring` token inheriting that bounded role.
+  It does not need a Linux/PAM account or administrator privileges.
+
+On another independent PVE host, first inspect existing users/roles/tokens to
+avoid duplicates. If the role is missing, create it, then create the account
+and token:
+
+```bash
+pveum role add monitoring --privs 'Datastore.Audit SDN.Audit Sys.Audit VM.Audit'
+pveum user add monitoring@pve --comment 'Read-only Prometheus monitoring'
+pveum acl modify / --users monitoring@pve --roles monitoring
+pveum user token add monitoring@pve monitoring --privsep 0
+```
+
+The token command prints its secret once. Keep it in the existing protected
+exporter configuration/secret store, never in Git or chat. In exporter YAML,
+`user` is `monitoring@pve` and `token_name` is only `monitoring`, not the complete
+`monitoring@pve!monitoring` identifier. A role existing by itself does not create
+the user or token. `--privsep 0` inherits only the read-only user role; if using
+`--privsep 1`, explicitly grant the same role to the token too.
+
 ---
 
 ## Common Workflows
