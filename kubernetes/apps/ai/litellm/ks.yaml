@@ -5,11 +5,18 @@ kind: Kustomization
 metadata:
   name: litellm-db
 spec:
+  components:
+    - ../../../../components/kopiur/postgresql
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
   interval: 1h
   path: ./kubernetes/apps/ai/litellm/database
+  postBuild:
+    substitute:
+      APP: litellm-db
+      CNPG_CLUSTER: litellm-db
+      CNPG_DATABASE: litellm
   prune: true
   sourceRef:
     kind: GitRepository

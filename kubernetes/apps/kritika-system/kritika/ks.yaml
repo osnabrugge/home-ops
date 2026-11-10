@@ -22,6 +22,8 @@ kind: Kustomization
 metadata:
   name: kritika-db
 spec:
+  components:
+    - ../../../../components/kopiur/postgresql
   dependsOn:
     - name: kritika-credentials
     - name: cloudnative-pg
@@ -51,6 +53,11 @@ spec:
       current: has(status.applied) && status.applied == true
   interval: 1h
   path: ./kubernetes/apps/kritika-system/kritika/database
+  postBuild:
+    substitute:
+      APP: kritika-db
+      CNPG_CLUSTER: kritika-db
+      CNPG_DATABASE: kritika
   prune: true
   sourceRef:
     kind: GitRepository

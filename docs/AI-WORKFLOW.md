@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-11-08. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-10. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Start here: what each application actually does
@@ -67,6 +67,38 @@ and trace backend, but is not required merely to make a gateway or dashboard
 work. No new trace platform or paid observability service is selected here.
 Never capture provider keys, MCP credentials, prompts or repository content in
 general telemetry by default.
+
+### Operating contract and data protection
+
+- Interactive Copilot/MCP work does not appear in LiteLLM or Bifrost usage.
+  Their dashboards measure their own clients, not everything this assistant does.
+- The scheduled advisory checks NAS SMART scrape transport and one fixed tool
+  lookup. Its `NO_ACTIVE_FAILURE` result is scoped to those checks, not a clean
+  bill of health for disks or the Kubernetes cluster. It cannot remediate alerts.
+- Kritika indexes repositories and reviews queued PRs; it is not an autonomous
+  fix-PR author. Public review publication still needs owner approval.
+- LiteLLM is the commissioned gateway for the advisory. Bifrost remains an
+  evaluation, not a second production gateway or an obligatory hop.
+
+The application-owned database Kustomizations include
+[Kopiur PostgreSQL backups](../kubernetes/components/kopiur/postgresql/):
+`litellm-db` in `ai` and `kritika-db` in `kritika-system`. Each hourly schedule
+streams a transaction-consistent custom-format `pg_dump` of its application
+database from the current CNPG primary into the existing encrypted repository.
+The selector follows the primary rather than hardcoding an instance ordinal.
+No live PGDATA copy, database restart, new password or superuser TCP access is
+required.
+
+Restore the dump with Kopiur's `target.streamExec` into a matching PostgreSQL
+major version using `pg_restore --exit-on-error`. Validate restoration in an
+isolated test database first, never against the live application database.
+Kritika also requires its declared `vector`/`vchord` extension image and preload
+settings. Recreate application roles, database ownership and credentials from
+their existing GitOps/External Secrets declarations; these per-database dumps
+do not replace those declarations or include cluster-global roles.
+
+These are hourly logical recovery points, not continuous WAL/PITR protection.
+The existing shared `postgres16` native backup policy remains independent.
 
 ### Source ownership is not the same as runtime namespace
 

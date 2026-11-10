@@ -19,12 +19,11 @@ spec:
   postBuild:
     substitute:
       APP: frigate
-      # Frigate writes .jwt_secret as root:1000 mode 0600, so the uid-1000 mover
-      # cannot read that one file. Backing up as root does NOT work: the nas02 NFS
-      # export uses root_squash, so a uid-0 mover gets "permission denied" on /repo
-      # itself. Instead keep the default uid-1000 mover and let kopia skip the file
-      # it cannot read -- frigate regenerates .jwt_secret on start if it is missing.
-      KOPIUR_IGNORE_FILE_ERRORS: "true"
+      # Read the root-owned 0600 JWT secret from a read-only CSI snapshot.
+      # The repository now uses S3, not the former root-squashed NFS export.
+      KOPIUR_PUID: "0"
+      KOPIUR_RUN_AS_NON_ROOT: "false"
+      KOPIUR_CACHE_MODE: Ephemeral
       KOPIUR_CAPACITY: 5Gi
   prune: true
   sourceRef:

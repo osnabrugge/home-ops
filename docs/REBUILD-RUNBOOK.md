@@ -496,6 +496,46 @@ changing browser security or network configuration. An HTTP-only camera and a
 browser's cached HTTPS upgrade can produce different results across browser
 profiles; do not clear parent-domain HSTS or disable IPv6 as a generic repair.
 
+Frigate writes `/config/.jwt_secret` as root:1000 mode 0600. The backup mover
+reads the read-only CSI snapshot as UID 0, with privilege escalation disabled
+and capabilities dropped; it does not relax the live secret's permissions.
+The repository is S3, so the old NFS root-squash restriction does not apply.
+An ephemeral mover cache avoids reusing the former UID-1000 cache. File errors
+must fail the backup, not silently produce a supposedly complete snapshot.
+Verify `filesFailed: 0` and the protected file's presence after an isolated
+restore before declaring the backup repaired.
+
+### Shared RBD client read-only recovery
+
+`emergency_ro` is ext4's protective response to an I/O failure. Healthy Ceph
+servers do not reset a failed node client or make an aborted journal writable.
+Inspect native mount options and actual application writes; Ready pods and
+HTTP 200 responses are insufficient.
+
+1. Verify Ceph quorum/OSDs/PGs and current network stability. Map affected RBD
+   devices to PVCs and compare `/sys/block/rbdN/device/client_id`. Include
+   apparently writable mappings sharing the failed client.
+2. Record replica counts, PVC UIDs/PV bindings and every reconciliation pause.
+   Hold the affected Flux Kustomizations/HelmReleases, operator owners,
+   autoscalers and backup scheduling. Take CSI checkpoints of the original
+   claims; check StatefulSet claim retention before scaling down.
+3. Stop all consumers of that client normally, including shared-PVC workers.
+   Wait for pods to exit and for its kernel RBD devices/mounts to disappear.
+   Do not force-unmap, delete PVCs, change Ceph keys or reboot healthy nodes.
+4. Restore the original replica counts. Verify live watchers, absence of
+   `emergency_ro`, database integrity and committed application writes. Exercise
+   a fresh mapping on the original node with an isolated synthetic write test.
+5. Restore every held reconciler, autoscaler and schedule, preserving prior
+   values rather than blindly enabling everything. Keep rollback checkpoints
+   until data verification is complete, and check alerts and backups again.
+
+If normal unmount or CSI filesystem checks fail, preserve the checkpoints and
+collect the exact error before escalating. Filesystem repair or a forced reset
+is a separate approval boundary. Do not mount an unhealthy filesystem writable
+or disable ext4's protection to hide the failure. The original trigger must be
+established from retained kernel, Ceph and network evidence; a successful
+remount alone does not prove which network/authentication event caused it.
+
 ### Grafana operator dashboards
 
 `Login failed / User sync failed` together with `attempt to write a readonly
