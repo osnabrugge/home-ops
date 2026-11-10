@@ -109,7 +109,7 @@ def existing_issues():
             markers = re.findall(rf"{MARKER}:([0-9a-f]+)", body)
             fingerprints.update(markers)
             if markers:
-                match = re.search(r"^## `([^`\n]+)`$", body, re.MULTILINE)
+                match = re.search(r"^## `([^`\r\n]+)`\r?$", body, re.MULTILINE)
                 if match:
                     names.add(match.group(1))
         if len(issues) < 100:
