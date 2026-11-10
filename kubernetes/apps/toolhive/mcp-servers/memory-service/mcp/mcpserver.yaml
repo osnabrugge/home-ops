@@ -103,6 +103,28 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
+          readinessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - |
+                  import fcntl
+                  import os
+                  import socket
+                  import tempfile
+
+                  with open("/app/data/.storage-readiness.lock", "a") as lock:
+                      fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                      with tempfile.TemporaryFile(dir="/app/data") as stream:
+                          stream.write(b"ready")
+                          stream.flush()
+                          os.fsync(stream.fileno())
+                      with socket.create_connection(("127.0.0.1", 8000), timeout=2):
+                          pass
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
           resources:
             requests:
               cpu: 50m

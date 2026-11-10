@@ -72,6 +72,56 @@ spec:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
                 capabilities: { drop: ["ALL"] }
+            # Keep Grafana's native HTTP probe and require durable PVC writes too.
+            - name: storage-ready
+              image: docker.io/library/python:3.15-slim@sha256:94d3426f1def7db4a106a232ac121bfd975393e5dfd40a619b955fae45fe7913
+              command:
+                - python3
+                - -c
+                - |
+                  import signal
+                  import sys
+
+                  signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+                  signal.pause()
+              env:
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: "1"
+              readinessProbe:
+                exec:
+                  command:
+                    - python3
+                    - -c
+                    - |
+                      import fcntl
+                      import os
+                      import tempfile
+
+                      with open("/var/lib/grafana/.storage-readiness.lock", "a") as lock:
+                          fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                          with tempfile.TemporaryFile(dir="/var/lib/grafana") as stream:
+                              stream.write(b"ready")
+                              stream.flush()
+                              os.fsync(stream.fileno())
+                periodSeconds: 30
+                timeoutSeconds: 5
+                failureThreshold: 2
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: { drop: ["ALL"] }
+                seccompProfile:
+                  type: RuntimeDefault
+              volumeMounts:
+                - name: grafana-data
+                  mountPath: /var/lib/grafana
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000

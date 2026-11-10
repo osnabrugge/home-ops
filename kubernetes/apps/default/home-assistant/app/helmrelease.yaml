@@ -71,11 +71,24 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    # HA does not serve /healthz here - verified 404 on both
-                    # 2026.9.0 and 2026.9.1. /manifest.json is static and unauthenticated.
-                    path: /manifest.json
-                    port: &port 8123
+                  exec:
+                    command:
+                      - python3
+                      - -c
+                      - |
+                        import fcntl
+                        import os
+                        import tempfile
+                        import urllib.request
+
+                        with open("/config/.storage-readiness.lock", "a") as lock:
+                            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                            with tempfile.TemporaryFile(dir="/config") as stream:
+                                stream.write(b"ready")
+                                stream.flush()
+                                os.fsync(stream.fileno())
+                            with urllib.request.urlopen("http://127.0.0.1:8123/manifest.json", timeout=2) as response:
+                                response.read(1)
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
@@ -113,7 +126,7 @@ spec:
         ports:
           http:
             appProtocol: kubernetes.io/ws
-            port: *port
+            port: 8123
     route:
       app:
         annotations:

@@ -537,6 +537,14 @@ or disable ext4's protection to hide the failure. The original trigger must be
 established from retained kernel, Ceph and network evidence; a successful
 remount alone does not prove which network/authentication event caused it.
 
+Home Assistant and both memory backends use write-aware readiness checks.
+Grafana keeps its native HTTP check and adds a small storage-readiness
+container. They create, flush and remove only temporary files on their own
+data volumes, without modifying application records. Nonblocking locks prevent
+overlapping probes from launching more writes while an earlier probe is stuck
+in kernel I/O. Failed readiness exposes the fault; it does not pretend that a
+container restart can repair a shared node client.
+
 ### Grafana operator dashboards
 
 `Login failed / User sync failed` together with `attempt to write a readonly

@@ -58,6 +58,8 @@ spec:
       APP: kritika-db
       CNPG_CLUSTER: kritika-db
       CNPG_DATABASE: kritika
+      # Preserve the retained legacy database within the pilot's storage quota.
+      KOPIUR_CAPACITY: 2Gi
   prune: true
   sourceRef:
     kind: GitRepository

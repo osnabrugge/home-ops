@@ -20,3 +20,28 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+          readinessProbe:
+            exec:
+              command:
+                - flock
+                - -n
+                - /data/.storage-readiness.lock
+                - node
+                - -e
+                - |
+                  const fs = require("fs");
+                  const directory = fs.mkdtempSync("/data/.storage-readiness-");
+                  const path = directory + "/check";
+                  let fd;
+                  try {
+                    fd = fs.openSync(path, "wx", 0o600);
+                    fs.writeSync(fd, "ready");
+                    fs.fsyncSync(fd);
+                  } finally {
+                    if (fd !== undefined) fs.closeSync(fd);
+                    if (fs.existsSync(path)) fs.unlinkSync(path);
+                    fs.rmdirSync(directory);
+                  }
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
