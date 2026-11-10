@@ -595,13 +595,20 @@ The running pilot uses a separate `kritika-db` PostgreSQL/VectorChord cluster.
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`
 volume as startup recovery. Verify all eight Kritika Kustomizations, its
 HelmRelease and the database are Ready before investigating the application.
-The namespace allows four PVCs within the unchanged 20Gi aggregate storage
-ceiling: the held database, running database and embedding cache use three,
-leaving one bounded maintenance claim slot rather than operating at a full
-claim-count quota. This does not authorize creating or replacing a volume.
-The singleton database's primary PDB deliberately blocks voluntary eviction;
-preserve it and plan database maintenance rather than clearing the warning by
-weakening protection.
+The namespace allows five PVCs within the unchanged 20Gi aggregate storage
+ceiling. The held database, running database, embedding cache and 2Gi backup
+cache use four claims and 19Gi, leaving one transient restore-cache claim slot.
+This does not authorize creating or replacing a production volume.
+The owner permits maintenance downtime for the singleton `kritika-db` and
+`litellm-db` pilots: both declare `enablePDB: false` through CNPG rather than
+patching operator-owned budgets. Eviction can take their applications offline
+until the database returns; LiteLLM's node pinning also keeps it pending while
+its selected node is cordoned. Reassess protection before adding replicas.
+
+The repository-policy Job reruns its transactional, idempotent SQL when its
+image or template changes. Its resource-scoped Flux `force: enabled` annotation
+allows replacement of that stateless Job; do not extend forced replacement to
+database resources or PVCs.
 
 An index job cancelled with `no embedder is configured` is a real configuration
 gap, not a GitHub App permission failure. Check `kritika-embeddings`, its
@@ -809,6 +816,11 @@ as Radar's comma-separated group list. The corresponding Kubernetes group is
 `radar`, bound to workload operations and read-only views, not `cluster-admin`.
 It can restart/scale workloads and manage Jobs, but cannot delete PVCs or write
 RBAC. `trustedOrigins` retains browser-origin validation through the proxy.
+The owner-approved `radar-read-secrets` binding also grants the group
+`get/list/watch` on Secrets for Helm release history. Kubernetes RBAC cannot
+filter Secret lists by Helm's type or labels: this includes other Secrets
+cluster-wide, not just release records. Keep application admission restricted;
+this grant does not include Secret writes, RBAC changes or PVC deletion.
 
 Grant application access in that application's `AuthentikApplication`
 `spec.access.rules`, referencing an existing user or a dedicated non-superuser
@@ -969,14 +981,17 @@ Garage or change pool/disk configuration for an exporter problem.
   `quay.io/prometheuscommunity/smartctl-exporter:v0.14.0` digest
   `sha256:cfe22c36d7d2fac48ebf619707305acb65eb0fb670656eb80f356e606d782bc1`.
   This is a rollback mitigation, not a claim that the upstream bug is fixed.
-- After the HDD additions and unavailable 8 TB member, the expected inventory is
-  34 physical disks: four SAS, twenty-two SATA and eight NVMe.
+- After reseating the 8 TB member, the supported inventory is
+  35 physical disks: four SAS, twenty-three SATA and eight NVMe.
   The previously unmonitored SATADOM remains omitted: its duplicate ATA
   attribute ID 1 causes duplicate Prometheus samples. A native SMART read
   passes health but reports an unsupported-command bit; do not call it a
   failed disk or claim complete SATADOM telemetry.
+- Downgrading alone is insufficient if the SATADOM is included: both versions
+  reject its duplicate samples. Changing between `sdX` and stable IDs cannot
+  fix either upstream metrics bug.
 - Verify `/metrics` returns HTTP 200 after a full five-minute repoll,
-  `smartctl_devices` is 34, all expected device series exist, and the Prometheus
+  `smartctl_devices` is 35, all expected device series exist, and the Prometheus
   target is up. Preserve real historical-error bitmasks; never zero or suppress
   them just to make monitoring green.
 - Original Compose rollback copies are retained beside the host source.

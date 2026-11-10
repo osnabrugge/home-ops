@@ -8,6 +8,8 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   instances: 1
+  # Allow maintenance eviction; this singleton is unavailable until it returns.
+  enablePDB: false
   imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-bookworm@sha256:30d0a38b6df3da24e89a2cfbe800e422c3ef13fa427aa5523f2a7d3fecb53b34
   enableSuperuserAccess: false
   monitoring:
@@ -20,7 +22,7 @@ spec:
         regex: cluster
   managed:
     services:
-      # This singleton has no replica-only reader; retain primary service and PDB.
+      # This singleton has no replica-only reader; retain the primary service.
       disabledDefaultServices: [ro]
   postgresql:
     extensions:

@@ -8,6 +8,8 @@ metadata:
 spec:
   # Pilot state is isolated; never migrate or rename the existing postgres16.
   instances: 1
+  # Allow maintenance eviction; this singleton is unavailable until it returns.
+  enablePDB: false
   imageName: ghcr.io/cloudnative-pg/postgresql:17.5-18
   enableSuperuserAccess: false
   monitoring:

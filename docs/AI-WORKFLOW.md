@@ -117,6 +117,12 @@ Kritika's cache uses 2 GiB and its quota keeps one extra transient claim slot
 for restore verification; the 20 GiB aggregate storage budget is unchanged.
 The retained legacy database claim is not deleted to make room.
 
+Both singleton pilot databases declare CNPG `enablePDB: false` at the owner's
+request so voluntary node maintenance is not blocked. This accepts application
+downtime until their database Pod returns; it does not add database HA.
+LiteLLM's node selector prevents relocation while its selected node is cordoned.
+Revisit this policy if either cluster gains replicas.
+
 ### Source ownership is not the same as runtime namespace
 
 The target convention is central controllers/shared infrastructure, with

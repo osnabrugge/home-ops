@@ -14,6 +14,7 @@ rules:
       - cert-manager.io
       - cilium.io
       - gateway.networking.k8s.io
+      - nfd.k8s-sigs.io
       - node.k8s.io
       - rbac.authorization.k8s.io
       - resource.k8s.io
@@ -41,6 +42,16 @@ rules:
     verbs: ["create", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: radar-read-secrets
+rules:
+  # Helm history needs Secret lists; RBAC cannot restrict these by type or label.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: radar-workload-operator
@@ -65,3 +76,16 @@ subjects:
   - apiGroup: rbac.authorization.k8s.io
     kind: Group
     name: radar
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: radar-read-secrets
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: radar-read-secrets
+subjects:
+  - kind: Group
+    name: radar
+    apiGroup: rbac.authorization.k8s.io

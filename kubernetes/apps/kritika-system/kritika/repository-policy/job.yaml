@@ -3,6 +3,9 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: kritika-repository-policy-v3
+  annotations:
+    # The idempotent policy must rerun when its immutable image/template changes.
+    kustomize.toolkit.fluxcd.io/force: enabled
 spec:
   backoffLimit: 2
   activeDeadlineSeconds: 120
