@@ -802,6 +802,10 @@ instead of silently widening access.
 Hydra's administrative port is restricted to Diode Auth's Pod, including its
 initializer. The reconciler can use only the public token port; unrelated Pods
 must not be able to create or reset OAuth clients through Hydra's admin API.
+This cluster requires explicit service-return ingress rules for approved DNS
+and PostgreSQL peers in the client port range, as used by LiteLLM. These are
+bounded transport exceptions, not an upstream Cilium repair or permission for
+those peers to access Hydra's administrative port.
 
 The reconciler uses NetBox's `/api/plugins/diode` endpoint. The NetBox plugin and
 discovery agents also need a front door serving both prefixed Diode gRPC methods
