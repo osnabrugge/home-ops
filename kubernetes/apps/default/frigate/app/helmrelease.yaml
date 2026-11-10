@@ -24,9 +24,32 @@ spec:
               repository: ghcr.io/blakeblackshear/frigate
               tag: 0.18.2
             command:
-              - sh
+              - python3
               - -c
-              - cp -v /config-src/config.yml /config/config.yml
+              - |
+                import os
+                from pathlib import Path
+                import secrets
+                import shutil
+                import stat
+
+                shutil.copyfile("/config-src/config.yml", "/config/config.yml")
+                path = Path("/config/.jwt_secret")
+                try:
+                    info = path.lstat()
+                except FileNotFoundError:
+                    value = secrets.token_hex(64)
+                    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                    with os.fdopen(fd, "w") as stream:
+                        stream.write(value)
+                        stream.flush()
+                        os.fsync(stream.fileno())
+                    info = path.lstat()
+                if not stat.S_ISREG(info.st_mode) or info.st_size == 0:
+                    raise RuntimeError("JWT secret must be a non-empty regular file")
+                os.chown(path, 1000, 1000, follow_symlinks=False)
+                os.chmod(path, 0o600, follow_symlinks=False)
+                print("Frigate configuration and private JWT ownership prepared")
         containers:
           app:
             image:

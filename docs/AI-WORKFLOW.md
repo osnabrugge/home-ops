@@ -89,6 +89,11 @@ The selector follows the primary rather than hardcoding an instance ordinal.
 No live PGDATA copy, database restart, new password or superuser TCP access is
 required.
 
+The two namespaces explicitly opt in to Kopiur's `stream-exec-movers` feature.
+Its dedicated stream-mover ServiceAccount can exec in those namespaces to run
+the declared `pg_dump`; no cluster-wide exec or Secret-read grant is added.
+Kritika's restricted Pod Security enforcement is unchanged.
+
 Restore the dump with Kopiur's `target.streamExec` into a matching PostgreSQL
 major version using `pg_restore --exit-on-error`. Validate restoration in an
 isolated test database first, never against the live application database.

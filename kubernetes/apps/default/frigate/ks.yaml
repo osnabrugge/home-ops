@@ -19,11 +19,8 @@ spec:
   postBuild:
     substitute:
       APP: frigate
-      # Read the root-owned 0600 JWT secret from a read-only CSI snapshot.
-      # The repository now uses S3, not the former root-squashed NFS export.
-      KOPIUR_PUID: "0"
-      KOPIUR_RUN_AS_NON_ROOT: "false"
-      KOPIUR_CACHE_MODE: Ephemeral
+      # init-config preserves the private JWT value with uid-1000 ownership.
+      KOPIUR_IGNORE_FILE_ERRORS: "false"
       KOPIUR_CAPACITY: 5Gi
   prune: true
   sourceRef:

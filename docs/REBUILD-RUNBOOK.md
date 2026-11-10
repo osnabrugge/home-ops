@@ -496,12 +496,13 @@ changing browser security or network configuration. An HTTP-only camera and a
 browser's cached HTTPS upgrade can produce different results across browser
 profiles; do not clear parent-domain HSTS or disable IPv6 as a generic repair.
 
-Frigate writes `/config/.jwt_secret` as root:1000 mode 0600. The backup mover
-reads the read-only CSI snapshot as UID 0, with privilege escalation disabled
-and capabilities dropped; it does not relax the live secret's permissions.
-The repository is S3, so the old NFS root-squash restriction does not apply.
-An ephemeral mover cache avoids reusing the former UID-1000 cache. File errors
-must fail the backup, not silently produce a supposedly complete snapshot.
+Frigate's existing `init-config` step preserves `/config/.jwt_secret` with
+UID/GID 1000 and mode 0600 so the ordinary non-root mover can read it. An
+existing value is never replaced; a missing file is initialized using Frigate's
+own `secrets.token_hex(64)` scheme. Empty files and symlinks fail explicitly.
+This avoids enabling privileged movers for the entire `default` namespace or
+making the secret group/world-readable. File errors must fail the backup, not
+silently produce a supposedly complete snapshot.
 Verify `filesFailed: 0` and the protected file's presence after an isolated
 restore before declaring the backup repaired.
 
