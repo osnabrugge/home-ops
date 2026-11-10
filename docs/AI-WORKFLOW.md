@@ -108,6 +108,9 @@ do not replace those declarations or include cluster-global roles.
 
 These are hourly logical recovery points, not continuous WAL/PITR protection.
 The existing shared `postgres16` native backup policy remains independent.
+Kritika's cache uses 2 GiB and its quota keeps one extra transient claim slot
+for restore verification; the 20 GiB aggregate storage budget is unchanged.
+The retained legacy database claim is not deleted to make room.
 
 ### Source ownership is not the same as runtime namespace
 

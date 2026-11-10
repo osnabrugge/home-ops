@@ -25,6 +25,6 @@ spec:
     limits.cpu: "6"
     limits.memory: 5Gi
     limits.ephemeral-storage: 8Gi
-    # Keep one maintenance claim slot; aggregate storage remains bounded below.
-    persistentvolumeclaims: "4"
+    # Include the backup cache and retain one maintenance/restore-cache slot.
+    persistentvolumeclaims: "5"
     requests.storage: 20Gi
