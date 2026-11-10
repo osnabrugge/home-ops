@@ -6,4 +6,11 @@ namespace: observability
 resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
+  - ./hydra-networkpolicy.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: netbox-diode-auth-bootstrap
+    files:
+      - auth-bootstrap.py
+generatorOptions:
+  disableNameSuffixHash: true

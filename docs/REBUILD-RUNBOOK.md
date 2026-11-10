@@ -784,6 +784,36 @@ Manual remediation path:
    `MII Status: up`, and the Prometheus alert should clear after the rule's
    `for` interval.
 
+### NetBox Diode integration
+
+Running Diode Pods are not proof that inventory is synchronizing. NetBox must
+run an immutable image containing the compatible `netboxlabs-diode-netbox-plugin`
+package, enable `netbox_diode_plugin`, and apply its migrations. Preserve the
+existing NetBox version, credentials, database and media PVC during that change.
+Build reusable images in the `containers` fork, not in this manifests repository.
+Do not install a plugin into the live application virtualenv as a substitute for
+a reproducible image.
+
+The Diode Auth initializer creates absent Hydra clients from the existing
+ExternalSecret and verifies a real token with the exact role-specific scopes.
+It does not overwrite existing client settings or rotate a mismatched secret.
+Unexpected scopes, credentials or transport failures keep initialization failed
+instead of silently widening access.
+Hydra's administrative port is restricted to Diode Auth's Pod, including its
+initializer. The reconciler can use only the public token port; unrelated Pods
+must not be able to create or reset OAuth clients through Hydra's admin API.
+
+The reconciler uses NetBox's `/api/plugins/diode` endpoint. The NetBox plugin and
+discovery agents also need a front door serving both prefixed Diode gRPC methods
+and `/diode/auth` HTTP endpoints on the same authority, with authentication on
+gRPC requests and no unauthenticated direct-backend bypass.
+
+Commission discovery only after a real authenticated ingestion reconciles a
+known live fact onto the intended existing NetBox object and a repeat run is
+idempotent. Start with explicit targets and matching IDs; preserve manual names,
+rack assignments, cabling and fields the collector cannot actually discover.
+An OAuth token or Ready HelmRelease alone is not end-to-end verification.
+
 ### Radar ingress hostname and authentication
 
 Radar now uses the app-owned Authentik proxy application and native proxy-mode

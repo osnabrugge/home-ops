@@ -705,7 +705,9 @@ Sean's months of prior work were re-imported: images, device types, module types
 expansion slots. Out of date but structurally valuable.
 
 - [ ] P0: Clean up + update the imported data against reality
-- [ ] P1: Automate the **network** side via **Diode** + **netbox-operator**
+- [ ] P1: Automate the **network** side via **Diode** + **netbox-operator** - Diode needs the NetBox plugin image, authenticated gRPC/auth front door
+      and a verified scheduled discovery source; OAuth bootstrap alone is
+      not commissioned inventory synchronization.
 - [ ] P1: Evaluate **hardware lifecycle management** plugins
 - [ ] P1: Expose NetBox through **MCP** so it is a real-time, single-pane inventory
 - [ ] P2: Long-term — drive this backlog from NetBox rather than a markdown file

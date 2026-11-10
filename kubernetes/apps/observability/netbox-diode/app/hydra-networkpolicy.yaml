@@ -1,0 +1,50 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: netbox-diode-hydra
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: netbox-diode
+      app.kubernetes.io/controller: hydra
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/instance: netbox-diode
+            app.kubernetes.io/controller: diode-auth
+      toPorts:
+        - ports:
+            - port: "4444"
+              protocol: TCP
+            - port: "4445"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/instance: netbox-diode
+            app.kubernetes.io/controller: diode-reconciler
+      toPorts:
+        - ports:
+            - port: "4444"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: database
+            cnpg.io/cluster: postgres16
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
