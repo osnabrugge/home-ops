@@ -105,6 +105,11 @@ Kritika also requires its declared `vector`/`vchord` extension image and preload
 settings. Recreate application roles, database ownership and credentials from
 their existing GitOps/External Secrets declarations; these per-database dumps
 do not replace those declarations or include cluster-global roles.
+RLS policies still reference role names even with `--no-owner --no-acl`, so
+Kritika's `kritika_app` role must exist before loading the archive. For a fresh
+precreated target database, use `--single-transaction --exit-on-error` rather
+than combining an atomic restore with `--create`; this prevents a failed load
+from leaving a partially restored database.
 
 These are hourly logical recovery points, not continuous WAL/PITR protection.
 The existing shared `postgres16` native backup policy remains independent.
