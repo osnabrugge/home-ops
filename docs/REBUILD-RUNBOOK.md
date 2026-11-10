@@ -991,9 +991,14 @@ Garage or change pool/disk configuration for an exporter problem.
   reject its duplicate samples. Changing between `sdX` and stable IDs cannot
   fix either upstream metrics bug.
 - Verify `/metrics` returns HTTP 200 after a full five-minute repoll,
-  `smartctl_devices` is 35, all expected device series exist, and the Prometheus
-  target is up. Preserve real historical-error bitmasks; never zero or suppress
-  them just to make monitoring green.
+  `smartctl_devices` is 35 and the Prometheus target is up. That counter is
+  configured inventory, not proof of 35 fresh SMART reads. The default
+  `--smartctl.powermode-check=standby` skips sleeping disks; verify missing
+  readings with the same `smartctl --nocheck=standby` command and require actual
+  standby messages rather than assuming an open failure is harmless.
+  Active devices must expose their expected health series. Preserve disk
+  spindown; do not silently change the check to `never` just to fill the metrics
+  cache. Preserve real historical-error bitmasks and failing-disk alerts.
 - Original Compose rollback copies are retained beside the host source.
   Confirm other container identities and `zpool status -x` are unchanged.
 
