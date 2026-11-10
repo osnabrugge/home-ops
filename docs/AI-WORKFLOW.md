@@ -94,7 +94,9 @@ Its dedicated stream-mover ServiceAccount can exec in those namespaces to run
 the declared `pg_dump`; no cluster-wide exec or Secret-read grant is added.
 Both namespace Kustomizations include `kopiur/secret` so repository credentials
 are available where the movers run. Kritika's restricted Pod Security
-enforcement is unchanged.
+enforcement is unchanged. The backup network rule selects only Kopiur movers
+and allows cluster/NAS DNS, the Kubernetes API and NAS01's repository port;
+it does not relax the application's or review runners' network isolation.
 
 Restore the dump with Kopiur's `target.streamExec` into a matching PostgreSQL
 major version using `pg_restore --exit-on-error`. Validate restoration in an
