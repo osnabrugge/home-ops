@@ -52,11 +52,13 @@ spec:
           # This is only the local gateway credential, not an OpenRouter key.
           apiKey: { env: KRITIKA_GATEWAY_KEY }
           retries: 0
+          concurrency: 1
         local:
           type: openai
           baseUrl: http://kritika-embeddings.kritika-system.svc.cluster.local:11434/v1
           apiKey: { env: KRITIKA_EMBEDDING_KEY }
           retries: 0
+          concurrency: 1
           pricing:
             "granite-embedding:30m": { input: 0, output: 0 }
       embedding:
@@ -92,7 +94,6 @@ spec:
         commandTimeout: 15s
         fetches: 1
       limits:
-        concurrency: 1
         reviewsPerDay: 1
         # Native accounting includes the local index; each review still has 20k tokens.
         tokensPerMonth: 5000000

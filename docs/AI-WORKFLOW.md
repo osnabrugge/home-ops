@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-11-10. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-11. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Start here: what each application actually does
@@ -373,6 +373,13 @@ certify native billing-budget denial; do not report that as a passed budget test
 An external paid backend remains gated on an approved account, spending cap and
 a real exhaustion test before activation.
 
+The advisory retains finished Jobs for at most 24 hours, with the smaller
+successful/failed history limits still applying. A failed run must be
+investigated against its worker and LiteLLM logs; a later successful scheduled
+run must execute both evidence checks before an obsolete failed Job is removed.
+TTL cleanup bounds retained history; it does not turn a failed check into success
+or stop a current failure from alerting.
+
 The internal HTTPRoute exposes `/v1`, `/mcp` and the non-sensitive liveness check,
 not the admin UI or management API. API/MCP calls require keys. Cilium policies
 bound the model, gateway, key reconciler and worker traffic; model downloads are
@@ -464,9 +471,9 @@ Job name deliberately when a model bootstrap needs to run again; the model data
 remains on Ollama's existing PVC.
 
 The single-instance LiteLLM pilot database does not publish an unused
-replica-only `-ro` Service. Its operator-owned primary disruption budget remains
-enabled: blocking a voluntary eviction of the sole database pod is intentional,
-not permission to weaken that safeguard to clear a dashboard warning.
+replica-only `-ro` Service. Both pilot databases explicitly disable CNPG-managed
+PDBs under the singleton-maintenance policy above; voluntary maintenance can
+interrupt them.
 
 [Bifrost](https://bifrost.homeops.ca) is the local-only gateway evaluation.
 Its management UI is behind Authentik's full proxy, the existing
@@ -517,6 +524,15 @@ separate from Bifrost's gateway usage dashboard. Four account concurrency slots
 do not mean four models are continuously doing useful work while idle.
 
 ### Kritika bounded free-only pilot
+
+Kritika 0.0.119 moved concurrency from `limits.concurrency` to each
+`providers.<name>.concurrency`. Both the free review provider and local embedder
+explicitly keep one slot. The removed account-level field prevents startup;
+a successful Helm render alone does not detect it. Validate the rendered
+configuration using the exact chart-pinned image's `config check` command before
+reconciling an upgrade. Provider request timeouts retain their five-minute
+default; the agent's separate five-minute total deadline, disabled retries and
+fallbacks, and review/publication gates remain unchanged.
 
 Kritika 0.0.118 is deployed in `kritika-system`, with one service replica and
 a separate PostgreSQL 18.6 cluster, `kritika-db` (pgvector 0.8.7 and VectorChord
