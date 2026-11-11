@@ -66,7 +66,7 @@ spec:
           app:
             image:
               repository: docker.io/library/nginx
-              tag: 1.29.3@sha256:2f4e10193b0c4f61472245e9d26cea78e7df7af266c7e7cf5e67353ee2731b51
+              tag: 1.31.8@sha256:165ddde8751e75a1c907d24ef10d9f6deb08b57e0fe56caf67512486aff76d82
             command: [nginx, -c, /etc/diode/nginx.conf, -g, "daemon off;"]
             probes:
               readiness:
