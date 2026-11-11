@@ -30,6 +30,50 @@ can Authelia be disabled. LLDAP retirement has its own LDAP/RADIUS consumer gate
 No blanket identity cutover, password/passkey migration, administrator grant or
 legacy-database deletion is implied by this strategy.
 
+### What is still missing, and what standardization means
+
+The deployed default Authentik login flow has an MFA-validation stage, but its
+`not_configured_action` is `skip`. It therefore does not require an unenrolled
+user to enroll. Existing passkey enrollment is not estate-wide MFA enforcement.
+Enrollment and tested recovery must precede changing that policy; a technical
+OIDC canary is not a substitute for the real user's login/recovery test.
+
+Authentik is the common identity authority, not a universal appliance API.
+These are integration targets, not claims that each cutover is complete:
+
+| Surface              | Integration boundary                                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Proxmox              | Authentik OIDC for supported browser login; separately scoped native API tokens and PVE authorization for automation                     |
+| OPNsense             | Supported LDAP/RADIUS login and group/privilege mapping; native scoped API credentials remain separate                                   |
+| TrueNAS              | Verify supported directory integration separately from API access; CE does not support AD/LDAP-user-linked API keys                      |
+| Omada                | SAML for controller browser login; OpenAPI machine authentication is separate; APs normally send WPA-Enterprise RADIUS                   |
+| Brocade and MikroTik | Verified firmware-specific management RADIUS/role mapping; wired 802.1X and accounting are separate configurations                       |
+| SSH hosts            | Managed keys or short-lived OpenSSH certificates where supported, with explicit account/sudo authorization and protected recovery access |
+| Kubernetes and Talos | Supported API authentication plus scoped authorization; Talos client certificates are not replaced by browser SSO                        |
+
+An interactive assistant currently uses the credentials authorized for its MCP
+connections. The application operator's reconciliation principal is not its
+estate-wide identity. Some entry points, such as Radar, already use Authentik
+and app-scoped authorization; that does not commission one cross-platform agent
+identity or lifecycle.
+
+The target is attributable, least-privilege automation identities, with separate
+per-backend credentials where a platform cannot consume central tokens. Do not
+reuse one administrator key everywhere or create local full-admin accounts to
+make the diagram look complete. Lifecycle must cover group changes, application
+sessions, API tokens, SSH keys/certificates and network credentials; disabling an
+IdP user alone does not revoke every issued backend credential.
+
+FreeRADIUS can remain the network-protocol adapter while Authentik becomes the
+directory authority. It is not redundant merely because the web IdP is
+standardized. Its current LLDAP backend and controller-only NAS client entries
+are not a working fleet-wide Wi-Fi deployment. Pilot certificate-based EAP-TLS
+with actual AP/switch source addresses, server trust, VLAN mapping and accounting;
+do not assume PEAP/MSCHAPv2 can validate Authentik password hashes through LDAP.
+Keep existing SSIDs, production port authentication and recovery logins unchanged
+until those tests pass. Authelia and LLDAP retire only after their actual
+consumers migrate; this is not a request to deploy another identity product.
+
 ## Current decision and rollout (2026-10-26)
 
 Use **Authentik Community Edition as the target identity authority**, managed by

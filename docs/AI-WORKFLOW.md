@@ -50,6 +50,30 @@ review/index dashboard. ToolHive's MCP management facilities do not mean a
 cluster browser console has been deployed. Human login and machine API keys
 are separate concerns; see [the authentication strategy](AUTH-ARCHITECTURE.md).
 
+### What to use day to day
+
+- Keep using VS Code/Copilot for interactive engineering. It already has its
+  selected model and authorized MCP connections; cluster inference is optional.
+- The scheduled SMART advisory runs without dashboard interaction. Inspect its
+  Job logs for the two measured checks and its explanation, not a repair queue.
+- Use Kritika for reviewing an existing, explicitly approved PR, not generating
+  new fix PRs. Indexing builds retrieval context; it does not create review work.
+  The false automatic-trigger rule and first-publication approval still apply.
+- LiteLLM's deployed native UI exists. For private administration, use
+  `kubectl -n ai port-forward --address 127.0.0.1 service/litellm 4000:4000`
+  with the repository kubeconfig, then open `http://127.0.0.1:4000/ui/` and use
+  approved administrator credentials, not the advisory's restricted key.
+  This does not publish the management UI or commission Authentik SSO.
+- Bifrost remains an evaluation with no scheduled production client. Its idle
+  dashboard is expected; do not add another agent just to populate it.
+
+Neither a GPU nor an OpenRouter top-up completes these workflows. The current
+small local model is inadequate for general tool planning; a separately approved,
+capped API-model evaluation can test that requirement before buying hardware.
+Kritika already has a guarded free-only review path. A better model does not
+replace trigger configuration, publication approval, backend permissions,
+evaluation or identity lifecycle management.
+
 ### Observability is also a separate layer
 
 The existing Prometheus/Grafana and VictoriaLogs collection stack should remain
@@ -346,12 +370,25 @@ The model cache and pilot database have pruning fences. New master, salt and
 worker keys are SOPS-encrypted with the existing cluster recipient; the namespace
 root owns decryption because child namespaces do not hold the Flux age key.
 
-The current LiteLLM operator 0.0.25 chart grants cluster-wide deployment and Secret
-create/delete/write access and has no supported namespace watch scope. Keep its
+The inactive LiteLLM operator draft targets 0.0.25. Upstream 0.0.26 still grants
+cluster-wide deployment and Secret create/delete/write access and has no supported
+namespace watch scope. `CONTROLLER_NAMESPACE` selects controller-local
+certificate resources; it does not restrict the manager's watch scope. Keep the
 draft inactive rather than grant those permissions merely to start the pilot.
 The direct-chart gateway and native key-policy reconciler do not need a Kubernetes
 API token or a new cluster role. The reconciler manages only its predeclared worker
 key and validates models, routes, request/token limits and the one-tool MCP scope.
+
+The gVisor draft only declares a `RuntimeClass`; it does not install `runsc`.
+The intended worker k8s06 has no gVisor extension, and the cluster has no
+RuntimeClass installed. Commission it through an approved, drained-worker Talos
+extension rollout, verifying the extension's user-namespace prerequisites and
+restricting RuntimeClass scheduling to verified nodes. Test DNS, Services,
+gateway access, denied destinations and the real runner under the current
+Cilium netkit datapath before moving review workloads. Compatibility is not
+certified, and a cluster-wide conversion to veth is not an implicit prerequisite
+or an approved shortcut. The existing native user-namespace runner can operate
+without gVisor, but does not offer gVisor's kernel isolation boundary.
 
 The workflow has exactly two evidence functions: current NAS01 SMART scrape health
 and the community smartctl-exporter release lookup through the existing Kubesearch
@@ -534,7 +571,7 @@ reconciling an upgrade. Provider request timeouts retain their five-minute
 default; the agent's separate five-minute total deadline, disabled retries and
 fallbacks, and review/publication gates remain unchanged.
 
-Kritika 0.0.118 is deployed in `kritika-system`, with one service replica and
+Kritika 0.0.119 is deployed in `kritika-system`, with one service replica and
 a separate PostgreSQL 18.6 cluster, `kritika-db` (pgvector 0.8.7 and VectorChord
 1.1.1). Its owner and application roles are non-superusers; the application role
 does not own tables or bypass row-level security. The original
@@ -586,7 +623,7 @@ still wait for a dashboard choice, and database policy permits only the selected
 public repository. Keep the automatic-trigger include expression false; that
 is the review-publication hold, not the root indexing default.
 
-The limits remain one concurrent model call, one review per day and 20,000
+The limits remain one concurrent call per model, one review per day and 20,000
 tokens per review. Native monthly accounting also includes local index tokens,
 so its shared ceiling is now 5,000,000 rather than the former 20,000; otherwise
 the first local index would consume the review allowance. This is not a paid

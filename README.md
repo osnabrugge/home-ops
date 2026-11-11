@@ -36,7 +36,7 @@ Container images are **not** built here. This repo holds manifests only — it c
 
 - **home-ops** (this repo) — Talos config, Kubernetes manifests, Flux configuration, docs.
 - **[container-images](https://github.com/osnabrugge/container-images)** — personal images with no upstream equivalent, such as the MCP servers this cluster runs. Publishes to `ghcr.io/osnabrugge/*`.
-- **[containers](https://github.com/osnabrugge/containers)** — fork of [home-operations/containers](https://github.com/home-operations/containers), used solely to stage PRs back upstream. Nothing in it is deployed to this cluster.
+- **[containers](https://github.com/osnabrugge/containers)** — fork of [home-operations/containers](https://github.com/home-operations/containers) for reusable image recipes/tests and upstream contributions. The deployed NetBox Diode image uses its pinned recipe, published through `container-images`.
 
 **Where does a new image go?** If another homelabber would plausibly want it, open a PR against the `containers` fork. If it only makes sense for this estate, it belongs in `container-images`.
 
@@ -97,6 +97,11 @@ restart services, or post GitHub updates; unresolved incidents return an explici
 escalation packet. Current incident state belongs in MCP memory, not this
 README's historical activity log.
 
+[Authentication architecture](docs/AUTH-ARCHITECTURE.md) distinguishes the
+Authentik target from unfinished consumer, MFA, network-access and automation
+identity rollout. The [Diode operating procedure](docs/REBUILD-RUNBOOK.md#discovery-operations-and-enrollment)
+covers automatic polling, reviewed enrollment and the limits of subnet discovery.
+
 ---
 
 ## 🌐 Network
@@ -139,7 +144,7 @@ Cilium advertises LoadBalancer IPs (192.168.69.0/24) via BGP to the Brocade core
 
 | Device                         | Count | Role                                       | IP(s)            | OS                                              |
 | ------------------------------ | ----- | ------------------------------------------ | ---------------- | ----------------------------------------------- |
-| Lenovo ThinkCentre M920q       | 6     | Kubernetes (3 CP + 3 worker)               | 192.168.42.51–56 | Talos v1.13.4                                   |
+| Lenovo ThinkCentre M920q       | 6     | Kubernetes (3 CP + 3 worker)               | 192.168.42.51–56 | Talos Linux (live version above)                |
 | Synology DS1821+               | 1     | NAS + temporary app host                   | 192.168.42.10    | DSM                                             |
 | Brocade ICX 6610-48P (stacked) | 2     | Core L3 switch                             | VIP: .4/vlan     | FastIron                                        |
 | Protectli FW6C                 | 1     | Firewall (OPNsense)                        | 192.168.0.10     | OPNsense                                        |

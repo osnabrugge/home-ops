@@ -853,6 +853,58 @@ bad secrets, forged JWTs, valid tokens lacking ingestion scope and direct
 connections to the raw ingester or Hydra admin API. Redact runtime credentials
 when examining agent logs.
 
+#### Discovery operations and enrollment
+
+The four enrolled devices reconcile automatically; there is no manual action
+per polling cycle or per observed field change. Diode is ingestion plumbing;
+Orb performs discovery. The installed plugin's **Diode** menu contains
+**Settings** and **Client Credentials**, not a commissioned discovery dashboard
+or an approval queue.
+
+Check scheduled collection with the repository kubeconfig:
+
+```sh
+kubectl -n observability logs deployment/netbox-diode-discovery --since=15m
+```
+
+Look for `SNMP crawl complete` and `entities ingested successfully` for each
+target. Those establish collection/submission, not applied changes by themselves:
+check the reconciler for errors and the intended NetBox device's change log
+when a discovered fact changes. Repeated identical data is deduplicated and need
+not produce a new NetBox change record. Pod readiness alone is not freshness.
+
+To enroll another existing device under the current policy:
+
+1. Confirm its existing NetBox ID, live management endpoint, supported collector
+   and approved read-only credentials.
+2. Inspect a separate collector's dry-run payload first. Orb supports
+   `orb.backends.common.diode.dry_run: true` with
+   `dry_run_output_dir: /opt/orb`; use disposable scratch storage, not a change
+   that stops the production collector from ingesting.
+3. Add the reviewed target/ID and preserved type/role defaults to
+   `kubernetes/apps/observability/netbox-diode/app/agent.yaml`. Extend both SNMP
+   peer lists in the adjacent `discovery-networkpolicy.yaml`; otherwise the
+   collector cannot reach the new device. Keep credentials in approved secret
+   storage, not the ConfigMap.
+4. Build the `netbox-diode` Flux Kustomization, commit/push and request
+   reconciliation. Reloader rolls discovery when its generated ConfigMap changes;
+   verify that rollout and two scheduled cycles, correct object matching,
+   unchanged manual fields and repeat-run idempotency.
+
+Automatic address discovery is supported by the deployed Orb version:
+`scope.targets[].host` accepts a CIDR or IP range. It is not enabled here.
+Crucially, `netbox_id` is ignored for range targets, so replacing the explicit
+list with a subnet does not preserve this policy's exact-ID matching guarantee.
+SNMPv2c range probes also send the community to every scanned address; prefer
+SNMPv3 for scanning outside a trusted scope.
+
+For less manual enrollment, an inventory-to-policy generator can select approved,
+tagged NetBox devices and emit exact IDs/endpoints. That generator is not deployed.
+Orb's supported local/Git config managers do not themselves query NetBox for
+targets. Git-managed policies can refresh separately, but initial backend and
+config-manager settings still require a restart. Choose an explicit discovery
+scope and matching policy before enabling broad automatic ingestion.
+
 ### Radar ingress hostname and authentication
 
 Radar now uses the app-owned Authentik proxy application and native proxy-mode
