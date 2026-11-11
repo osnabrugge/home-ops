@@ -705,9 +705,14 @@ Sean's months of prior work were re-imported: images, device types, module types
 expansion slots. Out of date but structurally valuable.
 
 - [ ] P0: Clean up + update the imported data against reality
-- [ ] P1: Automate the **network** side via **Diode** + **netbox-operator** - Diode needs the NetBox plugin image, authenticated gRPC/auth front door
-      and a verified scheduled discovery source; OAuth bootstrap alone is
-      not commissioned inventory synchronization.
+- [ ] P1: Extend automatic **network** inventory via **Diode** + **netbox-operator**
+    - [x] Commission the pinned NetBox plugin, scoped OAuth clients and authenticated
+          internal gRPC/auth gateway; deny raw-backend bypass.
+    - [x] Enable five-minute read-only SNMP device-fact discovery for the four
+          explicitly matched UPS/PDU endpoints, preserving manual placement and names.
+    - [ ] Expand field-reviewed collectors beyond those targets. Interface ingestion
+          is intentionally disabled for their ambiguous/non-printable identifiers;
+          physical cables and NAS/HBA hardware are not inferred by this collector.
 - [ ] P1: Evaluate **hardware lifecycle management** plugins
 - [ ] P1: Expose NetBox through **MCP** so it is a real-time, single-pane inventory
 - [ ] P2: Long-term — drive this backlog from NetBox rather than a markdown file

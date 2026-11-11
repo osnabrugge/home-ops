@@ -793,12 +793,21 @@ existing NetBox version, credentials, database and media PVC during that change.
 Build reusable images in the `containers` fork, not in this manifests repository.
 Do not install a plugin into the live application virtualenv as a substitute for
 a reproducible image.
+The deployed variant keeps NetBox 4.7.4 and pins plugin 1.19.0. Its reusable
+recipe and container tests live in the `containers` fork; the
+`container-images` publication workflow builds that exact source revision.
+The chart pins the published image digest, and plugin OAuth settings come from
+the existing Key Vault data through a separate ExternalSecret.
 
 The Diode Auth initializer creates absent Hydra clients from the existing
 ExternalSecret and verifies a real token with the exact role-specific scopes.
 It does not overwrite existing client settings or rotate a mismatched secret.
 Unexpected scopes, credentials or transport failures keep initialization failed
 instead of silently widening access.
+Hydra must use `STRATEGIES_JWT_SCOPE_CLAIM=string`: `list` emits an `scp` array,
+but the released Diode authorizer requires a `scope` string. Bootstrap checks
+that JWT representation as well as the token response. After changing it,
+restart the stateless reconciler once to discard a cached incompatible token.
 Hydra's administrative port is restricted to Diode Auth's Pod, including its
 initializer. The reconciler can use only the public token port; unrelated Pods
 must not be able to create or reset OAuth clients through Hydra's admin API.
@@ -810,13 +819,39 @@ those peers to access Hydra's administrative port.
 The reconciler uses NetBox's `/api/plugins/diode` endpoint. The NetBox plugin and
 discovery agents also need a front door serving both prefixed Diode gRPC methods
 and `/diode/auth` HTTP endpoints on the same authority, with authentication on
-gRPC requests and no unauthenticated direct-backend bypass.
+gRPC requests and no unauthenticated direct-backend bypass. The internal
+`netbox-diode:8080` gateway provides this contract; it has no public HTTPRoute.
+Backend policy permits raw gRPC only from that gateway. Keep the Diode service
+account non-superuser and retain normal NetBox change logging.
+
+The rootless Orb agent currently polls only `pdu01`, `pdu02`, `ups01` and
+`ups02` every five minutes using the existing read-only SNMP credential.
+Each target declares its existing NetBox primary key; names are not discovered
+or renamed. Only device facts are ingested: their platform and SNMP system
+description, with the existing site, role and device type explicitly preserved.
+Rack placement, addresses, cabling, custom fields and comments are not emitted.
+These devices return ambiguous or non-printable interface names, so their
+interface proposals are disabled rather than creating duplicate or invalid
+interfaces. This is not fleet-wide hardware, port or cable discovery.
+
+The SNMP credential is SOPS-encrypted, not embedded in the agent ConfigMap.
+Seed the existing namespace decryption key with
+`just kube seed-sops-key observability` when rebuilding. The ConfigMap disables
+Flux substitution so Orb resolves credential environment variables at runtime.
+The agent has no Kubernetes API token and egress is limited to the four SNMP
+endpoints, cluster DNS and the authenticated gateway.
 
 Commission discovery only after a real authenticated ingestion reconciles a
 known live fact onto the intended existing NetBox object and a repeat run is
 idempotent. Start with explicit targets and matching IDs; preserve manual names,
 rack assignments, cabling and fields the collector cannot actually discover.
 An OAuth token or Ready HelmRelease alone is not end-to-end verification.
+Verify both real scheduled ingestion and its applied NetBox changes, followed
+by a repeat cycle without duplicate objects or repeated data changes. Retain
+the manual-field baseline during commissioning. Negative controls must reject
+bad secrets, forged JWTs, valid tokens lacking ingestion scope and direct
+connections to the raw ingester or Hydra admin API. Redact runtime credentials
+when examining agent logs.
 
 ### Radar ingress hostname and authentication
 
