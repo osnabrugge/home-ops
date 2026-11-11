@@ -24,7 +24,7 @@ truth that anything reconciles from.
 
 | Interface         | Role                                                                                                                                    |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `bond1`           | 802.3ad over `enlan2` + `enlan3`, static `192.168.99.40/24`, gw `192.168.99.4` — management, and the only link that carries the host IP |
+| `bond1`           | 802.3ad over `enlan2` + `enlan3`, static `192.168.99.41/24`, gw `192.168.99.4` — management, and the only link that carries the host IP |
 | `vmbr0`           | bridge over `enwan0` (ext01 sfp-sfpplus1) — WAN                                                                                         |
 | `vmbr2`           | bridge over `enlan4` (fw01-igb3) — pfsync                                                                                               |
 | `bond0` / `vmbr1` | commented out; the Mellanox ports `enp15s0f0np0` / `enp15s0f1np1` are passed through to a guest                                         |

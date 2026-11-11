@@ -181,7 +181,8 @@ def check_approval(config, raw_config, arm_path):
         raise ValueError("approval does not match the exact policy file")
     finalizers = config["finalizers"]
     for key, ip in (("nas02_ssh_target", "192.168.42.10"),
-                    ("pve01_ssh_target", "192.168.99.40")):
+                    ("pve01_ssh_target", "192.168.99.41"),
+                    ("pve02_ssh_target", "192.168.99.42")):
         if not re.fullmatch(r"[a-z_][a-z0-9_-]*@" + re.escape(ip),
                             finalizers.get(key) or ""):
             raise ValueError(f"{key} must be an existing reviewed identity at {ip}")

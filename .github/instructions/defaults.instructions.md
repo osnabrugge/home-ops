@@ -1,10 +1,10 @@
 ---
 applyTo: https://github.com/osnabrugge/home-ops
 description: >-
-  Default route instructions for all agents operating on this repository.
-  These instructions apply when no task-specific or user-provided instructions
-  override them. Priority: user instructions > task-specific instructions > these defaults.
-  Agents MUST consult this file before starting work, during work, and before signaling completion.
+    Default route instructions for all agents operating on this repository.
+    These instructions apply when no task-specific or user-provided instructions
+    override them. Priority: user instructions > task-specific instructions > these defaults.
+    Agents MUST consult this file before starting work, during work, and before signaling completion.
 ---
 
 # Default Agent Instructions — home-ops
@@ -14,6 +14,7 @@ description: >-
 **You are NOT done until you have completed ALL of the following steps.** Do not signal task completion, summarize, or stop executing until every item is checked off.
 
 ### 1.1 Validate Your Changes
+
 - After EVERY file edit, run the relevant reconciliation or build command to confirm the change took effect.
 - After EVERY Kubernetes manifest change: `flux reconcile` the relevant Kustomization and verify pod/service status.
 - After EVERY Talos config change: `talosctl apply-config` and verify with `talosctl get machinestatus`.
@@ -21,14 +22,17 @@ description: >-
 - Never assume a change worked — **prove it** with a command that shows the new state.
 
 ### 1.2 Update Documentation
+
 - If you change infrastructure, update the relevant section in `docs/REBUILD-RUNBOOK.md` or add comments in the affected manifests.
 - Keep commit messages descriptive: `fix(network): restore homeops.ca DNS overrides on fw01 unbound` not `fix stuff`.
 
 ### 1.3 Clear Change Record
+
 - After completing a set of changes, run `git status` to confirm there are no uncommitted changes.
 - If changes were made, commit and push them. Do not leave dirty working trees.
 
 ### 1.4 Post-Change Health Check (MANDATORY — Every Time)
+
 After completing your primary task, you MUST perform a full health check pass before stopping:
 
 ```
@@ -75,62 +79,73 @@ kubectl exec -n rook-ceph deploy/rook-ceph-tools -- ceph status 2>/dev/null | he
 ## 2. Production Safety Rules
 
 ### 2.1 Firewall (fw01 — 192.168.42.1, OPNsense/FreeBSD)
+
 - **NEVER** modify `/conf/config.xml` directly for anything other than SSH key management without explicit user approval.
 - **NEVER** restart services like unbound, pf, or the firewall itself without explicit user approval.
 - DNS overrides via `unbound-control` are acceptable for immediate fixes but MUST be persisted in `/var/unbound/etc/homeops-override.conf`.
 - After ANY DNS change on fw01, verify with `drill <hostname> @127.0.0.1` from fw01 AND test from a LAN client.
 - Port forwards and NAT rules: verify with `pfctl -sr | grep <port>` and `pfctl -t <table> -T show`.
 
-### 2.2 NAS (nas02 — 192.168.42.10)
+### 2.2 NAS (nas01-02)
+
 - Do not modify NFS exports, ZFS datasets, or system services without explicit user approval.
 - File permission fixes (chown/chmod) on NFS shares are acceptable when fixing known issues.
 
-### 2.3 Proxmox (pve01 — 192.168.99.40)
+### 2.3 Proxmox (pve01)
+
 - Do not modify VMs, storage, or networking without explicit user approval.
 
 ### 2.4 Talos Nodes (k8s01-06)
+
 - Config changes require `talosctl apply-config`. Never use `--mode=reboot` without explicit user approval.
 - Verify all 3 etcd members and API servers are healthy after ANY control plane change.
 
 ## 3. Architecture Reference
 
 ### 3.1 DNS Resolution Flow
+
 - **LAN clients** → fw01 unbound (192.168.42.1:53) → internal apps override to envoy-internal (192.168.69.121), external apps passthrough to Cloudflare.
 - **Cluster pods** → CoreDNS → template plugin resolves `*.homeops.ca` to 192.168.69.121.
 - **External users** → Cloudflare DNS → CNAME → Cloudflare Tunnel → envoy-external (192.168.69.126).
 - FW01 is hosting unbound DNS which is enabled for remote control, for any app that is added and requires internal DNS resolution, you must ensure envoy-internal has an HTTPRoute and validate that External-DNS webhook for Unbound-Control is creating the DNS record correctly in FW01. Please take extra care to double-check prior to publishing anything via envoy-external with the user.
 
 ### 3.2 Gateway Routing
+
 - **envoy-internal** (192.168.69.121): All internal-only HTTPRoutes + some dual-homed apps (plex).
 - **envoy-external** (192.168.69.126): External-facing apps (gatus/status, seerr, home-assistant, plex, echo, kromgo, flux-webhook).
 - New internal apps need: HTTPRoute with `parentRef: envoy-internal` AND a DNS entry in fw01's homeops-override.conf.
 - New external apps need: HTTPRoute with `parentRef: envoy-external` AND a Cloudflare DNS record (managed by external-dns or manually).
 
 ### 3.3 Key IPs
-| Resource | IP | Notes |
-|---|---|---|
-| fw01 (OPNsense) | 192.168.42.1 | Primary firewall, DNS server for all VLANs |
-| nas02 (TrueNAS) | 192.168.42.10 | NFS storage for PVCs |
-| pve01 (Proxmox) | 192.168.99.40 | Hypervisor hosting gw01 VM |
-| k8s01-03 (CP) | 192.168.42.51-53 | Talos control plane nodes |
-| k8s04-06 (Workers) | 192.168.42.54-56 | Talos worker nodes |
-| envoy-internal | 192.168.69.121 | Internal gateway LB |
-| envoy-external | 192.168.69.126 | External gateway LB |
-| kube-api LB | 192.168.69.120 | Kubernetes API LoadBalancer |
-| qbittorrent LB | 192.168.69.123 | Torrent client (port 31288) |
-| smtp-relay | 192.168.69.122 | Maddy SMTP relay (port 587) |
+
+| Resource           | IP               | Notes                                      |
+| ------------------ | ---------------- | ------------------------------------------ |
+| fw01 (OPNsense)    | 192.168.42.1     | Primary firewall, DNS server for all VLANs |
+| nas02 (TrueNAS)    | 192.168.42.10    | NFS storage for PVCs                       |
+| pve01 (Proxmox)    | 192.168.99.41    | Hypervisor hosting gw01 VM                 |
+| pve02 (Proxmox)    | 192.168.99.42    | Hypervisor hosting gw02 VM                 |
+| k8s01-03 (CP)      | 192.168.42.51-53 | Talos control plane nodes                  |
+| k8s04-06 (Workers) | 192.168.42.54-56 | Talos worker nodes                         |
+| envoy-internal     | 192.168.69.121   | Internal gateway LB                        |
+| envoy-external     | 192.168.69.126   | External gateway LB                        |
+| kube-api LB        | 192.168.69.120   | Kubernetes API LoadBalancer                |
+| qbittorrent LB     | 192.168.69.123   | Torrent client (port 31288)                |
+| smtp-relay         | 192.168.69.122   | Maddy SMTP relay (port 587)                |
 
 ### 3.4 Secrets Management
+
 - Azure Key Vault (`keyvault-kube`) via ExternalSecrets operator.
 - `scripts/akv-inject.sh` injects AKV secrets into Talos configs. **WARNING**: Sort placeholders longest-first to avoid prefix corruption (see repo memory).
 
 ## 4. GitOps Workflow
+
 - All changes go through Git → Flux reconciliation. Do not `kubectl apply` manifests directly except for emergency hotfixes.
 - Emergency hotfixes MUST be followed by committing the equivalent change to Git.
 - Flux source: `osnabrugge/home-ops` on GitHub, branch `main`.
 - HelmReleases use `oci://` charts where possible.
 
 ## 5. Monitoring & Alerting Expectations
+
 - **Gatus** at `status.homeops.ca` — monitors all HTTP endpoints. Target: 0 unhealthy.
 - **Alertmanager** at `alertmanager.homeops.ca` — target: only Watchdog alert active.
 - **Prometheus** at `prometheus.homeops.ca` — all scrape targets should be UP.
@@ -149,6 +164,7 @@ kubectl exec -n rook-ceph deploy/rook-ceph-tools -- ceph status 2>/dev/null | he
 **The minimum acceptable output is**: changes made + validation proof + health check results + remaining issues list.
 
 Do NOT:
+
 - Stop after completing one item from a multi-item request.
 - Signal completion without running validation commands.
 - Leave uncommitted changes in the working tree.

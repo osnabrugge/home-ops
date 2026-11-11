@@ -227,7 +227,8 @@ class SequenceTests(unittest.TestCase):
     def setUp(self):
         self.config = policy()
         self.config["finalizers"].update(nas02_ssh_target="sean-admin@192.168.42.10",
-                                         pve01_ssh_target="sean-admin@192.168.99.40")
+                                         pve01_ssh_target="sean-admin@192.168.99.41",
+                                         pve02_ssh_target="sean-admin@192.168.99.42")
         self.journal, self.runner = MemoryJournal(), FakeRunner()
         self.sequence = ups.Sequencer(self.config, self.journal, lambda: None,
                                       run=self.runner, clock=lambda: 0)
@@ -358,7 +359,8 @@ class PersistenceAndGuardTests(unittest.TestCase):
     def test_native_unbounded_shutdown_is_a_hard_arm_gate(self):
         config = policy()
         config["finalizers"].update(nas02_ssh_target="sean-admin@192.168.42.10",
-                                    pve01_ssh_target="sean-admin@192.168.99.40")
+                                    pve01_ssh_target="sean-admin@192.168.99.41",
+                                    pve02_ssh_target="sean-admin@192.168.99.42")
         raw = json.dumps(config).encode()
         approval = self.directory / "approval"
         approval.write_text(hashlib.sha256(raw).hexdigest())
