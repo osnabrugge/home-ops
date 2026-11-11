@@ -813,6 +813,10 @@ created only on a fresh volume; startup must not reset existing users, passwords
 or MFA. Rotate a recovery password through PDM and the approved secret store
 together. OIDC/remote drift fails bootstrap explicitly rather than overwriting
 an existing integration.
+Open the private PDM URL, keep the `authentik` realm selected, and choose
+**Login (OpenID redirect)** for normal human sign-in. The local `pdm` realm is
+for the separately stored recovery credential, not an alternative central
+directory.
 
 Initial remote enrollment uses pve02's existing audit-only API token. Adding a
 remote is not permission to create remote tokens, change host ACLs or enable
@@ -821,6 +825,9 @@ access first; never compensate for a failed credential with root credentials.
 The current policy permits only the declared Proxmox API endpoint, the private
 OIDC endpoint and cluster DNS. Broaden both the reviewed bootstrap allowlist and
 network policy deliberately when enrolling another remote.
+Under an audit-only token, update-management queries can return
+`403 /nodes/<node>, Sys.Modify`; this is an intentional permission boundary.
+Do not grant host modification rights just to clear that panel or its log entry.
 
 One retained Ceph PVC holds configuration, keys, native users, remote credentials,
 state, RRD cache and logs. A memory-backed runtime directory is required for
