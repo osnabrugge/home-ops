@@ -102,6 +102,13 @@ Authentik target from unfinished consumer, MFA, network-access and automation
 identity rollout. The [Diode operating procedure](docs/REBUILD-RUNBOOK.md#discovery-operations-and-enrollment)
 covers automatic polling, reviewed enrollment and the limits of subnet discovery.
 
+### Proxmox management
+
+[Proxmox Datacenter Manager](https://pdm.homeops.ca) has an isolated `proxmox`
+namespace, native Authentik OIDC and retained state. Its initial remote uses
+read-only API access; deployment does not authorize changes to Proxmox hosts,
+VMs or networking. See the [PDM operating procedure](docs/REBUILD-RUNBOOK.md#proxmox-datacenter-manager).
+
 ---
 
 ## 🌐 Network

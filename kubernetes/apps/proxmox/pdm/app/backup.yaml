@@ -1,0 +1,53 @@
+---
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: SnapshotPolicy
+metadata:
+  name: pdm
+spec:
+  compression:
+    compressor: zstd
+  mover:
+    cache:
+      capacity: 1Gi
+      mode: Persistent
+      storageClassName: openebs-hostpath
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 512Mi
+  repository:
+    kind: ClusterRepository
+    name: nas01
+  retention:
+    keepLatest: 3
+    keepHourly: 24
+    keepDaily: 7
+    keepWeekly: 4
+  sources:
+    - sourcePathOverride: /pdm
+      stream:
+        fileName: pdm.tar
+        workloadExec:
+          command:
+            [tar, --format=posix, --numeric-owner, -C, /data, -cpf, "-", config, state, cache]
+          container: privileged-api
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: pdm
+          timeout: 5m
+---
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: SnapshotSchedule
+metadata:
+  name: pdm
+spec:
+  policyRef:
+    name: pdm
+  schedule:
+    cron: H * * * *

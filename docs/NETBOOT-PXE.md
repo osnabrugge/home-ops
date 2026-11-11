@@ -332,22 +332,21 @@ set iso-base http://192.168.69.131/assets/isos
 
 ## SecureBoot Compatibility
 
-netboot.xyz supports SecureBoot-aware booting:
-
-- **x86-64 UEFI with SecureBoot:** Use `netboot.xyz-snp-efi` (signed by known CAs)
-- **Custom Secure Boot keys:** Future work — generate custom PK/KEK/db keys and enroll in firmware
-- **Talos with SecureBoot:** The Talos Image Factory can produce SecureBoot-signed images;
-  chain-load from netboot.xyz to the signed kernel/initrd
+A successful UEFI/TFTP transfer does not prove a trusted Secure Boot chain.
+In particular, an SNP network-driver build is not evidence that an EFI binary
+is signed by a firmware-trusted key. netboot.xyz's shim support is
+distribution-specific; verify the selected loader and Talos boot artifact
+against the actual firmware trust policy before using them on production nodes.
 
 ### Current Talos nodes (SecureBoot status)
 
-The Talos nodes (k8s01-06) should maintain SecureBoot functionality during re-imaging.
-When re-imaging via PXE:
-
-1. Boot the node to netboot.xyz (via the dnsmasq config above)
-2. Select **Talos Linux → Custom Talos** from the menu
-3. Use the Talos Image Factory URL for the specific schematic that includes SecureBoot signing
-4. After booting, apply the rendered config: `just talos apply`
+The production Talos nodes must retain Secure Boot. Their verified network
+loader chain and an attended rebuild are still separate commissioning gates;
+the Pi lab's native firmware path does not validate them. Do not disable Secure
+Boot, change their normal boot order, serve production machine secrets over
+TFTP/HTTP, or enable automatic installation based only on a MAC prefix.
+An approved rebuild must identify the exact node and target disk, boot the
+matching maintenance image, then apply its private configuration separately.
 
 ---
 

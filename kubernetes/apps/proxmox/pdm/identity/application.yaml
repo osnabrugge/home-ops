@@ -1,0 +1,43 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: pdm
+spec:
+  slug: pdm
+  name: Proxmox Datacenter Manager
+  group: Infrastructure
+  deletionPolicy: Retain
+  adopt: Never
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-implicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    oauth2:
+      clientType: Confidential
+      redirectURIs:
+        - url: https://pdm.homeops.ca
+          matchingMode: Strict
+        - url: https://pdm.homeops.ca/
+          matchingMode: Strict
+      scopes:
+        - scopeName: openid
+        - scopeName: profile
+        - scopeName: email
+      grantTypes:
+        - AuthorizationCode
+      signingKey:
+        name: authentik Self-signed Certificate
+      credentials:
+        clientID: pdm
+        secretRef:
+          name: pdm-oidc
+  access:
+    mode: Any
+    rules:
+      - group:
+          name: authentik Admins
+      - user:
+          username: sean

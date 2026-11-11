@@ -784,6 +784,57 @@ Manual remediation path:
    `MII Status: up`, and the Prometheus alert should clear after the rule's
    `for` interval.
 
+### Proxmox Datacenter Manager
+
+PDM runs in its own `proxmox` namespace at `https://pdm.homeops.ca`, through
+`envoy-internal` only. It is an optional management plane; neither Proxmox host
+nor its guests depends on it to run. Retain direct host and out-of-band access.
+
+The pinned LongQT-sea image contains PDM 1.1.9. Its default systemd entrypoint
+is deliberately bypassed: Kubernetes starts the native privileged API as a
+restartable init sidecar, configures it, then starts the web API as UID 33.
+The Pod uses a native user namespace, no Kubernetes token, no host mounts or
+host networking, read-only roots and RuntimeDefault seccomp. Only the mapped
+root setup/helper receives CHOWN, DAC_OVERRIDE and FOWNER; neither daemon gets
+SYS_ADMIN or NET_ADMIN. SSH/systemd are not started. Do not copy upstream's
+unconfined Docker example into this deployment.
+
+Authentik supplies native OIDC, not an additional proxy login. Its app-owned
+provider admits the existing owner and administrator group; PDM's separate ACL
+grants only the declared administrator identity. Additional OIDC users do not
+automatically receive a PDM role. The default realm is `authentik`.
+`recovery@pdm` is an application-only recovery administrator, with its generated
+password in Key Vault `proxmox-datacenter-manager` → `RECOVERY_PASSWORD`.
+It is not a Linux/SSH or cross-platform automation account. Recovery state is
+created only on a fresh volume; startup must not reset existing users, passwords
+or MFA. Rotate a recovery password through PDM and the approved secret store
+together. OIDC/remote drift fails bootstrap explicitly rather than overwriting
+an existing integration.
+
+Initial remote enrollment uses pve02's existing audit-only API token. Adding a
+remote is not permission to create remote tokens, change host ACLs or enable
+VM/network/storage writes. Validate its TLS certificate and real read-only API
+access first; never compensate for a failed credential with root credentials.
+The current policy permits only the declared Proxmox API endpoint, the private
+OIDC endpoint and cluster DNS. Broaden both the reviewed bootstrap allowlist and
+network policy deliberately when enrolling another remote.
+
+One retained Ceph PVC holds configuration, keys, native users, remote credentials,
+state, RRD cache and logs. A memory-backed runtime directory is required for
+PDM's shared configuration cache. Image upgrades occur through GitOps, not the
+container's host-package-management UI. Host hardware/disk statistics and
+systemd-dependent administration pages are not representative of the Proxmox
+remotes when PDM itself runs in a container.
+
+Hourly Kopiur backups stream `pdm.tar` from the mapped-root helper into the
+existing encrypted repository; the mover remains non-root. Namespace-scoped
+stream-exec opt-in and repository credentials are required. The tar contains
+`config`, `state` and `cache`, not transient sockets or growing request logs.
+Test extraction into a separate empty target first; never restore over live
+PDM state. Validate native login, remote visibility, OIDC redirect/denial and
+state/key identities after a rollout. Anonymous access to the realm list is
+expected; protected APIs must reject anonymous requests.
+
 ### NetBox Diode integration
 
 Running Diode Pods are not proof that inventory is synchronizing. NetBox must

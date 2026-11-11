@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: proxmox
+components:
+  - ../../components/alerts
+  - ../../components/kopiur/secret
+resources:
+  - ./namespace.yaml
+  - ./pdm/ks.yaml

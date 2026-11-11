@@ -1,0 +1,188 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pdm
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: pdm
+  interval: 1h
+  values:
+    controllers:
+      pdm:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          initialize:
+            image: &image
+              repository: ghcr.io/longqt-sea/proxmox-datacenter-manager
+              tag: 2026-11-01@sha256:8a5effea5b65a6d23b805a26d0cccd4bcf2a198566f575b24c052b7eeebec0e8
+            command: [python3, -B, /scripts/bootstrap.py, initialize]
+            securityContext: &root-security
+              runAsUser: 0
+              runAsGroup: 0
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+                add: [CHOWN, DAC_OVERRIDE, FOWNER]
+            resources: &init-resources
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+          privileged-api:
+            image: *image
+            dependsOn: initialize
+            # Native sidecar; root is mapped inside the Pod's user namespace.
+            restartPolicy: Always
+            command: [/usr/libexec/proxmox/proxmox-datacenter-privileged-api]
+            securityContext: *root-security
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - curl
+                      - --fail
+                      - --silent
+                      - --show-error
+                      - --unix-socket
+                      - /run/proxmox-datacenter-manager/priv.sock
+                      - http://localhost/api2/json/access/domains
+                  periodSeconds: 2
+                  timeoutSeconds: 3
+                  failureThreshold: 60
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 384Mi
+          configure:
+            image: *image
+            dependsOn: privileged-api
+            command: [python3, -B, /scripts/bootstrap.py, configure]
+            securityContext:
+              runAsUser: 0
+              runAsGroup: 0
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            resources: *init-resources
+        containers:
+          app:
+            image: *image
+            command: [/usr/libexec/proxmox/proxmox-datacenter-api]
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 33
+              runAsGroup: 33
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            probes:
+              readiness: &health
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    scheme: HTTPS
+                    path: /api2/json/access/domains
+                    port: 8443
+                  timeoutSeconds: 3
+              liveness: *health
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    scheme: HTTPS
+                    path: /api2/json/access/domains
+                    port: 8443
+                  periodSeconds: 3
+                  failureThreshold: 40
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: "1"
+                memory: 768Mi
+    defaultPodOptions:
+      hostUsers: false
+      hostname: pdm
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/hostname: k8s05
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        ports:
+          https:
+            port: 8443
+            appProtocol: https
+    persistence:
+      data:
+        existingClaim: pdm
+        globalMounts:
+          - path: /data
+          - path: /etc/proxmox-datacenter-manager
+            subPath: config
+          - path: /var/lib/proxmox-datacenter-manager
+            subPath: state
+          - path: /var/cache/proxmox-datacenter-manager
+            subPath: cache
+          - path: /var/log/proxmox-datacenter-manager
+            subPath: logs
+      runtime:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 64Mi
+        globalMounts:
+          - path: /run/proxmox-datacenter-manager
+      tmp:
+        type: emptyDir
+        sizeLimit: 64Mi
+        globalMounts:
+          - path: /tmp
+      scripts:
+        type: configMap
+        name: pdm-bootstrap
+        globalMounts:
+          - path: /scripts
+            readOnly: true
+      settings:
+        type: secret
+        name: pdm-bootstrap-secret
+        advancedMounts:
+          pdm:
+            initialize:
+              - path: /bootstrap
+                readOnly: true
+            configure:
+              - path: /bootstrap
+                readOnly: true
+      certificate:
+        type: secret
+        name: pdm-tls
+        advancedMounts:
+          pdm:
+            initialize:
+              - path: /certificate
+                readOnly: true

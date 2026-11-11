@@ -1,0 +1,48 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: pdm-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+    - name: azurekv
+      namespace: external-secrets
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: pdm
+      namespace: auth
+  healthCheckExprs:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+  interval: 1h
+  path: ./kubernetes/apps/proxmox/pdm/identity
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: pdm
+spec:
+  dependsOn:
+    - name: pdm-identity
+    - name: azurekv
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/proxmox/pdm/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: proxmox
+  timeout: 10m
+  wait: true

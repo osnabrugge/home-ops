@@ -1,0 +1,35 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pdm
+  annotations:
+    gatus.home-operations.com/endpoint: |
+      guarded: false
+      url: https://pdm.homeops.ca/api2/json/access/domains
+      conditions:
+        - "[STATUS] == 200"
+        - "[BODY] == pat(*authentik*)"
+spec:
+  hostnames: [pdm.homeops.ca]
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: pdm
+          port: 8443
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: pdm
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: pdm
+      sectionName: https
+  validation:
+    wellKnownCACertificates: System
+    hostname: pdm.homeops.ca

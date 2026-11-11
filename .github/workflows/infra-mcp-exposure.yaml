@@ -14,7 +14,7 @@ jobs:
           control=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
             --write-out '%{http_code}' https://status.homeops.ca)
           [[ "$control" =~ ^(2|3)[0-9][0-9]$ ]]
-          for name in mcp-proxmox.homeops.ca mcp-truenas.homeops.ca bifrost.homeops.ca; do
+          for name in mcp-proxmox.homeops.ca mcp-truenas.homeops.ca bifrost.homeops.ca pdm.homeops.ca; do
             for type in A AAAA; do
               reply=$(dig +time=5 +tries=1 @1.1.1.1 "$name" "$type")
               grep -Eq 'status: (NOERROR|NXDOMAIN)' <<< "$reply"

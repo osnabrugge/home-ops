@@ -1,0 +1,111 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pdm
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: pdm
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+    - fromEntities: [host, remote-node]
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+    - fromCIDR: [192.168.99.42/32]
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: TCP
+            - port: "32768"
+              endPort: 60999
+              protocol: UDP
+  egress:
+    - toFQDNs:
+        - matchName: pve02.in.homeops.ca
+      toPorts:
+        - ports:
+            - port: "8006"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+      toPorts:
+        - ports:
+            - port: "10443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchName: pve02.in.homeops.ca
+              - matchName: authentik.homeops.ca
+              - matchPattern: "*.svc.cluster.local"
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pdm-backup-egress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: kopiur
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+          rules:
+            dns:
+              - matchPattern: "*.cluster.local"
+              - matchName: nas01.in.homeops.ca
+    - toEntities: [kube-apiserver]
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: nas01.in.homeops.ca
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
