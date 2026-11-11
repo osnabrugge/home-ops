@@ -1,3 +1,5 @@
+import base64
+import binascii
 import json
 import logging
 import os
@@ -116,6 +118,17 @@ def ensure_client(admin_url, token_url, client_id, client_secret, scope):
         or set(token_scope.split()) != set(scope.split())
     ):
         raise BootstrapError("OAuth client did not receive a valid scoped token")
+    # Check compatibility here; Diode Auth verifies the JWT signature on use.
+    try:
+        _, payload, _ = token["access_token"].split(".")
+        claims = json.loads(base64.b64decode(
+            payload + "=" * (-len(payload) % 4), altchars=b"-_", validate=True
+        ))
+    except (ValueError, binascii.Error, UnicodeDecodeError):
+        raise BootstrapError("OAuth server did not issue a valid JWT payload") from None
+    jwt_scope = claims.get("scope") if isinstance(claims, dict) else None
+    if not isinstance(jwt_scope, str) or set(jwt_scope.split()) != set(scope.split()):
+        raise BootstrapError("JWT must carry Diode-compatible string scope claims")
     return "created" if created else "verified"
 
 

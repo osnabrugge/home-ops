@@ -85,7 +85,7 @@ spec:
                     key: HYDRA_DSN
               URLS_SELF_ISSUER: http://netbox-diode-hydra.observability.svc.cluster.local:4444
               STRATEGIES_ACCESS_TOKEN: jwt
-              STRATEGIES_JWT_SCOPE_CLAIM: list
+              STRATEGIES_JWT_SCOPE_CLAIM: string
               OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES: public
               SECRETS_SYSTEM:
                 valueFrom:

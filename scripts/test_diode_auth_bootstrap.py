@@ -1,4 +1,6 @@
+import base64
 import importlib.util
+import json
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -27,9 +29,14 @@ def client(**overrides):
     }
 
 
+def jwt(claims):
+    payload = base64.urlsafe_b64encode(json.dumps(claims).encode()).decode().rstrip("=")
+    return f"fixture.{payload}.signature"
+
+
 def token(**overrides):
     return {
-        "access_token": "fixture-token",
+        "access_token": jwt({"scope": SCOPE}),
         "token_type": "bearer",
         "expires_in": 3600,
         "scope": SCOPE,
@@ -118,6 +125,14 @@ class DiodeAuthBootstrapTests(unittest.TestCase):
             with self.assertRaises(bootstrap.BootstrapError):
                 bootstrap.ensure_client(ADMIN, TOKEN_URL, CLIENT_ID, "short", SCOPE)
             request.assert_not_called()
+
+    def test_jwt_scope_format_must_match_diode_not_just_token_response(self):
+        for value in (jwt({"scp": [SCOPE]}), jwt({"scope": "netbox:write"}), "invalid-jwt"):
+            with self.subTest(value=value), patch.object(
+                bootstrap, "request_json", side_effect=[client(), token(access_token=value)]
+            ):
+                with self.assertRaises(bootstrap.BootstrapError):
+                    self.ensure()
 
 
 if __name__ == "__main__":
