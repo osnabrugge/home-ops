@@ -4,11 +4,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: observability
 resources:
+  - ./backend-networkpolicy.yaml
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./hydra-networkpolicy.yaml
   - ./ocirepository.yaml
 configMapGenerator:
+  - name: netbox-diode-gateway
+    files:
+      - nginx.conf
   - name: netbox-diode-auth-bootstrap
     files:
       - auth-bootstrap.py

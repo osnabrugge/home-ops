@@ -1,0 +1,55 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: netbox-diode-grpc
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: netbox-diode
+    matchExpressions:
+      - key: app.kubernetes.io/controller
+        operator: In
+        values: [diode-ingester, diode-reconciler]
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/instance: netbox-diode
+            app.kubernetes.io/controller: gateway
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+    # Service-return packets need explicit client-port rules on this cluster.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: dragonfly
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: database
+            cnpg.io/cluster: postgres16
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: netbox
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/instance: netbox-diode
+            app.kubernetes.io/controller: hydra
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: UDP
