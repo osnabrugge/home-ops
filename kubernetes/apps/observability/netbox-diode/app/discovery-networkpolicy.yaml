@@ -1,0 +1,64 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: netbox-diode-discovery
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: netbox-diode
+      app.kubernetes.io/controller: discovery
+  egress:
+    - toCIDR: [192.168.99.11/32, 192.168.99.12/32, 192.168.99.15/32, 192.168.99.16/32]
+      toPorts:
+        - ports:
+            - port: "161"
+              protocol: UDP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/instance: netbox-diode
+            app.kubernetes.io/controller: gateway
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+  ingress:
+    - fromCIDR: [192.168.99.11/32, 192.168.99.12/32, 192.168.99.15/32, 192.168.99.16/32]
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: UDP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/instance: netbox-diode
+            app.kubernetes.io/controller: gateway
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "32768"
+              endPort: 60999
+              protocol: UDP

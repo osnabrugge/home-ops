@@ -63,6 +63,10 @@ kind: Kustomization
 metadata:
   name: netbox-diode
 spec:
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
   dependsOn:
     - name: netbox
     - name: netbox-diode-database

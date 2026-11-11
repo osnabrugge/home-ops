@@ -1,0 +1,65 @@
+orb:
+  config_manager:
+    active: local
+  backends:
+    common:
+      diode:
+        target: grpc://netbox-diode.observability.svc.cluster.local:8080/diode
+        client_id: ${DIODE_CLIENT_ID}
+        client_secret: ${DIODE_CLIENT_SECRET}
+        agent_name: homeops-snmp
+    snmp_discovery:
+  policies:
+    snmp_discovery:
+      power-management:
+        config:
+          schedule: "*/5 * * * *"
+          timeout: 120
+          snmp_timeout: 5
+          retries: 1
+          defaults:
+            site: Home
+            # These SNMP agents emit ambiguous/non-printable interface names.
+            interface_exclude_patterns: [".*"]
+          options:
+            emit_device_name: false
+            emit_ip_addresses: false
+            emit_prefixes: false
+            create_unknown_vlans: false
+            discover_modules: "off"
+            discover_vrfs: false
+            discover_asset_tags: false
+            emit_lag_membership: false
+        scope:
+          authentication:
+            protocol_version: SNMPv2c
+            community: ${SNMP_COMMUNITY}
+          targets:
+            - host: 192.168.99.15
+              netbox_id: 81
+              override_defaults:
+                role: PDU
+                device:
+                  manufacturer: CyberPower
+                  model: PDU41001-V
+            - host: 192.168.99.16
+              netbox_id: 87
+              override_defaults:
+                role: PDU
+                device:
+                  manufacturer: CyberPower
+                  model: PDU41001-V
+            - host: 192.168.99.11
+              netbox_id: 84
+              override_defaults:
+                role: UPS
+                device:
+                  manufacturer: CyberPower
+                  model: PR1500RT2UN
+            - host: 192.168.99.12
+              netbox_id: 83
+              override_defaults:
+                role: UPS
+                device:
+                  manufacturer: CyberPower
+                  model: PR1500RT2U

@@ -11,6 +11,54 @@ spec:
   interval: 1h
   values:
     controllers:
+      discovery:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/netboxlabs/orb-agent
+              tag: 2.17.0@sha256:db5284752c2afe755df77e8d8ea447f4eebd429e40a4668ce966581177563c38
+            command: [/sbin/tini, --, /usr/local/bin/orb-agent, run, -c, /config/agent.yaml]
+            env:
+              DIODE_CLIENT_ID:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: DIODE_INGEST_CLIENT_ID
+              DIODE_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-diode-secret
+                    key: DIODE_INGEST_CLIENT_SECRET
+              SNMP_COMMUNITY:
+                valueFrom:
+                  secretKeyRef:
+                    name: netbox-discovery-snmp
+                    key: SNMP_COMMUNITY
+            probes:
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - python3
+                      - -c
+                      - "import socket; socket.create_connection(('127.0.0.1', 8070), 2).close()"
+                  initialDelaySeconds: 5
+                  periodSeconds: 15
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: "1"
+                memory: 1Gi
       gateway:
         annotations:
           reloader.stakater.com/auto: "true"
@@ -403,6 +451,20 @@ spec:
             port: 8081
 
     persistence:
+      discovery-config:
+        type: configMap
+        name: netbox-diode-discovery
+        advancedMounts:
+          discovery:
+            app:
+              - path: /config
+                readOnly: true
+      discovery-work:
+        type: emptyDir
+        advancedMounts:
+          discovery:
+            app:
+              - path: /opt/orb
       gateway-config:
         type: configMap
         name: netbox-diode-gateway
@@ -422,6 +484,9 @@ spec:
       tmp:
         type: emptyDir
         advancedMounts:
+          discovery:
+            app:
+              - path: /tmp
           gateway:
             app:
               - path: /tmp

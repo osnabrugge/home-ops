@@ -5,11 +5,19 @@ kind: Kustomization
 namespace: observability
 resources:
   - ./backend-networkpolicy.yaml
+  - ./discovery-networkpolicy.yaml
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./hydra-networkpolicy.yaml
   - ./ocirepository.yaml
+  - ./snmp-secret.sops.yaml
 configMapGenerator:
+  - name: netbox-diode-discovery
+    files:
+      - agent.yaml
+    options:
+      annotations:
+        kustomize.toolkit.fluxcd.io/substitute: disabled
   - name: netbox-diode-gateway
     files:
       - nginx.conf
