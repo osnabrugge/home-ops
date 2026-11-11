@@ -5,6 +5,7 @@ resources:
   - ./ocirepository.yaml
   - ./helmrelease.yaml
   - ./externalsecret.yaml
+  - ./certificate.yaml
   - ./pvc.yaml
   - ./httproute.yaml
   - ./ciliumnetworkpolicy.yaml
