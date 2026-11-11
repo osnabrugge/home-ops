@@ -120,6 +120,8 @@ spec:
                 memory: 768Mi
     defaultPodOptions:
       hostUsers: false
+      # Native control sockets include the PID; both daemons must not be PID 1.
+      shareProcessNamespace: true
       hostname: pdm
       automountServiceAccountToken: false
       nodeSelector:

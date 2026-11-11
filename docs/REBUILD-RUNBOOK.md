@@ -798,6 +798,9 @@ host networking, read-only roots and RuntimeDefault seccomp. Only the mapped
 root setup/helper receives CHOWN, DAC_OVERRIDE and FOWNER; neither daemon gets
 SYS_ADMIN or NET_ADMIN. SSH/systemd are not started. Do not copy upstream's
 unconfined Docker example into this deployment.
+The two daemons share the Pod's process namespace, not the host's: their native
+control sockets include the PID, so separate container PID namespaces would
+make both PID 1 and cause an address collision.
 
 Authentik supplies native OIDC, not an additional proxy login. Its app-owned
 provider admits the existing owner and administrator group; PDM's separate ACL
