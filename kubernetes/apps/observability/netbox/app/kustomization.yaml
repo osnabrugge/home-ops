@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: observability
 resources:
   - ./cronjob.yaml
+  - ./diode-externalsecret.yaml
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml

@@ -10,6 +10,16 @@ spec:
     name: netbox
   interval: 1h
   values:
+    image:
+      registry: ghcr.io
+      repository: osnabrugge/netbox-diode
+      tag: "4.7.4"
+      digest: sha256:cf43a867810460a084a8e0ea97401f478c5d99fdabcb321b8e3f5b0748c5130f
+    plugins:
+      - netbox_diode_plugin
+    extraConfig:
+      - secret:
+          secretName: netbox-diode-plugin-config
     updateStrategy:
       type: Recreate
     worker:
