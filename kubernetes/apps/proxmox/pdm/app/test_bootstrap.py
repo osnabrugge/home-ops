@@ -42,6 +42,17 @@ class BootstrapTests(unittest.TestCase):
             api.request("POST", "access/ticket", {})
             self.assertEqual(api.headers["Cookie"], "PDMAuthCookie=signed-cookie")
 
+    def test_existing_host_identity_must_match_its_reviewed_endpoint(self):
+        settings = self.settings()
+        remote = settings["remotes"][0]
+        remote.update(id="pve01", nodes=["pve01.in.homeops.ca:8006"])
+        with patch("bootstrap.Path.read_text", return_value=json.dumps(settings)):
+            self.assertEqual(load_settings()["remotes"][0]["id"], "pve01")
+        remote["nodes"] = ["pve02.in.homeops.ca:8006"]
+        with patch("bootstrap.Path.read_text", return_value=json.dumps(settings)):
+            with self.assertRaisesRegex(RuntimeError, "Unapproved remote"):
+                load_settings()
+
     def test_native_errors_do_not_disclose_response_credentials(self):
         with patch("bootstrap.http.client.HTTPConnection") as factory, patch("bootstrap.socket.socket"):
             response = factory.return_value.getresponse.return_value

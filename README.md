@@ -105,7 +105,7 @@ covers automatic polling, reviewed enrollment and the limits of subnet discovery
 ### Proxmox management
 
 [Proxmox Datacenter Manager](https://pdm.homeops.ca) has an isolated `proxmox`
-namespace, native Authentik OIDC and retained state. Its initial remote uses
+namespace, native Authentik OIDC and retained state. Both Proxmox remotes use
 read-only API access; deployment does not authorize changes to Proxmox hosts,
 VMs or networking. See the [PDM operating procedure](docs/REBUILD-RUNBOOK.md#proxmox-datacenter-manager).
 

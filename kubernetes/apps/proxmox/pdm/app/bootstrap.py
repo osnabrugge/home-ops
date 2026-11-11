@@ -36,8 +36,12 @@ def load_settings():
             raise RuntimeError(f"Missing or insufficient {key}")
     if not re.fullmatch(r"[a-zA-Z0-9._-]+@authentik", settings["oidc_admin"]):
         raise RuntimeError("Invalid OIDC administrator identifier")
+    endpoints = {
+        "pve01": ["pve01.in.homeops.ca:8006"],
+        "pve02": ["pve02.in.homeops.ca:8006"],
+    }
     for remote in settings["remotes"]:
-        if remote["id"] != "pve02" or remote["nodes"] != ["pve02.in.homeops.ca:8006"]:
+        if remote["id"] not in endpoints or remote["nodes"] != endpoints[remote["id"]]:
             raise RuntimeError("Unapproved remote; review its endpoint and permissions first")
         if set(remote) != {"type", "id", "nodes", "authid", "token", "web-url"}:
             raise RuntimeError("Unexpected remote fields; token creation is forbidden")

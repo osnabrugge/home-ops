@@ -818,7 +818,7 @@ Open the private PDM URL, keep the `authentik` realm selected, and choose
 for the separately stored recovery credential, not an alternative central
 directory.
 
-Initial remote enrollment uses pve02's existing audit-only API token. Adding a
+Remote enrollment uses pve01 and pve02's existing audit-only API tokens. Adding a
 remote is not permission to create remote tokens, change host ACLs or enable
 VM/network/storage writes. Validate its TLS certificate and real read-only API
 access first; never compensate for a failed credential with root credentials.
