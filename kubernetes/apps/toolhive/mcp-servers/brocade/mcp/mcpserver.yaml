@@ -6,7 +6,7 @@ metadata:
   name: brocade-mcp
 spec:
   # Built from vespo92/BrocadeICXMCP by osnabrugge/container-images (apps/brocade-icx-mcp)
-  image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0@sha256:a797024691c48412aab699a1a1bbd4c6621c23952182586355896dcd145cee38
+  image: ghcr.io/osnabrugge/brocade-icx-mcp:1.0.0@sha256:62a27f9c5bba4c729e2bfffc15e80cab9b07c2f50b405921472693ef5f7a361b
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080
