@@ -87,7 +87,7 @@ an approved window, saved configuration and a checked rollback.
   origin before registering its strict redirect URI; do not append `#/signin`.
   A username override belongs in this application's profile mapping, not a
   global identity rename. See the [Synology integration guide](https://integrations.goauthentik.io/infrastructure/synology-dsm/).
-- **TrueNAS 25.10.8:** do not change directory services merely to add browser SSO.
+- **TrueNAS Community Edition 25.10.8:** do not change directory services merely to add browser SSO.
   The [25.10 administrator guide](https://www.truenas.com/docs/scale/25.10/scaletutorials/credentials/adminroles/#allowing-directory-service-users-webui-access)
   documents directory WebUI access as Enterprise-only with AD privileges.
   Generic LDAP is not an AD/SMB replacement, and an Authentik reverse-proxy gate
