@@ -58,7 +58,7 @@ spec:
           api:
             image:
               repository: ghcr.io/osnabrugge/printstash-api
-              tag: "0.15.1-homeops.1@sha256:ff32082380cb928d48441a7910b3c0dfb128b9bfc259fe7c1e7305b8d62d4103"
+              tag: "0.15.1-homeops.2@sha256:851e43dbdb0ede4369cc9e591886536a373e767fbe05d67ca1d1cb75478aa538"
             command:
               - /bin/sh
               - -c
@@ -76,6 +76,18 @@ spec:
               VAULT_BACKUP_DIR: /data/backups
               VAULT_DB_URL: sqlite:////data/db/printstash.sqlite
               VAULT_MAX_UPLOAD_MB: "512"
+              VAULT_OIDC_ENABLED: "true"
+              VAULT_OIDC_DISPLAY_NAME: Authentik
+              VAULT_OIDC_ISSUER_URL: https://authentik.homeops.ca/application/o/printstash/
+              VAULT_OIDC_CLIENT_ID: printstash
+              VAULT_OIDC_SCOPES: openid profile email printstash
+              VAULT_OIDC_ADMIN_GROUPS: printstash-admins
+              VAULT_OIDC_REDIRECT_URI: https://printstash.homeops.ca/api/v1/auth/oidc/callback
+              VAULT_OIDC_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: printstash-oidc
+                    key: client-secret
               VAULT_JWT_SECRET:
                 valueFrom:
                   secretKeyRef:

@@ -26,3 +26,5 @@ spec:
     rules:
       - group:
           name: authentik Admins
+      - user:
+          username: sean

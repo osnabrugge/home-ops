@@ -1,0 +1,16 @@
+---
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: HomeOps PrintStash roles
+entries:
+  - model: authentik_providers_oauth2.scopemapping
+    state: present
+    identifiers:
+      name: HomeOps PrintStash roles
+    attrs:
+      scope_name: printstash
+      expression: |
+        owner = request.user.username == "sean"
+        administrator = request.user.ak_groups.filter(name="authentik Admins").exists()
+        return {"groups": ["printstash-admins"] if owner or administrator else []}

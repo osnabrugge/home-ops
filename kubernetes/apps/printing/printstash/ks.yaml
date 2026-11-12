@@ -3,9 +3,40 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: printstash-identity
+spec:
+  dependsOn:
+    - name: authentik
+      namespace: auth
+    - name: authentik-operator
+      namespace: auth
+    - name: azurekv
+      namespace: external-secrets
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: printstash
+      namespace: auth
+  healthCheckExprs:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+  interval: 1h
+  path: ./kubernetes/apps/printing/printstash/identity
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: printstash
 spec:
   dependsOn:
+    - name: printstash-identity
     - name: rook-ceph-cluster
       namespace: rook-ceph
   interval: 1h

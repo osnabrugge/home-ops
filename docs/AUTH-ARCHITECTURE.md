@@ -12,6 +12,7 @@ HTTP check as a completed human login.
 | Grafana                           | Native Generic OAuth still points to Authelia                               | Migrate this consumer to Authentik OIDC while preserving existing user IDs, roles and dashboard ownership |
 | Bifrost and Kritika dashboards    | Authentik full proxy plus each application's native login                   | Private human access; two login layers until a supported native integration is verified                   |
 | Omada controller                  | Authentik SAML                                                              | Controller browser login, not Wi-Fi/RADIUS or OpenAPI machine authentication                              |
+| PrintStash                        | Native Authentik OIDC with an app-specific role scope                       | Preserve local recovery and original browser-device ownership; verify real human login and library access |
 | Remaining legacy consumers        | Authelia/LLDAP where their actual application configuration still uses them | Inventory and migrate one consumer at a time; do not remove the old issuer first                          |
 | MCP servers and automated workers | Scoped transport/backend credentials and backend RBAC                       | Authentik can protect appropriate entry points, but web SSO does not replace machine authorization        |
 | Kubernetes, Talos and SSH         | Native API/client certificates or existing SSH identities                   | Preserve scoped machine credentials and protected recovery access                                         |
@@ -29,6 +30,15 @@ Only after the last real consumer is moved and the observation period passes
 can Authelia be disabled. LLDAP retirement has its own LDAP/RADIUS consumer gate.
 No blanket identity cutover, password/passkey migration, administrator grant or
 legacy-database deletion is implied by this strategy.
+
+PrintStash's OIDC identities are issuer/subject-bound and additive; the native
+implementation does not link an existing local account by email. Its original
+local administrator, user ID, library ownership and paired-browser credentials
+remain intact. The app-specific native blueprint maps the current owner and
+existing administrator group to `printstash-admins` only in this application's
+token; it does not add either identity to directory groups. Native collection
+and printer grants remain PrintStash-owned. Keep capture/API authentication
+independent from browser SSO and retain the local recovery path.
 
 ### What is still missing, and what standardization means
 

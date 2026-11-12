@@ -794,9 +794,10 @@ Changing to Garage/S3 is a separate migration and is not required for capture.
 
 The API currently extends upstream v0.15.1 with the
 [reusable capture fixes](https://github.com/osnabrugge/containers/tree/main/apps/printstash-api).
-Kubernetes `fsGroup` can give private quarantine directories mode `2700`.
-The patch accepts the inherited setgid bit while still requiring owner-only
-access and preserving inode, marker, lock and atomic-quarantine checks. It also
+Kubernetes `fsGroup` can give private quarantine and native-import scratch
+directories mode `2700`. The patch accepts the inherited setgid bit while still
+requiring owner-only access and preserving inode, marker, lock and
+atomic-quarantine checks. It also
 keeps slot-backed captures out of URL resolution until explicit finalization,
 including stale queued resolver jobs. No schema migration or PVC replacement is
 part of this fix. Do not clear ownership receipts or recursively remove staging
@@ -819,6 +820,16 @@ source browser signed in. Completed captures appear in **Pending Imports** for
 review and explicit import; discovery of file names is not a completed import.
 Browser-device credentials are separate from human SSO and must not be replaced
 by an authentication redirect on capture API routes.
+
+Human login uses native Authentik OIDC, managed by the app-owned application
+operator resource. The native blueprint owns only the app-specific role scope;
+it does not change directory memberships. OIDC is additive: the existing local
+administrator and its browser-device ownership remain intact as recovery, with
+no email-based account linking. The current owner and existing administrator
+group receive an app-only `printstash-admins` claim. Other users require a
+reviewed entitlement and native collection/printer grants, not an administrator
+shortcut. Verify a real human OIDC login and library access before considering
+that login path commissioned.
 
 After an API/extension update, verify an actual paired slot creation, byte upload,
 finalization and native import, not just Pod readiness. Exercise a slow transfer

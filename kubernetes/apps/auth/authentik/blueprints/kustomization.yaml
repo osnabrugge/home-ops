@@ -9,5 +9,6 @@ configMapGenerator:
       - ./groups.yaml
       - ./ldap.yaml
       - ./operator.yaml
+      - ./printstash.yaml
 generatorOptions:
   disableNameSuffixHash: true
