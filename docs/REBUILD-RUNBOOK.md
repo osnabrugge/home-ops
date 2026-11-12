@@ -784,6 +784,49 @@ Manual remediation path:
    `MII Status: up`, and the Prometheus alert should clear after the rule's
    `for` interval.
 
+### PrintStash browser capture
+
+PrintStash uses a local 20 GiB Ceph PVC for SQLite, model files, thumbnails and
+staging. A `Verified` storage-health response checks filesystem capabilities;
+it does not prove the paired browser's upload/finalize workflow. The native
+backup directory is on that same PVC, not independent disaster recovery.
+Changing to Garage/S3 is a separate migration and is not required for capture.
+
+The API currently extends upstream v0.15.1 with the
+[reusable capture fixes](https://github.com/osnabrugge/containers/tree/main/apps/printstash-api).
+Kubernetes `fsGroup` can give private quarantine directories mode `2700`.
+The patch accepts the inherited setgid bit while still requiring owner-only
+access and preserving inode, marker, lock and atomic-quarantine checks. It also
+keeps slot-backed captures out of URL resolution until explicit finalization,
+including stale queued resolver jobs. No schema migration or PVC replacement is
+part of this fix. Do not clear ownership receipts or recursively remove staging
+files to bypass a cleanup conflict.
+
+For manual browser installs, use
+[HomeOps capture fix 1](https://github.com/osnabrugge/container-images/releases/tag/printstash-extension-v0.15.1-homeops.1):
+extension package **0.14.1**, built from server tag **v0.15.1**. The different
+extension/server versions are intentional. Replace the existing unpacked
+extension folder's contents and click **Reload** in the browser's extension
+manager. Keeping the same folder retains its browser identity and pairing.
+The package allows five minutes per file upload, while metadata operations
+retain their ten-second deadline; cancellation and bounded cleanup remain active.
+The release includes the AGPL license and modified-source archive.
+
+If pairing is needed, open **Settings -> Imports -> Create pairing code** and
+enter `https://printstash.homeops.ca` and that code in the extension. Codes are
+single-use and expire after five minutes. Keep the extension popup open and the
+source browser signed in. Completed captures appear in **Pending Imports** for
+review and explicit import; discovery of file names is not a completed import.
+Browser-device credentials are separate from human SSO and must not be replaced
+by an authentication redirect on capture API routes.
+
+After an API/extension update, verify an actual paired slot creation, byte upload,
+finalization and native import, not just Pod readiness. Exercise a slow transfer
+beyond the metadata deadline and a resolver scan while bytes are pending.
+Recheck existing model downloads and the PVC identity. Retire the downstream
+image/extension patches only after the replacement upstream release passes those
+same behavioral and ownership-safety checks.
+
 ### Proxmox Datacenter Manager
 
 PDM runs in its own `proxmox` namespace at `https://pdm.homeops.ca`, through

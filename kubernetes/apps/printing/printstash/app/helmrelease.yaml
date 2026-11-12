@@ -57,8 +57,8 @@ spec:
                 memory: 256Mi
           api:
             image:
-              repository: ghcr.io/xiao-villamor/printstash-api
-              tag: "v0.15.1"
+              repository: ghcr.io/osnabrugge/printstash-api
+              tag: "0.15.1-homeops.1@sha256:ff32082380cb928d48441a7910b3c0dfb128b9bfc259fe7c1e7305b8d62d4103"
             command:
               - /bin/sh
               - -c
@@ -112,7 +112,7 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
-              capabilities: {drop: ["ALL"]}
+              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 25m
