@@ -383,6 +383,25 @@ Targets:
 
 **Alertmanager URL:** https://alertmanager.homeops.ca
 
+### IPMI exporter connectivity
+
+The remote scrape uses `ipmi-exporter-direct.observability.svc.cluster.local:9290`,
+an internal headless Service selecting the existing exporter. The BMC target,
+module, credentials, 60-second interval and 30-second timeout are unchanged.
+
+On 2026-11-12, Prometheus and the exporter shared a node: TCP connections to
+the exporter Service VIP timed out even for `/metrics`, while the same
+Prometheus container reached the direct Pod endpoint. A separate `/ipmi`
+request completed in under one second with all four collectors healthy.
+The headless Service bypasses that failing VIP hop; this is a scoped
+monitoring mitigation, not a claim that the underlying CNI path was repaired.
+Do not reset the BMC or increase collection timeouts to hide this symptom.
+
+Verify the actual Prometheus target is UP and all `ipmi_up` collectors are 1
+across successive scrapes. Investigate the local Service-VIP path separately;
+returning to it requires a successful test from Prometheus's own network
+context, not a successful request from an unrelated pod.
+
 ### Proxmox exporter lifecycle and account setup
 
 - The existing `sh.brew.node_exporter.service` is a user service. Keep it enabled

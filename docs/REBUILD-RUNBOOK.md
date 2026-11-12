@@ -477,6 +477,16 @@ codec and dimensions without printing password-bearing URLs. Cam01 and cam02
 currently provide their 1280x720 detection feeds on subtype 2, including cam03.
 Keep the go2rtc URL and Frigate's declared detection dimensions consistent.
 
+If Home Assistant has Frigate devices but missing camera entities, inspect its
+entity registry and camera-platform startup errors before changing codecs.
+Frigate integration 5.15.4 passes the deprecated `via_device` parent link;
+Home Assistant 2026.11.1 rejected cam02/cam03 entity creation with this error.
+The GitOps `install-frigate-integration` init container pins 5.15.6, including
+the upstream `via_device_id` compatibility and parent-lookup fixes. HACS does
+not own this installation. Preserve the existing config entry, device registry
+and PVCs; verify all three camera entities and actual live-stream playback after
+the Home Assistant rollout, not only healthy Frigate producers.
+
 For USB Coral troubleshooting, check the loaded `/api/config` detector type,
 `/api/stats` inference time and the detector process's open `/dev/bus/usb` file
 descriptors. CPU utilization reported for that process does not mean inference

@@ -21,7 +21,7 @@ spec:
     - sourceLabels: [__param_target]
       targetLabel: instance
     - targetLabel: __address__
-      replacement: ipmi-exporter.observability.svc.cluster.local:9290
+      replacement: ipmi-exporter-direct.observability.svc.cluster.local:9290
     - action: replace
       targetLabel: job
       replacement: ipmi-exporter

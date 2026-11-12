@@ -49,6 +49,12 @@ spec:
         ports:
           http:
             port: 9290
+      direct:
+        controller: *app
+        clusterIP: None
+        ports:
+          http:
+            port: 9290
     persistence:
       # freeipmi shells out and needs scratch space for lock/state files; without a
       # writable /tmp every collector fails instantly with "read-only file system".

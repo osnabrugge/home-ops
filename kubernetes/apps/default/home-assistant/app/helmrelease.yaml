@@ -42,12 +42,12 @@ spec:
               - -c
               - |
                 set -e
-                wget -qO /tmp/frigate-hass.tgz "https://github.com/blakeblackshear/frigate-hass-integration/archive/refs/tags/v5.15.4.tar.gz"
+                wget -qO /tmp/frigate-hass.tgz "https://github.com/blakeblackshear/frigate-hass-integration/archive/refs/tags/v5.15.6.tar.gz"
                 mkdir -p /config/custom_components
                 tar xzf /tmp/frigate-hass.tgz -C /tmp
                 rm -rf /config/custom_components/frigate
                 cp -r /tmp/frigate-hass-integration-*/custom_components/frigate /config/custom_components/frigate
-                echo "installed frigate-hass-integration v5.15.4"
+                echo "installed frigate-hass-integration v5.15.6"
         containers:
           app:
             image:
