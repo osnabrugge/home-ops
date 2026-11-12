@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-11-11. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-12. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Start here: what each application actually does
@@ -623,8 +623,14 @@ still wait for a dashboard choice, and database policy permits only the selected
 public repository. Keep the automatic-trigger include expression false; that
 is the review-publication hold, not the root indexing default.
 
-The limits remain one concurrent call per model, one review per day and 20,000
-tokens per review. Native monthly accounting also includes local index tokens,
+The limits remain one concurrent call per model, one review per day and 150,000
+cumulative input/output tokens per review. Every model step sends and counts
+the prompt again: this is not a context-window size, an output-token limit or
+a dollar allowance. A 20,000-token cap exhausted the allowance after two measured
+steps of about 10,000 tokens each, before a final submission could run. The
+150,000-token bound leaves room for the six-step loop, growing tool context and
+the native final-submission retries; it is still finite.
+Native monthly accounting also includes local index tokens,
 so its shared ceiling is now 5,000,000 rather than the former 20,000; otherwise
 the first local index would consume the review allowance. This is not a paid
 model budget. A run has six agent steps, an 8,000-token initial prompt, one part
@@ -646,13 +652,15 @@ learned under cluster search-suffix names. These are pilot-local settings, not
 authorization to change cluster-wide Cilium or firewall configuration.
 
 The owner enabled public `osnabrugge/home-ops`; other discovered repositories
-remain dashboard-disabled. Automatic review triggers are still held, and no real
-review was published. Only public `osnabrugge/home-ops` is eligible for enablement.
+remain dashboard-disabled. Automatic review triggers are still held. PR discovery,
+an owner-requested review attempt and a completed review are separate acceptance
+checks; a failed attempt can still leave a GitHub status or summary comment.
+Only public `osnabrugge/home-ops` is eligible for enablement.
 Database enforcement rejects other repositories/accounts
 and turns a repository off if it becomes private. Native `enabled` indicates
 forge reachability; the dashboard switch is `turned_on`.
 
-The next publication gate is explicit owner approval of one trusted public PR
+The first successful public review needs an explicitly owner-approved trusted PR
 test. Keep only home-ops enabled, allow its metadata polling, then manually request that approved PR
 through the dashboard. The manual rerun API addresses a PR, not a pre-existing
 review:
@@ -704,8 +712,38 @@ No new App, permission, installation or webhook was created by this inspection.
 A GitHub OAuth sign-in alone is not the App's server credential.
 
 Polling is configured at `10m` for the owner-enabled repository, but automatic
-reviews remain held as described above. The GitHub App's webhook was left owner-disabled.
+reviews remain held as described above. Enable and test GitHub App webhook
+delivery separately; a working public hook route does not enable it in GitHub.
 **Bot mentions/follow-up commands do not work without webhooks.**
+
+#### First-review prerequisite checklist
+
+A Ready deployment is not proof that any of these forge-side steps is complete:
+
+1. Register/configure the GitHub App with the actual client ID, private key,
+   webhook secret and version-appropriate permissions. Install it on the served
+   account with access to the selected repository. Approve changed App
+   permissions at the installation when GitHub requests it.
+2. Set the App's active webhook to `https://kritika.homeops.ca/hooks/github`.
+   Subscribe to the installed version's required PR/comment/push/repository
+   events and confirm real deliveries, not only a synthetic ping. Match those
+   events to the local webhook gate's supported allowlist; do not broaden App
+   permissions or public paths as a substitute for checking delivery.
+3. In Kritika, open **All accounts -> Accounts** and its setup checklist, then
+   the account's **Repositories** and enable only the approved repository.
+   An App installation grants access; it does not select repositories for review.
+4. Verify that a real PR appears. Keep the deliberate automatic-trigger hold
+   unless separately approved. Use the dashboard's manual review or the
+   documented `@<app-slug> review` command for an approved test. Assigning the
+   bot as a GitHub reviewer emits `review_requested`, which 0.0.119 ignores.
+5. Follow the actual run to completion and inspect its submitted review/error,
+   model usage, token allowance and reported cost. A successful index, a
+   synthetic model response or an imported PR alone does not pass this gate.
+
+See the [versioned setup guide](https://github.com/home-operations/kritika/blob/0.0.119/docs/src/content/docs/setup.md).
+An embedder is required for repository indexing/similar-code search, not for the
+first PR review itself. Do not retry publication automatically when repairing a
+budget or transport error; an owner-requested rerun is a separate action.
 
 Only `POST https://kritika.homeops.ca/hooks/github` is publicly routed, with the
 supplied HMAC secret required. Public dashboard/API/model paths and wrong

@@ -87,7 +87,8 @@ spec:
       agent:
         steps: 6
         output: 8192
-        tokens: 20000
+        # Every step recounts the prompt; leave room for tools and final submission.
+        tokens: 150000
         prompt: 8000
         parts: 1
         timeout: 5m
@@ -95,7 +96,7 @@ spec:
         fetches: 1
       limits:
         reviewsPerDay: 1
-        # Native accounting includes the local index; each review still has 20k tokens.
+        # Native accounting includes both the local index and cumulative review tokens.
         tokensPerMonth: 5000000
       reviewWorkers: 1
       indexWorkers: 1
