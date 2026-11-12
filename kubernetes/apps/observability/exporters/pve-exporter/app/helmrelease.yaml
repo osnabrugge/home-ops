@@ -20,13 +20,9 @@ spec:
             image:
               repository: ghcr.io/prometheus-pve/prometheus-pve-exporter
               tag: 3.11.0@sha256:290756c34fd13e1d9972b8e64344d49a15ab99dd0053b29d9716f1ca4ae4c069
+            args: ["--config.file=/etc/prometheus/pve.yml"]
             env:
               PYTHONWARNINGS: once
-              PVE_VERIFY_SSL: "true"
-              PVE_MODULES: default
-            envFrom:
-              - secretRef:
-                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
                 enabled: true
@@ -64,18 +60,40 @@ spec:
             scheme: http
             path: /pve
             params:
+              module: [pve01]
               target:
                 - pve01.in.homeops.ca:8006
             interval: 60s
             scrapeTimeout: 30s
+            relabelings:
+              - targetLabel: instance
+                replacement: pve01
             metricRelabelings:
               - action: labeldrop
                 regex: (pod)
-              - action: replace
-                sourceLabels: ["service"]
-                targetLabel: instance
-                replacement: "pve01"
+          - port: metrics
+            scheme: http
+            path: /pve
+            params:
+              module: [pve02]
+              target:
+                - pve02.in.homeops.ca:8006
+            interval: 60s
+            scrapeTimeout: 30s
+            relabelings:
+              - targetLabel: instance
+                replacement: pve02
+            metricRelabelings:
+              - action: labeldrop
+                regex: (pod)
     persistence:
+      config:
+        type: secret
+        name: pve-exporter-secret
+        globalMounts:
+          - path: /etc/prometheus/pve.yml
+            subPath: pve.yml
+            readOnly: true
       tmp:
         type: emptyDir
         globalMounts:

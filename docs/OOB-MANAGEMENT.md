@@ -418,6 +418,37 @@ exporter configuration/secret store, never in Git or chat. In exporter YAML,
 the user or token. `--privsep 0` inherits only the read-only user role; if using
 `--privsep 1`, explicitly grant the same role to the token too.
 
+#### One exporter, two standalone hosts
+
+The Kubernetes exporter reads a Secret-mounted `/etc/prometheus/pve.yml` with
+two named authentication modules, `pve01` and `pve02`. ExternalSecrets renders
+each module from that host's own approved token in Key Vault
+`pve-exporter-hosts`, using `PVE01_USER`, `PVE01_TOKEN_NAME`,
+`PVE01_TOKEN_VALUE` and the corresponding `PVE02_` fields.
+These dedicated exporter tokens were imported privately from each host's
+`/etc/prometheus/pve.yml`, not substituted from the MCP/PDM integration.
+Token values never belong in the HelmRelease.
+TLS verification remains enabled for each module.
+
+The HelmRelease's ServiceMonitor has two endpoints:
+
+- `/pve?module=pve01&target=pve01.in.homeops.ca:8006`
+- `/pve?module=pve02&target=pve02.in.homeops.ca:8006`
+
+Each endpoint uses **target relabeling** to set `instance` to its host name.
+This keeps both exported metrics and Prometheus's generated `up` series
+distinct; metric relabeling alone does not affect `up`.
+
+Do not also inject `PVE_USER` or `PVE_USER_FILE`: exporter 3.11.0 switches to
+single-module environment authentication when either is present, instead of
+loading the multi-module file. Secret updates trigger a stateless rollout.
+Verify both real `/pve` scrapes and both Prometheus targets after changing it.
+
+These are independent API connections. No Proxmox cluster or Corosync quorum
+is involved. A future HA cluster needs a separately reviewed quorum design,
+normally a third node or a supported external QDevice for two nodes; monitoring
+does not create that design or change the hosts.
+
 ---
 
 ## Common Workflows
