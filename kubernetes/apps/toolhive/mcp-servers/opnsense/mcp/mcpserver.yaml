@@ -6,7 +6,7 @@ metadata:
   name: opnsense-mcp
 spec:
   # Built from the upstream npm package by osnabrugge/container-images (apps/opnsense-mcp)
-  image: ghcr.io/osnabrugge/opnsense-mcp:0.5.3@sha256:83cdab20ef4d62f6fb6673dfdc1c7f68358444f21bfb6f7f8e33d2d60e13433e
+  image: ghcr.io/osnabrugge/opnsense-mcp:0.5.3@sha256:fd6cf36d88412eff526c29e5d1c3107f547622fc4fce0601c77ee659c5c8cc27
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080
