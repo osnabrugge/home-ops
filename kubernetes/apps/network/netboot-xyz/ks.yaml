@@ -14,3 +14,37 @@ spec:
     namespace: flux-system
   targetNamespace: network
   wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: netboot-xyz-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: netboot-xyz
+      namespace: auth
+  healthCheckExprs:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+  interval: 1h
+  path: ./kubernetes/apps/network/netboot-xyz/identity
+  postBuild:
+    substitute:
+      AUTHENTIK_APP: netboot-xyz
+      AUTHENTIK_TITLE: netboot.xyz
+      AUTHENTIK_HOST: netboot-xyz.homeops.ca
+      AUTHENTIK_BACKEND_NAMESPACE: network
+      AUTHENTIK_BACKEND_SERVICE: netboot-xyz-app
+      AUTHENTIK_BACKEND_PORT: "3000"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth

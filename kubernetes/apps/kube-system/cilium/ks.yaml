@@ -13,3 +13,37 @@ spec:
     name: flux-system
     namespace: flux-system
   targetNamespace: kube-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: hubble-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: hubble
+      namespace: auth
+  healthCheckExprs:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+  interval: 1h
+  path: ./kubernetes/apps/kube-system/cilium/identity
+  postBuild:
+    substitute:
+      AUTHENTIK_APP: hubble
+      AUTHENTIK_TITLE: Hubble
+      AUTHENTIK_HOST: hubble.homeops.ca
+      AUTHENTIK_BACKEND_NAMESPACE: kube-system
+      AUTHENTIK_BACKEND_SERVICE: hubble-ui
+      AUTHENTIK_BACKEND_PORT: "80"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth

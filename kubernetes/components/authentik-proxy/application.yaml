@@ -1,0 +1,30 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: ${AUTHENTIK_APP}
+spec:
+  slug: ${AUTHENTIK_APP}
+  name: ${AUTHENTIK_TITLE}
+  group: Infrastructure
+  deletionPolicy: Retain
+  adopt: Never
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-implicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    proxy:
+      proxy:
+        externalHost: https://${AUTHENTIK_HOST}
+        internalHost: http://${AUTHENTIK_BACKEND_SERVICE}.${AUTHENTIK_BACKEND_NAMESPACE}.svc.cluster.local:${AUTHENTIK_BACKEND_PORT}
+      outpost:
+        name: authentik Embedded Outpost
+  access:
+    mode: Any
+    rules:
+      - group:
+          name: authentik Admins
+      - user:
+          username: sean

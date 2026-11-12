@@ -17,3 +17,71 @@ spec:
     namespace: flux-system
   targetNamespace: observability
   wait: false
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: prometheus-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: prometheus
+      namespace: auth
+  healthCheckExprs:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+  interval: 1h
+  path: ./kubernetes/apps/observability/kube-prometheus-stack/identity
+  postBuild:
+    substitute:
+      AUTHENTIK_APP: prometheus
+      AUTHENTIK_TITLE: Prometheus
+      AUTHENTIK_HOST: prometheus.homeops.ca
+      AUTHENTIK_BACKEND_NAMESPACE: observability
+      AUTHENTIK_BACKEND_SERVICE: kube-prometheus-stack-prometheus
+      AUTHENTIK_BACKEND_PORT: "9090"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: alertmanager-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: alertmanager
+      namespace: auth
+  healthCheckExprs:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+  interval: 1h
+  path: ./kubernetes/apps/observability/kube-prometheus-stack/identity
+  postBuild:
+    substitute:
+      AUTHENTIK_APP: alertmanager
+      AUTHENTIK_TITLE: Alertmanager
+      AUTHENTIK_HOST: alertmanager.homeops.ca
+      AUTHENTIK_BACKEND_NAMESPACE: observability
+      AUTHENTIK_BACKEND_SERVICE: kube-prometheus-stack-alertmanager
+      AUTHENTIK_BACKEND_PORT: "9093"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth

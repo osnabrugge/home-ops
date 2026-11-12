@@ -1,0 +1,14 @@
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: ${AUTHENTIK_APP}-authentik
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: ${AUTHENTIK_BACKEND_NAMESPACE}
+  to:
+    - group: ""
+      kind: Service
+      name: authentik-server
