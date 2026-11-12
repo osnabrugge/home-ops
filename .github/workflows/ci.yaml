@@ -68,11 +68,12 @@ jobs:
         env:
           MISE_GITHUB_TOKEN: ${{ github.token }}
         run: |
-          {
-            echo 'images<<EOF'
-            mise exec "github:home-operations/flate@${FLATE_VERSION}" -- flate diff images -p ./kubernetes/apps -o json
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          # Supply only non-credential, reference-only render input for external DNS.
+          images="$(mise exec "github:home-operations/flate@${FLATE_VERSION}" -- \
+            flate diff images -p ./kubernetes/apps --supply .github/ci/flate-supply.yaml -o json)"
+          images="$(jq -ce 'if type == "array" and all(.[]; type == "string") then . else error("expected an image string array") end' <<< "$images")"
+          printf 'images=%s\n' "$images" >> "$GITHUB_OUTPUT"
 
   image-pull:
     if: >-

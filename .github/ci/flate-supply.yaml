@@ -1,0 +1,12 @@
+---
+# Reference-only input for offline image extraction; never included by Flux.
+# The tunnel UUID affects a DNSEndpoint, not an image or authentication token.
+# Keep production Secret requirements intact and do not put live values here.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-tunnel-id-secret
+  namespace: network
+type: Opaque
+data:
+  CLOUDFLARE_TUNNEL_ID: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
