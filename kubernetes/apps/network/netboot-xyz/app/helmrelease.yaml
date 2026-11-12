@@ -120,7 +120,7 @@ spec:
           - backendRefs:
               - name: authentik-server
                 namespace: auth
-                port: 9000
+                port: 80
     persistence:
       # Keep TFTP data/ACK traffic on the only UDP port exposed by the boot VIP.
       tftp-config:

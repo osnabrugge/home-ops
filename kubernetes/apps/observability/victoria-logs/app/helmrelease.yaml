@@ -23,7 +23,7 @@ spec:
                 value:
                   - name: authentik-server
                     namespace: auth
-                    port: 9000
+                    port: 80
   values:
     fullnameOverride: *app
     global:

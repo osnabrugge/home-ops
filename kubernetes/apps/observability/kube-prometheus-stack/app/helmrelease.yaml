@@ -23,7 +23,7 @@ spec:
                 value:
                   - name: authentik-server
                     namespace: auth
-                    port: 9000
+                    port: 80
           - target:
               group: gateway.networking.k8s.io
               version: v1
@@ -35,7 +35,7 @@ spec:
                 value:
                   - name: authentik-server
                     namespace: auth
-                    port: 9000
+                    port: 80
   valuesFrom:
     - kind: ConfigMap
       name: flux-metrics-configmap
