@@ -784,6 +784,29 @@ Manual remediation path:
    `MII Status: up`, and the Prometheus alert should clear after the rule's
    `for` interval.
 
+### Private infrastructure UI authentication
+
+Hubble, netboot.xyz, Prometheus, Alertmanager and VictoriaLogs use app-owned
+Authentik proxy providers through the
+[shared component](../kubernetes/components/authentik-proxy/README.md).
+Provision and verify providers before switching the existing internal HTTPRoutes.
+Do not add Authentik dependencies to core Cilium/monitoring/logging deployment
+Kustomizations; optional UI identity Kustomizations depend on the application
+operator separately.
+
+The routes remain private. Backend HTTP ingress permits cluster Service clients;
+it is not a replacement for their native authorization. Keep Prometheus and
+Alertmanager reloader metrics on 8080 and Alertmanager peer traffic on TCP/UDP 9094. Netboot's separate UDP 69/TCP 80 boot service remains unauthenticated, with
+`tftp-single-port` intact. VictoriaLogs TCP/UDP syslog remains on 5140 inside the
+cluster, mapped from 514 by its dedicated LoadBalancer.
+
+The chart-managed monitoring/log routes use narrowly targeted Helm
+post-renderers. Re-render them before a chart upgrade changes HTTPRoute names or
+rule layout. A route update must not change StatefulSet/PVC specifications or
+restart Cilium agents. Verify backend readiness and real machine clients
+separately from an anonymous SSO redirect. The read-only outside exposure job
+checks public reachability with a positive control.
+
 ### PrintStash browser capture
 
 PrintStash uses a local 20 GiB Ceph PVC for SQLite, model files, thumbnails and
@@ -802,6 +825,13 @@ keeps slot-backed captures out of URL resolution until explicit finalization,
 including stale queued resolver jobs. No schema migration or PVC replacement is
 part of this fix. Do not clear ownership receipts or recursively remove staging
 files to bypass a cleanup conflict.
+
+The upstream local provider's deletion receipts include the Unix device number.
+An RBD remap onto another node can change that number while preserving inode,
+ctime and bytes. Reads/imports may still work, but old cleanup receipts can be
+held as `storage_receipt_mismatch`. Preserve that fail-closed result; do not
+rewrite device IDs or force deletion. Native ownership re-authorization or a
+backed-up provider migration requires a separate reviewed recovery procedure.
 
 For manual browser installs, use
 [HomeOps capture fix 1](https://github.com/osnabrugge/container-images/releases/tag/printstash-extension-v0.15.1-homeops.1):

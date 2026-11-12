@@ -18,15 +18,16 @@ Unpackerr v1 is a new operator-managed proxy integration with a group-gated,
 internal-only, read-only insights UI. Existing human consumer cutovers still
 require account/role/MFA/recovery validation; a technical canary is not that proof.
 
-| Consumer                               | Current source evidence                                                                                                                                                           | Migration gate                                                                                                                    |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Grafana                                | [Active OAuth configuration](../kubernetes/apps/observability/grafana-operator/instance/grafana.yaml) points to Authelia                                                          | First consumer canary; preserve user IDs, dashboard ownership and admin/editor/viewer mappings                                    |
-| Proxmox                                | [Authelia client registration](../kubernetes/apps/auth/authelia/app/configmap.yaml) exists                                                                                        | Read-only verification of the actual realm, then a separate approved host-change window                                           |
-| NetBox                                 | [Current app configuration](../kubernetes/apps/observability/netbox/app/helmrelease.yaml) uses LLDAP                                                                              | Choose and verify the actual LDAP/OIDC migration; its Authelia registration is not proof of live OIDC use                         |
-| Omada                                  | [App-owned SAML blueprint](../kubernetes/apps/network/omada-controller/identity/blueprint.yaml) is applied                                                                        | Human SSO and physical access02 adoption are separate unverified gates                                                            |
-| PrintStash                             | [App-owned native OIDC](../kubernetes/apps/printing/printstash/identity/application.yaml) and [app-only role scope](../kubernetes/apps/auth/authentik/blueprints/printstash.yaml) | Real human sign-in/library check; local recovery and original device ownership remain separate and preserved                      |
-| Unpackerr                              | [App-owned proxy application](../kubernetes/apps/default/unpackerr/identity/application.yaml) is reconciled by authentik-operator                                                 | HTTPS reaches the IdP, backend reads/denials/metrics/WebSocket and ingress policy are verified; human SSO remains to be exercised |
-| Other LDAP/RADIUS/forward-auth clients | Historical list below is a discovery starting point only                                                                                                                          | Verify live consumers and machine API bypasses before retiring either Authelia or LLDAP                                           |
+| Consumer                                                    | Current source evidence                                                                                                                                                           | Migration gate                                                                                                                    |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Grafana                                                     | [Active OAuth configuration](../kubernetes/apps/observability/grafana-operator/instance/grafana.yaml) points to Authelia                                                          | First consumer canary; preserve user IDs, dashboard ownership and admin/editor/viewer mappings                                    |
+| Proxmox                                                     | [Authelia client registration](../kubernetes/apps/auth/authelia/app/configmap.yaml) exists                                                                                        | Read-only verification of the actual realm, then a separate approved host-change window                                           |
+| NetBox                                                      | [Current app configuration](../kubernetes/apps/observability/netbox/app/helmrelease.yaml) uses LLDAP                                                                              | Choose and verify the actual LDAP/OIDC migration; its Authelia registration is not proof of live OIDC use                         |
+| Omada                                                       | [App-owned SAML blueprint](../kubernetes/apps/network/omada-controller/identity/blueprint.yaml) is applied                                                                        | Human SSO and physical access02 adoption are separate unverified gates                                                            |
+| PrintStash                                                  | [App-owned native OIDC](../kubernetes/apps/printing/printstash/identity/application.yaml) and [app-only role scope](../kubernetes/apps/auth/authentik/blueprints/printstash.yaml) | Real human sign-in/library check; local recovery and original device ownership remain separate and preserved                      |
+| Hubble, netboot.xyz, Prometheus, Alertmanager, VictoriaLogs | [Shared app-owned proxy component](../kubernetes/components/authentik-proxy/README.md), private routes and workload-scoped ingress policies                                       | Human first-use checks; preserve direct cluster Service clients and independent boot/syslog traffic                               |
+| Unpackerr                                                   | [App-owned proxy application](../kubernetes/apps/default/unpackerr/identity/application.yaml) is reconciled by authentik-operator                                                 | HTTPS reaches the IdP, backend reads/denials/metrics/WebSocket and ingress policy are verified; human SSO remains to be exercised |
+| Other LDAP/RADIUS/forward-auth clients                      | Historical list below is a discovery starting point only                                                                                                                          | Verify live consumers and machine API bypasses before retiring either Authelia or LLDAP                                           |
 
 Grafana's live read-only inventory confirms an existing Generic OAuth account
 and a separately verified local administrator recovery path. Preserve that
@@ -34,6 +35,44 @@ external account's identity and ownership during issuer migration; do not rely
 on the currently enabled insecure email lookup to auto-link it to a new IdP.
 Human mapping/login validation was unavailable during the operator rollout, so
 the existing Authelia issuer and Grafana consumer configuration remain unchanged.
+
+### Live surface review and remaining gates
+
+The live review includes **81 HTTPRoute objects**, including Helm-generated
+routes; the smaller set of explicit route files is not an estate inventory.
+This is a staged migration, not a claim that every route or appliance now uses
+Authentik.
+
+- **Current Authentik consumers:** the five infrastructure UI proxies above,
+  native PrintStash/PDM OIDC, existing Bifrost/Kritika/Radar/Unpackerr proxies,
+  and Omada SAML. The existing Unpackerr binding now explicitly includes the
+  infrastructure owner; no directory-group membership was added.
+- **Legacy consumer cutovers:** Grafana and NetBox retain their current
+  Authelia/LLDAP paths until actual identity/role/ownership and recovery checks
+  pass. Do not adopt or recreate an existing manual provider without reviewing
+  its identity and current owner.
+- **Media application routes:** agregarr, autobrr, bazarr, dispatcharr, frigate,
+  lidarr, prowlarr, qbittorrent, qui, radarr, seerr, sonarr, tautulli and thelounge
+  remain unchanged pending app-specific user/role and API, webhook, stream and
+  WebSocket contracts. Do not assume one product's "External" mode or a blanket
+  `/api` exception is safe for the others.
+- **Printer/camera clients:** Fluidd, Mainsail, Moonraker, camera routes, pgcode,
+  PrintGuard and Spoolman retain their current client paths. A browser redirect
+  cannot substitute for slicer/device API credentials or physical client
+  acceptance. Native login/recovery planes, including LLDAP and the Ceph
+  dashboard, also require a separate reviewed cutover.
+- **Machine/public contracts:** MCP transports, Flux/Kritika webhooks, Atuin
+  sync and Matter/Home Assistant integrations are not browser-only login
+  surfaces. Preserve their native authentication. Public status/Kromgo/Echo,
+  the public chart catalogue, and Plex's native identity remain intentional;
+  Konflate's externally routed tool is unchanged pending its own contract review.
+- **Protected appliances:** Proxmox hosts, OPNsense, NAS and network equipment
+  retain their native recovery and machine credentials. An application-provider
+  declaration is not approval for an appliance reconfiguration.
+
+Anonymous redirects, provider Ready conditions and a technical policy evaluation
+do not replace the real user's first login/MFA, resource visibility and recovery
+checks. Authelia/LLDAP retirement and global MFA enforcement remain gated.
 
 ## Historical audit (2026-06-20; not current verification)
 

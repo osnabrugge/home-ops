@@ -9,6 +9,33 @@ spec:
     kind: OCIRepository
     name: kube-prometheus-stack
   interval: 1h
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: gateway.networking.k8s.io
+              version: v1
+              kind: HTTPRoute
+              name: kube-prometheus-stack-prometheus
+            patch: |-
+              - op: replace
+                path: /spec/rules/0/backendRefs
+                value:
+                  - name: authentik-server
+                    namespace: auth
+                    port: 9000
+          - target:
+              group: gateway.networking.k8s.io
+              version: v1
+              kind: HTTPRoute
+              name: kube-prometheus-stack-alertmanager
+            patch: |-
+              - op: replace
+                path: /spec/rules/0/backendRefs
+                value:
+                  - name: authentik-server
+                    namespace: auth
+                    port: 9000
   valuesFrom:
     - kind: ConfigMap
       name: flux-metrics-configmap

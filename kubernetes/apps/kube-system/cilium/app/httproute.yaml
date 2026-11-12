@@ -12,5 +12,6 @@ spec:
       namespace: network
   rules:
     - backendRefs:
-        - name: hubble-ui
-          port: 80
+        - name: authentik-server
+          namespace: auth
+          port: 9000

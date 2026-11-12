@@ -118,8 +118,9 @@ spec:
             namespace: network
         rules:
           - backendRefs:
-              - identifier: app
-                port: *uiport
+              - name: authentik-server
+                namespace: auth
+                port: 9000
     persistence:
       # Keep TFTP data/ACK traffic on the only UDP port exposed by the boot VIP.
       tftp-config:

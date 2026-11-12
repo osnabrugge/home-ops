@@ -1,0 +1,24 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: victoria-logs
+spec:
+  podSelector:
+    matchLabels:
+      app: server
+      app.kubernetes.io/instance: victoria-logs
+      app.kubernetes.io/name: victoria-logs-single
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: 9428
+          protocol: TCP
+    - ports:
+        - port: 5140
+          protocol: TCP
+        - port: 5140
+          protocol: UDP

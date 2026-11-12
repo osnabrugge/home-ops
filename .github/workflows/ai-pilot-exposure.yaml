@@ -2,9 +2,49 @@
 name: AI Pilot Exposure
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ai-pilot-exposure.yaml
+      - kubernetes/components/authentik-proxy/**
+      - kubernetes/apps/printing/printstash/**
+      - kubernetes/apps/network/netboot-xyz/**
+      - kubernetes/apps/kube-system/cilium/app/httproute.yaml
+      - kubernetes/apps/observability/kube-prometheus-stack/**
+      - kubernetes/apps/observability/victoria-logs/**
 permissions:
   contents: read
 jobs:
+  private-ui-boundary:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Verify private application names from outside the home network
+        shell: bash
+        run: |
+          set -euo pipefail
+          control=$(curl -4 --silent --show-error --output /dev/null --max-time 20 \
+            --write-out '%{http_code}' https://status.homeops.ca)
+          [[ "$control" =~ ^(2|3)[0-9][0-9]$ ]]
+          for host in printstash.homeops.ca hubble.homeops.ca netboot-xyz.homeops.ca \
+            prometheus.homeops.ca alertmanager.homeops.ca vlogs.homeops.ca; do
+            dns4=$(dig +time=5 +tries=1 @1.1.1.1 "$host" A)
+            dns6=$(dig +time=5 +tries=1 @1.1.1.1 "$host" AAAA)
+            for reply in "$dns4" "$dns6"; do
+              grep -Eq 'status: (NOERROR|NXDOMAIN)' <<< "$reply"
+            done
+            addr4=$(awk '$4 == "A" { print $5 }' <<< "$dns4")
+            addr6=$(awk '$4 == "AAAA" { print $5 }' <<< "$dns6")
+            if [[ -z "$addr4" && -z "$addr6" ]]; then
+              echo "PASS: $host has no public A/AAAA address."
+              continue
+            fi
+            family=-6
+            [[ -z "$addr4" ]] || family=-4
+            code=$(curl "$family" --silent --show-error --output /dev/null --max-time 20 \
+              --write-out '%{http_code}' "https://$host")
+            [[ "$code" == "404" ]]
+            echo "PASS: public gateway has no route for $host (HTTP 404)."
+          done
   public-boundary:
     runs-on: ubuntu-26.04
     steps:
