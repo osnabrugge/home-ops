@@ -45,6 +45,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
     service:
       app:
+        forceRename: "{{ .Release.Name }}"
         controller: *app
         ports:
           http:
