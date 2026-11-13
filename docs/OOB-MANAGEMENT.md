@@ -146,6 +146,15 @@ just infra console k8s03
 
 **PDU02 (192.168.99.16):**
 
+**Safety hold:** the k8s04/k8s06 rows below are historical labels, not verified
+physical connections. On 2026-11-13, reported k8s06 power-cycle attempts
+coincided with two actual k8s04 reboots, while k8s06 retained its November 6
+boot identity. The helper and PDU outlet labels agree with each other, which
+does not prove the cabling. Power writes for both nodes are blocked in
+`infra-pdu.sh`; status reads remain available. Trace both existing cords without
+unplugging them before correcting the mapping and removing that guard.
+Do not assume a symmetric swap or test it by rebooting another storage node.
+
 | Outlet | Device     | Purpose        |
 | ------ | ---------- | -------------- |
 | 1      | k8s04      | Worker Node    |
@@ -175,7 +184,7 @@ just infra pdu-status k8s01
 just infra pdu-status
 
 # Hard reboot (PDU cycle + wait for boot)
-just infra hard-reboot k8s04
+just infra hard-reboot k8s05
 ```
 
 ##### SNMP Direct
@@ -218,6 +227,8 @@ snmpset -v 2c -c "$PDU_COMMUNITY" -r 0 -t 3 192.168.99.15 .1.3.6.1.4.1.3808.1.1.
 - No automatic retries of power writes; errors remain visible. A lost response
   can mean the command succeeded, so inspect outlet state and node boot identity
   before issuing another command.
+- PiKVM requests fail visibly on HTTP errors and have bounded connection/request
+  deadlines. An OCR/snapshot HTTP 504 is not a successful console read.
 
 An ON command restores outlet power; it does not press the computer's ATX power
 button. Verify the actual BIOS **After Power Loss** setting and a working wake-up

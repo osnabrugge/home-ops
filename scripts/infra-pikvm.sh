@@ -49,7 +49,7 @@ fi
 _pikvm() {
   local method="$1" path="$2"
   shift 2
-  curl -sk -X "$method" \
+  curl -fsSk --connect-timeout 5 --max-time 15 -X "$method" \
     -H "X-KVMD-User:${PIKVM_USER}" \
     -H "X-KVMD-Passwd:${PIKVM_PASS}" \
     "https://${PIKVM_HOST}/api${path}" \

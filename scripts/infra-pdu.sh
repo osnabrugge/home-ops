@@ -99,8 +99,18 @@ _state_name() {
   esac
 }
 
+_require_verified_power_mapping() {
+  case "$1" in
+    k8s04|k8s06)
+      echo "error: power mapping for k8s04/k8s06 is unverified; power commands are blocked until both physical PDU02 connections are confirmed." >&2
+      return 1
+      ;;
+  esac
+}
+
 cmd_on() {
   local node="${1:?Usage: on <node>}"
+  _require_verified_power_mapping "$node"
   read -r ip outlet pdu <<< "$(_resolve_node "$node")"
   echo "Powering ON $node ($pdu outlet $outlet @ $ip)..."
   _snmp_set "$ip" "$outlet" 1
@@ -109,6 +119,7 @@ cmd_on() {
 
 cmd_off() {
   local node="${1:?Usage: off <node>}"
+  _require_verified_power_mapping "$node"
   read -r ip outlet pdu <<< "$(_resolve_node "$node")"
   echo "╔══════════════════════════════════════════════════════════╗"
   echo "║  WARNING: This will power OFF $node                     ║"
@@ -126,6 +137,7 @@ cmd_off() {
 
 cmd_reboot() {
   local node="${1:?Usage: reboot <node>}"
+  _require_verified_power_mapping "$node"
   read -r ip outlet pdu <<< "$(_resolve_node "$node")"
   echo "╔══════════════════════════════════════════════════════════╗"
   echo "║  Power cycling $node (off→on)                           ║"
