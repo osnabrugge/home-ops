@@ -75,9 +75,10 @@ spec:
                   failureThreshold: 30
             resources:
               requests:
-                cpu: 25m
+                cpu: 10m
                 memory: 256Mi
               limits:
+                cpu: 25m
                 memory: 1Gi
     defaultPodOptions:
       # Attach to the IoT VLAN (VLAN70) so the Matter stack shares L2 with the
