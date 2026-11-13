@@ -516,6 +516,15 @@ silently produce a supposedly complete snapshot.
 Verify `filesFailed: 0` and the protected file's presence after an isolated
 restore before declaring the backup repaired.
 
+### Eufy bridge credential wiring
+
+The Eufy bridge's ExternalSecret creates `eufy-bridge-secret`; its container's
+`envFrom.secretRef` must use that exact name. A Ready ExternalSecret does not
+prove that a workload references its target. Check the pod's waiting reason:
+`CreateContainerConfigError` naming a missing Secret is not a Talos boot fault.
+Verify the existing claim identity, native `/healthz` and actual device
+connectivity separately; do not print the credential values.
+
 ### Shared RBD client read-only recovery
 
 `emergency_ro` is ext4's protective response to an I/O failure. Healthy Ceph
