@@ -948,6 +948,24 @@ PDM state. Validate native login, remote visibility, OIDC redirect/denial and
 state/key identities after a rollout. Anonymous access to the realm list is
 expected; protected APIs must reject anonymous requests.
 
+### Descheduler storage-pod protection
+
+The DefaultEvictor must retain system-critical and local-storage protections,
+enable `PodsWithPVC`, and require `nodeFit`. Otherwise LowNodeUtilization can
+evict a node-pinned Ceph OSD repeatedly; its replacement returns to the same
+node and can preempt unrelated applications. PVC consumers such as Radar must
+not be moved by automatic rebalancing. These protections do not disable normal
+node maintenance or replace application disruption budgets.
+
+For containment, record the existing reconciliation and replica settings before
+suspending only the descheduler Kustomization and HelmRelease and scaling its
+Deployment to zero. Validate the replacement policy using the exact deployed
+image with `--dry-run=true`, `--leader-elect=false` and a single iteration before
+restoring the recorded settings. Confirm protected workloads are rejected,
+their Pod identities remain stable across a full descheduling interval, and
+Ceph remains healthy. Do not clear RBD mappings or delete claims to compensate
+for an eviction loop.
+
 ### NetBox shared media placement
 
 The NetBox web and worker Deployments share one ReadWriteOnce media claim.

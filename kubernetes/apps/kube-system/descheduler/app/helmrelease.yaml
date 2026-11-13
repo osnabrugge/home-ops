@@ -19,11 +19,12 @@ spec:
           pluginConfig:
             - name: DefaultEvictor
               args:
+                nodeFit: true
                 podProtections:
                   defaultDisabled:
                     - FailedBarePods
-                    - PodsWithLocalStorage
-                    - SystemCriticalPods
+                  extraEnabled:
+                    - PodsWithPVC
             - name: LowNodeUtilization
               args:
                 metricsUtilization:
