@@ -18,6 +18,14 @@ entries:
       mfa_support: true
       tls_server_name: ldap.homeops.ca
       certificate: !Find [authentik_crypto.certificatekeypair, [name, LDAPS]]
+  - model: authentik_outposts.outpost
+    state: present
+    identifiers:
+      name: ldap
+    attrs:
+      type: ldap
+      providers:
+        - !KeyOf ldap-provider
   - model: authentik_core.application
     state: present
     identifiers:

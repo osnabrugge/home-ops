@@ -948,6 +948,30 @@ PDM state. Validate native login, remote visibility, OIDC redirect/denial and
 state/key identities after a rollout. Anonymous access to the realm list is
 expected; protected APIs must reject anonymous requests.
 
+### NetBox shared media placement
+
+The NetBox web and worker Deployments share one ReadWriteOnce media claim.
+Worker affinity alone is insufficient: after the web pod is replaced, a
+surviving worker can hold the claim on a different node from the replacement.
+Both use Recreate strategy. The web pod has required affinity to its own
+application name and instance, including workers; the worker retains its
+required affinity to the web component. Including the web pod itself permits
+Kubernetes's first-pod self-affinity exception when starting from zero pods.
+
+Verify both consumers land on the same node, the original PVC/PV binding is
+retained, and the web/API is usable. Do not delete the claim or force-detach it
+to resolve this scheduling mistake.
+
+### Authentik LDAP outpost assignment
+
+An existing LDAP provider does not mean an LDAP outpost serves it. The panic
+`no ldap provider defined` can occur when the outpost's provider list is empty.
+The native LDAP blueprint owns the existing `ldap` outpost's assignment to
+`Provider for LDAP`, preserving the existing outpost and provider identities.
+Verify that assignment, pod readiness and the native LDAP listener separately.
+This restores the internal outpost only; it does not provision LAN LDAPS access
+or certify an appliance login, and changes no user memberships or MFA policy.
+
 ### NetBox Diode integration
 
 Running Diode Pods are not proof that inventory is synchronizing. NetBox must

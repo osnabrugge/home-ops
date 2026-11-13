@@ -22,6 +22,16 @@ spec:
           secretName: netbox-diode-plugin-config
     updateStrategy:
       type: Recreate
+    # Include the web pod itself so first-pod self-affinity permits a cold start.
+    # A surviving worker must keep the web pod on the same RWO volume node.
+    affinity:
+      podAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: netbox
+                app.kubernetes.io/instance: netbox
+            topologyKey: kubernetes.io/hostname
     worker:
       updateStrategy:
         type: Recreate
