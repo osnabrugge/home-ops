@@ -17,6 +17,8 @@ spec:
       publicUrl: https://{{ .Release.Name }}.homeops.ca
       mcp: true
       verifyImages: true
+      # Retry unchanged PRs after transient registry misses instead of retaining failures for 6h.
+      rerenderInterval: 30m
     secret:
       existingSecret: konflate-webhook-token-secret
     httpRoute:
