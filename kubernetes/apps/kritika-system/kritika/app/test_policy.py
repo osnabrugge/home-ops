@@ -144,6 +144,32 @@ class HTTPPolicyTests(unittest.TestCase):
         self.assertEqual(outgoing["max_tokens"], policy.MAX_OUTPUT)
         self.assertEqual(outgoing["provider"]["max_price"], {"prompt": 0, "completion": 0})
 
+    def test_empty_tool_results_keep_their_identity_and_do_not_mutate_input(self):
+        for empty in ({"content": ""}, {"content": None}, {}):
+            messages = [
+                {"role": "assistant", "content": None, "tool_calls": [
+                    {"id": "grep_fixture", "type": "function", "function": {
+                        "name": "grep", "arguments": '{"pattern":"no-match"}',
+                    }},
+                    {"id": "other_fixture", "type": "function", "function": {
+                        "name": "grep", "arguments": '{"pattern":"match"}',
+                    }},
+                ]},
+                {"role": "tool", "tool_call_id": "grep_fixture", **empty},
+                {"role": "tool", "tool_call_id": "other_fixture", "content": "actual output"},
+                {"role": "user", "content": ""},
+            ]
+            original = copy.deepcopy(messages)
+            with self.subTest(empty=empty):
+                policy.completion({"model": policy.MODEL, "messages": messages})
+                self.assertEqual(messages, original)
+                self.assertEqual(self.model(messages=messages)[0], 200)
+                outgoing = json.loads(self.calls[-1][1]["data"])
+                self.assertIn("no output", outgoing["messages"][1]["content"])
+                self.assertEqual(outgoing["messages"][1]["tool_call_id"], "grep_fixture")
+                self.assertEqual(outgoing["messages"][0], original[0])
+                self.assertEqual(outgoing["messages"][2:], original[2:])
+
     def test_paid_fallback_and_repriced_model_fail_before_inference(self):
         self.assertEqual(self.model(model="paid/model")[0], 403)
         self.assertEqual(self.model(models=[policy.MODEL, "paid/model"])[0], 403)

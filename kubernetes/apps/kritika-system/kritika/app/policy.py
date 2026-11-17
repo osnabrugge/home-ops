@@ -75,6 +75,15 @@ def completion(payload):
     if not isinstance(payload.get("messages"), list) or not payload["messages"]:
         raise Refused(400, "A nonempty messages array is required")
     out = dict(payload)
+    # Cohere rejects empty OpenAI tool results, including a grep with no matches.
+    out["messages"] = [
+        {**message, "content": "(Tool completed with no output.)"}
+        if isinstance(message, dict)
+        and message.get("role") == "tool"
+        and message.get("content") in ("", None)
+        else message
+        for message in payload["messages"]
+    ]
     requested = out.pop("max_completion_tokens", out.get("max_tokens", MAX_OUTPUT))
     if not isinstance(requested, int) or isinstance(requested, bool) or requested < 1:
         raise Refused(400, "Invalid output token bound")
