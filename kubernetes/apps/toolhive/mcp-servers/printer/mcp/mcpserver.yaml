@@ -8,7 +8,7 @@ spec:
   # Built from the upstream npm package by osnabrugge/container-images (apps/printer-mcp).
   # NOTE: container-images tracks 1.2.9 (what the Dockerfile actually pins); this
   # digest is the older 1.2.5 build. Bump after the next build publishes :1.2.9.
-  image: ghcr.io/osnabrugge/printer-mcp:1.2.9@sha256:0ffcd3788359b509d532e9f41aa85f06eea78d2e59303225bfee92c7b6c3f122
+  image: ghcr.io/osnabrugge/printer-mcp:1.2.9@sha256:a1fb8e3a6fefd7cdb05e7ce724d38e3f993a27e1bdf08e8a22c0e0d44dfb2a67
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080
