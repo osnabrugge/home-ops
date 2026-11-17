@@ -1,0 +1,23 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: grafana
+spec:
+  slug: grafana
+  name: Grafana
+  deletionPolicy: Retain
+  # First adopt the existing, unused provider without changing its identity.
+  adopt: IfMatch
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-implicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    oauth2:
+      credentials:
+        secretRef:
+          name: grafana-oidc
+  access:
+    public: true

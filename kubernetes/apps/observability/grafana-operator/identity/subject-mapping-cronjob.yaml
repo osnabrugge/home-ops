@@ -1,0 +1,125 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: grafana-authentik-subjects
+spec:
+  schedule: "*/15 * * * *"
+  timeZone: America/Toronto
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          automountServiceAccountToken: false
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: apply
+              # Match Authentik's native blueprint importer; no app/provider ownership here.
+              image: ghcr.io/goauthentik/server:2026.8.5
+              command:
+                - ak
+                - shell
+                - -c
+                - |
+                  import json
+                  import os
+                  from pathlib import Path
+                  from uuid import UUID
+
+                  import yaml
+                  from authentik.blueprints.v1.importer import Importer
+                  from authentik.core.models import User
+
+                  subjects = json.loads(os.environ["GRAFANA_LEGACY_SUBJECTS"])
+                  if not isinstance(subjects, dict) or not subjects:
+                      raise ValueError("Grafana legacy subject mapping must not be empty")
+                  if len(set(subjects.values())) != len(subjects):
+                      raise ValueError("Grafana legacy subjects must be unique")
+                  for identity, subject in subjects.items():
+                      if str(UUID(identity)) != identity or str(UUID(subject)) != subject:
+                          raise ValueError("Grafana subject mapping requires canonical UUIDs")
+                      if not User.objects.filter(uuid=identity, type="internal", is_active=True).exists():
+                          raise ValueError("Grafana subject mapping references an unknown active human")
+
+                  blueprint = yaml.safe_load(Path("/blueprints/grafana/subject-mapping.yaml").read_text())
+                  blueprint["entries"][0]["attrs"]["expression"] = (
+                      f"subjects = {subjects!r}\n"
+                      'return {"sub": subjects.get(str(request.user.uuid), request.user.uid)}'
+                  )
+                  importer = Importer.from_string(yaml.safe_dump(blueprint))
+                  valid, _ = importer.validate()
+                  if not valid:
+                      raise RuntimeError("Grafana subject blueprint validation failed")
+                  if not importer.apply():
+                      raise RuntimeError("Grafana subject blueprint application failed")
+                  print("Applied Grafana immutable subject mapping")
+              env:
+                - name: HOME
+                  value: /run/authentik
+                - name: TMPDIR
+                  value: /run/authentik
+                - name: PYTHONDONTWRITEBYTECODE
+                  value: "1"
+                - name: GRAFANA_LEGACY_SUBJECTS
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-oidc
+                      key: legacy-subjects
+                - name: AUTHENTIK_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-secret
+                      key: AUTHENTIK_SECRET_KEY
+                - name: AUTHENTIK_POSTGRESQL__PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-secret
+                      key: AUTHENTIK_POSTGRESQL__PASSWORD
+                - name: AUTHENTIK_POSTGRESQL__HOST
+                  value: postgres16-rw.database.svc.cluster.local
+                - name: AUTHENTIK_POSTGRESQL__NAME
+                  value: authentik
+                - name: AUTHENTIK_POSTGRESQL__USER
+                  value: authentik
+                - name: AUTHENTIK_POSTGRESQL__PORT
+                  value: "5432"
+                - name: AUTHENTIK_REDIS__HOST
+                  value: dragonfly-authentik.database.svc.cluster.local
+                - name: AUTHENTIK_REDIS__DB
+                  value: "3"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 512Mi
+                limits:
+                  memory: 1Gi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: blueprints
+                  mountPath: /blueprints/grafana
+                  readOnly: true
+                - name: runtime
+                  mountPath: /run/authentik
+          volumes:
+            - name: blueprints
+              configMap:
+                name: grafana-authentik-subjects
+            - name: runtime
+              emptyDir: {}

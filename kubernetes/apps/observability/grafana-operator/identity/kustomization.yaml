@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: auth
+resources:
+  - ./application.yaml
+  - ./subject-mapping-cronjob.yaml
+configMapGenerator:
+  - name: grafana-authentik-subjects
+    files:
+      - ./subject-mapping.yaml
+generatorOptions:
+  disableNameSuffixHash: true

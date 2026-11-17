@@ -1,0 +1,15 @@
+---
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: homeops-grafana-subjects
+entries:
+  - model: authentik_providers_oauth2.scopemapping
+    state: present
+    identifiers:
+      scope_name: grafana_legacy_subject
+    attrs:
+      name: Grafana immutable subject continuity
+      description: Preserve existing Grafana accounts when changing identity providers.
+      # The reconciler supplies the verified UUID-to-subject map from Key Vault.
+      expression: return {}
