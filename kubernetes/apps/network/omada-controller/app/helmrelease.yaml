@@ -45,18 +45,18 @@ spec:
               ROOTLESS: "true"
               MANAGE_HTTP_PORT: &http_port "8088"
               MANAGE_HTTPS_PORT: &https_port "8043"
-              PORTAL_HTTP_PORT: "8080"
-              PORTAL_HTTPS_PORT: "8843"
-              UPGRADE_HTTPS_PORT: "8043"
-              PORT_APP_DISCOVERY: "27001"
-              PORT_ADOPT_V1: "29812"
-              PORT_UPGRADE_V1: "29813"
-              PORT_MANAGER_V1: "29811"
-              PORT_MANAGER_V2: "29814"
-              PORT_DISCOVERY: "29810"
-              PORT_TRANSFER_V2: "29815"
-              PORT_RTTY: "29816"
-              PORT_DEVICE_MONITOR: "29817"
+              PORTAL_HTTP_PORT: &portal_http_port "8080"
+              PORTAL_HTTPS_PORT: &portal_https_port "8843"
+              UPGRADE_HTTPS_PORT: "8044"
+              PORT_APP_DISCOVERY: &app_discovery_port "27001"
+              PORT_ADOPT_V1: &adopt_v1_port "29812"
+              PORT_DISCOVERY: &discovery_port "29810"
+              PORT_MANAGER_V1: &manager_v1_port "29811"
+              PORT_MANAGER_V2: &manager_v2_port "29814"
+              PORT_TRANSFER_V2: &transfer_v2_port "29815"
+              PORT_UPGRADE_V1: &upgrade_v1_port "29813"
+              PORT_RTTY: &rtty_port "29816"
+              PORT_DEVICE_MONITOR: &device_monitor_port "29817"
               WEB_CONFIG_OVERRIDE: "false"
               SHOW_SERVER_LOGS: "true"
               SHOW_MONGODB_LOGS: "false"
@@ -81,7 +81,7 @@ spec:
                 spec:
                   httpGet:
                     path: /
-                    port: 8088
+                    port: *http_port
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
@@ -97,9 +97,10 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: 100m
+                cpu: 40m
               limits:
                 memory: 2Gi
+                cpu: 200m
     defaultPodOptions:
       annotations:
         # LAN attach (bond0.1 / VLAN1) so Omada is L2-reachable for device discovery + adoption.
@@ -133,17 +134,26 @@ spec:
             port: *http_port
           https:
             port: *https_port
+          app_discovery:
+            port: *app_discovery_port
+            protocol: UDP
           discovery:
-            port: 29810
+            port: *discovery_port
             protocol: UDP
           manager:
-            port: 29811
+            port: *manager_v1_port
+          manager_v2:
+            port: *manager_v2_port
           adopt:
-            port: 29812
+            port: *adopt_v1_port
           upgrade:
-            port: 29813
+            port: *upgrade_v1_port
           transfer:
-            port: 29814
+            port: *transfer_v2_port
+          rtty:
+            port: *rtty_port
+          device-monitor:
+            port: *device_monitor_port
     route:
       app:
         annotations:
