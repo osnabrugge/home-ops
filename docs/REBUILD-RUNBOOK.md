@@ -631,6 +631,15 @@ container restart can repair a shared node client.
 
 ### Grafana operator dashboards
 
+Grafana's browser OAuth consumer uses its app-owned Authentik provider. Restore
+the identity and Vault-backed client ID/secret plus the private legacy-subject
+mapping before reconciling the instance; see
+[Grafana OIDC setup](./AUTH-ARCHITECTURE.md#grafana-oidc-setup). Preserve existing
+Grafana users, local roles, service-account tokens and administrator recovery.
+Never enable email lookup or regenerate immutable subjects as a login repair.
+Human MFA/login/logout validation is separate from machine redirect and token
+endpoint checks.
+
 `Login failed / User sync failed` together with `attempt to write a readonly
 database` is an application-storage failure, not proof of an IdP/password error.
 Check the actual data mount for `emergency_ro`, RBD watcher/client health and

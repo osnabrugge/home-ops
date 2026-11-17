@@ -7,16 +7,16 @@ second target.** Deploying Authentik and its application operator did not migrat
 every consumer. Do not interpret a provider record, a Ready Pod or an anonymous
 HTTP check as a completed human login.
 
-| Surface                                                         | Current integration                                                         | Intended boundary                                                                                         |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Grafana                                                         | Native Generic OAuth still points to Authelia                               | Migrate this consumer to Authentik OIDC while preserving existing user IDs, roles and dashboard ownership |
-| Bifrost and Kritika dashboards                                  | Authentik full proxy plus each application's native login                   | Private human access; two login layers until a supported native integration is verified                   |
-| Omada controller                                                | Authentik SAML                                                              | Controller browser login, not Wi-Fi/RADIUS or OpenAPI machine authentication                              |
-| PrintStash                                                      | Native Authentik OIDC with an app-specific role scope                       | Preserve local recovery and original browser-device ownership; verify real human login and library access |
-| Hubble, netboot.xyz, Prometheus, Alertmanager, VictoriaLogs UIs | App-owned Authentik proxies via the shared component                        | Private browser entry points; preserve cluster Service clients, metrics, boot and syslog transport        |
-| Remaining legacy consumers                                      | Authelia/LLDAP where their actual application configuration still uses them | Inventory and migrate one consumer at a time; do not remove the old issuer first                          |
-| MCP servers and automated workers                               | Scoped transport/backend credentials and backend RBAC                       | Authentik can protect appropriate entry points, but web SSO does not replace machine authorization        |
-| Kubernetes, Talos and SSH                                       | Native API/client certificates or existing SSH identities                   | Preserve scoped machine credentials and protected recovery access                                         |
+| Surface                                                         | Current integration                                                           | Intended boundary                                                                                         |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Grafana                                                         | Native Generic OAuth uses Authentik; human sign-in validation remains pending | Preserve existing user IDs, local roles, dashboard ownership and administrator recovery                   |
+| Bifrost and Kritika dashboards                                  | Authentik full proxy plus each application's native login                     | Private human access; two login layers until a supported native integration is verified                   |
+| Omada controller                                                | Authentik SAML                                                                | Controller browser login, not Wi-Fi/RADIUS or OpenAPI machine authentication                              |
+| PrintStash                                                      | Native Authentik OIDC with an app-specific role scope                         | Preserve local recovery and original browser-device ownership; verify real human login and library access |
+| Hubble, netboot.xyz, Prometheus, Alertmanager, VictoriaLogs UIs | App-owned Authentik proxies via the shared component                          | Private browser entry points; preserve cluster Service clients, metrics, boot and syslog transport        |
+| Remaining legacy consumers                                      | Authelia/LLDAP where their actual application configuration still uses them   | Inventory and migrate one consumer at a time; do not remove the old issuer first                          |
+| MCP servers and automated workers                               | Scoped transport/backend credentials and backend RBAC                         | Authentik can protect appropriate entry points, but web SSO does not replace machine authorization        |
+| Kubernetes, Talos and SSH                                       | Native API/client certificates or existing SSH identities                     | Preserve scoped machine credentials and protected recovery access                                         |
 
 Grafana's November 8 `Login failed / User sync failed` was reproduced alongside
 `attempt to write a readonly database` and an `emergency_ro` RBD mount. That is
@@ -284,10 +284,12 @@ are not a completed Authentik-backed Wi-Fi deployment.
    login, denied-user handling, logout and break-glass recovery before disabling
    its old integration. Verify the actual Proxmox realm and NetBox LDAP backend;
    an Authelia client registration is not proof of consumer use.
-   Grafana's existing Generic OAuth user and local administrator recovery were
-   verified read-only, but human identity/MFA/role validation was unavailable.
-   Its old issuer is therefore preserved; do not auto-link by email or treat the
-   operator's technical canary as permission to retire that login.
+   Grafana's consumer now uses its adopted Authentik application/provider.
+   Private, immutable subject continuity preserves the existing Generic OAuth
+   binding; roles remain Grafana-managed and email lookup is disabled. Local
+   administrator recovery and legacy Authelia credentials remain available for
+   rollback. Normal human Authentik MFA/login, the unchanged user/role and logout
+   still need owner validation; the technical canary is not that evidence.
 5. Inventory forward-auth/API/callback/WebSocket paths and migrate them without
    breaking machine clients. Test passkey enrollment/recovery before enforcing
    passwordless human login. Validate both LAN and real external access when
@@ -548,21 +550,24 @@ In Proxmox **Datacenter → Realms → Add → OpenID Connect**:
 
 #### Grafana OIDC Setup
 
-In Grafana `grafana.ini` / `[auth.generic_oauth]`:
+The current [Grafana instance](../kubernetes/apps/observability/grafana-operator/instance/grafana.yaml)
+uses native Authentik Generic OAuth, not the historical Authelia example above.
+Its app-owned identity adopts the existing provider rather than creating a
+second owner or changing provider identity.
 
-```ini
-[auth.generic_oauth]
-enabled           = true
-name              = Authelia
-icon              = signin
-client_id         = grafana
-client_secret     = ${AUTHELIA_OIDC_CLIENT_GRAFANA_SECRET}
-scopes            = openid profile email groups
-auth_url          = https://auth.homeops.ca/api/oidc/authorization
-token_url         = https://auth.homeops.ca/api/oidc/token
-api_url           = https://auth.homeops.ca/api/oidc/userinfo
-role_attribute_path = contains(groups[*], 'admins') && 'Admin' || 'Viewer'
-```
+Restore the Vault-backed `grafana` fields
+`GRAFANA_AUTHENTIK_CLIENT_ID`, `GRAFANA_OAUTH_CLIENT_SECRET` and
+`GRAFANA_OAUTH_LEGACY_SUBJECTS` along with the Authentik identity state.
+The last field supplies private immutable subject continuity for existing
+Grafana OAuth bindings; never regenerate it or replace it with email-based
+account linking. Roles remain local to Grafana, and administrator recovery
+and service-account tokens are retained.
+
+Reconcile identity secrets, then identity, then the instance. Machine tests
+verify the PKCE/state authorization redirect, callback client authentication
+and claims/policies; they do not impersonate a human MFA session. Complete a
+normal allowed-user login, verify the existing user and role, and log out
+before declaring the human cutover accepted or retiring its rollback path.
 
 #### Synology DSM OIDC Setup
 
