@@ -583,6 +583,37 @@ without deleting its host-backed buffer. Verify ordinary unmap succeeds, the
 original claim is retained, and real Prometheus queries work; never replace
 this diagnosis with forced unmapping or a node reboot.
 
+### Omada 6.4 upgrade prerequisites
+
+Start and verify the latest 6.3 controller before considering 6.4. Require the
+live data volume's `db/upgrade_precheck.json` to report
+`ecspv1_device_count: 0`; never set `SKIP_6_4_UPGRADE_PRECHECK` to hide devices
+that need firmware updates. Preserve a recent native controller configuration
+backup and the external database's tested restore path.
+
+The upgrade HTTPS port is now 8044, separate from management HTTPS on 8043.
+Both the container setting and the device-reachable Service must expose it.
+Use `/api/info`, not the removed `/login`, for readiness. App-template Service
+port names must use hyphens rather than underscores, and numeric probe/Service
+port anchors must remain integers even when also reused as environment values.
+
+The current 6.4 image is a beta. The image maintainer documents external MongoDB
+4.0 through 8.0, while this installation uses 8.2.7. Neither a clean device
+precheck nor MongoDB's version being newer certifies that combination. Keep the
+working 6.3 image until the beta and database compatibility decision is explicit;
+do not downgrade the shared database, bypass checks or silently install a beta.
+
+### Matter Server dashboard
+
+The Matter.js dashboard is already included and enabled by default in 1.6.0,
+served at `https://matter-server.homeops.ca` through the internal gateway.
+`--production-mode` makes its WebSocket use that reverse-proxy origin. Require
+the HTML, JavaScript bundle, `/health` version and read-only WebSocket handshake
+to work before reporting it available; a healthy pod alone is insufficient.
+Network and cluster-specific panels appear only when suitable devices are
+commissioned. Do not enable test-network DCL/OTA exceptions, change fabric
+credentials or expose this control API publicly merely to populate the UI.
+
 Home Assistant and both memory backends use write-aware readiness checks.
 Grafana keeps its native HTTP check and adds a small storage-readiness
 container. They create, flush and remove only temporary files on their own

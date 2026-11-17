@@ -1,0 +1,53 @@
+[Ipmi]
+platform_name=generic
+enforce_fan_mode=1
+exit_level=100
+ipmitool_timeout=5
+
+# The fan wall mixes CPU and disk airflow, so the hottest source steers both zones.
+[CPU]
+enabled=1
+ipmi_zone=0,1
+temp_calc=2
+polling=2
+steps=4
+sensitivity=1
+error_tolerance=2
+control_function=30-45, 50-55, 65-75, 80-100
+
+[HD]
+enabled=1
+ipmi_zone=0,1
+temp_calc=2
+polling=15
+steps=20
+sensitivity=1
+smoothing=1
+error_tolerance=2
+standby_guard_enabled=0
+control_function=30-45, 40-50, 50-60, 56-70, 60-100
+# Replace with the reviewed complete inventory, one stable path per attached disk.
+hd_names=/dev/disk/by-id/REPLACE_WITH_REVIEWED_SATA_OR_SAS_DISK
+
+[NVME]
+enabled=1
+ipmi_zone=0,1
+temp_calc=2
+polling=5
+steps=4
+sensitivity=1
+error_tolerance=2
+control_function=35-45, 50-55, 60-75, 70-100
+nvme_names=/dev/disk/by-id/REPLACE_WITH_REVIEWED_NVME_NAMESPACE
+
+# Keep airflow over cards without usable temperature sensors.
+[CONST]
+enabled=1
+ipmi_zone=0,1
+polling=10
+level=50
+
+[Exporter]
+enabled=1
+bind_address=0.0.0.0
+port=9099

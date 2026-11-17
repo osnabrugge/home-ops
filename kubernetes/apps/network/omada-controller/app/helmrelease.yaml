@@ -43,20 +43,20 @@ spec:
               tag: beta-6.3.0.111@sha256:4b5a43ddc670c21bd9cc3afccb906a661e9f2d1c78e32ccc6c9c2e7d5b675191
             env:
               ROOTLESS: "true"
-              MANAGE_HTTP_PORT: &http_port "8088"
-              MANAGE_HTTPS_PORT: &https_port "8043"
-              PORTAL_HTTP_PORT: &portal_http_port "8080"
-              PORTAL_HTTPS_PORT: &portal_https_port "8843"
-              UPGRADE_HTTPS_PORT: "8044"
-              PORT_APP_DISCOVERY: &app_discovery_port "27001"
-              PORT_ADOPT_V1: &adopt_v1_port "29812"
-              PORT_DISCOVERY: &discovery_port "29810"
-              PORT_MANAGER_V1: &manager_v1_port "29811"
-              PORT_MANAGER_V2: &manager_v2_port "29814"
-              PORT_TRANSFER_V2: &transfer_v2_port "29815"
-              PORT_UPGRADE_V1: &upgrade_v1_port "29813"
-              PORT_RTTY: &rtty_port "29816"
-              PORT_DEVICE_MONITOR: &device_monitor_port "29817"
+              MANAGE_HTTP_PORT: &http_port 8088
+              MANAGE_HTTPS_PORT: &https_port 8043
+              PORTAL_HTTP_PORT: &portal_http_port 8080
+              PORTAL_HTTPS_PORT: &portal_https_port 8843
+              UPGRADE_HTTPS_PORT: &upgrade_https_port 8044
+              PORT_APP_DISCOVERY: &app_discovery_port 27001
+              PORT_ADOPT_V1: &adopt_v1_port 29812
+              PORT_DISCOVERY: &discovery_port 29810
+              PORT_MANAGER_V1: &manager_v1_port 29811
+              PORT_MANAGER_V2: &manager_v2_port 29814
+              PORT_TRANSFER_V2: &transfer_v2_port 29815
+              PORT_UPGRADE_V1: &upgrade_v1_port 29813
+              PORT_RTTY: &rtty_port 29816
+              PORT_DEVICE_MONITOR: &device_monitor_port 29817
               WEB_CONFIG_OVERRIDE: "false"
               SHOW_SERVER_LOGS: "true"
               SHOW_MONGODB_LOGS: "false"
@@ -80,8 +80,9 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /
-                    port: *http_port
+                    path: /api/info
+                    port: *https_port
+                    scheme: HTTPS
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 5
@@ -134,7 +135,7 @@ spec:
             port: *http_port
           https:
             port: *https_port
-          app_discovery:
+          app-discovery:
             port: *app_discovery_port
             protocol: UDP
           discovery:
@@ -142,12 +143,14 @@ spec:
             protocol: UDP
           manager:
             port: *manager_v1_port
-          manager_v2:
+          manager-v2:
             port: *manager_v2_port
           adopt:
             port: *adopt_v1_port
           upgrade:
             port: *upgrade_v1_port
+          upgrade-https:
+            port: *upgrade_https_port
           transfer:
             port: *transfer_v2_port
           rtty:

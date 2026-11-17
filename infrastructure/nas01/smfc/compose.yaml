@@ -1,0 +1,51 @@
+services:
+  smfc:
+    image: &image docker.io/petersulyok/smfc:6.5.0@sha256:2256941cedd39cf3832ccc95dbd1dacfff76ca83b074aceab43c3e80822ae9ac
+    entrypoint: ["smfc"]
+    command: ["-c", "/etc/smfc/smfc.conf", "-l", "3", "-o", "0"]
+    cap_drop: [ALL]
+    cap_add: [SYS_RAWIO]
+    devices:
+      - /dev/ipmi0:/dev/ipmi0:rw
+    device_cgroup_rules:
+      - "b 8:* r"
+      - "b 65:* r"
+    volumes:
+      - /dev:/dev:ro
+      - /run/udev:/run/udev:ro
+      - ./smfc.conf:/etc/smfc/smfc.conf:ro
+    ports:
+      - "127.0.0.1:9099:9099"
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    pids_limit: 48
+    stop_grace_period: 30s
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9099/healthz', timeout=3).read()"
+      interval: 15s
+      timeout: 5s
+      start_period: 120s
+      retries: 3
+  watchdog:
+    image: *image
+    entrypoint: ["python3", "/opt/smfc/watchdog.py"]
+    cap_drop: [ALL]
+    cap_add: [SYS_RAWIO]
+    devices:
+      - /dev/ipmi0:/dev/ipmi0:rw
+    volumes:
+      - ./smfc.conf:/etc/smfc/smfc.conf:ro
+      - ./watchdog.py:/opt/smfc/watchdog.py:ro
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    mem_limit: 64m
+    pids_limit: 16
+    depends_on:
+      - smfc
+    restart: unless-stopped

@@ -529,6 +529,44 @@ curl -sk https://prometheus.homeops.ca/api/v1/query?query=upsAdvOutputActivePowe
 curl -sk https://prometheus.homeops.ca/api/v1/query?query=upsAdvBatteryCapacity | jq
 ```
 
+### NAS01 temperature-based fan control
+
+The separate [SMFC project](../infrastructure/nas01/smfc/) is deployed under
+`/mnt/local/apps/smfc`, not in the existing Garage/Zot Compose project. It uses
+the upstream digest-pinned image, local IPMI, read-only disk access and the
+existing `coretemp`/`drivetemp` modules; it does not install packages into
+TrueNAS's operating system. Copy the example configuration into the private
+host `smfc.conf`, replacing both placeholder inventories with one reviewed
+stable by-id path per disk or NVMe namespace. The Innodisk boot SATADOM exposes
+no temperature attribute and must be listed as an explicit coverage exception,
+not silently treated as a zero-temperature disk.
+
+On this X11 board, numbered fan headers share zone 0 and FANA/FANB share zone 1.
+The physical fan wall mixes these zones, so CPU, disk and NVMe controllers steer
+both using the maximum temperature and highest requested duty. A 50% floor
+retains airflow over uninstrumented cards. Standby guard is disabled: this
+controller must not spin down the storage array. FAN4's absent tachometer and
+the second fan on FAN1's splitter are not independently observable; do not
+interpret a good FAN1 RPM as proof that both splitter fans work.
+
+Run `smfc-client --standalone --no-color` through a one-shot Compose container
+before enabling control, and require every configured sensor to be readable.
+The native configuration parser and fan-curve lookup table must pass too.
+The independent watchdog checks the exported control-loop heartbeat, complete
+configured disk counts and both zone levels; an HTTP 200 alone is insufficient.
+Stale or failed control drives both zones to 100%. Normal SMFC termination
+also requests 100%, and its Compose entrypoint invokes `smfc` directly so that
+SIGTERM reaches its native handler.
+
+**Warn the operator before starting or stopping control or testing failover:**
+automatic overtemperature response and stop/failure tests can be loud. Leave
+the lid installed during thermal validation. Do not tune for silence from
+CPU readings alone or combine commissioning with an all-core/array stress test.
+Rollback is an ordinary stop of only this Compose project followed by explicit
+FULL mode and 100% duty in both zones; never restore a lower old duty as an
+automatic error fallback. The host deployment is persistent Compose state,
+not Flux reconciliation; revalidate after appliance or disk-inventory changes.
+
 ### Graceful Cluster Shutdown (Extended Outage)
 
 Do not use PDU outlet cuts as an orderly shutdown procedure, or spend a short

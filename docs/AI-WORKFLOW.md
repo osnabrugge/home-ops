@@ -603,6 +603,15 @@ This is contract smoke-test evidence, not production review-quality certificatio
 Kritika usage appears in its own dashboard; its model calls are not routed
 through Bifrost.
 
+An empty tool result, such as a `grep` with no matches, is legitimate but the
+approved provider rejects an empty tool-message body. The gateway normalizes
+only that empty body to an explicit no-output marker while preserving the tool
+call identity and all free-only checks. An HTTP 400 followed by submission
+timeouts is not evidence that funding, daily quota or token allowance must be
+increased. Validate this with the native nonpublishing tool/submission fixture
+and a bounded synthetic provider call; retrying a real public review is a
+separate owner-requested action.
+
 Repository indexing needs an embedder even when reviews use a working model.
 Without one, the native index queue cancels with
 `worker: no embedder is configured, indexing is off`; successful account/repository
