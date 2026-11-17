@@ -525,6 +525,22 @@ prove that a workload references its target. Check the pod's waiting reason:
 Verify the existing claim identity, native `/healthz` and actual device
 connectivity separately; do not print the credential values.
 
+The legacy Eufy Security integration speaks a different WebSocket protocol from
+the SDK bridge on `/ws`; a reachable port or changing DNS to an IP does not make
+them compatible. The native Anker eufy Home Security integration connects to the
+HomeBase directly. Its loaded config entry and registered devices do not prove
+that a live P2P session exists.
+
+The IoT Multus attachment uses source-based routing. A socket bound to `0.0.0.0`
+does not select that source first: without explicit main-table routes, Eufy's
+UDP discovery to `255.255.255.255:32108` leaves through Cilium. Home Assistant's
+existing routing init container restores only the IoT connected subnet and
+limited-broadcast routes through `net1`, using its reserved IoT source address;
+the default route remains on `eth0`. Verify `ip -4 route get 255.255.255.255`
+and an IoT destination both select `net1`, then check actual HomeBase session
+connectivity and entity availability. Do not colocate bridge and Home Assistant
+Pods or change firewall rules to compensate for the wrong outgoing interface.
+
 ### Shared RBD client read-only recovery
 
 `emergency_ro` is ext4's protective response to an I/O failure. Healthy Ceph
