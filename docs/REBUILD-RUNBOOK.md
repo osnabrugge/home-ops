@@ -628,6 +628,13 @@ The repository-policy Job reruns its transactional, idempotent SQL when its
 image or template changes. Its resource-scoped Flux `force: enabled` annotation
 allows replacement of that stateless Job; do not extend forced replacement to
 database resources or PVCs.
+Six retries within a fifteen-minute deadline allow the singleton primary and DNS
+to recover during concurrent image rollouts. If a run has already reached
+`Failed`, verify the primary accepts connections, retain the failed Job's logs,
+and recreate only that terminal stateless Job with a UID precondition before
+reconciling its Kustomization. Verify successful completion and the installed
+repository guards; do not enable reviews or remove access restrictions to
+recover this installer.
 
 An index job cancelled with `no embedder is configured` is a real configuration
 gap, not a GitHub App permission failure. Check `kritika-embeddings`, its

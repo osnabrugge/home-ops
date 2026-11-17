@@ -7,8 +7,8 @@ metadata:
     # The idempotent policy must rerun when its immutable image/template changes.
     kustomize.toolkit.fluxcd.io/force: enabled
 spec:
-  backoffLimit: 2
-  activeDeadlineSeconds: 120
+  backoffLimit: 6
+  activeDeadlineSeconds: 900
   template:
     metadata:
       labels:
