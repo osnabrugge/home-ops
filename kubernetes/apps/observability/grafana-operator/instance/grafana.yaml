@@ -15,26 +15,31 @@ spec:
       reporting_enabled: "false"
     auth:
       disable_login_form: "false"
-      oauth_allow_insecure_email_lookup: "true"
+      # The private Authentik scope preserves existing subjects, not email links.
+      oauth_allow_insecure_email_lookup: "false"
     auth.anonymous:
       enabled: "true"
     auth.generic_oauth:
       enabled: "true"
-      name: Authelia
+      name: Authentik
       icon: signin
-      client_id: grafana
+      client_id: $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_ID}
       client_secret: $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}
-      scopes: openid profile email groups
+      scopes: openid profile email grafana_legacy_subject
       empty_scopes: "false"
-      auth_url: https://auth.homeops.ca/api/oidc/authorization
-      token_url: https://auth.homeops.ca/api/oidc/token
-      api_url: https://auth.homeops.ca/api/oidc/userinfo
+      auth_url: https://authentik.homeops.ca/application/o/authorize/
+      token_url: https://authentik.homeops.ca/application/o/token/
+      api_url: https://authentik.homeops.ca/application/o/userinfo/
+      signout_redirect_url: https://authentik.homeops.ca/application/o/grafana/end-session/
       login_attribute_path: preferred_username
       groups_attribute_path: groups
       name_attribute_path: name
       use_pkce: "true"
-      role_attribute_path: contains(groups[*], 'admins') && 'GrafanaAdmin' || contains(groups[*], 'users') && 'Editor' || 'Viewer'
-      allow_assign_grafana_admin: "true"
+      validate_id_token: "true"
+      jwk_set_url: https://authentik.homeops.ca/application/o/grafana/jwks/
+      # Keep existing Grafana roles; changing IdP group names must not change grants.
+      skip_org_role_sync: "true"
+      allow_assign_grafana_admin: "false"
       auto_login: "false"
     log:
       mode: console
@@ -63,11 +68,16 @@ spec:
                     secretKeyRef:
                       name: grafana-admin-password-secret
                       key: GF_SECURITY_ADMIN_PASSWORD
+                - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-oidc
+                      key: client-id
                 - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: grafana-admin-password-secret
-                      key: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+                      name: grafana-oidc
+                      key: client-secret
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true

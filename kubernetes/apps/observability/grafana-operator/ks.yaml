@@ -80,6 +80,7 @@ metadata:
 spec:
   dependsOn:
     - name: grafana-operator
+    - name: grafana-identity
     - name: rook-ceph-cluster
       namespace: rook-ceph
   interval: 1h
