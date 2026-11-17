@@ -10,7 +10,7 @@ spec:
   instances: 1
   # Allow maintenance eviction; this singleton is unavailable until it returns.
   enablePDB: false
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.7-standard-bookworm@sha256:2643d7a683334dea20ba3171634f303eaf023605e709aa0f60ccc6aebf9fda18
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.7-standard-bookworm@sha256:6669f2fdbc344beb60d307e7aa0a343c510183ac49fd13db8d161d294ed5e141
   enableSuperuserAccess: false
   monitoring:
     enablePodMonitor: true
