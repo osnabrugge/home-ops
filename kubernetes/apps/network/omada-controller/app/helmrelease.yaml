@@ -9,6 +9,7 @@ spec:
     kind: OCIRepository
     name: omada-controller
   interval: 1h
+  timeout: 12m
   values:
     controllers:
       omada-controller:
@@ -71,7 +72,12 @@ spec:
             probes:
               liveness:
                 enabled: true
+                custom: true
                 spec:
+                  httpGet:
+                    path: /api/info
+                    port: *https_port
+                    scheme: HTTPS
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 5
@@ -88,9 +94,15 @@ spec:
                   failureThreshold: 5
               startup:
                 enabled: true
+                custom: true
                 spec:
+                  httpGet:
+                    path: /api/info
+                    port: *https_port
+                    scheme: HTTPS
                   failureThreshold: 60
                   periodSeconds: 10
+                  timeoutSeconds: 5
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -98,10 +110,9 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: 40m
+                cpu: 100m
               limits:
                 memory: 2Gi
-                cpu: 200m
     defaultPodOptions:
       annotations:
         # LAN attach (bond0.1 / VLAN1) so Omada is L2-reachable for device discovery + adoption.

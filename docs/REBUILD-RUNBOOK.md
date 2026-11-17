@@ -597,6 +597,13 @@ Use `/api/info`, not the removed `/login`, for readiness. App-template Service
 port names must use hyphens rather than underscores, and numeric probe/Service
 port anchors must remain integers even when also reused as environment values.
 
+Use the management health endpoint for startup and liveness too; app-template's
+first inferred TCP port is an adoption port, not a controller-startup contract.
+Keep CPU burst headroom: a 200m limit throttled every measured CFS period and
+made Spring startup exceed Helm's five-minute action timeout. The container
+retains its 2Gi memory ceiling, a CPU request and a bounded startup window;
+the Helm action timeout must also accommodate startup and graceful shutdown.
+
 The current 6.4 image is a beta. The image maintainer documents external MongoDB
 4.0 through 8.0, while this installation uses 8.2.7. Neither a clean device
 precheck nor MongoDB's version being newer certifies that combination. Keep the
