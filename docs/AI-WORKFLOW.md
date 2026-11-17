@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-11-12. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-17. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Start here: what each application actually does
@@ -12,7 +12,7 @@ is not a completed PR review.
 | Component             | Current role                                                                                       | What it does not do                                                                              |
 | --------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | VS Code / Copilot SDK | Interactive engineering through the selected Copilot model and authorized MCP tools                | It is not automatically routed through either cluster model gateway                              |
-| Kritika               | Repository indexing and queued PR-review Jobs; the first public review is still owner-gated        | It does not autonomously create fix PRs for the owner to approve                                 |
+| Kritika               | Repository indexing and working manual PR reviews; automatic reviews remain owner-gated            | It does not autonomously create fix PRs for the owner to approve                                 |
 | LiteLLM               | The active local advisory's model/MCP gateway, with scoped keys and request limits                 | Its gateway and optional admin UI do not themselves run an agent loop                            |
 | LiteLLM Operator      | An inactive draft, not a deployed controller                                                       | It is not required to run the current chart-managed LiteLLM proxy                                |
 | Bifrost               | A separate local-only gateway evaluation                                                           | No scheduled production client is routed through it; old test activity is not ongoing agent work |
@@ -30,7 +30,7 @@ Scheduled SMART advisory -> LiteLLM -> private Ollama generation model
 
 Kritika -> private local embedding service -> its repository index
         -> isolated per-run Jobs -> approved zero-price review gateway
-        -> GitHub publication only after the owner's explicit test approval
+        -> owner-requested GitHub reviews; automatic triggers remain held
 
 Bifrost -> local Ollama evaluation only; not in the paths above
 ```
@@ -58,7 +58,7 @@ are separate concerns; see [the authentication strategy](AUTH-ARCHITECTURE.md).
   Job logs for the two measured checks and its explanation, not a repair queue.
 - Use Kritika for reviewing an existing, explicitly approved PR, not generating
   new fix PRs. Indexing builds retrieval context; it does not create review work.
-  The false automatic-trigger rule and first-publication approval still apply.
+  Manual publication works; the false automatic-trigger rule remains a separate hold.
 - LiteLLM's deployed native UI exists. For private administration, use
   `kubectl -n ai port-forward --address 127.0.0.1 service/litellm 4000:4000`
   with the repository kubeconfig, then open `http://127.0.0.1:4000/ui/` and use
@@ -621,9 +621,9 @@ The root `enabled` default is true so the index worker does not inherit a false
 effective configuration after the owner enables a repository. New discoveries
 still wait for a dashboard choice, and database policy permits only the selected
 public repository. Keep the automatic-trigger include expression false; that
-is the review-publication hold, not the root indexing default.
+is the automatic-review hold, not the root indexing default or a block on manual publication.
 
-The limits remain one concurrent call per model, one review per day and 150,000
+The limits remain one concurrent call per model, five reviews per day and 150,000
 cumulative input/output tokens per review. Every model step sends and counts
 the prompt again: this is not a context-window size, an output-token limit or
 a dollar allowance. A 20,000-token cap exhausted the allowance after two measured
@@ -636,6 +636,9 @@ the first local index would consume the review allowance. This is not a paid
 model budget. A run has six agent steps, an 8,000-token initial prompt, one part
 and a five-minute timeout. Model output requests are capped at 2,048 tokens.
 No paid fallback, Foundry deployment or subscription entitlement is implied.
+The daily review allowance is independent of OpenRouter's completion-request
+quota. Raising it does not buy credits, reset already-used reviews or enable
+automatic reviews; a review can consume several provider requests.
 
 Runners use non-root, read-only-root, capability-free, tokenless native user
 namespaces on k8s06, with 1 CPU, 1Gi memory and 1Gi ephemeral-storage bounds.
@@ -660,10 +663,10 @@ Database enforcement rejects other repositories/accounts
 and turns a repository off if it becomes private. Native `enabled` indicates
 forge reachability; the dashboard switch is `turned_on`.
 
-The first successful public review needs an explicitly owner-approved trusted PR
-test. Keep only home-ops enabled, allow its metadata polling, then manually request that approved PR
-through the dashboard. The manual rerun API addresses a PR, not a pre-existing
-review:
+Successful owner-requested public reviews have verified manual publication.
+There is no remaining first-publication setup step for this installation.
+Keep only home-ops enabled and manually request the intended PR through the
+dashboard. The manual rerun API addresses a PR, not a pre-existing review:
 `POST /api/v1/accounts/github/osnabrugge/pulls/osnabrugge/home-ops/<number>/rerun`.
 Webhook activation and automatic-review enablement are separate owner decisions.
 The `owner-manual-pilot` include expression `false` intentionally skips automatic
@@ -677,6 +680,15 @@ every open PR. Do not seed unsupported database rows or claim the first public
 review was tested from a successful index.
 Do not treat repository discovery, a healthy pod or the synthetic model fixture
 as evidence that a real review has been published successfully.
+
+For automatic, review-only operation, change the instance's deliberately false
+`trigger.include` rule to the approved PR cohort, for example
+`pr.baseRef == "main" && !pr.draft`, while retaining the fork exclusion.
+`trigger.limit: 1` separately limits automatic reviews per PR; later pushes
+require an explicitly chosen higher limit if automatic re-reviews are wanted.
+Keep the free-only policy gateway, empty fallback, `review.approve: false`,
+`review.fixes: false`, monthly token cap and single-worker bounds. Funding
+OpenRouter does not change any of these controls or require a paid model.
 
 ### Reusing the existing GitHub App
 
