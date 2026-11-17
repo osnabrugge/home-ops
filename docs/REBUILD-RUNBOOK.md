@@ -572,6 +572,17 @@ or disable ext4's protection to hide the failure. The original trigger must be
 established from retained kernel, Ceph and network evidence; a successful
 remount alone does not prove which network/authentication event caused it.
 
+An unused RBD mapping can remain busy after the CSI global mount is unmounted
+if another container inherited that mount in a private namespace. The log
+collector formerly mounted all of `/var/lib`, including unrelated CSI staging
+mounts. Talos needs only `/var/log` for pod logs; keep the collector's separate
+`/var/lib/vl-collector` spool mount, not the broad parent mount. Use
+`findmnt -N <pid>` to identify an actual retained mount before restarting any
+consumer. A graceful restart of the exact collector releases its namespace
+without deleting its host-backed buffer. Verify ordinary unmap succeeds, the
+original claim is retained, and real Prometheus queries work; never replace
+this diagnosis with forced unmapping or a node reboot.
+
 Home Assistant and both memory backends use write-aware readiness checks.
 Grafana keeps its native HTTP check and adds a small storage-readiness
 container. They create, flush and remove only temporary files on their own

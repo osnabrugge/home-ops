@@ -16,6 +16,15 @@ spec:
         registry: quay.io
     podMonitor:
       enabled: true
+    # Talos keeps pod logs under /var/log; mounting /var/lib pins unrelated CSI mounts.
+    defaultVolumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+    defaultVolumeMounts:
+      - name: varlog
+        mountPath: /var/log
+        readOnly: true
     remoteWrite:
       - url: http://victoria-logs.observability.svc.cluster.local:9428
         maxDiskUsagePerURL: 10GB
