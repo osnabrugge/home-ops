@@ -7,7 +7,7 @@ spec:
   slug: grafana
   name: Grafana
   deletionPolicy: Retain
-  # First adopt the existing, unused provider without changing its identity.
+  # Adopt the existing application/provider; never create a second Grafana client.
   adopt: IfMatch
   provider:
     flows:
@@ -16,8 +16,29 @@ spec:
       invalidation:
         slug: default-provider-invalidation-flow
     oauth2:
+      clientType: Confidential
+      redirectURIs:
+        - url: https://grafana.homeops.ca/login/generic_oauth
+          matchingMode: Strict
+      scopes:
+        - scopeName: openid
+        - scopeName: profile
+        - scopeName: email
+        - scopeName: grafana_legacy_subject
+      grantTypes:
+        - AuthorizationCode
+      subjectMode: HashedUserID
+      issuerMode: PerProvider
+      includeClaimsInIDToken: true
+      signingKey:
+        name: authentik Self-signed Certificate
       credentials:
         secretRef:
           name: grafana-oidc
   access:
-    public: true
+    mode: Any
+    rules:
+      - group:
+          name: authentik Admins
+      - user:
+          username: sean
