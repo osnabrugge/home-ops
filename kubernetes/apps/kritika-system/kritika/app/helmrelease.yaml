@@ -94,7 +94,7 @@ spec:
         parts: 1
         timeout: 5m
         commandTimeout: 15s
-        fetches: 1
+        fetches: 2
       limits:
         reviewsPerDay: 5
         # Native accounting includes both the local index and cumulative review tokens.
