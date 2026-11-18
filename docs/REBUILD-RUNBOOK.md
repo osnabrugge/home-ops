@@ -604,11 +604,22 @@ made Spring startup exceed Helm's five-minute action timeout. The container
 retains its 2Gi memory ceiling, a CPU request and a bounded startup window;
 the Helm action timeout must also accommodate startup and graceful shutdown.
 
-The current 6.4 image is a beta. The image maintainer documents external MongoDB
-4.0 through 8.0, while this installation uses 8.2.7. Neither a clean device
-precheck nor MongoDB's version being newer certifies that combination. Keep the
-working 6.3 image until the beta and database compatibility decision is explicit;
-do not downgrade the shared database, bypass checks or silently install a beta.
+The pinned 6.4 image is a beta. The image maintainer documents external MongoDB
+4.0 through 8.0, while this installation uses 8.2.7. This combination was
+qualified locally by restoring both databases and controller data into a
+tokenless, network-denied test Pod, then verifying the real 6.3-to-6.4 migration,
+authentication, controller identity, health endpoint and 8044 listener.
+Local qualification does not change the vendor's support matrix.
+
+Before upgrading, preserve a fresh logical archive and cold CSI checkpoints of
+both claims while the controller and database are gracefully stopped. Keep
+claim identities and record every temporary reconciler, schedule and replica
+hold. Temporarily prevent Helm automatic rollback during a database-changing
+controller upgrade: starting an older binary against migrated data is not a
+rollback plan. Restore the original remediation policy and every hold only
+after the new version is healthy. Do not downgrade MongoDB or bypass the device
+precheck to force compatibility. Private archive exports and temporary test
+credentials must never be committed or published.
 
 ### Matter Server dashboard
 
