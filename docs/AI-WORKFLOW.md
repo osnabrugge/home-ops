@@ -620,6 +620,16 @@ submissions, findings or tool-call identities. Inspect the native stop reason,
 truncated tool output and unexecuted deferred calls; do not count inaccessible
 release notes or registry metadata as completed checks.
 
+During forced wrap-up, the native executor permits only `submit_review`, but
+its request still advertises the complete tool set with automatic selection.
+The gateway recognizes that exact native phase, retains the single unchanged
+native submission schema and sets `tool_choice: "required"`. Missing or
+duplicate submission schemas are rejected before contacting the provider.
+Normal work-phase tools and choices remain unchanged. Validate this handoff
+with the actual failed context and native checker, not a minimal tool stub.
+Native request journals capture the pre-gateway request, so they can still show
+the full tool set; verify the outgoing handler transformation separately.
+
 Repository indexing needs an embedder even when reviews use a working model.
 Without one, the native index queue cancels with
 `worker: no embedder is configured, indexing is off`; successful account/repository
