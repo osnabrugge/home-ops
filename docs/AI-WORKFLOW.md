@@ -571,7 +571,7 @@ reconciling an upgrade. Provider request timeouts retain their five-minute
 default; the agent's separate five-minute total deadline, disabled retries and
 fallbacks, and review/publication gates remain unchanged.
 
-Kritika 0.0.119 is deployed in `kritika-system`, with one service replica and
+Kritika is deployed in `kritika-system`, with one service replica and
 a separate PostgreSQL 18.6 cluster, `kritika-db` (pgvector 0.8.7 and VectorChord
 1.1.1). Its owner and application roles are non-superusers; the application role
 does not own tables or bypass row-level security. The original
@@ -612,6 +612,14 @@ increased. Validate this with the native nonpublishing tool/submission fixture
 and a bounded synthetic provider call; retrying a real public review is a
 separate owner-requested action.
 
+Forced final submission is not evidence that the planned checks finished.
+Native records can contain `forced_by: steps` while `partial` is false and the
+GitHub status is green. After verifying zero pricing, the gateway adds an
+explicit **Pilot limit notice** to forced submissions without changing ordinary
+submissions, findings or tool-call identities. Inspect the native stop reason,
+truncated tool output and unexecuted deferred calls; do not count inaccessible
+release notes or registry metadata as completed checks.
+
 Repository indexing needs an embedder even when reviews use a working model.
 Without one, the native index queue cancels with
 `worker: no embedder is configured, indexing is off`; successful account/repository
@@ -632,18 +640,27 @@ still wait for a dashboard choice, and database policy permits only the selected
 public repository. Keep the automatic-trigger include expression false; that
 is the automatic-review hold, not the root indexing default or a block on manual publication.
 
-The limits remain one concurrent call per model, five reviews per day and 150,000
+Index staging also needs admission under the namespace's twelve-Job quota.
+Finished runner Jobs consume that quota until garbage collection; near-full
+storage is not evidence that storage caused an admission failure. Native runner
+Jobs use a 60-second finished TTL while native review/index records and collected
+logs remain retained. Verify a completed native index generation with nonzero
+file/chunk counts and the intended commit, not only a successful staging Job.
+
+The limits remain one concurrent call per model, five reviews per day and 300,000
 cumulative input/output tokens per review. Every model step sends and counts
 the prompt again: this is not a context-window size, an output-token limit or
 a dollar allowance. A 20,000-token cap exhausted the allowance after two measured
 steps of about 10,000 tokens each, before a final submission could run. The
-150,000-token bound leaves room for the six-step loop, growing tool context and
+300,000-token bound leaves room for the twelve-step loop, growing tool context and
 the native final-submission retries; it is still finite.
 Native monthly accounting also includes local index tokens,
 so its shared ceiling is now 5,000,000 rather than the former 20,000; otherwise
 the first local index would consume the review allowance. This is not a paid
-model budget. A run has six agent steps, an 8,000-token initial prompt, one part
-and a five-minute timeout. Model output requests are capped at 2,048 tokens.
+model budget. A run has twelve agent steps, an 8,000-token initial prompt, one part
+and a five-minute timeout. The step cap leaves eleven work passes before forced
+finalization; the former six-step cap left only five. Model output requests are
+capped at 4,096 tokens to avoid the observed truncated, actionless responses.
 No paid fallback, Foundry deployment or subscription entitlement is implied.
 The daily review allowance is independent of OpenRouter's completion-request
 quota. Raising it does not buy credits, reset already-used reviews or enable
@@ -656,6 +673,14 @@ real synthetic runner could reach its gateway but not the Kubernetes API,
 database, dashboard, provider-credential gateway, direct internet or external DNS.
 This is shared-kernel isolation, **not gVisor/Kata**; untrusted fork execution
 is not approved by this pilot. No Talos extension or node reboot was performed.
+
+OCI inspections use the native gateway's brokered registry egress. A CONNECT
+403 with `host not allowed` identifies `config.egress.allow`, not a proven
+registry authentication failure. Review exact hostname entries there rather
+than granting direct runner internet access or wildcard egress. Successful
+CONNECT alone is insufficient: verify the actual pinned manifest/config read,
+including any downstream authentication or redirect requirements, with a
+nonpublishing fixture.
 
 Internal calls use headless services after an observed same-node service-VIP
 return-path denial; the fixed-node runner gateway hop stays cross-node.
