@@ -661,6 +661,8 @@ model budget. A run has twelve agent steps, an 8,000-token initial prompt, one p
 and a five-minute timeout. The step cap leaves eleven work passes before forced
 finalization; the former six-step cap left only five. Model output requests are
 capped at 4,096 tokens to avoid the observed truncated, actionless responses.
+The shared `agent.fetches: 2` setting bounds both OCI inspections and repository
+fetches, allowing a bounded old/new image comparison rather than one inspection.
 No paid fallback, Foundry deployment or subscription entitlement is implied.
 The daily review allowance is independent of OpenRouter's completion-request
 quota. Raising it does not buy credits, reset already-used reviews or enable
@@ -676,11 +678,13 @@ is not approved by this pilot. No Talos extension or node reboot was performed.
 
 OCI inspections use the native gateway's brokered registry egress. A CONNECT
 403 with `host not allowed` identifies `config.egress.allow`, not a proven
-registry authentication failure. Review exact hostname entries there rather
-than granting direct runner internet access or wildcard egress. Successful
-CONNECT alone is insufficient: verify the actual pinned manifest/config read,
-including any downstream authentication or redirect requirements, with a
-nonpublishing fixture.
+registry authentication failure. Both that allowlist and the server/gateway's
+Cilium FQDN policy must permit the exact registry and observed CDN hostnames on
+TCP 443. Fixing only the native allowlist can leave an outbound connection
+timeout. Do not grant direct runner internet access or wildcard egress.
+Successful CONNECT alone is insufficient: verify the actual pinned
+manifest/config read, including any downstream authentication or redirect
+requirements, with a nonpublishing fixture.
 
 Internal calls use headless services after an observed same-node service-VIP
 return-path denial; the fixed-node runner gateway hop stays cross-node.
