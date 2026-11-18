@@ -85,6 +85,7 @@ spec:
         - matchName: ghcr.io
         - matchName: quay.io
         - matchName: cdn01.quay.io
+        - matchName: pkg-containers.githubusercontent.com
       toPorts:
         - ports:
             - port: "443"
