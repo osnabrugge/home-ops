@@ -85,10 +85,11 @@ spec:
         exclude:
           - { name: forks, expr: pr.fork }
       agent:
-        steps: 6
+        # Six steps allowed only five tool passes before native forced submission.
+        steps: 12
         output: 8192
-        # Every step recounts the prompt; leave room for tools and final submission.
-        tokens: 150000
+        # Observed 12-14k tokens/call; cover twelve steps and two final retries.
+        tokens: 300000
         prompt: 8000
         parts: 1
         timeout: 5m
@@ -129,7 +130,8 @@ spec:
       jobTemplate:
         spec:
           activeDeadlineSeconds: 600
-          ttlSecondsAfterFinished: 300
+          # Native records retain results/logs; release the 12-Job quota promptly.
+          ttlSecondsAfterFinished: 60
       podTemplate:
         spec:
           # Verified native user namespaces, NOT gVisor or a separate kernel.

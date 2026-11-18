@@ -188,6 +188,40 @@ class HTTPPolicyTests(unittest.TestCase):
             with self.subTest(reply=reply):
                 self.assertEqual(self.model()[0], 502)
 
+    def test_native_forced_submission_is_visibly_incomplete_not_a_clean_review(self):
+        submitted = {
+            "summary": {"headline": "Synthetic change", "take": "- Changes a fixture.", "praise": []},
+            "findings": [{"title": "Preserve the model's finding"}],
+        }
+        self.reply["choices"] = [{"message": {"tool_calls": [{
+            "id": "submit_fixture", "type": "function",
+            "function": {"name": "submit_review", "arguments": json.dumps(submitted)},
+        }]}}]
+        self.assertEqual(self.model()[1], self.reply)
+        messages = [{"role": "user", "content":
+                     "Call submit_review now with what you have, and call nothing else."}]
+        status, response = self.model(messages=messages)
+        self.assertEqual(status, 200)
+        call = response["choices"][0]["message"]["tool_calls"][0]
+        result = json.loads(call["function"]["arguments"])
+        self.assertIn("Pilot limit notice", result["summary"]["take"])
+        self.assertIn("incomplete", result["summary"]["take"])
+        self.assertTrue(result["summary"]["take"].startswith(submitted["summary"]["take"]))
+        self.assertEqual(result["findings"], submitted["findings"])
+        self.assertEqual(call["id"], "submit_fixture")
+        self.reply["usage"]["cost"] = 0.1
+        self.assertEqual(self.model(messages=messages)[0], 502)
+
+    def test_forced_review_notice_never_repairs_invalid_submission_arguments(self):
+        for arguments in ("not json", "null", '{"summary":{"take":null}}'):
+            self.reply["choices"] = [{"message": {"tool_calls": [{
+                "function": {"name": "submit_review", "arguments": arguments},
+            }]}}]
+            with self.subTest(arguments=arguments):
+                self.assertEqual(self.model(messages=[{"role": "user", "content":
+                    "Call submit_review now with what you have, and call nothing else."}])[1],
+                    self.reply)
+
     def test_signed_ping_is_forwarded_unsigned_or_invalid_is_not(self):
         self.assertEqual(self.hook({}, valid=False)[0], 401)
         self.assertEqual(self.calls, [])

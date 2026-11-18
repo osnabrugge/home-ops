@@ -16,7 +16,12 @@ REPOSITORY = "osnabrugge/home-ops"
 API = "https://openrouter.ai/api/v1"
 MAX_BODY = 128 * 1024
 MAX_REPLY = 4 * 1024 * 1024
-MAX_OUTPUT = 2048
+MAX_OUTPUT = 4096
+SUBMIT_NOW = "Call submit_review now with what you have, and call nothing else."
+LIMIT_NOTICE = (
+    "**Pilot limit notice:** Forced wrap-up; this review is incomplete and does not "
+    "certify upstream or breaking-change coverage."
+)
 FIELDS = {
     "model", "messages", "tools", "tool_choice", "parallel_tool_calls",
     "temperature", "top_p", "top_k", "min_p", "seed", "stop",
@@ -96,6 +101,33 @@ def completion(payload):
         "max_price": {"prompt": 0, "completion": 0},
     }
     return out
+
+
+def mark_forced_review(payload, reply):
+    last = payload["messages"][-1]
+    if (
+        not isinstance(last, dict) or last.get("role") != "user"
+        or not isinstance(last.get("content"), str)
+        or not last["content"].rstrip().endswith(SUBMIT_NOW)
+    ):
+        return reply
+    # Native forced submissions can be valid while reviews.partial remains false.
+    for choice in reply.get("choices", []):
+        for call in choice.get("message", {}).get("tool_calls", []):
+            function = call.get("function", {})
+            if function.get("name") != "submit_review":
+                continue
+            try:
+                submitted = json.loads(function["arguments"])
+                take = submitted["summary"]["take"]
+                if not isinstance(take, str):
+                    continue
+            except (ValueError, KeyError, TypeError):
+                continue
+            if LIMIT_NOTICE not in take:
+                submitted["summary"]["take"] = take + "\n\n" + LIMIT_NOTICE
+                function["arguments"] = json.dumps(submitted, separators=(",", ":"))
+    return reply
 
 
 def approved_hook(body, headers, secret):
@@ -245,7 +277,7 @@ class Handler(BaseHTTPRequestHandler):
                     or not zero(reply.get("usage", {}).get("cost"))
                 ):
                     raise Refused(502, "Upstream did not attest the approved model at zero cost")
-                self.send(status, reply)
+                self.send(status, mark_forced_review(payload, reply))
             else:
                 raise Refused(404, "Not found")
         except Refused as error:
