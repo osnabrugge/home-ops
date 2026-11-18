@@ -119,6 +119,19 @@ class HTTPPolicyTests(unittest.TestCase):
             {"Authorization": "Bearer synthetic-gateway-key"},
         )
 
+    def review_tools(self):
+        return [
+            {"type": "function", "function": {
+                "name": "read_file", "parameters": {"type": "object"},
+            }},
+            {"type": "function", "function": {
+                "name": "submit_review", "parameters": {
+                    "type": "object", "required": ["summary", "findings"],
+                    "properties": {"summary": {"type": "object"}, "findings": {"type": "array"}},
+                },
+            }},
+        ]
+
     def hook(self, payload, event="ping", valid=True):
         body = json.dumps(payload).encode()
         signature = hmac.new(b"synthetic-webhook-key", body, hashlib.sha256).hexdigest()
@@ -200,7 +213,7 @@ class HTTPPolicyTests(unittest.TestCase):
         self.assertEqual(self.model()[1], self.reply)
         messages = [{"role": "user", "content":
                      "Call submit_review now with what you have, and call nothing else."}]
-        status, response = self.model(messages=messages)
+        status, response = self.model(messages=messages, tools=self.review_tools())
         self.assertEqual(status, 200)
         call = response["choices"][0]["message"]["tool_calls"][0]
         result = json.loads(call["function"]["arguments"])
@@ -210,7 +223,35 @@ class HTTPPolicyTests(unittest.TestCase):
         self.assertEqual(result["findings"], submitted["findings"])
         self.assertEqual(call["id"], "submit_fixture")
         self.reply["usage"]["cost"] = 0.1
-        self.assertEqual(self.model(messages=messages)[0], 502)
+        self.assertEqual(self.model(messages=messages, tools=self.review_tools())[0], 502)
+
+    def test_native_wrap_up_advertises_only_existing_submit_schema_with_required_choice(self):
+        tools = self.review_tools()
+        original = copy.deepcopy(tools)
+        self.assertEqual(self.model(tools=tools, tool_choice="auto")[0], 200)
+        ordinary = json.loads(self.calls[-1][1]["data"])
+        self.assertEqual(ordinary["tools"], tools)
+        self.assertEqual(ordinary["tool_choice"], "auto")
+        self.assertEqual(self.model(
+            tools=tools, tool_choice="auto",
+            messages=[{"role": "user", "content": policy.SUBMIT_NOW}],
+        )[0], 200)
+        forced = json.loads(self.calls[-1][1]["data"])
+        self.assertEqual(forced["tools"], [tools[1]])
+        self.assertEqual(forced["tool_choice"], "required")
+        self.assertEqual(forced["provider"]["max_price"], {"prompt": 0, "completion": 0})
+        self.assertEqual(tools, original)
+
+    def test_native_wrap_up_without_one_existing_submit_definition_fails_before_upstream(self):
+        tools = self.review_tools()
+        for definitions in ([], tools[:1], [tools[1], tools[1]]):
+            with self.subTest(definitions=definitions):
+                self.calls.clear()
+                self.assertEqual(self.model(
+                    tools=definitions,
+                    messages=[{"role": "user", "content": policy.SUBMIT_NOW}],
+                )[0], 400)
+                self.assertEqual(self.calls, [])
 
     def test_forced_review_notice_never_repairs_invalid_submission_arguments(self):
         for arguments in ("not json", "null", '{"summary":{"take":null}}'):
@@ -219,7 +260,8 @@ class HTTPPolicyTests(unittest.TestCase):
             }]}}]
             with self.subTest(arguments=arguments):
                 self.assertEqual(self.model(messages=[{"role": "user", "content":
-                    "Call submit_review now with what you have, and call nothing else."}])[1],
+                    "Call submit_review now with what you have, and call nothing else."}],
+                    tools=self.review_tools())[1],
                     self.reply)
 
     def test_signed_ping_is_forwarded_unsigned_or_invalid_is_not(self):

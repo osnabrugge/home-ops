@@ -70,6 +70,15 @@ def approved_model(catalogue):
     return model
 
 
+def forced_review(payload):
+    last = payload["messages"][-1]
+    return (
+        isinstance(last, dict) and last.get("role") == "user"
+        and isinstance(last.get("content"), str)
+        and last["content"].rstrip().endswith(SUBMIT_NOW)
+    )
+
+
 def completion(payload):
     if not isinstance(payload, dict) or payload.get("model") != MODEL:
         raise Refused(403, "Only the explicit approved :free model is permitted")
@@ -89,6 +98,22 @@ def completion(payload):
         else message
         for message in payload["messages"]
     ]
+    if forced_review(out):
+        definitions = out.get("tools")
+        if not isinstance(definitions, list):
+            raise Refused(400, "Native wrap-up requires the existing submit_review definition")
+        submit = [
+            tool for tool in definitions
+            if isinstance(tool, dict) and tool.get("type") == "function"
+            and isinstance(tool.get("function"), dict)
+            and tool["function"].get("name") == "submit_review"
+            and isinstance(tool["function"].get("parameters"), dict)
+        ]
+        if len(submit) != 1:
+            raise Refused(400, "Native wrap-up requires one existing submit_review definition")
+        # Cohere supports required/none; named choice did not constrain this run.
+        out["tools"] = submit
+        out["tool_choice"] = "required"
     requested = out.pop("max_completion_tokens", out.get("max_tokens", MAX_OUTPUT))
     if not isinstance(requested, int) or isinstance(requested, bool) or requested < 1:
         raise Refused(400, "Invalid output token bound")
@@ -104,12 +129,7 @@ def completion(payload):
 
 
 def mark_forced_review(payload, reply):
-    last = payload["messages"][-1]
-    if (
-        not isinstance(last, dict) or last.get("role") != "user"
-        or not isinstance(last.get("content"), str)
-        or not last["content"].rstrip().endswith(SUBMIT_NOW)
-    ):
+    if not forced_review(payload):
         return reply
     # Native forced submissions can be valid while reviews.partial remains false.
     for choice in reply.get("choices", []):
