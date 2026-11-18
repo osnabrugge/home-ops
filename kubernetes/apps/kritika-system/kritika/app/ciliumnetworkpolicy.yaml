@@ -84,6 +84,7 @@ spec:
         - matchName: codeload.github.com
         - matchName: ghcr.io
         - matchName: quay.io
+        - matchName: cdn01.quay.io
       toPorts:
         - ports:
             - port: "443"

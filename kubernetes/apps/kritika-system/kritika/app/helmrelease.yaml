@@ -111,6 +111,7 @@ spec:
           - codeload.github.com
           - ghcr.io
           - quay.io
+          - cdn01.quay.io
         deny:
           - 10.0.0.0/8
           - 172.16.0.0/12
