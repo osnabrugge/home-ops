@@ -138,8 +138,11 @@ from leaving a partially restored database.
 These are hourly logical recovery points, not continuous WAL/PITR protection.
 The existing shared `postgres16` native backup policy remains independent.
 Kritika's cache uses 2 GiB and its quota keeps one extra transient claim slot
-for restore verification; the 20 GiB aggregate storage budget is unchanged.
-The retained legacy database claim is not deleted to make room.
+for restore verification. The bounded 25 GiB aggregate reservation allows the
+19 GiB of runtime/retained claims, a 2 GiB maintenance cache and 4 GiB of growth
+headroom. No claim is resized, and the retained legacy database claim is not
+deleted to make room. Review-worker, compute and model-spending limits are
+independent and unchanged.
 
 Both singleton pilot databases declare CNPG `enablePDB: false` at the owner's
 request so voluntary node maintenance is not blocked. This accepts application
@@ -378,6 +381,12 @@ draft inactive rather than grant those permissions merely to start the pilot.
 The direct-chart gateway and native key-policy reconciler do not need a Kubernetes
 API token or a new cluster role. The reconciler manages only its predeclared worker
 key and validates models, routes, request/token limits and the one-tool MCP scope.
+
+Terminal key-policy Jobs have a one-day TTL, matching the other advisory Jobs.
+Current failures remain alertable without retaining recovered failures forever.
+Before manually retiring an old failed Job, retain its failure receipt and
+verify a fresh native `policy_verified` success; never erase an unfixed failure
+merely to clear an alert.
 
 The gVisor draft only declares a `RuntimeClass`; it does not install `runsc`.
 The intended worker k8s06 has no gVisor extension, and the cluster has no

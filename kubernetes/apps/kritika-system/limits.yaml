@@ -27,4 +27,5 @@ spec:
     limits.ephemeral-storage: 8Gi
     # Include the backup cache and retain one maintenance/restore-cache slot.
     persistentvolumeclaims: "5"
-    requests.storage: 20Gi
+    # 19Gi retained/runtime claims, 2Gi maintenance cache, 4Gi growth headroom.
+    requests.storage: 25Gi
