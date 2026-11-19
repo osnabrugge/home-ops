@@ -558,6 +558,33 @@ Stale or failed control drives both zones to 100%. Normal SMFC termination
 also requests 100%, and its Compose entrypoint invokes `smfc` directly so that
 SIGTERM reaches its native handler.
 
+After watchdog failover, recovery requires the same SMFC process to provide
+complete, error-free CPU/disk/NVMe readings for at least 30 seconds and two
+polling cycles of its slowest controller. Only then may the watchdog reconcile
+physical duty to the current native demand, checking both zones by BMC readback.
+An interrupted or unverifiable recovery returns to fail-high. Ordinary healthy
+operation does not write fan settings through the watchdog. This fixes a stuck
+fail-safe, not the initial emergency speed jump: native SMFC still exits to
+100% when disk-temperature reads exhaust their tolerance. Do not mask recurring
+sensor I/O errors by excluding disks, lowering emergency duty or extending
+blind cached-temperature use.
+
+The deployed version has no browser admin/settings UI. Its read-only terminal
+display is available without restarting control:
+
+```bash
+sudo docker exec homeops-smfc-smfc-1 smfc-client --no-color
+```
+
+Add `--verbose` for per-device readings and read-error counters. The native
+HTTP exporter is host-loopback-only on port 9099, with `/snapshot`, `/metrics`
+and `/healthz`; `/` returns 404. The
+[upstream Grafana dashboard](https://github.com/petersulyok/smfc/blob/v6.5.0/grafana/GRAFANA.md)
+is an optional monitoring integration, not an installed control panel here.
+Snapshot and exporter zone levels are cached SMFC state, not independent
+physical BMC duty; an HTTP 200 or displayed normal duty cannot prove that
+watchdog-imposed full speed has been released.
+
 **Warn the operator before starting or stopping control or testing failover:**
 automatic overtemperature response and stop/failure tests can be loud. Leave
 the lid installed during thermal validation. Do not tune for silence from

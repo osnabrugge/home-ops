@@ -16,11 +16,21 @@ class FanWatchdogTests(unittest.TestCase):
     def snapshot(self):
         return {
             "generated_at": 100,
-            "fan_mode": {"control_held": True, "age_s": 1},
+            "start_time": 50,
+            "fan_mode": {"id": 1, "control_held": True, "age_s": 1},
             "fan_controllers": [
-                {"type": "cpu", "enabled": True, "device_count": 2},
-                {"type": "hd", "enabled": True, "device_count": 2, "devices": [{}, {}]},
-                {"type": "nvme", "enabled": True, "device_count": 1, "devices": [{}]},
+                {
+                    "type": kind, "enabled": True, "device_count": count,
+                    "devices": [{"temp_c": temperature, "read_errors": 0} for _ in range(count)],
+                    "ipmi_zones": [0, 1], "polling": polling,
+                    "last_level_pct": level, "temp_max_c": maximum,
+                }
+                for kind, count, temperature, level, polling, maximum in (
+                    ("cpu", 2, 30, 50, 2, 80),
+                    ("hd", 2, 45, 70, 15, 60),
+                    ("nvme", 1, 40, 50, 5, 70),
+                    ("const", 0, 0, 50, 10, 0),
+                )
             ],
             "zones": {"0": {"applied_level_pct": 70}, "1": {"applied_level_pct": 70}},
         }
@@ -67,6 +77,112 @@ class FanWatchdogTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             watchdog.fail_high()
         self.assertEqual(run.call_count, 3)
+
+    @patch.object(watchdog, "restore_levels")
+    @patch.object(watchdog.time, "monotonic", side_effect=[0, 20, 30])
+    def test_fail_safe_is_released_only_after_two_complete_sensor_cycles(self, monotonic, restore):
+        recovery = watchdog.Recovery()
+        recovery.active = True
+        state = self.snapshot()
+        for _ in range(2):
+            recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        restore.assert_not_called()
+        recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        restore.assert_called_once_with({"hd": 2, "nvme": 1}, 50)
+        self.assertFalse(recovery.active)
+
+    @patch.object(watchdog, "restore_levels")
+    @patch.object(watchdog.time, "monotonic", side_effect=[0, 30, 40])
+    def test_restarted_controller_must_complete_a_new_recovery_window(self, monotonic, restore):
+        recovery = watchdog.Recovery()
+        recovery.active = True
+        state = self.snapshot()
+        recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        state["start_time"] = 60
+        recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        restore.assert_not_called()
+
+    @patch.object(watchdog, "restore_levels")
+    @patch.object(watchdog.time, "monotonic", side_effect=[0, 30, 40])
+    def test_cached_sensor_error_resets_the_recovery_window(self, monotonic, restore):
+        recovery = watchdog.Recovery()
+        recovery.active = True
+        state = self.snapshot()
+        recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        state["fan_controllers"][1]["devices"][0]["read_errors"] = 1
+        with self.assertRaisesRegex(ValueError, "uncached"):
+            recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        state["fan_controllers"][1]["devices"][0]["read_errors"] = 0
+        recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        recovery.observe(state, {"hd": 2, "nvme": 1}, 101)
+        restore.assert_not_called()
+
+    def test_recovery_rejects_missing_cpu_invalid_temperature_and_unsafe_demand(self):
+        for fault in ("missing-cpu", "nan", "too-hot", "mismatched-zone"):
+            with self.subTest(fault=fault):
+                state = self.snapshot()
+                if fault == "missing-cpu":
+                    state["fan_controllers"][0]["devices"].pop()
+                elif fault == "nan":
+                    state["fan_controllers"][1]["devices"][0]["temp_c"] = float("nan")
+                elif fault == "too-hot":
+                    state["fan_controllers"][1]["devices"][0]["temp_c"] = 61
+                else:
+                    state["zones"]["1"]["applied_level_pct"] = 50
+                with self.assertRaises(ValueError):
+                    watchdog.recovery_levels(state, {"hd": 2, "nvme": 1}, 101)
+
+    @patch.object(watchdog.time, "time", return_value=101)
+    @patch.object(watchdog, "read_snapshot")
+    @patch.object(watchdog, "read_level", side_effect=[100, 70, 70, 70])
+    @patch.object(watchdog.subprocess, "run")
+    def test_latched_physical_fan_is_restored_without_restarting_smfc(self, run, read, snapshot, now):
+        snapshot.return_value = self.snapshot()
+        self.assertEqual(watchdog.restore_levels({"hd": 2, "nvme": 1}, 50), {"0": 70, "1": 70})
+        run.assert_called_once()
+        self.assertEqual(
+            run.call_args.args[0],
+            ["ipmitool", "raw", "0x30", "0x70", "0x66", "0x01", "0", "0x46"],
+        )
+
+    @patch.object(watchdog.time, "time", return_value=101)
+    @patch.object(watchdog, "read_snapshot")
+    @patch.object(watchdog, "read_level", side_effect=[100, 100])
+    @patch.object(watchdog.subprocess, "run")
+    def test_failed_physical_readback_keeps_recovery_failed(self, run, read, snapshot, now):
+        snapshot.return_value = self.snapshot()
+        with self.assertRaisesRegex(RuntimeError, "did not match"):
+            watchdog.restore_levels({"hd": 2, "nvme": 1}, 50)
+
+    @patch.object(watchdog.time, "time", return_value=101)
+    @patch.object(watchdog, "read_snapshot")
+    @patch.object(watchdog, "read_level", return_value=100)
+    @patch.object(watchdog.subprocess, "run")
+    def test_controller_restart_before_write_cannot_lower_fans(self, run, read, snapshot, now):
+        snapshot.return_value = self.snapshot()
+        with self.assertRaisesRegex(RuntimeError, "restarted"):
+            watchdog.restore_levels({"hd": 2, "nvme": 1}, 49)
+        run.assert_not_called()
+
+    @patch.object(watchdog.time, "time", return_value=101)
+    @patch.object(watchdog, "read_snapshot")
+    @patch.object(watchdog, "read_level", side_effect=[100, 70, 100])
+    @patch.object(watchdog.subprocess, "run")
+    def test_partial_recovery_failure_is_escalated_to_the_fail_safe_handler(self, run, read, snapshot, now):
+        snapshot.side_effect = [self.snapshot(), OSError("controller unavailable")]
+        with self.assertRaisesRegex(RuntimeError, "controller unavailable"):
+            watchdog.restore_levels({"hd": 2, "nvme": 1}, 50)
+        run.assert_called_once()
+
+    @patch.object(watchdog.time, "time", return_value=101)
+    @patch.object(watchdog, "read_snapshot")
+    @patch.object(watchdog, "read_level", side_effect=[70, 70, 70, 70])
+    @patch.object(watchdog.subprocess, "run")
+    def test_matching_physical_duties_require_no_writes(self, run, read, snapshot, now):
+        snapshot.return_value = self.snapshot()
+        watchdog.restore_levels({"hd": 2, "nvme": 1}, 50)
+        run.assert_not_called()
 
 
 if __name__ == "__main__":
