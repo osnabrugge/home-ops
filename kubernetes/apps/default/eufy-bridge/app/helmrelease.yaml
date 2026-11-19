@@ -12,6 +12,8 @@ spec:
   values:
     controllers:
       eufy-bridge:
+        # HA uses its configured native Anker integration; retain this bridge only for rollback.
+        replicas: 0
         annotations:
           reloader.stakater.com/auto: "true"
         strategy: Recreate
@@ -88,6 +90,7 @@ spec:
             port: *rtsp_port
     route:
       app:
+        enabled: false
         hostnames: ["{{ .Release.Name }}.homeops.ca"]
         parentRefs:
           - name: envoy-internal

@@ -538,7 +538,24 @@ silently produce a supposedly complete snapshot.
 Verify `filesFailed: 0` and the protected file's presence after an isolated
 restore before declaring the backup repaired.
 
-### Eufy bridge credential wiring
+### Home Assistant Eufy integration and parked bridge
+
+Use the already-configured **Anker eufy Home Security** integration
+(`eufy_home_security`), not the legacy **Eufy Security** Marketplace setup
+(`eufy_security`). The native integration connects to the HomeBase directly;
+it needs neither a bridge host/port nor another account setup.
+
+The unused SDK bridge is deliberately parked at zero replicas with its
+HTTPRoute disabled. Its Service, original data claim, credential wiring and
+backup policy remain for rollback. Re-enable the workload and route only for
+an SDK-compatible client; that does not make the legacy integration compatible.
+Do not delete its claim or run competing account logins merely to clear an alert.
+
+The Service's assigned ClusterIP remains stable while the Service exists, even
+when its Pod restarts. The internal Service DNS name is
+`eufy-bridge.default.svc.cluster.local`. A friendly gateway hostname does not
+expose Service port 3000. Containers share `127.0.0.1` only within the same Pod,
+not merely on the same node; colocation is unnecessary for the native client.
 
 The Eufy bridge's ExternalSecret creates `eufy-bridge-secret`; its container's
 `envFrom.secretRef` must use that exact name. A Ready ExternalSecret does not
@@ -549,9 +566,12 @@ connectivity separately; do not print the credential values.
 
 The legacy Eufy Security integration speaks a different WebSocket protocol from
 the SDK bridge on `/ws`; a reachable port or changing DNS to an IP does not make
-them compatible. The native Anker eufy Home Security integration connects to the
-HomeBase directly. Its loaded config entry and registered devices do not prove
-that a live P2P session exists.
+them compatible. Before parking the bridge, the legacy root WebSocket handshake
+failed identically through Service DNS and ClusterIP while `/ws` connected.
+The host field accepts a string; its IP-address label is not an IP-only validator.
+Verify the native integration's live P2P session is connected and authenticated,
+and its camera entities are available. A loaded config entry and registered
+devices alone do not prove connectivity, and neither proves live-video playback.
 
 The IoT Multus attachment uses source-based routing. A socket bound to `0.0.0.0`
 does not select that source first: without explicit main-table routes, Eufy's
