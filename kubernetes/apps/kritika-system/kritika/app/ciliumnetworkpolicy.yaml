@@ -86,6 +86,10 @@ spec:
         - matchName: quay.io
         - matchName: cdn01.quay.io
         - matchName: pkg-containers.githubusercontent.com
+        - matchName: auth.docker.io
+        - matchName: registry-1.docker.io
+        - matchName: index.docker.io
+        - matchName: production.cloudfront.docker.com
       toPorts:
         - ports:
             - port: "443"

@@ -707,6 +707,10 @@ timeout. Do not grant direct runner internet access or wildcard egress.
 Successful CONNECT alone is insufficient: verify the actual pinned
 manifest/config read, including any downstream authentication or redirect
 requirements, with a nonpublishing fixture.
+Docker Hub reads require `auth.docker.io`, `registry-1.docker.io` and
+`index.docker.io`, plus the observed `production.cloudfront.docker.com`
+configuration-blob redirect. These names are explicitly permitted in both
+layers; adding GHCR alone does not permit Docker Hub images such as Diode.
 
 Internal calls use headless services after an observed same-node service-VIP
 return-path denial; the fixed-node runner gateway hop stays cross-node.

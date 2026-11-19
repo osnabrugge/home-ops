@@ -99,6 +99,10 @@ spec:
           - quay.io
           - cdn01.quay.io
           - pkg-containers.githubusercontent.com
+          - auth.docker.io
+          - registry-1.docker.io
+          - index.docker.io
+          - production.cloudfront.docker.com
         deny:
           - 10.0.0.0/8
           - 172.16.0.0/12
