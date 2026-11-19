@@ -1,6 +1,6 @@
 services:
   smfc:
-    image: &image docker.io/petersulyok/smfc:6.5.0@sha256:2256941cedd39cf3832ccc95dbd1dacfff76ca83b074aceab43c3e80822ae9ac
+    image: ghcr.io/osnabrugge/smfc:6.5.0-homeops.1@sha256:5e81d6e0b762a7386d60cbc1cabda88152d0f1a5f9ca6da019818f72eb333d4d
     entrypoint: ["smfc"]
     command: ["-c", "/etc/smfc/smfc.conf", "-l", "3", "-o", "0"]
     cap_drop: [ALL]
@@ -33,7 +33,7 @@ services:
       start_period: 120s
       retries: 3
   watchdog:
-    image: *image
+    image: docker.io/petersulyok/smfc:6.5.0@sha256:2256941cedd39cf3832ccc95dbd1dacfff76ca83b074aceab43c3e80822ae9ac
     entrypoint: ["python3", "/opt/smfc/watchdog.py"]
     cap_drop: [ALL]
     cap_add: [SYS_RAWIO]

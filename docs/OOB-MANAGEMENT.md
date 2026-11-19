@@ -532,10 +532,14 @@ curl -sk https://prometheus.homeops.ca/api/v1/query?query=upsAdvBatteryCapacity 
 ### NAS01 temperature-based fan control
 
 The separate [SMFC project](../infrastructure/nas01/smfc/) is deployed under
-`/mnt/local/apps/smfc`, not in the existing Garage/Zot Compose project. It uses
-the upstream digest-pinned image, local IPMI, read-only disk access and the
-existing `coretemp`/`drivetemp` modules; it does not install packages into
-TrueNAS's operating system. Copy the example configuration into the private
+`/mnt/local/apps/smfc`, not in the existing Garage/Zot Compose project. Its
+controller uses a digest-pinned derivative of SMFC 6.5.0, while the independent
+watchdog retains its separately pinned upstream image. The
+[reusable recipe and tests](https://github.com/osnabrugge/containers/tree/main/apps/smfc)
+are published through `container-images`, never built in this repository.
+Local IPMI, read-only disk access and the existing `coretemp`/`drivetemp`
+modules are preserved; no packages are installed into TrueNAS's operating
+system. Copy the example configuration into the private
 host `smfc.conf`, replacing both placeholder inventories with one reviewed
 stable by-id path per disk or NVMe namespace. The Innodisk boot SATADOM exposes
 no temperature attribute and must be listed as an explicit coverage exception,
@@ -563,11 +567,26 @@ complete, error-free CPU/disk/NVMe readings for at least 30 seconds and two
 polling cycles of its slowest controller. Only then may the watchdog reconcile
 physical duty to the current native demand, checking both zones by BMC readback.
 An interrupted or unverifiable recovery returns to fail-high. Ordinary healthy
-operation does not write fan settings through the watchdog. This fixes a stuck
-fail-safe, not the initial emergency speed jump: native SMFC still exits to
-100% when disk-temperature reads exhaust their tolerance. Do not mask recurring
-sensor I/O errors by excluding disks, lowering emergency duty or extending
-blind cached-temperature use.
+operation does not write fan settings through the watchdog. This fixes a stuck fail-safe, not an unreadable sensor.
+
+The controller derivative tries a fresh `smartctl -A -j` temperature when an
+existing disk HWMON file returns an I/O error. The alternative has a
+five-second subprocess timeout and requires valid numeric current-temperature
+data without command/read-error status bits. Its use is logged, hot readings
+remain hot, and normal HWMON reads do not invoke SMART. If both sources fail,
+the original per-device error tolerance and 100% fail-high remain unchanged.
+No cached-temperature grace is added, no device is excluded, and the host's
+`drivetemp` module is not unloaded. SMART reads can wake a sleeping disk.
+This improves resilience to the observed HWMON failures; it does not establish
+that the underlying kernel/device I/O fault is repaired.
+
+Before changing the controller image, retain a verified copy of the exact
+host Compose file and pre-pull/test the immutable image without hardware
+access. Preserve the private inventory/configuration and running watchdog.
+After warning the operator, recreate only `smfc` with `--no-deps`, verify the
+complete reviewed telemetry, and read both physical BMC duties independently.
+Do not mask recurring faults by lowering emergency duty or extending blind
+cached-temperature use.
 
 The deployed version has no browser admin/settings UI. Its read-only terminal
 display is available without restarting control:
