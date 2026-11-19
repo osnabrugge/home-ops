@@ -58,7 +58,7 @@ spec:
         - name: moonraker-fdm01
           port: 7125
 ---
-# fdm01 (BTT Pad 7) crowsnest webcam (192.168.42.25:8080) exposed over HTTPS at
+# fdm01's external crowsnest webcam (192.168.42.25:8080) exposed over HTTPS at
 # https://cam-fdm01.homeops.ca so the browser UIs (mainsail/fluidd), served over
 # HTTPS, can load the MJPEG stream/snapshot without the mixed-content block.
 # PrintGuard connects to the camera server-side so it never needed this.

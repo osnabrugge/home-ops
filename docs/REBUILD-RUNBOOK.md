@@ -465,6 +465,28 @@ network change needs its own checked scope and rollback. This recipe does not pr
 all firmware supports configuration retention during adoption, nor does the newer
 tagged-native UI option eliminate the factory bootstrap requirement.
 
+### External printer camera recovery
+
+`cam-fdm01.homeops.ca` routes to fdm01's external Crowsnest service on port
+8080; it is not a camera Pod. If the route is accepted but returns 503, check
+the direct backend and Crowsnest log before changing the gateway.
+
+The USB camera uses the installed `ustreamer` backend. The previous
+`camera-streamer` process exited with code 127 even though Crowsnest detected
+the camera. Preserve the existing device, port, resolution and frame-rate
+settings when selecting an alternate backend. Keep a verified configuration
+backup, require an idle printer with both heater targets at zero, and restart
+only Crowsnest through Moonraker's service API, not Klipper or the host.
+This restores the existing MJPEG client path; it does not repair the former
+capture binary or certify WebRTC.
+
+Verify actual `image/jpeg` snapshot bytes and 1920x1080 frame dimensions both
+directly and through HTTPS, plus the native backend's online state. A requested
+maximum frame rate is not proof of the observed capture rate. Confirm the
+printer remains Ready/idle with unchanged heater targets, then check the next
+Gatus result. The host configuration is not Flux-managed; retain its
+`crowsnest.conf.nov19-backend-backup` rollback copy.
+
 ### Frigate camera stream failures
 
 Check `/api/stats` and go2rtc's `/api/streams` from inside the Frigate container.
