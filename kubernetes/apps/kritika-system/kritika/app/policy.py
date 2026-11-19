@@ -14,12 +14,13 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 MODEL = "cohere/north-mini-code:free"
 REPOSITORY = "osnabrugge/home-ops"
 API = "https://openrouter.ai/api/v1"
-MAX_BODY = 128 * 1024
+MAX_BODY = 4 * 1024 * 1024
+MAX_HOOK_BODY = 128 * 1024
 MAX_REPLY = 4 * 1024 * 1024
-MAX_OUTPUT = 4096
+MAX_OUTPUT = 16384
 SUBMIT_NOW = "Call submit_review now with what you have, and call nothing else."
 LIMIT_NOTICE = (
-    "**Pilot limit notice:** Forced wrap-up; this review is incomplete and does not "
+    "**Incomplete review notice:** Forced wrap-up; this review is incomplete and does not "
     "certify upstream or breaking-change coverage."
 )
 FIELDS = {
@@ -236,7 +237,7 @@ class Handler(BaseHTTPRequestHandler):
         if not hmac.compare_digest(self.headers.get("Authorization", ""), expected):
             raise Refused(401, "A local gateway credential is required")
 
-    def body(self):
+    def body(self, limit=MAX_BODY):
         lengths = self.headers.get_all("Content-Length", [])
         if self.headers.get("Transfer-Encoding") or len(lengths) != 1:
             raise Refused(400, "Exactly one Content-Length is required")
@@ -244,8 +245,8 @@ class Handler(BaseHTTPRequestHandler):
             length = int(lengths[0])
         except ValueError:
             raise Refused(400, "Invalid Content-Length") from None
-        if length < 1 or length > MAX_BODY:
-            raise Refused(413, "Request exceeds the pilot bound")
+        if length < 1 or length > limit:
+            raise Refused(413, "Request exceeds the configured size bound")
         body = self.rfile.read(length)
         if len(body) != length:
             raise Refused(400, "Incomplete request")
@@ -266,7 +267,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             if self.server.kind == "hooks" and self.path == "/hooks/github":
-                body = self.body()
+                body = self.body(MAX_HOOK_BODY)
                 approved_hook(body, self.headers, self.server.webhook_secret)
                 headers = {
                     name: self.headers[name]
@@ -289,7 +290,7 @@ class Handler(BaseHTTPRequestHandler):
                         "Authorization": "Bearer " + self.server.openrouter_key,
                         "Content-Type": "application/json",
                     },
-                    timeout=120,
+                    timeout=300,
                 )
                 reply = json.loads(raw)
                 if (

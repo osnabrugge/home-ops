@@ -576,9 +576,10 @@ Kritika 0.0.119 moved concurrency from `limits.concurrency` to each
 explicitly keep one slot. The removed account-level field prevents startup;
 a successful Helm render alone does not detect it. Validate the rendered
 configuration using the exact chart-pinned image's `config check` command before
-reconciling an upgrade. Provider request timeouts retain their five-minute
-default; the agent's separate five-minute total deadline, disabled retries and
-fallbacks, and review/publication gates remain unchanged.
+reconciling an upgrade. Review work allowances and provider retries use the
+pinned application's native defaults. The gateway's model request timeout
+matches the provider's five-minute default; free-only routing, disabled
+fallbacks and review/publication gates remain independent.
 
 Kritika is deployed in `kritika-system`, with one service replica and
 a separate PostgreSQL 18.6 cluster, `kritika-db` (pgvector 0.8.7 and VectorChord
@@ -624,7 +625,7 @@ separate owner-requested action.
 Forced final submission is not evidence that the planned checks finished.
 Native records can contain `forced_by: steps` while `partial` is false and the
 GitHub status is green. After verifying zero pricing, the gateway adds an
-explicit **Pilot limit notice** to forced submissions without changing ordinary
+explicit **Incomplete review notice** to forced submissions without changing ordinary
 submissions, findings or tool-call identities. Inspect the native stop reason,
 truncated tool output and unexecuted deferred calls; do not count inaccessible
 release notes or registry metadata as completed checks.
@@ -666,26 +667,28 @@ Jobs use a 60-second finished TTL while native review/index records and collecte
 logs remain retained. Verify a completed native index generation with nonzero
 file/chunk counts and the intended commit, not only a successful staging Job.
 
-The limits remain one concurrent call per model, five reviews per day and 300,000
-cumulative input/output tokens per review. Every model step sends and counts
-the prompt again: this is not a context-window size, an output-token limit or
-a dollar allowance. A 20,000-token cap exhausted the allowance after two measured
-steps of about 10,000 tokens each, before a final submission could run. The
-300,000-token bound leaves room for the twelve-step loop, growing tool context and
-the native final-submission retries; it is still finite.
-Native monthly accounting also includes local index tokens,
-so its shared ceiling is now 5,000,000 rather than the former 20,000; otherwise
-the first local index would consume the review allowance. This is not a paid
-model budget. A run has twelve agent steps, an 8,000-token initial prompt, one part
-and a five-minute timeout. The step cap leaves eleven work passes before forced
-finalization; the former six-step cap left only five. Model output requests are
-capped at 4,096 tokens to avoid the observed truncated, actionless responses.
-The shared `agent.fetches: 2` setting bounds both OCI inspections and repository
-fetches, allowing a bounded old/new image comparison rather than one inspection.
-No paid fallback, Foundry deployment or subscription entitlement is implied.
-The daily review allowance is independent of OpenRouter's completion-request
-quota. Raising it does not buy credits, reset already-used reviews or enable
-automatic reviews; a review can consume several provider requests.
+Review capability is no longer restricted by local pilot work allowances.
+Omitting `agent` uses the pinned application's native defaults: 60 steps,
+32 KiB tool outputs, 6,000,000 cumulative input/output tokens per part, a
+64,000-token initial prompt, up to eight parts, 20 minutes per part,
+30-second commands and eight shared repository/OCI fetches. The former local
+limits were twelve steps, an 8,000-token prompt, one part, five minutes and two
+fetches. Every step counts its prompt again; cumulative tokens are not a
+context-window size or a dollar budget.
+
+The gateway accepts model requests up to 4 MiB and the native 16,384-token
+per-step output allowance, rather than silently restricting replies to 4,096
+tokens or rejecting native-sized context above 128 KiB. Signed webhook bodies
+retain their separate 128 KiB bound. Oversized requests, paid models, repriced
+models and provider fallbacks remain rejected.
+
+The local five-review daily and 5,000,000-token monthly overrides are removed;
+native usage records are preserved, not reset. One concurrent call per provider
+and one review worker remain operational queue controls, not abbreviated-review
+budgets. Automatic reviews remain held, approval/fixes remain disabled, and only
+the exact zero-priced model is permitted. Provider quotas can still stop a run;
+funding alone neither changes the model nor proves review quality. A full real
+review must be checked for actual source coverage and native stop reason.
 
 Runners use non-root, read-only-root, capability-free, tokenless native user
 namespaces on k8s06, with 1 CPU, 1Gi memory and 1Gi ephemeral-storage bounds.

@@ -157,6 +157,28 @@ class HTTPPolicyTests(unittest.TestCase):
         self.assertEqual(outgoing["max_tokens"], policy.MAX_OUTPUT)
         self.assertEqual(outgoing["provider"]["max_price"], {"prompt": 0, "completion": 0})
 
+    def test_native_review_context_and_step_output_are_not_pilot_clipped(self):
+        messages = [{"role": "user", "content": "public fixture " * 20000}]
+        status, _ = self.model(messages=messages, max_tokens=16384)
+        self.assertEqual(status, 200)
+        outgoing = json.loads(self.calls[-1][1]["data"])
+        self.assertEqual(outgoing["messages"], messages)
+        self.assertEqual(outgoing["max_tokens"], 16384)
+        self.assertEqual(outgoing["provider"]["max_price"], {"prompt": 0, "completion": 0})
+
+    def test_request_bounds_remain_enforced_before_forwarding(self):
+        for port, path, limit in (
+            (0, "/v1/chat/completions", policy.MAX_BODY),
+            (1, "/hooks/github", policy.MAX_HOOK_BODY),
+        ):
+            with self.subTest(path=path):
+                status, _ = self.request(
+                    port, path, b"",
+                    {"Authorization": "Bearer synthetic-gateway-key", "Content-Length": str(limit + 1)},
+                )
+                self.assertEqual(status, 413)
+        self.assertEqual(self.calls, [])
+
     def test_empty_tool_results_keep_their_identity_and_do_not_mutate_input(self):
         for empty in ({"content": ""}, {"content": None}, {}):
             messages = [
@@ -217,7 +239,7 @@ class HTTPPolicyTests(unittest.TestCase):
         self.assertEqual(status, 200)
         call = response["choices"][0]["message"]["tool_calls"][0]
         result = json.loads(call["function"]["arguments"])
-        self.assertIn("Pilot limit notice", result["summary"]["take"])
+        self.assertIn("Incomplete review notice", result["summary"]["take"])
         self.assertIn("incomplete", result["summary"]["take"])
         self.assertTrue(result["summary"]["take"].startswith(submitted["summary"]["take"]))
         self.assertEqual(result["findings"], submitted["findings"])
