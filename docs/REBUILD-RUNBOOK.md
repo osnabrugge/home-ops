@@ -540,10 +540,18 @@ restore before declaring the backup repaired.
 
 ### Home Assistant Eufy integration and parked bridge
 
-Use the already-configured **Anker eufy Home Security** integration
-(`eufy_home_security`), not the legacy **Eufy Security** Marketplace setup
-(`eufy_security`). The native integration connects to the HomeBase directly;
-it needs neither a bridge host/port nor another account setup.
+The current video path uses the already-configured **Anker eufy Home Security**
+integration (`eufy_home_security`). It connects to the HomeBase directly and
+needs neither a bridge host/port nor another account setup. Preserve its existing
+config entry and entity identities when diagnosing video.
+
+The three similarly named integrations are not interchangeable. The legacy
+**Eufy Security** client (`fuatakgun/eufy_security`, domain `eufy_security`)
+expects `bropat/eufy-security-ws`. The retained `mega-yfue/ha-eufy-sdk-bridge`
+instead requires its matching `mega-yfue/ha-eufy-sdk` client (`eufy_sdk`),
+which is not the installed legacy client. Neither bridge is required by the
+active native integration. A Beta label alone does not establish whether
+video works; the legacy client's own README calls it deprecated Alpha.
 
 The unused SDK bridge is deliberately parked at zero replicas with its
 HTTPRoute disabled. Its Service, original data claim, credential wiring and
@@ -570,8 +578,30 @@ them compatible. Before parking the bridge, the legacy root WebSocket handshake
 failed identically through Service DNS and ClusterIP while `/ws` connected.
 The host field accepts a string; its IP-address label is not an IP-only validator.
 Verify the native integration's live P2P session is connected and authenticated,
-and its camera entities are available. A loaded config entry and registered
-devices alone do not prove connectivity, and neither proves live-video playback.
+and its camera entities are available. These are control-plane checks, not video
+acceptance. On November 19, all four cameras produced decodable HLS video and
+subsequently rendered real video in an authorized browser WebRTC receiver:
+two H.264 and two HEVC/H.265. No live-quality or recording-quality changes were
+needed. Check HEVC support separately for WebRTC and HLS/MediaSource; the test
+browser supported HEVC WebRTC but not HEVC MediaSource. Do not downgrade
+recording quality merely because one player cannot decode a codec.
+
+The storage-mode `dashboard-camera` dashboard now appends four
+`custom:eufy-camera-card` live views without changing the three original Dahua
+sections. The native integration already registers its card resource; do not
+install another plugin or duplicate that resource. The cards use
+`auto_live: "off"`, `live_on_detection: false` and `live_seconds: 90`, with
+camera preloading disabled. They default to timed, manual live views rather
+than continuously waking battery cameras. Advanced settings and history are
+hidden on this video dashboard, not removed from the integration.
+
+Write dashboard changes through the Lovelace API with a fresh config hash and
+retain the original config for rollback; do not edit `.storage` directly.
+Verify the saved cards, preserve the Dahua sections, then check the
+authenticated dashboard itself for rendering and Live-button playback. A
+separate browser media test proves decoding and transport, not dashboard
+layout. Stop test consumers and confirm the native media slot is empty and
+extra live sessions return to zero.
 
 The IoT Multus attachment uses source-based routing. A socket bound to `0.0.0.0`
 does not select that source first: without explicit main-table routes, Eufy's
