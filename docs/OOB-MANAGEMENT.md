@@ -580,6 +580,16 @@ No cached-temperature grace is added, no device is excluded, and the host's
 This improves resilience to the observed HWMON failures; it does not establish
 that the underlying kernel/device I/O fault is repaired.
 
+The November 19–20 recurrence also affected the fresh SMART read: kernel logs
+showed ten-second SCSI temperature `LOG SENSE` timeouts before both sources
+became unavailable and native SMFC exhausted its tolerance. This caused repeated
+automatic restarts and 100% fail-high, not the normal temperature-to-duty curve.
+Do not call the fan-noise issue resolved from a healthy snapshot between
+incidents, or smooth away that emergency response. HWMON and SMART can share
+the same unavailable device path. The historical hybrid controller's hysteresis,
+polling and fan-verification ideas can inform normal control, but do not
+establish a safe source of temperature during this failure.
+
 Before changing the controller image, retain a verified copy of the exact
 host Compose file and pre-pull/test the immutable image without hardware
 access. Preserve the private inventory/configuration and running watchdog.

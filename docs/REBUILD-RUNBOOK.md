@@ -538,6 +538,22 @@ silently produce a supposedly complete snapshot.
 Verify `filesFailed: 0` and the protected file's presence after an isolated
 restore before declaring the backup repaired.
 
+### OTBR network RCP recovery
+
+For the network-connected SLZB-06M, verify its native **Connection mode**, not
+just the Ethernet link sensor. USB mode leaves the web UI reachable but closes
+the RCP TCP listener, preventing the socat startup dependency and OTBR agent
+from starting. The resulting liveness-kill loop can end in exit 137 without
+an OOM.
+
+Use the existing authenticated SMLIGHT integration to confirm the target,
+connection mode, Thread firmware, serial port and baud rate. Restore Ethernet
+mode through the device's supported settings interface; apply a required
+controller restart without flashing/resetting the radio or replacing its
+Thread dataset. Preserve the OTBR PVC. Verify the mode survives the restart,
+Home Assistant can reach the OTBR REST API, and `/node/state` becomes
+`leader`, `router` or `child`; HTTP readiness while `detached` is insufficient.
+
 ### Home Assistant Eufy integration and parked bridge
 
 The current video path uses the already-configured **Anker eufy Home Security**
@@ -554,16 +570,17 @@ active native integration. A Beta label alone does not establish whether
 video works; the legacy client's own README calls it deprecated Alpha.
 
 The unused SDK bridge is deliberately parked at zero replicas with its
-HTTPRoute disabled. Its Service, original data claim, credential wiring and
-backup policy remain for rollback. Re-enable the workload and route only for
+Service and HTTPRoute disabled. Its original data claim, credential wiring and
+backup policy remain for rollback; no inactive network endpoint is advertised.
+Re-enable the Service, workload and route only for
 an SDK-compatible client; that does not make the legacy integration compatible.
 Do not delete its claim or run competing account logins merely to clear an alert.
 
-The Service's assigned ClusterIP remains stable while the Service exists, even
-when its Pod restarts. The internal Service DNS name is
-`eufy-bridge.default.svc.cluster.local`. A friendly gateway hostname does not
-expose Service port 3000. Containers share `127.0.0.1` only within the same Pod,
-not merely on the same node; colocation is unnecessary for the native client.
+A re-created Service can receive a different ClusterIP; use its internal DNS
+name, `eufy-bridge.default.svc.cluster.local`, after explicitly re-enabling it.
+A friendly gateway hostname does not expose Service port 3000. Containers share
+`127.0.0.1` only within the same Pod, not merely on the same node; colocation
+is unnecessary for the native client.
 
 The Eufy bridge's ExternalSecret creates `eufy-bridge-secret`; its container's
 `envFrom.secretRef` must use that exact name. A Ready ExternalSecret does not

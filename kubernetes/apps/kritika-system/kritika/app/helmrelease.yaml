@@ -72,6 +72,22 @@ spec:
         fallback: ""
         approve: false
         fixes: false
+      # Instance rules also cover PRs whose merge base predates repository rules.
+      rules:
+        - id: reviewed-head-evidence
+          rule: >-
+            Judge the reviewed head, not the removed side of a diff. Before reporting a
+            defect, read its current lines and the relevant consumer or producer.
+            Never request a version or configuration change already present in those
+            lines. A dependency bump by itself is not a defect.
+        - id: upstream-check-evidence
+          rule: >-
+            For a dependency update, verify upstream release and compatibility claims
+            from the actual old and new revisions. Follow tool-provided valid tags
+            instead of repeating an invalid bare tag. An inaccessible registry,
+            failed fetch or unexecuted check is a limitation to disclose, never proof
+            that an update is compatible. State material unfinished checks in the
+            summary and do not invent findings to compensate for missing evidence.
       # Only embeddings run locally; confidence and paid fallbacks remain off.
       comments:
         dashboard: false

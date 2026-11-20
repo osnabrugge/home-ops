@@ -1,5 +1,98 @@
 # nas01 — loaner-assisted migration and final layout
 
+## Current readiness — 2026-11-20
+
+This section supersedes the older inventory and staging examples below.
+The owner permits recreating NAS01 migration-target pools/datasets, including
+the disposable model data on `smb`. Preserve `backups`, `local`, boot, and
+NAS02's source data. This is not permission to erase a target before checking
+its current consumers: the SMB pool also contains live account-home/SSH state,
+and `nfs/netboot` is still mounted by Kubernetes. No pool has been recreated
+and no migration copy has run during this readiness pass.
+
+### Actual destination layout and budgets
+
+All six pools are ONLINE with no known data errors.
+
+| Pool        | Current data vdev                   | Additional vdevs                                     |      Dataset available | Additional budget retaining 20% headroom |
+| ----------- | ----------------------------------- | ---------------------------------------------------- | ---------------------: | ---------------------------------------: |
+| `nfs`       | 6×8 TB RAIDZ1, expanded November 17 | 2×1 TB P3 special mirror; 2×118 GB Optane log mirror |              34.725 TB |                                27.780 TB |
+| `smb`       | 6×4 TB RAIDZ1                       | none                                                 |              18.934 TB |                                15.130 TB |
+| `staging`   | 10×4 TB RAIDZ1                      | other 2×1 TB P3 special mirror                       |              35.389 TB |                                28.312 TB |
+| `backups`   | 2×10 TB mirror                      | none                                                 | protected, not staging |                                 excluded |
+| `local`     | 2×512 GB SATA SSD mirror            | none                                                 | protected, not staging |                                 excluded |
+| `boot-pool` | 2×64 GB mirror and a spare          | none                                                 |              protected |                                 excluded |
+
+These are live ZFS dataset measurements, not raw pool capacity. The current
+three-target budget is about **71.222 TB** before any additional growth reserve.
+Rebuilding with different parity changes that budget; recalculate it afterward.
+All four P3s are now special-vdev members, not free flash staging devices.
+The older four-disk NFS and eleven/twelve-free-loaner examples are historical.
+
+A fresh low-priority native GNU `du -sxb --total` across the three source roots,
+counting hardlinks once in one invocation, measured:
+
+| NAS02 source      |         Apparent bytes |
+| ----------------- | ---------------------: |
+| `/volume1/data`   |     44,998,819,282,733 |
+| `/volume1/homes`  |     16,682,666,131,189 |
+| `/volume1/docker` |         42,686,380,732 |
+| Total             | **61,724,171,794,654** |
+
+The 3% planning allowance is **63,575,896,948,494 bytes**, about 63.576 TB.
+This now fits the combined current target budgets arithmetically, without
+using `backups` or `local`. It is still a live-source estimate, not a frozen
+copy manifest, a hardlink-closed shard assignment or proof that all data fits
+one target. Volume2's ABB store remains a separate native recovery obligation;
+its filesystem currently uses about 6.204 TB, not an ordinary rsync payload.
+NAS02's displayed data RAID members are all present.
+
+An independent file-size scan found 681,248 unique regular files and 14,778
+multiply-linked inode groups. Files at most 128 KiB account for about 5.419 GB
+of logical payload. This is useful input, **not** a ZFS compressed-block
+histogram or a justification for a `special_small_blocks` threshold. Leave
+that property at zero initially; measure actual ZFS allocation on representative
+data before routing small data blocks onto the special mirror. A special vdev
+is mandatory pool storage, not a removable cache. Mirrored consumer P3s do
+not become a power-loss-protected SLOG because they are large.
+
+### Work completed and remaining gates
+
+- Two isolated, unshared 1 GiB target datasets passed full CRC32C write/read
+  verification on `nfs` and `staging`, with direct I/O, compression off and
+  `sync=standard`. Writes were capped at 100 MiB/s to bound interference.
+  Exactly 1,073,741,824 bytes were written and verified per target with zero
+  errors. The exact temporary datasets were removed afterward without
+  recursive/force deletion. This is an integrity smoke test, **not** an
+  uncached peak-throughput benchmark, burn-in or proof of the whole data path.
+- Auditorr's live SQLite database is still outside its `/config` bind mount.
+  A fresh online SQLite backup was restored privately and passed
+  `PRAGMA integrity_check`; the source container was not stopped, recreated
+  or modified. Preserve that database and implement verified persistent state
+  before a later source-container replacement. Do not put its contents in Git.
+- `\\nas01\home` can provide the same per-user selection as the Synology share.
+  The generated Samba path already is `/mnt/smb/home/%U`, and the active normal
+  user's SMB identity is correct. The actual account homes instead have an
+  extra `<user>/<user>` level below the private dataset. Normalize the existing
+  directory/account-home layout while preserving private ACLs and SSH state;
+  do not blame Windows caching, enable a legacy `[homes]` share, or overwrite
+  ACLs recursively. Validate with the ordinary user's existing client session.
+- Prefer a protocol-neutral final pool name such as `data`. A rename/rebuild
+  must include the TrueNAS exports and exact Kubernetes/PVE mount consumers;
+  it is not merely changing a dashboard label.
+- Resolve the SAS temperature-command stalls before bulk migration acceptance.
+  The current SMFC image improves fallback reads but has not eliminated
+  fail-high events. Clean pool counters and the bounded smoke tests do not
+  negate the captured SCSI timeouts. Do not lower emergency fan duty to make
+  a stability test appear quiet.
+- Then finalize parity/failure-domain choices, frozen logical-byte budgets,
+  hardlink-closed staging, UID/ACL translation, ABB recovery, independent
+  restore checks, and final copy/hash/scrub/client acceptance. Keep downloads
+  and media in the same final dataset. Do not use `sync=disabled`, dedup,
+  speculative L2ARC or an arbitrary ARC cap as a benchmark shortcut.
+
+## Historical design and comparisons — November 6
+
 **Inventory updated 2026-11-06; source measurements remain 2026-11-02.
 Proposal, not permission to change storage.** Native,
 read-only TrueNAS 25.10.7 and DSM checks supersede the September inventory and

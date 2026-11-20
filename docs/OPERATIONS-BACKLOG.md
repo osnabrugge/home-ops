@@ -13,6 +13,44 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
 
 ---
 
+## Current priority pass — 2026-11-20
+
+This status supersedes the historical August inventory and empty-NAS claims
+below. New operational findings belong in MCP; this list tracks requested work,
+not private account, billing, device-identity or application data.
+
+- [x] Deliver three validated, complete VS Code settings/workspace replacements
+      with exact paste destinations; preserve permissions and chosen features.
+      No live editor settings were changed.
+- [x] Diagnose the current OTBR crash loop from the native RCP mode, restore
+      Ethernet rather than USB, preserve its firmware/dataset/PVC, and verify
+      actual Thread leader state from Home Assistant.
+- [x] Verify Actions Runner's earlier ephemeral-PVC scheduling warnings cleared
+      into a successful real runner job; do not restart healthy controllers.
+- [~] Retire only the parked Eufy bridge's inactive Service. The active native
+  Home Assistant integration needs no bridge; keep the rollback PVC,
+  credential wiring and backups.
+- [~] Validate Kritika using nonpublishing positive/negative controls and native
+  full work allowances. Do not equate green completion with source coverage
+  or enable a paid route without a real monetary authorization.
+- [~] NAS migration readiness: fresh logical-byte inventory, actual pool/vdev
+  mapping, bounded isolated target verification and a consistent Auditorr
+  SQLite backup. See [the current readiness section](NAS01-POST-MIGRATION-DESIGN.md#current-readiness--2026-11-20).
+- [ ] Resolve the repeated SAS temperature-command stalls and complete
+      meaningful disk/path stability acceptance before bulk migration. The
+      SMFC fallback is only a partial mitigation; preserve emergency cooling.
+- [ ] Normalize the private SMB home/account layout and preserve SSH state
+      before any approved SMB target rebuild. Final `data` naming must include
+      live export/mount consumers.
+- [ ] Finalize staging parity, hardlink-closed copy assignments, UID/ACL and ABB
+      recovery, independent backup/restore and final scrub/hash/client gates.
+      NAS01 `backups`, `local`, boot and all NAS02 source data remain protected.
+- [ ] Stage protected Proxmox/gateway maintenance with rollback. Cached updates
+      remain; investigate pve01's explicit kernel pin before changing it.
+      Do not combine maintenance, ISP cutover, ONU relocation and HA activation.
+
+---
+
 ## A. Active program — nas01 storage design (requested 2026-08-03)
 
 **Context Sean gave:** nas01 is greenfield, no data needed preserving. The ask was

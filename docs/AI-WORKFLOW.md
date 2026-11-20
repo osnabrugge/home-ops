@@ -690,6 +690,22 @@ the exact zero-priced model is permitted. Provider quotas can still stop a run;
 funding alone neither changes the model nor proves review quality. A full real
 review must be checked for actual source coverage and native stop reason.
 
+The instance's `config.rules` requires current-head/consumer evidence before a
+finding, correct use of upstream tag suggestions, and disclosure of failed or
+unfinished upstream checks. These are instance rules rather than only a new
+`.kritika.yaml`: repository policy is read from the merge base, so adding it
+alone would not necessarily affect already-open, unre-based PRs.
+
+Qualify the model with nonpublishing positive and negative controls before
+relying on a public review: an already-correct dependency head must not produce
+a request for that same update, a real missing-Secret regression must be found
+against its actual producer, and a comment-only change with correct wiring
+must remain clean. Use the native prompt, tools, submission schema and full
+loop allowances; record failures, stop reasons and reported cost, not just
+whether a Job completed. Passing these small fixed-snapshot controls is
+necessary evidence, not certification of a complete production review or
+authorization for paid models, automatic approval or unattended publication.
+
 Runners use non-root, read-only-root, capability-free, tokenless native user
 namespaces on k8s06, with 1 CPU, 1Gi memory and 1Gi ephemeral-storage bounds.
 The installed admission policy rejected forged Jobs/arbitrary Secrets, and a
