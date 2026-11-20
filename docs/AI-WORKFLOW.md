@@ -690,6 +690,16 @@ the exact zero-priced model is permitted. Provider quotas can still stop a run;
 funding alone neither changes the model nor proves review quality. A full real
 review must be checked for actual source coverage and native stop reason.
 
+On November 20, the live catalogue no longer listed the configured
+`cohere/north-mini-code:free` ID. Authenticated model-list and completion
+probes both returned 503 with the explicit missing-model error. This is a
+provider-route availability failure, not another agent work limit. The
+nonpublishing qualification controls did not yield completed results; do not
+count them as model-quality passes or failures. Native retries of an unavailable
+route can spend the deadline without making a useful review. Choose an exact
+available replacement before retrying; do not silently remove `:free`, select
+an automatic router or enable paid inference without monetary authorization.
+
 The instance's `config.rules` requires current-head/consumer evidence before a
 finding, correct use of upstream tag suggestions, and disclosure of failed or
 unfinished upstream checks. These are instance rules rather than only a new

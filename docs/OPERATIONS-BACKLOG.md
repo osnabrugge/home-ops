@@ -27,12 +27,14 @@ not private account, billing, device-identity or application data.
       actual Thread leader state from Home Assistant.
 - [x] Verify Actions Runner's earlier ephemeral-PVC scheduling warnings cleared
       into a successful real runner job; do not restart healthy controllers.
-- [~] Retire only the parked Eufy bridge's inactive Service. The active native
-  Home Assistant integration needs no bridge; keep the rollback PVC,
-  credential wiring and backups.
-- [~] Validate Kritika using nonpublishing positive/negative controls and native
-  full work allowances. Do not equate green completion with source coverage
-  or enable a paid route without a real monetary authorization.
+- [x] Retire only the parked Eufy bridge's inactive Service. The active native
+      Home Assistant integration needs no bridge; keep the rollback PVC,
+      credential wiring and backups.
+- [?] Select a replacement for Kritika's unavailable free model, then finish
+  nonpublishing positive/negative controls with native full work allowances.
+  The live catalogue no longer lists the configured Cohere `:free` ID.
+  Do not equate green completion with source coverage or enable a paid
+  route without a real monetary authorization.
 - [~] NAS migration readiness: fresh logical-byte inventory, actual pool/vdev
   mapping, bounded isolated target verification and a consistent Auditorr
   SQLite backup. See [the current readiness section](NAS01-POST-MIGRATION-DESIGN.md#current-readiness--2026-11-20).
