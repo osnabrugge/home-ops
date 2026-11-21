@@ -836,6 +836,19 @@ automatic reviews or the owner's webhook. See
 [the verified pilot and first-review gate](AI-WORKFLOW.md#kritika-bounded-free-only-pilot)
 for credentials, local network-path constraints and owner-authorized testing.
 
+### ExternalDNS record-error events
+
+Both `cloudflare-dns` and `unbound-dns` enable `eventsEmit: [RecordError]`.
+ExternalDNS 0.24 emits provider record failures as Kubernetes Events;
+successful creation/deletion events remain off to limit routine noise.
+The chart grants event-creation RBAC. This does not change sources, record
+ownership, DNS policy, provider credentials or public exposure.
+
+After deployment, verify both HelmReleases are Ready and inspect their
+Events/controller logs for actual provider failures. Events are transient
+diagnostics, not durable delivery receipts: no error Event does not prove a
+record exists or is publicly reachable. Keep normal DNS/public-surface checks.
+
 ### Container OOM notifications
 
 Correlate the terminated container, node kernel cgroup and Prometheus restart
