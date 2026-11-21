@@ -11,7 +11,7 @@ from decimal import Decimal, InvalidOperation
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
-MODEL = "cohere/north-mini-code:free"
+MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
 REPOSITORY = "osnabrugge/home-ops"
 API = "https://openrouter.ai/api/v1"
 MAX_BODY = 4 * 1024 * 1024
@@ -90,7 +90,7 @@ def completion(payload):
     if not isinstance(payload.get("messages"), list) or not payload["messages"]:
         raise Refused(400, "A nonempty messages array is required")
     out = dict(payload)
-    # Cohere rejects empty OpenAI tool results, including a grep with no matches.
+    # Some providers reject empty tool results, including a grep with no matches.
     out["messages"] = [
         {**message, "content": "(Tool completed with no output.)"}
         if isinstance(message, dict)
@@ -112,7 +112,6 @@ def completion(payload):
         ]
         if len(submit) != 1:
             raise Refused(400, "Native wrap-up requires one existing submit_review definition")
-        # Cohere supports required/none; named choice did not constrain this run.
         out["tools"] = submit
         out["tool_choice"] = "required"
     requested = out.pop("max_completion_tokens", out.get("max_tokens", MAX_OUTPUT))

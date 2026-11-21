@@ -38,7 +38,10 @@ class ModelPolicyTests(unittest.TestCase):
 
     def test_no_alias_paid_router_fallback_or_provider_override(self):
         base = {"model": policy.MODEL, "messages": [{"role": "user", "content": "fixture"}]}
-        for model in ("openrouter/auto", "~cohere-latest", "cohere/paid", [policy.MODEL], None):
+        for model in (
+            "openrouter/auto", "~cohere-latest", "cohere/paid",
+            "cohere/north-mini-code:free", [policy.MODEL], None,
+        ):
             with self.subTest(model=model), self.assertRaises(policy.Refused):
                 policy.completion({**base, "model": model})
         for extra in (

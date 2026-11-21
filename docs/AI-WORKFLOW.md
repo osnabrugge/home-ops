@@ -604,7 +604,7 @@ impersonated.
 
 The local model-policy gateway receives the real OpenRouter key; runners and
 Kritika receive only scoped gateway access. It permits exactly
-`cohere/north-mini-code:free`, rechecks live zero pricing/tool/context support,
+`nvidia/nemotron-3-ultra-550b-a55b:free`, rechecks live zero pricing/tool/context support,
 forces provider maximum prices to zero, disables provider fallbacks, and rejects
 aliases, routing overrides, paid models and embedding requests. Confidence and
 paid embeddings remain unconfigured. A deployed synthetic fixture returned the expected
@@ -613,8 +613,8 @@ This is contract smoke-test evidence, not production review-quality certificatio
 Kritika usage appears in its own dashboard; its model calls are not routed
 through Bifrost.
 
-An empty tool result, such as a `grep` with no matches, is legitimate but the
-approved provider rejects an empty tool-message body. The gateway normalizes
+An empty tool result, such as a `grep` with no matches, is legitimate; the
+former Cohere route rejected an empty tool-message body. The gateway normalizes
 only that empty body to an explicit no-output marker while preserving the tool
 call identity and all free-only checks. An HTTP 400 followed by submission
 timeouts is not evidence that funding, daily quota or token allowance must be
@@ -699,6 +699,14 @@ count them as model-quality passes or failures. Native retries of an unavailable
 route can spend the deadline without making a useful review. Choose an exact
 available replacement before retrying; do not silently remove `:free`, select
 an automatic router or enable paid inference without monetary authorization.
+
+The replacement is the explicit zero-priced Nemotron 3 Ultra route. Its live
+catalogue entry passed the existing exact-ID, all-price-fields-zero and required
+tool checks with a 1,000,000-token context window. The old Cohere ID is rejected,
+not used as a fallback. Paid routes and automatic reviews remain disabled.
+This availability change does not certify review quality: the native
+nonpublishing controls below still need completed, inspected results before
+the saved complex PRs are used as a public evaluation.
 
 The instance's `config.rules` requires current-head/consumer evidence before a
 finding, correct use of upstream tag suggestions, and disclosure of failed or

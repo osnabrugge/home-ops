@@ -68,7 +68,7 @@ spec:
         maxItemChars: 1200
         similarFloor: 0.3
       review:
-        model: free/cohere/north-mini-code:free
+        model: free/nvidia/nemotron-3-ultra-550b-a55b:free
         fallback: ""
         approve: false
         fixes: false
