@@ -705,8 +705,21 @@ catalogue entry passed the existing exact-ID, all-price-fields-zero and required
 tool checks with a 1,000,000-token context window. The old Cohere ID is rejected,
 not used as a fallback. Paid routes and automatic reviews remain disabled.
 This availability change does not certify review quality: the native
-nonpublishing controls below still need completed, inspected results before
+nonpublishing controls below still need acceptable, inspected results before
 the saved complex PRs are used as a public evaluation.
+
+The first four-control run against the deployed 0.0.122 source completed at
+reported zero cost. It found the introduced Secret-reference error and the
+real PostgreSQL 19 / PostgreSQL 18 extension-image mismatch, and kept the
+comment-only control clean. The already-correct Diode control nevertheless
+produced generic digest-pinning advice about unchanged choices. This is a
+failed no-regression control, not a qualified reviewer. Its guessed PostgreSQL
+19 extension tag must also not be applied without registry verification.
+Instance rules now explicitly require diff causality, changed-line anchors,
+proportionate severity and disclosure rather than findings for missing
+compatibility evidence. Retain both qualification outcomes when rerunning
+after these instruction changes; do not erase a failed run or count pipeline
+completion as coverage.
 
 The instance's `config.rules` requires current-head/consumer evidence before a
 finding, correct use of upstream tag suggestions, and disclosure of failed or

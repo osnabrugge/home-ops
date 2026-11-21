@@ -79,7 +79,10 @@ spec:
             Judge the reviewed head, not the removed side of a diff. Before reporting a
             defect, read its current lines and the relevant consumer or producer.
             Never request a version or configuration change already present in those
-            lines. A dependency bump by itself is not a defect.
+            lines. Findings must be caused by this diff, not pre-existing choices or
+            generic hardening advice, unless changed behavior activates a concrete
+            regression. Anchor findings to changed lines and explain unchanged
+            dependencies separately. A dependency bump by itself is not a defect.
         - id: upstream-check-evidence
           rule: >-
             For a dependency update, verify upstream release and compatibility claims
@@ -88,6 +91,13 @@ spec:
             failed fetch or unexecuted check is a limitation to disclose, never proof
             that an update is compatible. State material unfinished checks in the
             summary and do not invent findings to compensate for missing evidence.
+            Missing visibility or unverified compatibility alone is not a finding.
+        - id: severity-evidence
+          rule: >-
+            Reserve P0 for unconditional critical harm, not an app-specific startup
+            failure. Do not claim data loss without an evidenced mechanism. Keep
+            severity and suggested fixes proportional to the verified consequence;
+            an unverified replacement tag is not a ready-to-apply fix.
       # Only embeddings run locally; confidence and paid fallbacks remain off.
       comments:
         dashboard: false
