@@ -133,7 +133,41 @@ alarms or degraded dependent services abort the run. Use only isolated,
 explicitly approved scratch files/datasets; NAS02 remains read-only until a
 specific scratch-write scope and cleanup are approved. No raw-disk writes,
 cache drops, `sync=disabled`, service restarts or source-file rewrites.
-The read-only preflight is complete; the matched bakeoff has **not run**.
+The matched NAS01/NAS02 bakeoff has **not run**, but a real bounded NAS01
+`staging` baseline completed on November 21. This is not just preflight:
+12 read-only fio trials, three repeats for each workload, reported zero I/O
+errors. A new isolated `staging/bakeoff-20261121` dataset holds the fully
+CRC32C-verified 16 GiB fixture; quota is 20 GiB, compression off, recordsize
+128 KiB, sync standard and atime off. Protected pools/source files were not
+written.
+
+These exploratory jobs ran for **30 seconds each**, not the planned matched
+90-second comparison. They used fio 3.33/libaio with direct I/O requested,
+the same 16 GiB extent and no cache invalidation. Values below are independent
+medians across the three repeats; latency is **total I/O latency**, including
+submission, not completion-only latency.
+
+| Read workload    | Queue depth | Median MiB/s | Median IOPS | Median p95 total latency |
+| ---------------- | ----------- | ------------ | ----------- | ------------------------ |
+| 1 MiB sequential | 1           | 426.219      | 426.219     | 8.978 ms                 |
+| 1 MiB sequential | 16          | 469.120      | 469.120     | 61.080 ms                |
+| 128 KiB random   | 1           | 13.037       | 104.30      | 10.420 ms                |
+| 128 KiB random   | 16          | 13.214       | 105.71      | 164.626 ms               |
+
+One sampled interval showed about 455 MiB/s of physical pool reads. That
+supports real disk activity in that interval, **not cold-cache certification
+of every trial**, drive/path stability acceptance or a NAS01/NAS02 winner.
+The outstanding SAS command/test-result investigation remains open.
+
+The runnable read-only controller, five passing regression tests, native fio
+profiles, all raw results, min/median/max CSV and fio-plot throughput/latency
+graphs were delivered to Windows Downloads. Graphs select an actual
+median-throughput trial with its own latency; they do not assemble fictitious
+per-metric-median trials. The isolated fixture remains for reruns.
+NAS02 matched scratch preparation, alternating comparison, network tests and
+client SMB/NFS tests remain separate unfinished lanes. Verify the NAS02
+`iperf` version before pairing it with iperf3; the names alone do not establish
+protocol compatibility.
 
 ## Historical design and comparisons — November 6
 

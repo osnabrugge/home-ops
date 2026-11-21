@@ -13,7 +13,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
 
 ---
 
-## Current priority pass — 2026-11-20
+## Current priority pass — 2026-11-21
 
 This status supersedes the historical August inventory and empty-NAS claims
 below. New operational findings belong in MCP; this list tracks requested work,
@@ -30,24 +30,58 @@ not private account, billing, device-identity or application data.
 - [x] Retire only the parked Eufy bridge's inactive Service. The active native
       Home Assistant integration needs no bridge; keep the rollback PVC,
       credential wiring and backups.
-- [?] Select a replacement for Kritika's unavailable free model, then finish
-  nonpublishing positive/negative controls with native full work allowances.
-  The live catalogue no longer lists the configured Cohere `:free` ID.
-  Do not equate green completion with source coverage or enable a paid
-  route without a real monetary authorization.
+- [x] Restore Kritika model availability and native full work allowances.
+      The explicit zero-priced Nemotron 3 Ultra route passed live catalogue,
+      deployed-configuration and real native tool-call checks. Historical
+      Cohere failures, including PR #5067, retain their original failed status.
+- [?] Qualify stronger Kritika review quality, not just availability.
+  Both native four-control runs scored 3/4; current 0.0.123 still reports
+  unchanged digest advice and overgrades/duplicates real faults despite
+  deployed evidence/severity rules. Keep those receipts and the aborted
+  pre-inference attempt. Paid-model qualification needs an approved enforced
+  cap; automatic reviews/approval/fixes remain disabled.
 - [~] NAS migration readiness: fresh logical-byte inventory, actual pool/vdev
   mapping, bounded isolated target verification and a consistent Auditorr
   SQLite backup. See [the current readiness section](NAS01-POST-MIGRATION-DESIGN.md#current-readiness--2026-11-20).
 - [~] Prepare the NAS01/NAS02 as-built bakeoff on the current LSI 9207-8i/front
   backplane. Matched workload/caching/safety protocol and read-only preflight
   are recorded in [the bakeoff section](NAS01-POST-MIGRATION-DESIGN.md#nas01-versus-nas02-bakeoff).
-  Performance runs remain pending storage qualification and isolated
-  scratch-write approval on the read-only NAS02 source.
+  Twelve real NAS01 `staging` trials and fio-plot graphs/raw results/runnable
+  tooling are delivered; these are 30-second exploratory reads, not a
+  cold-cache or matched NAS02 win. NAS02/network/SMB/NFS lanes remain pending
+  storage qualification and isolated scratch-write approval on NAS02.
 - [~] PrintStash: the delivered link-session candidate is installed, but the
   owner's current failure is now the subsequent private-file download.
   Preserve Connected pairing; investigate that stage separately rather
   than repeating link-query, file-count or login diagnoses. Actual
   owner-browser capture remains an acceptance gate.
+- [x] Deliver the 0.14.2 test extension/source and prepare a permanent unpacked
+      Apps folder. Edge runs from that folder: retain it, load the new path and
+      pair once if the extension ID changes. Signed-in native file downloads
+      returned 200; page-fetch CORS failures and synthetic tests do not prove an
+      installed-extension capture succeeds.
+- [x] Verify Maddy #5063 on 0.9.8: two ready replicas, native EHLO/NOOP 250
+      and strict TLS/forced outgoing AUTH LOGIN 235. The earlier SMTP-target
+      LOGIN fix remains supported. No test email or end-to-end receipt was sent.
+- [~] Finish the selected complex-upgrade action plans. Keep PostgreSQL
+  #5084 held for a verified PG19 extension build and rehearsed migration,
+  archives/backup/rollback. Dispatcharr #5033 needs GPU/client acceptance
+  and deliberate profile selection: the live bare HDHR export contains
+  all 351 channels; no channel profiles/global hidden flags exist.
+  Preserve the existing Plex DVR/mappings rather than recreate them.
+- [?] Approve concise AI-disclosed DNS RecordError/mobile-review-context PR
+  drafts. Both candidates are locally committed/validated; no new PR has
+  been opened. The mobile button invokes native Copilot code review, not
+  a custom coding-agent profile or Kritika.
+- [~] Finish alert/warning handoff with fresh health evidence. The captured
+  full snapshot has five alerts, not the earlier uncaptured 22; UPS service-age
+  alerts are suppressed, not repaired. No deleting PV remains. GitHub
+  notifications hit primary REST quota exhaustion; the quota reset, so
+  verify controller recovery rather than rotate credentials or clear warnings.
+- [x] Assess Scrutiny as an optional focused SMART UI. It has separate
+      host collectors/web/InfluxDB and does not automatically reuse
+      smartctl-exporter data. No deployment or duplicate polling was started;
+      resolve the SAS fault and collection design first.
 - [x] Review Klipper 0.14 against both live printers without updating them.
       Fdm02 runs the release commit's parent; fdm01 is three commits behind,
       with only an unused i2c-header removal between its source and the tag.

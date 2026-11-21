@@ -721,6 +721,29 @@ compatibility evidence. Retain both qualification outcomes when rerunning
 after these instruction changes; do not erase a failed run or count pipeline
 completion as coverage.
 
+The subsequent four-control run used native **0.0.123**, source
+`cb13c218a7292fd31e150f2f1eb2902fce2bf945`, and the three actually deployed
+instance rules. It also completed **3/4** controls at reported zero cost,
+with no unpriced steps or forced wrap-up. The already-correct Diode head
+still received one generic P2 digest-pinning finding. The real Secret
+reference regression was overgraded P0; the PostgreSQL control produced
+three P0 findings for the same incompatible extension build/paths.
+Those are useful regression detections, but not three independent
+catastrophic faults or acceptable severity calibration. The comment-only
+control remained clean.
+
+Keep both completed receipts and the separate pre-inference deployment-guard
+abort. Do not call that abort a model-quality result, rerun until green, or
+claim the instructions enforce model correctness. These bounded snapshots
+cannot certify production fetching, rendering, splitting or publication.
+Stronger-model qualification remains subject to an approved enforced spending
+cap; no paid request or fallback was authorized.
+
+The historical `Kritika / Review` failure on PR #5067 used the missing Cohere
+route before this replacement. Native records show the nested 502/503
+missing-catalogue error. A separate successful GitHub Copilot review and a
+healthy new model do not retroactively turn that old Kritika status green.
+
 The instance's `config.rules` requires current-head/consumer evidence before a
 finding, correct use of upstream tag suggestions, and disclosure of failed or
 unfinished upstream checks. These are instance rules rather than only a new
