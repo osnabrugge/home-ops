@@ -38,6 +38,22 @@ not private account, billing, device-identity or application data.
 - [~] NAS migration readiness: fresh logical-byte inventory, actual pool/vdev
   mapping, bounded isolated target verification and a consistent Auditorr
   SQLite backup. See [the current readiness section](NAS01-POST-MIGRATION-DESIGN.md#current-readiness--2026-11-20).
+- [~] Prepare the NAS01/NAS02 as-built bakeoff on the current LSI 9207-8i/front
+  backplane. Matched workload/caching/safety protocol and read-only preflight
+  are recorded in [the bakeoff section](NAS01-POST-MIGRATION-DESIGN.md#nas01-versus-nas02-bakeoff).
+  Performance runs remain pending storage qualification and isolated
+  scratch-write approval on the read-only NAS02 source.
+- [~] PrintStash: the delivered link-session candidate is installed, but the
+  owner's current failure is now the subsequent private-file download.
+  Preserve Connected pairing; investigate that stage separately rather
+  than repeating link-query, file-count or login diagnoses. Actual
+  owner-browser capture remains an acceptance gate.
+- [x] Review Klipper 0.14 against both live printers without updating them.
+      Fdm02 runs the release commit's parent; fdm01 is three commits behind,
+      with only an unused i2c-header removal between its source and the tag.
+      The release marker alone does not require reflashing all MCUs. Preserve
+      exact board build profiles and Eddy calibration before a later upgrade;
+      legacy `TEST_SPEED` and timelapse macro compatibility need attention.
 - [ ] Resolve the repeated SAS temperature-command stalls and complete
       meaningful disk/path stability acceptance before bulk migration. The
       SMFC fallback is only a partial mitigation; preserve emergency cooling.

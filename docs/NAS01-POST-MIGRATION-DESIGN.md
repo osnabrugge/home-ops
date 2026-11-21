@@ -91,6 +91,50 @@ not become a power-loss-protected SLOG because they are large.
   and media in the same final dataset. Do not use `sync=disabled`, dedup,
   speculative L2ARC or an arbitrary ARC cap as a benchmark shortcut.
 
+### NAS01 versus NAS02 bakeoff
+
+Use the current LSI 9207-8i and front backplane; no replacement HBA, rewiring,
+pool rebuild or host tuning is needed to establish an **as-built** comparison.
+Read-only preflight sees the SAS2308/9207-8i on `mpt3sas`, PCIe 3.0 x8, with
+all eight HBA PHYs negotiating 6 Gb/s. This confirms the host link, not every
+drive's sustained performance or the absence of intermittent path faults.
+Both NASes already have fio 3.33 and two active 10 Gb/s bonded NIC links.
+
+Separate three questions rather than declaring one overall winner:
+
+| Lane       | Matched workload                                                                                 | Report                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Network    | Same wired client, one connection, then multiple independent connections                         | Throughput per flow and aggregate; negotiated SMB multichannel reported separately |
+| Storage    | Same incompressible file, aligned 1 MiB sequential and 128 KiB random I/O, queue depths 1 and 16 | MiB/s, IOPS, p50/p95/p99 latency, CPU and physical-disk I/O                        |
+| Actual use | Same client and protocol for large media, small-file trees and durable writes                    | Transfer rate, create/stat latency and write durability settings                   |
+
+SMB is the home/media comparison; NFS is a separate cluster/PVE lane.
+Do not compare an SMB result from one NAS with local fio or NFS from the other.
+Test `nfs`, `smb` and `staging` separately, identifying their different vdevs;
+exclude `backups`, `local`, boot and the NAS02 ABB volume.
+
+The main fairness issue is caching: NAS01 has about 270 GB of memory and its
+ARC was about 247 GB at preflight; NAS02 has about 34 GB of memory plus its
+existing cache stack. A small warm read can benchmark RAM or SSD cache rather
+than HDDs. Label warm runs explicitly. Use aligned direct I/O only where its
+actual bypass is verified with physical-I/O/cache counters; a `direct=1` flag
+alone is not proof of a cold read. A later uncached streaming pass needs a
+working set larger than the effective cache, not a forced production cache flush.
+
+Start with a bounded 16 GiB fixture and 90-second jobs, then three alternating
+NAS01/NAS02 repeats. Record raw fio JSON, per-run environment/settings, workload
+seed, client/protocol, file size, cache state and background load. Summaries
+use medians and min/max across repeats, with throughput and latency charts.
+Do not describe the existing rate-capped 1 GiB CRC checks as this baseline.
+
+Before execution, confirm the outstanding SAS test result and a quiet,
+error-free storage interval. New SCSI timeouts, pool errors, existing thermal
+alarms or degraded dependent services abort the run. Use only isolated,
+explicitly approved scratch files/datasets; NAS02 remains read-only until a
+specific scratch-write scope and cleanup are approved. No raw-disk writes,
+cache drops, `sync=disabled`, service restarts or source-file rewrites.
+The read-only preflight is complete; the matched bakeoff has **not run**.
+
 ## Historical design and comparisons — November 6
 
 **Inventory updated 2026-11-06; source measurements remain 2026-11-02.
