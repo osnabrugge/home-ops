@@ -34,6 +34,8 @@ spec:
               REDIS_PORT: "6379"
               CELERY_BROKER_URL: redis://dragonfly.database.svc.cluster.local:6379/0
               DJANGO_SETTINGS_MODULE: dispatcharr.settings
+              PLUGIN_TASK_HISTORY_MAX_ENTRIES: "50"
+              PLUGIN_TASK_HISTORY_TTL_SECONDS: "604800"
               PYTHONUNBUFFERED: "1"
             envFrom: &svcEnvFrom
               - secretRef:
