@@ -12,6 +12,7 @@ spec:
   values:
     controllers:
       speedtest-exporter:
+        strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -21,6 +22,8 @@ spec:
               tag: v3.5.4@sha256:f1064d49124c7fc45faabb87c6c876a2fd04e92b3dc14d4b871301217ba30fed
             env:
               SPEEDTEST_PORT: &port 9798
+              SPEEDTEST_CACHE_FOR: "3600"
+              SPEEDTEST_TIMEOUT: "90"
             probes:
               liveness:
                 enabled: true
@@ -58,3 +61,16 @@ spec:
         ports:
           http:
             port: *port
+    serviceMonitor:
+      app:
+        endpoints:
+          - port: http
+            interval: 2m
+            scrapeTimeout: 110s
+            relabelings:
+              - action: replace
+                targetLabel: job
+                replacement: *app
+              - action: replace
+                targetLabel: instance
+                replacement: speedtest-exporter.observability.svc.cluster.local:9798

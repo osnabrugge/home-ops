@@ -764,6 +764,32 @@ For Omada, verify the exporter can authenticate to the current controller and
 its selected site before changing dashboard filters. A healthy `/metrics`
 endpoint alone does not prove that device/client series are fresh.
 
+### Speedtest dashboard collection
+
+The speedtest exporter measures on `/metrics`; `/` is the safe non-measuring
+HTTP check. Do not repeatedly open `/metrics` to diagnose a blank dashboard.
+Inspect Prometheus's target health, last scrape/error and actual metric
+history before editing the imported dashboard or datasource.
+
+The exporter uses a ServiceMonitor to scrape Pod endpoints, not its Service
+VIP. From the Prometheus Pod, the Service VIP timed out even on the safe
+HTTP path while the direct Pod endpoint responded immediately; no
+cluster-wide Cilium or network-policy change was made to repair collection.
+Keep the stable `job` and `instance` labels for existing dashboard selections.
+
+`SPEEDTEST_CACHE_FOR=3600` keeps real measurements approximately hourly;
+two-minute scrapes collect the cached result between measurements so the
+series do not disappear behind Prometheus's five-minute lookback. A
+90-second CLI deadline fits inside the 110-second scrape deadline and
+two-minute interval. Recreate deployment strategy avoids two independent
+measurement caches running during a rolling update.
+
+These are last-measured values, not continuous link-throughput readings.
+Restarting the exporter resets its in-memory cache; the next normal scrape
+performs a measurement. Validate that the selected target is healthy and
+the dashboard's variables and real panels have data. Do not fabricate
+success-shaped values when a measurement fails.
+
 ### SMTP and model-key policy recovery
 
 Maddy's public image needs no registry pull credentials. Inspect the failed
