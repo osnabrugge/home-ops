@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/dispatcharr/dispatcharr
-              tag: 0.33.0@sha256:96bc548978c68e684677da7895692eeeefb7f0b2edfa38311dac2b702c61d236
+              tag: 0.34.1@sha256:3716ebb0aba133fe8b3d311505dc49966b7fddff742d9ab710ccd19d04658195
             env: &svcEnv
               TZ: America/Toronto
               # Modular mode: use the cluster's shared PostgreSQL (CNPG postgres16)
@@ -34,6 +34,8 @@ spec:
               REDIS_PORT: "6379"
               CELERY_BROKER_URL: redis://dragonfly.database.svc.cluster.local:6379/0
               DJANGO_SETTINGS_MODULE: dispatcharr.settings
+              PLUGIN_TASK_HISTORY_MAX_ENTRIES: "50"
+              PLUGIN_TASK_HISTORY_TTL_SECONDS: "604800"
               PYTHONUNBUFFERED: "1"
             envFrom: &svcEnvFrom
               - secretRef:
@@ -71,7 +73,7 @@ spec:
           celery:
             image:
               repository: ghcr.io/dispatcharr/dispatcharr
-              tag: 0.33.0@sha256:96bc548978c68e684677da7895692eeeefb7f0b2edfa38311dac2b702c61d236
+              tag: 0.34.1@sha256:3716ebb0aba133fe8b3d311505dc49966b7fddff742d9ab710ccd19d04658195
             command: ["/app/docker/entrypoint.celery.sh"]
             env: *svcEnv
             envFrom: *svcEnvFrom
