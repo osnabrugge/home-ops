@@ -125,7 +125,10 @@ before ZFS deductions, quotas, snapshots and actual dataset headroom:
 A spare adds no parity while a rebuild is incomplete. Prefer a second
 parity disk over RAIDZ1 plus a spare for questionable staging members if
 the recalculated hardlink-closed assignment fits. RAIDZ2 does not make an
-already defective member acceptable. RAIDZ expansion cannot convert RAIDZ1
+already defective member acceptable. These examples require qualified
+members and a qualified spare; the failing member cannot fill either role.
+Without a replacement, nine qualified drives in RAIDZ2 provide 28 TB nominal
+with no spare, not the ten-drive row's 32 TB. RAIDZ expansion cannot convert RAIDZ1
 to RAIDZ2: recreation needs a reviewed capacity/copy plan and separate
 destruction approval. Rebaseline performance after any geometry change.
 

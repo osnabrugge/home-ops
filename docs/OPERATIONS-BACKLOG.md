@@ -117,11 +117,14 @@ not private account, billing, device-identity or application data.
   drafts. Both candidate branches are pushed/validated; no new PR has
   been opened. The mobile button invokes native Copilot code review, not
   a custom coding-agent profile or Kritika.
-- [~] Finish alert/warning handoff with fresh health evidence. The captured
-  full snapshot has five alerts, not the earlier uncaptured 22; UPS service-age
-  alerts are suppressed, not repaired. No deleting PV remains. GitHub
-  notifications hit primary REST quota exhaustion; the quota reset, so
-  verify controller recovery rather than rotate credentials or clear warnings.
+- [~] Preserve hardware/maintenance alerts rather than silence them. The new
+  pending-sector alert is actually firing for the affected member. Three
+  pre-existing NAS02 I/O-saturation alerts correlate with an active Btrfs
+  scrub; native MD status shows all configured members present. Do not cancel
+  protected-source maintenance or run a bakeoff through it. UPS service-age
+  alerts remain suppressed, not repaired, and no deleting PV remains.
+  Earlier GitHub notification primary/secondary limits recovered through the
+  normal credential/cooldown path, not credential rotation or a bypass.
 - [x] Assess Scrutiny as an optional focused SMART UI. It has separate
       host collectors/web/InfluxDB and does not automatically reuse
       smartctl-exporter data. No deployment or duplicate polling was started;
