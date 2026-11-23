@@ -1,0 +1,7 @@
+Upstream: MiguelNdeCarvalho/speedtest-exporter, Dashboard/Speedtest-Exporter.json
+Dashboard source: https://grafana.com/api/dashboards/13665/revisions/4/download
+Upstream license: GNU GPL version 3; see LICENSE.
+
+Modified 2026-11-23 (UTC) to resolve Prometheus datasources through a Grafana
+runtime DS_PROMETHEUS variable instead of literal name-to-UID substitution.
+The dashboard UID, titles, layout and metric expressions are preserved.

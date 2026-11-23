@@ -9,7 +9,8 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  datasources:
-    - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
-  url: https://grafana.com/api/dashboards/13665/revisions/4/download
+  # Grafana.com 13665 revision 4, with runtime datasource lookup (upstream GPL-3.0).
+  # Operator datasourceName substitution is literal; a name is not a datasource UID.
+  configMapRef:
+    name: speedtest-exporter-dashboard
+    key: speedtest-exporter.json

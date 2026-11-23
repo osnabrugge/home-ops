@@ -54,7 +54,7 @@ spec:
       config:
         type: emptyDir
         globalMounts:
-          - path: /.config
+          - path: /home/speedtest/.config
     service:
       app:
         controller: *app

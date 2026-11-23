@@ -790,6 +790,17 @@ performs a measurement. Validate that the selected target is healthy and
 the dashboard's variables and real panels have data. Do not fabricate
 success-shaped values when a measurement fails.
 
+The dashboard preserves upstream 13665 revision 4's UID/layout in a
+ConfigMap, with a runtime `DS_PROMETHEUS` datasource variable. Its ConfigMap
+disables Flux substitution so Grafana resolves that variable to the actual
+datasource UID. Operator substitution of the literal name `prometheus`
+does not perform that lookup. Keep its folder and existing dashboard owner.
+
+The read-only exporter needs its emptyDir mounted at
+`/home/speedtest/.config`, its actual home configuration directory. Mounting
+`/.config` leaves Ookla unable to save its settings; do not make the entire
+root filesystem writable as a repair.
+
 ### SMTP and model-key policy recovery
 
 Maddy's public image needs no registry pull credentials. Inspect the failed
