@@ -1510,6 +1510,28 @@ Garage or change pool/disk configuration for an exporter problem.
 - Original Compose rollback copies are retained beside the host source.
   Confirm other container identities and `zpool status -x` are unchanged.
 
+Overall SMART `PASSED` does not mean every sector is readable.
+`SmartDevicePendingSectors` warns when raw ATA attribute 197 remains above
+zero for five minutes, independently of the overall health bit. Normalized
+attribute values and historical reallocation counts do not trigger this rule.
+Correlate the stable disk identity, raw pending/offline-uncorrectable counts
+and native pool errors. A corrected ZFS read with no known data errors proves
+that redundancy repaired that read, not that the disk is reliable again.
+Do not clear evidence, write-zero a drive or start overlapping stress tests
+to make the warning disappear.
+
+The focused regression uses the same native `promtool` rule evaluator as
+Prometheus. From the repository root, with `yq` and `promtool` available:
+
+```bash
+workdir="$(mktemp -d -t homeops-smartctl.XXXXXX)"
+yq '.spec' kubernetes/apps/observability/exporters/smartctl-exporter/app/prometheusrule.yaml > "$workdir/smartctl-rules.yaml"
+cp .github/tests/smartctl-pending-sectors.test.yaml "$workdir/"
+promtool test rules "$workdir/smartctl-pending-sectors.test.yaml"
+rm -- "$workdir/smartctl-rules.yaml" "$workdir/smartctl-pending-sectors.test.yaml"
+rmdir -- "$workdir"
+```
+
 ### NAS01 stalled shutdown and self-test reporter
 
 - PiKVM **Shortcuts -> Alt+SysRq** provides kernel recovery independent of

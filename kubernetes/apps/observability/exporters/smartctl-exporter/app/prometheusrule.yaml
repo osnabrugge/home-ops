@@ -38,6 +38,19 @@ spec:
           labels:
             severity: critical
 
+        - alert: SmartDevicePendingSectors
+          expr: |-
+            smartctl_device_attribute{attribute_id="197",attribute_value_type="raw"} > 0
+          for: 5m
+          annotations:
+            summary: >-
+              Device {{ $labels.device }} on instance {{ $labels.instance }} has pending sectors (count: {{ $value }})
+            description: >-
+              Inspect the disk and pool errors even if overall SMART passes.
+              Do not clear counters or run destructive write tests to hide unstable sectors.
+          labels:
+            severity: warning
+
         - alert: SmartDeviceMediaErrors
           expr: |-
             smartctl_device_media_errors != 0

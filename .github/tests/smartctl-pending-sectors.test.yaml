@@ -1,0 +1,68 @@
+rule_files:
+  - smartctl-rules.yaml
+
+evaluation_interval: 1m
+
+tests:
+  - name: pending sectors alert even when overall SMART passes
+    interval: 1m
+    input_series:
+      - series: smartctl_device_smart_status{device="affected",instance="nas:9633"}
+        values: "1x10"
+      - series: smartctl_device_attribute{attribute_id="197",attribute_value_type="raw",device="affected",instance="nas:9633"}
+        values: "15x10"
+      - series: smartctl_device_attribute{attribute_id="197",attribute_value_type="raw",device="healthy",instance="nas:9633"}
+        values: "0x10"
+      - series: smartctl_device_attribute{attribute_id="197",attribute_value_type="value",device="healthy",instance="nas:9633"}
+        values: "200x10"
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: SmartDevicePendingSectors
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: SmartDevicePendingSectors
+        exp_alerts:
+          - exp_labels:
+              attribute_id: "197"
+              attribute_value_type: raw
+              device: affected
+              instance: nas:9633
+              severity: warning
+            exp_annotations:
+              summary: "Device affected on instance nas:9633 has pending sectors (count: 15)"
+              description: >-
+                Inspect the disk and pool errors even if overall SMART passes.
+                Do not clear counters or run destructive write tests to hide unstable sectors.
+
+  - name: one pending sector is sufficient but historical reallocations are not
+    interval: 1m
+    input_series:
+      - series: smartctl_device_attribute{attribute_id="197",attribute_value_type="raw",device="one-pending",instance="nas:9633"}
+        values: "1x10"
+      - series: smartctl_device_attribute{attribute_id="5",attribute_value_type="raw",device="reallocated-only",instance="nas:9633"}
+        values: "33x10"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: SmartDevicePendingSectors
+        exp_alerts:
+          - exp_labels:
+              attribute_id: "197"
+              attribute_value_type: raw
+              device: one-pending
+              instance: nas:9633
+              severity: warning
+            exp_annotations:
+              summary: "Device one-pending on instance nas:9633 has pending sectors (count: 1)"
+              description: >-
+                Inspect the disk and pool errors even if overall SMART passes.
+                Do not clear counters or run destructive write tests to hide unstable sectors.
+
+  - name: a cleared short-lived pending count does not meet the hold
+    interval: 1m
+    input_series:
+      - series: smartctl_device_attribute{attribute_id="197",attribute_value_type="raw",device="transient",instance="nas:9633"}
+        values: "1 1 0x8"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: SmartDevicePendingSectors
+        exp_alerts: []
