@@ -91,6 +91,58 @@ not become a power-loss-protected SLOG because they are large.
   and media in the same final dataset. Do not use `sync=disabled`, dedup,
   speculative L2ARC or an arbitrary ARC cap as a benchmark shortcut.
 
+### November 22 staging read-error hold
+
+The current ten-member 4 TB `staging` RAIDZ1 is ONLINE but unhealthy: one
+member has seven read errors. ZFS reports 98,304 bytes self-healed and no
+known permanent data errors. Existing cached SMART data nevertheless shows
+33 reallocated, 15 pending and 82 offline-uncorrectable sectors, with zero
+UDMA CRC errors. Its overall SMART bit still reports passed. Reject this
+member for migration qualification; a corrected read is not a repaired disk.
+The separate SAS temperature-command stalls are not thereby explained away.
+
+No errors were cleared, no disk was offlined/replaced, and no new scrub,
+write test or benchmark was started. The only listed staging child is the
+16 GiB benchmark dataset, with about 17.2 GB allocated at pool level.
+Preserve the read counters and match the actual stable disk identity before
+any physical replacement. Additional stress and bulk migration remain held.
+
+The pending-sector monitoring gap is fixed separately:
+`SmartDevicePendingSectors` checks raw ATA attribute 197 independently of
+the overall health bit. It adds no hardware polling and does not repair
+the underlying media.
+
+The owner reopened **staging parity**, not the final donor-pool design.
+For the ten current 4 TB members, these are nominal decimal capacities
+before ZFS deductions, quotas, snapshots and actual dataset headroom:
+
+| Staging layout                | Nominal data TB | Approximate TiB | 80% target TB |
+| ----------------------------- | --------------: | --------------: | ------------: |
+| 10-drive RAIDZ1               |              36 |           32.74 |          28.8 |
+| 10-drive RAIDZ2               |              32 |           29.10 |          25.6 |
+| 9-drive RAIDZ2 plus one spare |              28 |           25.47 |          22.4 |
+
+A spare adds no parity while a rebuild is incomplete. Prefer a second
+parity disk over RAIDZ1 plus a spare for questionable staging members if
+the recalculated hardlink-closed assignment fits. RAIDZ2 does not make an
+already defective member acceptable. RAIDZ expansion cannot convert RAIDZ1
+to RAIDZ2: recreation needs a reviewed capacity/copy plan and separate
+destruction approval. Rebaseline performance after any geometry change.
+
+Do not promise that loaners can never hold the only copy. Once NAS02's donor
+disks are reused, its source rollback no longer exists; any bytes held only
+in staging then have one copy regardless of parity. The existing independent,
+restorable critical-data backup gate remains mandatory.
+
+Passive enclosure reads identify `SAS2X36` product revision `0e17`, not a
+complete verified firmware/MFG version. Supermicro hosts a separate
+[SAS2-specific Xtools package](https://www.supermicro.com/wdl/utility/ExpanderXtools_Lite/Linux/64bits%20for%20SAS2%20Expander/).
+A [matching CLIXTL failure report](https://www.truenas.com/community/threads/clixtl-results-in-error-device-doesnt-contain-required-data.105195/)
+used SAS2 `xflash` for information reads. Ask Supermicro to confirm the
+correct board-specific tool/version/regions; enumeration alone does not
+prove that a CLIXTL information/flash operation is supported. No firmware
+utility or update was run here.
+
 ### NAS01 versus NAS02 bakeoff
 
 Use the current LSI 9207-8i and front backplane; no replacement HBA, rewiring,
