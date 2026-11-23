@@ -4,4 +4,5 @@ Upstream license: GNU GPL version 3; see LICENSE.
 
 Modified 2026-11-23 (UTC) to resolve Prometheus datasources through a Grafana
 runtime DS_PROMETHEUS variable instead of literal name-to-UID substitution.
-The dashboard UID, titles, layout and metric expressions are preserved.
+Current-value panels use instant queries; history panels combine rollout
+labels for the same logical exporter. The UID, titles and layout are preserved.

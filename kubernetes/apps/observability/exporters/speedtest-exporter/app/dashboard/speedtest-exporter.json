@@ -133,7 +133,9 @@
           "expr": "speedtest_up{instance=\"$instance\", job=\"$job\"}",
           "interval": "",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Status of the Speedtest-Exporter",
@@ -189,7 +191,9 @@
           "expr": "speedtest_server_id{instance=\"$instance\", job=\"$job\"}",
           "interval": "",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "ServerID (Last test done)",
@@ -258,7 +262,9 @@
           "expr": "speedtest_download_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6",
           "interval": "",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Download Speed",
@@ -313,7 +319,9 @@
           "expr": "speedtest_upload_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6",
           "interval": "",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Upload Speed",
@@ -368,7 +376,9 @@
           "expr": "speedtest_ping_latency_milliseconds{instance=\"$instance\", job=\"$job\"}",
           "interval": "",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Ping",
@@ -423,7 +433,9 @@
           "expr": "speedtest_jitter_latency_milliseconds{instance=\"$instance\", job=\"$job\"}",
           "interval": "",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Jitter",
@@ -521,7 +533,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "speedtest_download_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6",
+          "expr": "max by (instance, job) (speedtest_download_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6)",
           "interval": "",
           "legendFormat": "Download Speed (Mbits/s)",
           "refId": "A"
@@ -608,7 +620,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "speedtest_upload_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6",
+          "expr": "max by (instance, job) (speedtest_upload_bits_per_second{instance=\"$instance\", job=\"$job\"}*10^-6)",
           "interval": "",
           "legendFormat": "Upload Speed (Mbits/s)",
           "refId": "A"
@@ -695,7 +707,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "speedtest_ping_latency_milliseconds{instance=\"$instance\", job=\"$job\"}",
+          "expr": "max by (instance, job) (speedtest_ping_latency_milliseconds{instance=\"$instance\", job=\"$job\"})",
           "interval": "",
           "legendFormat": "Ping (ms)",
           "refId": "A"
@@ -706,7 +718,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
-          "expr": "speedtest_jitter_latency_milliseconds{instance=\"$instance\", job=\"$job\"}",
+          "expr": "max by (instance, job) (speedtest_jitter_latency_milliseconds{instance=\"$instance\", job=\"$job\"})",
           "instant": false,
           "interval": "",
           "legendFormat": "Jitter (ms)",

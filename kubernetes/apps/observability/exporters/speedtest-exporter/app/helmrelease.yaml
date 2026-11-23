@@ -67,6 +67,9 @@ spec:
           - port: http
             interval: 2m
             scrapeTimeout: 110s
+            metricRelabelings:
+              - action: labeldrop
+                regex: "pod|namespace|service|endpoint|container"
             relabelings:
               - action: replace
                 targetLabel: job

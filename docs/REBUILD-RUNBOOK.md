@@ -776,6 +776,10 @@ VIP. From the Prometheus Pod, the Service VIP timed out even on the safe
 HTTP path while the direct Pod endpoint responded immediately; no
 cluster-wide Cilium or network-policy change was made to repair collection.
 Keep the stable `job` and `instance` labels for existing dashboard selections.
+Drop Kubernetes rollout labels from stored measurements so a restarted Pod
+does not become another logical internet connection. Current-value panels
+use instant queries; history panels group the same `job`/`instance` across
+older rollout labels without deleting those measurements.
 
 `SPEEDTEST_CACHE_FOR=3600` keeps real measurements approximately hourly;
 two-minute scrapes collect the cached result between measurements so the
