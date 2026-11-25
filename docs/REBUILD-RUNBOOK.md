@@ -854,13 +854,19 @@ schema, paired images, isolation and repository-policy checks pass, restore
 every recorded hold and remediation setting. Do not restore or replace a
 production PVC without the separate storage approval.
 
-The running pilot uses a separate `kritika-db` PostgreSQL cluster.
+The running pilot uses a separate `kritika-db` PostgreSQL cluster with separately
+mounted VectorChord/pgvector extensions. A standard PostgreSQL base image does
+not remove that dependency: its major version, extension bundle and library/
+control paths must remain compatible. Do not merge a primary-image-only major
+upgrade while the mounted extension image and paths still target the old major.
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`
 volume as startup recovery. Verify all eight Kritika Kustomizations, its
 HelmRelease and the database are Ready before investigating the application.
-The namespace allows five PVCs within the unchanged 20Gi aggregate storage
-ceiling. The held database, running database, embedding cache and 2Gi backup
-cache use four claims and 19Gi, leaving one transient restore-cache claim slot.
+The namespace allows five PVCs within a 25Gi aggregate storage ceiling.
+The held 10Gi database, running 5Gi database, 2Gi embedding cache and 2Gi backup
+cache use four claims and 19Gi, leaving one claim slot and 6Gi of requested-byte
+headroom. Budget a parallel database and its recovery/cache needs together,
+preserving the held original volume rather than freeing it to make a plan fit.
 This does not authorize creating or replacing a production volume.
 The owner permits maintenance downtime for the singleton `kritika-db` and
 `litellm-db` pilots: both declare `enablePDB: false` through CNPG rather than

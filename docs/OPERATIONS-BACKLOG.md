@@ -97,9 +97,14 @@ not private account, billing, device-identity or application data.
 - [x] Verify Maddy #5063 on 0.9.8: two ready replicas, native EHLO/NOOP 250
       and strict TLS/forced outgoing AUTH LOGIN 235. The earlier SMTP-target
       LOGIN fix remains supported. No test email or end-to-end receipt was sent.
-- [~] Finish the selected complex-upgrade action plans. Keep PostgreSQL
-  #5084 held for a verified PG19 extension build and rehearsed migration,
-  archives/backup/rollback. Dispatcharr #5033 is deployed on 0.34.1; offline
+- [~] Finish the selected complex-upgrade action plans. The current #5084
+  targets the standard `kritika-db` PostgreSQL image and policy installer,
+  not the main database. It still leaves the mounted `pg18` VectorChord bundle
+  and PostgreSQL 18 library/control paths unchanged, although the live database
+  uses both VectorChord and pgvector. Keep it held for a verified compatible
+  extension bundle, operator support and a rehearsed 18-to-19 data migration,
+  backup/restore and rollback plan; an approved image-only PR is not that plan.
+  Dispatcharr #5033 is deployed on 0.34.1; offline
   profile/guide setup and real export consistency are complete, but live-feed
   playback/GPU/client acceptance and deliberate Plex tuner selection remain.
   Preserve the existing Plex DVR/mappings rather than recreate them. New
@@ -110,6 +115,14 @@ not private account, billing, device-identity or application data.
       Grafana MCP #5135, MKTXP #5130 and brrpolice #5144. Native MCP reads,
       Grafana datasource/Prometheus reads, exact renders, actual running images
       and applicable original PVC identities were checked.
+- [x] Deploy Ollama #5129 to 0.40.18 only after the native review queue drained.
+      Workstation registry DNS blocked flate, so a checksum-verified deployed
+      chart artifact supplied an exact offline old/new render; only the image
+      changed. Both services passed real local chat/embedding checks: five
+      finite 384-dimensional cases had minimum cosine 0.999999928 against the
+      required 0.99999. Model digests, original claims and completed
+      `IfNotPresent` bootstrap Jobs were preserved; no model pull reran and
+      cloud stayed disabled. This is not a new reviewer-quality qualification.
 - [~] MKTXP's HTTP target is UP but the existing external-switch collection is
   not healthy: only exporter self metrics are available. The configured
   hostname resolves to the documented management address, but API-SSL TCP 8729
