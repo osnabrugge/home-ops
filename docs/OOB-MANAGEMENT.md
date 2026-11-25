@@ -562,6 +562,37 @@ Stale or failed control drives both zones to 100%. Normal SMFC termination
 also requests 100%, and its Compose entrypoint invokes `smfc` directly so that
 SIGTERM reaches its native handler.
 
+#### Disk removal and replacement checklist
+
+A disk change also changes cooling dependencies, not only ZFS and SMART
+monitoring. Removing a disk from smartctl-exporter does not remove its
+temperature sensor from SMFC.
+
+1. Match the physical disk to its stable by-id identity, pool/vdev membership,
+   cooling sensor and exporter entry. Inspect the other members and shared
+   storage path; record copy/backup consequences before an approved removal.
+2. Warn the operator that missing telemetry, controller stops and inventory
+   transitions can deliberately drive both zones to full speed. Keep that
+   protection active throughout the change.
+3. Coordinate the private `smfc.conf` inventories (`HD.hd_names` and
+   `NVME.nvme_names`) with the actual installed devices and smartctl-exporter
+   filters. The watchdog derives its expected counts from this same
+   configuration; there is no separate count file to maintain. An added disk
+   omitted from the configuration is not automatically discovered by that
+   completeness check. Compare against the actual installed inventory, retain
+   the old configuration and review every exclusion, including existing
+   unsupported sensor exceptions.
+4. Validate the native configuration and obtain complete, fresh per-device
+   readings with the read-only client. Account for ATA, SAS and NVMe devices;
+   overall SMART health alone does not validate temperature coverage.
+5. Require the guarded stable-recovery interval below, then independently read
+   both physical BMC duties. Cached snapshot duty and HTTP 200 are insufficient.
+   Preserve the fan curves, emergency response and uninstrumented-card floor.
+
+Do not suppress the missing-device error, disable the watchdog or force quiet
+duty to make an incomplete inventory appear healthy. Hardware removal, pool
+changes and live cooling-configuration edits still need their approved scope.
+
 After watchdog failover, recovery requires the same SMFC process to provide
 complete, error-free CPU/disk/NVMe readings for at least 30 seconds and two
 polling cycles of its slowest controller. Only then may the watchdog reconcile

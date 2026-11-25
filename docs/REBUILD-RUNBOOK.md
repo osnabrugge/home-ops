@@ -630,6 +630,21 @@ and an IoT destination both select `net1`, then check actual HomeBase session
 connectivity and entity availability. Do not colocate bridge and Home Assistant
 Pods or change firewall rules to compensate for the wrong outgoing interface.
 
+### Rook upgrade acceptance
+
+A successful operator HelmRelease upgrade does not mean its daemon rollout has
+finished. A Rook chart/operator patch can replace OSD Pods without upgrading
+Talos or changing the pinned Ceph runtime. Warn before the storage-maintenance
+window and follow the operator's native safe-to-stop checks; temporary
+OSD-down notifications can occur during the sequential rollout.
+
+Before any further disruption, require the intended daemon rollout to finish,
+all OSDs up/in, monitor quorum, healthy CephFS and all PGs active+clean. Match
+related Prometheus alert intervals to the actual Pod/operator timeline and
+confirm current Alertmanager state. Do not equate operator readiness with
+storage readiness, infer a node upgrade from an OSD restart, or silence alerts
+instead of checking recovery. A newly persistent fault needs its own diagnosis.
+
 ### Shared RBD client read-only recovery
 
 `emergency_ro` is ext4's protective response to an I/O failure. Healthy Ceph
@@ -825,7 +840,21 @@ application configuration. Confirm native UI assets, login/logout/session
 revocation, indexed generation and isolated runner behavior; a proxy's HTTP
 response is not a human-login or review-publication test.
 
-The running pilot uses a separate `kritika-db` PostgreSQL/VectorChord cluster.
+The 0.0.125/0.0.126 upgrade contains one-way database migrations: model slots
+become provider/account-scoped, existing ephemeral leases are discarded, and
+historical hourly-limited follow-ups become ignored entries with their reason
+preserved. Wait for native review/model work to be idle, verify a completed
+consistent database backup and rehearse the exact migrations in a rollback-only
+transaction. Record all claim identities and existing reconciliation/remediation
+settings. Temporarily hold only the app Kustomization and use
+`RetryOnFailure` without automatic downgrade before advancing the pinned OCI
+chart; the global remediation patch otherwise enables rollback. A successful
+migration makes an image-only downgrade unsafe. After native configuration,
+schema, paired images, isolation and repository-policy checks pass, restore
+every recorded hold and remediation setting. Do not restore or replace a
+production PVC without the separate storage approval.
+
+The running pilot uses a separate `kritika-db` PostgreSQL cluster.
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`
 volume as startup recovery. Verify all eight Kritika Kustomizations, its
 HelmRelease and the database are Ready before investigating the application.
@@ -1054,6 +1083,25 @@ rule layout. A route update must not change StatefulSet/PVC specifications or
 restart Cilium agents. Verify backend readiness and real machine clients
 separately from an anonymous SSO redirect. The read-only outside exposure job
 checks public reachability with a positive control.
+
+Autobrr instead uses its native OIDC client, not a proxy-auth bypass. Provision
+the app-owned provider and both namespace-local ESO credentials first, then
+enable the native client with the existing owner's immutable allowed subject.
+Keep local password login enabled and automatic redirect disabled. Verify
+discovery/PKCE, strict callback and state rejection, the unchanged original PVC,
+and both visible login choices. The existing owner's ordinary browser
+login/logout remains separate acceptance; do not generate an impersonated
+token or reset the local account to manufacture it. See
+[the authentication architecture](AUTH-ARCHITECTURE.md).
+
+### NAS disk removal and cooling dependencies
+
+For NAS disk maintenance, coordinate ZFS/SMART changes with the private SMFC
+temperature inventory before handing back cooling. Its watchdog reads expected
+disk counts from the same SMFC configuration and intentionally fails high on
+incomplete telemetry. Follow the
+[disk-change checklist](OOB-MANAGEMENT.md#disk-removal-and-replacement-checklist);
+an exporter exclusion alone is not a complete hardware-change procedure.
 
 ### PrintStash browser capture
 
