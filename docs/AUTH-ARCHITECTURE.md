@@ -13,6 +13,7 @@ HTTP check as a completed human login.
 | Bifrost and Kritika dashboards                                  | Authentik full proxy plus each application's native login                     | Private human access; two login layers until a supported native integration is verified                   |
 | Omada controller                                                | Authentik SAML                                                                | Controller browser login, not Wi-Fi/RADIUS or OpenAPI machine authentication                              |
 | PrintStash                                                      | Native Authentik OIDC with an app-specific role scope                         | Preserve local recovery and original browser-device ownership; verify real human login and library access |
+| Autobrr                                                         | Native Authentik OIDC with one immutable allowed subject                      | Additive login option; original password login remains enabled and automatic redirect remains off         |
 | Hubble, netboot.xyz, Prometheus, Alertmanager, VictoriaLogs UIs | App-owned Authentik proxies via the shared component                          | Private browser entry points; preserve cluster Service clients, metrics, boot and syslog transport        |
 | Remaining legacy consumers                                      | Authelia/LLDAP where their actual application configuration still uses them   | Inventory and migrate one consumer at a time; do not remove the old issuer first                          |
 | MCP servers and automated workers                               | Scoped transport/backend credentials and backend RBAC                         | Authentik can protect appropriate entry points, but web SSO does not replace machine authorization        |
@@ -34,10 +35,19 @@ legacy-database deletion is implied by this strategy.
 
 Autobrr's app-owned OIDC provider and app-scoped Vault/ESO credentials are
 provisioned before enabling the native client. Its access policy names the
-existing owner, and the consumer credential includes that principal's immutable
-hashed subject rather than relying on an email match. Keep the original local
-login and do not enable automatic redirect during commissioning. These new
-application/provider objects are not owned by a native blueprint.
+existing owner, and `AUTOBRR__OIDC_ALLOWED_SUBJECT` requires that principal's
+immutable hashed subject rather than relying on an email match. The issuer uses
+`HashedUserID`, matching Authentik's native `User.uid`. The native login creates
+an application session rather than rewriting the original password account.
+The original local login stays enabled and automatic redirect stays off.
+These application/provider objects are not owned by a native blueprint.
+
+Validate provider discovery and the native OIDC configuration response, strict
+callback matching, PKCE/state, denied-principal policy and the preserved local
+login form. A real existing-owner browser login/logout is a separate acceptance
+check; do not issue an impersonated user token to manufacture it. Roll back by
+removing the added OIDC environment fields and identity dependency, not resetting
+the user database or regenerating the retained app credential.
 
 PrintStash's OIDC identities are issuer/subject-bound and additive; the native
 implementation does not link an existing local account by email. Its original

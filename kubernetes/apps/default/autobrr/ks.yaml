@@ -11,6 +11,7 @@ spec:
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
+    - name: autobrr-identity
   interval: 1h
   path: ./kubernetes/apps/default/autobrr/app
   postBuild:
