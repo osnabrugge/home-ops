@@ -851,6 +851,13 @@ reconciling its Kustomization. Verify successful completion and the installed
 repository guards; do not enable reviews or remove access restrictions to
 recover this installer.
 
+The repository policy permits explicit dashboard opt-in for public
+repositories under the existing approved GitHub owner. It does not activate
+all discovered repositories, accept private repositories, or enable automatic
+reviews. The signed webhook gate enforces the same public-owner boundary.
+Changing only the UI or webhook cannot override the database's `turned_on`
+guard; verify both layers when a repository switch silently resets.
+
 An index job cancelled with `no embedder is configured` is a real configuration
 gap, not a GitHub App permission failure. Check `kritika-embeddings`, its
 `granite-embedding:30m` model-bootstrap Job and the configured local 384-dimension
