@@ -163,8 +163,9 @@ not private account, billing, device-identity or application data.
   a custom coding-agent profile or Kritika.
 - [~] Preserve hardware/maintenance alerts rather than silence them. The removed
   disk's incident remains historical; the Rook OSD alerts resolved after its
-  rollout. Current Alertmanager shows only Watchdog active and two existing
-  UPS battery-replacement alerts silenced, not repaired. Do not cancel protected
+  rollout. No active operational/Ceph incident remains; distinguish Watchdog
+  and informational routing inhibitors from device failures. Two existing
+  UPS battery-replacement alerts remain silenced, not repaired. Do not cancel protected
   source maintenance or run a bakeoff through it. Recheck full active/suppressed
   states and deleting PVs at the next acceptance pass.
   Earlier GitHub notification primary/secondary limits recovered through the
