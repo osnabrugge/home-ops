@@ -32,6 +32,13 @@ can Authelia be disabled. LLDAP retirement has its own LDAP/RADIUS consumer gate
 No blanket identity cutover, password/passkey migration, administrator grant or
 legacy-database deletion is implied by this strategy.
 
+Autobrr's app-owned OIDC provider and app-scoped Vault/ESO credentials are
+provisioned before enabling the native client. Its access policy names the
+existing owner, and the consumer credential includes that principal's immutable
+hashed subject rather than relying on an email match. Keep the original local
+login and do not enable automatic redirect during commissioning. These new
+application/provider objects are not owned by a native blueprint.
+
 PrintStash's OIDC identities are issuer/subject-bound and additive; the native
 implementation does not link an existing local account by email. Its original
 local administrator, user ID, library ownership and paired-browser credentials
