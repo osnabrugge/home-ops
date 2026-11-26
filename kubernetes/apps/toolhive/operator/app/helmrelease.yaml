@@ -5,6 +5,8 @@ kind: HelmRelease
 metadata:
   name: toolhive-operator
 spec:
+  dependsOn:
+    - name: toolhive-operator-crds
   chartRef:
     kind: OCIRepository
     name: toolhive-operator
