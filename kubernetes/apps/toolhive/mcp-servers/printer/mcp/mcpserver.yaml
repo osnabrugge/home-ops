@@ -6,8 +6,7 @@ metadata:
   name: printer-mcp
 spec:
   # Built from the upstream npm package by osnabrugge/container-images (apps/printer-mcp).
-  # NOTE: container-images tracks 1.2.9 (what the Dockerfile actually pins); this
-  # digest is the older 1.2.5 build. Bump after the next build publishes :1.2.9.
+  # container-images publishes 1.2.9 with mcp-3d-printer-server 1.2.81.
   image: ghcr.io/osnabrugge/printer-mcp:1.2.9@sha256:f0148736dfa7c81e5f6d895457e3b1cb99f75bb9b25edba36efac1d65c8254fd
   transport: stdio
   proxyMode: streamable-http
