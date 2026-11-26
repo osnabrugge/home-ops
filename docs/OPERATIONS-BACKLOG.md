@@ -59,9 +59,10 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
   preparation can advance; changing production image alone cannot.
 - [x] Resolve the self-authored Talos #5148 approval problem without unsafe
       stack merging. Exact consistency CI passed; reviewed commits were
-      fast-forwarded only into the unprotected Renovate branch, and the now
-      redundant child closed. Bot-authored #5134 includes the fix and remains
-      the separately approved node rollout. Main/Tuppr were not advanced.
+      fast-forwarded only into the unprotected Renovate branch. GitHub now
+      reports #5148 merged into that branch, not main. Bot-authored #5134
+      includes the fix and remains the separately approved node rollout.
+      Main/Tuppr were not advanced.
 - [?] One purchased 8TB SAS drive has a retained completed long test; the
   other's retained records contain short tests only. Neither retained log
   showed a failure. No new test was started; complete the missing long-test
