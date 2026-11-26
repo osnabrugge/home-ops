@@ -11,6 +11,10 @@ spec:
   interval: 1h
   values:
     fullnameOverride: blackbox-exporter-lan
+    podSecurityContext:
+      sysctls:
+        - name: net.ipv4.ping_group_range
+          value: "1000 1000"
     config:
       modules:
         http_2xx:

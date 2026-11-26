@@ -531,6 +531,28 @@ curl -sk https://prometheus.homeops.ca/api/v1/query?query=upsAdvBatteryCapacity 
 
 ### NAS01 temperature-based fan control
 
+For a new controller/backplane, commission it empty while leaving existing
+drives, data/special/log vdevs and original cabling unchanged. Check the exact
+PCI subsystem, loaded driver, firmware, negotiated PCIe/SAS width and empty
+expander before a later disk move. Controller recognition does not qualify
+every bay or a populated data path.
+
+The SAS3816 NI22 uses the SAS3.5 IT StorCLI package with administrator privileges,
+not an assumption that legacy SAS3IRCU supports it. Keep TrueNAS's `/tmp`
+`noexec` protection and use an already-executable application/user filesystem
+for a temporary diagnostic tool; remove its binary/logs afterward. Do not
+reload the shared `mpt3sas` driver to fix a utility error, initialize disks or
+flash another controller by assuming its index.
+
+On the BPN-SAS3-826EL1-N4, SASP1–SASP4 on J14/J15 are the SAS links;
+J16/J17 are the separate NVMe paths. Extra host links add possible bandwidth,
+not expander disk-count capacity. Measure negotiated width and the motherboard's
+PCIe ceiling before adding cables. A short enclosure revision is not proof of
+the full firmware-region version or latest board-approved firmware. Firmware
+updates require exact board/card compatibility, driver and rollback review,
+plus a separate maintenance window; never run a vendor flash script merely
+because a newer-looking package exists.
+
 The separate [SMFC project](../infrastructure/nas01/smfc/) is deployed under
 `/mnt/local/apps/smfc`, not in the existing Garage/Zot Compose project. Its
 controller uses a digest-pinned derivative of SMFC 6.5.0, while the independent

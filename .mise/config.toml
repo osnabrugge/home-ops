@@ -11,6 +11,7 @@ postinstall = "lefthook install"
 
 [tools]
 actionlint = "1.7.12"
+crane = "0.22.1"
 "aqua:kubernetes-sigs/krew" = "latest"
 "github:home-operations/flate" = "v0.8.0"
 "github:mitsuhiko/minijinja" = "3.1.0"

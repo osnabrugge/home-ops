@@ -31,13 +31,18 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
-      any-changed: ${{ steps.changed-files.outputs.any_changed }}
+      any-changed: ${{ steps.changed-files.outputs.changed_any_changed }}
+      netbox-changed: ${{ steps.changed-files.outputs.netbox_any_changed }}
     steps:
       - name: Get Changed Files
         id: changed-files
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
-          files: kubernetes/**
+          files_yaml: |
+            changed:
+              - kubernetes/**
+            netbox:
+              - kubernetes/apps/observability/netbox/**
 
   extract:
     if: >-
@@ -74,6 +79,12 @@ jobs:
             flate diff images -p ./kubernetes/apps --supply .github/ci/flate-supply.yaml -o json)"
           images="$(jq -ce 'if type == "array" and all(.[]; type == "string") then . else error("expected an image string array") end' <<< "$images")"
           printf 'images=%s\n' "$images" >> "$GITHUB_OUTPUT"
+
+      - name: Verify NetBox chart and custom-image application versions
+        if: needs.filter.outputs.netbox-changed == 'true'
+        env:
+          MISE_GITHUB_TOKEN: ${{ github.token }}
+        run: mise exec crane yq -- python3 scripts/check_netbox_image.py
 
   image-pull:
     if: >-
@@ -136,7 +147,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           PYTHONPATH: scripts:kubernetes/apps/ai/litellm/app:kubernetes/apps/ai/triage-worker/app
-        run: python3 -m unittest test_alert_triage test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown test_smfc_watchdog -v
+        run: python3 -m unittest test_alert_triage test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown test_smfc_watchdog test_netbox_image -v
 
   status:
     if: ${{ !cancelled() }}
