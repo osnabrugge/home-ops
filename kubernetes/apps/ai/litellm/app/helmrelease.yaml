@@ -35,6 +35,7 @@ spec:
                   secretKeyRef:
                     name: litellm-auth
                     key: salt-key
+              LITELLM_TELEMETRY_DISABLED: "true"
               LITELLM_MODE: PRODUCTION
               LITELLM_LOG: INFO
               LITELLM_LOCAL_MODEL_COST_MAP: "true"
