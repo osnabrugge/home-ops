@@ -1426,10 +1426,33 @@ restart the stateless reconciler once to discard a cached incompatible token.
 Hydra's administrative port is restricted to Diode Auth's Pod, including its
 initializer. The reconciler can use only the public token port; unrelated Pods
 must not be able to create or reset OAuth clients through Hydra's admin API.
-This cluster requires explicit service-return ingress rules for approved DNS
-and PostgreSQL peers in the client port range, as used by LiteLLM. These are
-bounded transport exceptions, not an upstream Cilium repair or permission for
-those peers to access Hydra's administrative port.
+Existing client policies include explicit service-return ingress rules for
+approved DNS and PostgreSQL peers in the client port range, as used by LiteLLM.
+These bounded exceptions predate the pod socket-LB correction below. Retain
+them until paired positive/negative consumer checks justify narrowing; they
+are not permission for those peers to access Hydra's administrative port.
+
+**Same-node Cilium Service reply policy fault.**
+
+With netkit, endpoint routes and `socketLB.hostNamespaceOnly: true`, local
+Service replies can undergo ingress policy twice: reverse DNAT on the first
+pass makes the second conntrack lookup classify the reply as a new connection
+to the client's ephemeral port. See
+[cilium/cilium#47913](https://github.com/cilium/cilium/issues/47913).
+Moving a backend off the client node only contains the fault.
+
+Keep `socketLB.enabled: true` and `hostNamespaceOnly: false` here. The
+November 27 one-node canary restored all twelve same-node/cross-node
+Service/direct-IP trials and three actual Prometheus client requests.
+An allowed ingress listener still worked; a forbidden listener still timed
+out with native `PolicyDenied` drops. Netkit, endpoint routes, native/BPF
+routing, DSR, Maglev and Service topology remain unchanged.
+
+There were no active LocalRedirectPolicies, Tailscale operator Pods or service
+mesh Pods during qualification. Before adding a forwarder that requires socket-LB
+bypass, verify the upstream fix is in the installed release and repeat the
+local/remote path and ingress-enforcement controls. Do not blindly re-enable
+host-only bypass, open ephemeral ingress ranges or change device mode.
 
 The reconciler uses NetBox's `/api/plugins/diode` endpoint. The NetBox plugin and
 discovery agents also need a front door serving both prefixed Diode gRPC methods
