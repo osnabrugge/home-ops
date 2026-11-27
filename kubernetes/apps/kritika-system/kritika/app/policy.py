@@ -292,7 +292,7 @@ class Handler(BaseHTTPRequestHandler):
                         "Authorization": "Bearer " + self.server.openrouter_key,
                         "Content-Type": "application/json",
                     },
-                    timeout=300,
+                    timeout=60,
                 )
                 reply = json.loads(raw)
                 if (

@@ -589,10 +589,15 @@ Kritika 0.0.119 moved concurrency from `limits.concurrency` to each
 explicitly keep one slot. The removed account-level field prevents startup;
 a successful Helm render alone does not detect it. Validate the rendered
 configuration using the exact chart-pinned image's `config check` command before
-reconciling an upgrade. Review work allowances and provider retries use the
-pinned application's native defaults. The gateway's model request timeout
-matches the provider's five-minute default; free-only routing, disabled
-fallbacks and review/publication gates remain independent.
+reconciling an upgrade. Review work allowances retain the pinned application's
+native defaults. The free provider has a 90-second request timeout and one
+additional retry; its model-policy gateway expires upstream calls at 60 seconds,
+leaving room for catalogue validation and an explicit HTTP 503 before the
+caller deadline. This prevents five-minute stalled calls from racing the caller
+and consuming the entire 20-minute agent budget. Recent successful calls took
+at most 17 seconds; a slow or unavailable free provider still fails explicitly,
+not as a clean review or a paid fallback. Free-only routing, disabled fallbacks
+and review/publication gates remain independent.
 
 Kritika is deployed in `kritika-system`, with one service replica and
 a separate PostgreSQL 18.6 cluster, `kritika-db` (pgvector 0.8.7 and VectorChord

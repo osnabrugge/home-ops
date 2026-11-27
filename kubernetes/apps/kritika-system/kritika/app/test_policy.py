@@ -74,6 +74,7 @@ class HTTPPolicyTests(unittest.TestCase):
         self.calls = []
         self.catalogue = {"data": [copy.deepcopy(FREE), {"id": "paid/model"}]}
         self.reply = {"model": policy.MODEL, "choices": [], "usage": {"cost": 0}}
+        self.completion_delay = 0
         self.mock = patch("policy.request_json", side_effect=self.upstream)
         self.mock.start()
         self.servers = []
@@ -98,6 +99,10 @@ class HTTPPolicyTests(unittest.TestCase):
 
     def upstream(self, url, **kwargs):
         self.calls.append((url, kwargs))
+        if url.endswith("/chat/completions") and self.completion_delay > kwargs["timeout"]:
+            raise policy.Refused(
+                503, "The approved upstream is unavailable; no fallback attempted"
+            )
         if url.endswith("/hooks/github"):
             return 204, b""
         value = self.catalogue if url.endswith("/models") else self.reply
@@ -159,6 +164,18 @@ class HTTPPolicyTests(unittest.TestCase):
         outgoing = json.loads(self.calls[-1][1]["data"])
         self.assertEqual(outgoing["max_tokens"], policy.MAX_OUTPUT)
         self.assertEqual(outgoing["provider"]["max_price"], {"prompt": 0, "completion": 0})
+
+    def test_slow_model_requests_fail_explicitly_without_a_success_fallback(self):
+        for delay, expected in ((60, 200), (61, 503)):
+            with self.subTest(provider_response_after_seconds=delay):
+                self.completion_delay = delay
+                status, response = self.model()
+                self.assertEqual(status, expected)
+                if expected == 200:
+                    self.assertEqual(response, self.reply)
+                else:
+                    self.assertIn("no fallback attempted", response["error"]["message"])
+                    self.assertNotIn("choices", response)
 
     def test_native_review_context_and_step_output_are_not_pilot_clipped(self):
         messages = [{"role": "user", "content": "public fixture " * 20000}]
