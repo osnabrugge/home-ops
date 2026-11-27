@@ -735,6 +735,13 @@ credentials must never be committed or published.
 
 ### Matter Server dashboard
 
+The server needs startup CPU burst capacity even when steady-state demand is
+small. A 25m CPU limit left the 1.6.1 process fully throttled before it could
+serve health checks, exhausting Helm/startup deadlines and even rollback
+readiness. The 500m limit is a ceiling, not a reservation or steady-state target.
+Preserve the original external claim and verify a completed backup before a
+normal controller retry; do not force Helm or replace Matter fabric storage.
+
 The Matter.js dashboard is already included and enabled by default in 1.6.0,
 served at `https://matter-server.homeops.ca` through the internal gateway.
 `--production-mode` makes its WebSocket use that reverse-proxy origin. Require
