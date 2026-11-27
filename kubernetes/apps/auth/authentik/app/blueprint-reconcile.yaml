@@ -29,7 +29,7 @@ spec:
           containers:
             - name: apply
               # Keep the importer aligned with the Authentik Helm chart version.
-              image: ghcr.io/goauthentik/server:2026.8.6
+              image: ghcr.io/goauthentik/server:2026.8.7
               command:
                 - ak
                 - shell

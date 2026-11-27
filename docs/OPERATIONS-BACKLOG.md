@@ -13,6 +13,63 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
 
 ---
 
+## Current review cohort — 2026-11-26
+
+- [x] Commission the owner's new empty NI22 HBA/backplane read-only. Both
+      controllers and the new SAS3x28 enclosure were detected; eight host SAS
+      links negotiated at 12Gb/s and PCIe at Gen3 x8. Original pools remained
+      healthy, fresh complete cooling matched both physical fan duties, and all
+      36 NAS-backed backup schedules were restored exactly. No drive moved,
+      firmware flashed, driver reloaded or pool recreated by the assistant.
+      StorCLI reads enclosure status OK, revision `0601` and vendor firmware
+      identification `x28-66.6.1.5`; no board-approved latest/rollback pairing
+      has been established.
+- [x] Complete maintenance handback: the owned Alertmanager silence expired,
+      Gatus loaded disabled maintenance, and the owned override/helper Jobs
+      were removed. Original configuration and older UPS silences remain.
+- [?] Gatus Pushover delivery is not qualified: both referenced credential
+  fields have 11 characters rather than the required 30, so native validation
+  ignores the provider. Correct the Key Vault values through the secret
+  management workflow; no credentials were edited during maintenance.
+- [~] NetBox #5155: exact 8.3.116/current-values render passed. The custom
+  4.7.6 candidate passes native tests and preserves all 130 upstream packages.
+  Renovate grouping and CI drift checks are implemented; sibling recipe/
+  publisher publication remains owner-gated, not a deployed image update.
+- [x] Address Blackbox #5147 with explicit unprivileged ICMP group permission,
+      keeping restricted security. Actual deny/allow, node and Zigbee-host
+      probes passed. Token/reloader findings have no active conflicting
+      consumer/value here; version rollout remains a separate acceptance.
+- [x] Address ToolHive #5141 ordering with CRD/operator readiness waits and
+      operator HR dependency. All 31 current objects passed structural checks
+      against 14 proposed CRDs. CEL/authentication/controller rollout remain
+      native acceptance checks, not claims from schema success alone.
+- [x] Qualify LiteLLM #5131 in an isolated old-to-new database stage: exact
+      entrypoint/arguments, health/readiness, managed-key policy, local protocol
+      routing and denials passed. No production credentials, real/paid model
+      calls or new service ports were used. Production rollout remains separate.
+- [?] Choose PrintGuard #5125 model deliberately. Existing monitor is enabled
+  with Discord notifications but no pause/cancel action. Same-node, one-CPU
+  synthetic full-HD checks measured conservative frame capacities around
+  40.3 FPS Legacy, 36.6 Light and 18.9 Standard versus the active 15 FPS camera.
+  Keep actuation off; do not invent an environment variable. These are capacity
+  checks, not detection accuracy or live camera acceptance.
+- [?] Keep PG19 #5084 held: current CNPG 1.30.2 support policy lists PG15–18;
+  no PG19 VectorChord bundle was published in the verified registry lookup.
+  The PR also retains the PG18 bundle/library paths. Backup/capacity/restore
+  preparation can advance; changing production image alone cannot.
+- [x] Resolve the self-authored Talos #5148 approval problem without unsafe
+      stack merging. Exact consistency CI passed; reviewed commits were
+      fast-forwarded only into the unprotected Renovate branch. GitHub now
+      reports #5148 merged into that branch, not main. Bot-authored #5134
+      includes the fix and remains the separately approved node rollout.
+      Main/Tuppr were not advanced.
+- [?] One purchased 8TB SAS drive has a retained completed long test; the
+  other's retained records contain short tests only. Neither retained log
+  showed a failure. No new test was started; complete the missing long-test
+  qualification before describing both as fully tested.
+
+---
+
 ## Current priority pass — 2026-11-25
 
 This status supersedes the historical August inventory and empty-NAS claims
