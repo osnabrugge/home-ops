@@ -1142,6 +1142,11 @@ advancing the operator source, then verify generated workloads and normal MCP
 clients. A dependency on Ready alone is not a strict chart-version lock.
 Structural checks of current objects against proposed CRDs do not certify CEL,
 authorization behavior or a successful controller rollout.
+For a controlled grouped upgrade, hold the operator HelmRelease until the
+new CRD Helm history version is applied and Ready, validate current objects
+against the actual API server, then restore the hold's exact prior field
+presence/value. Use the operational field manager and never leave an
+unrecorded suspended reconciler after acceptance.
 
 ### Blackbox unprivileged ICMP
 
@@ -1183,6 +1188,9 @@ runtime/device readout and model throughput on the actual node. A bounded
 one-CPU, CPU-only full-HD synthetic check found Light had more frame headroom
 than Standard for the active approximately 15 FPS camera; this is not an
 accuracy evaluation. Choose the model deliberately before commissioning v3.
+The deployed v3 selection is Light through the native `settings.update`
+command, not a manifest environment variable. Its acknowledgement can precede
+the buffered state-file write; verify completed persistence separately.
 Preserve the current notification-only `on_defect: none`, threshold and cooldown;
 do not turn on printer pause/cancel or MQTT control as upgrade acceptance.
 Check actual plugin, Git and live Home Assistant consumers for removed
