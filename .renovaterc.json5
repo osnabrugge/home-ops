@@ -189,14 +189,22 @@
       minimumGroupSize: 2,
     },
     {
-      // Unites the factory installer image and the tuppr upgrade version
+      // Keep Talos, talosctl and the etcd-defrag image in the same update.
       description: "Talos Group",
       groupName: "talos",
-      matchPackageNames: ["siderolabs/talos"],
+      groupSlug: "talos",
+      matchPackageNames: ["siderolabs/talos", "ghcr.io/siderolabs/talosctl"],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
       minimumGroupSize: 2,
+      separateMinorPatch: true,
+    },
+    {
+      description: "Talos image volumes require tags, not digests",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/siderolabs/talosctl"],
+      pinDigests: false,
     },
     {
       description: "Toolhive-Operator Group",
@@ -211,7 +219,7 @@
     {
       // A merged Talos bump triggers tuppr to power-cycle all six nodes.
       description: "Never auto-bump Talos minor/major -- tuppr reboots the whole cluster",
-      matchPackageNames: ["siderolabs/talos"],
+      matchPackageNames: ["siderolabs/talos", "ghcr.io/siderolabs/talosctl"],
       matchUpdateTypes: ["major", "minor"],
       dependencyDashboardApproval: true,
     },

@@ -20,7 +20,7 @@ env:
   # renovate: datasource=github-releases depName=home-operations/flate
   FLATE_VERSION: "0.8.0"
   # renovate: datasource=custom.talos-factory depName=siderolabs/talos
-  TALOS_VERSION: v1.14.6
+  TALOS_VERSION: v1.14.7
 
 jobs:
   filter:
@@ -186,6 +186,42 @@ jobs:
           PYTHONPATH: scripts:kubernetes/apps/ai/litellm/app:kubernetes/apps/ai/triage-worker/app
         run: python3 -m unittest test_alert_triage test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown test_smfc_watchdog test_netbox_image test_grafana_dashboards -v
 
+  talos-versions:
+    name: Talos version consistency
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check Talos and talosctl pins
+        run: |
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import re
+          import tomllib
+
+          expected = os.environ["TALOS_VERSION"].removeprefix("v")
+          def check(path, pattern):
+              matches = re.findall(pattern, pathlib.Path(path).read_text())
+              if len(matches) != 1 or matches[0].removeprefix("v") != expected:
+                  raise SystemExit(f"{path}: expected {expected}, found {matches}")
+
+          check("kubernetes/apps/system-upgrade/tuppr/upgrades/talosupgrade.yaml", r"(?m)^\s+version:\s*(v?\d+\.\d+\.\d+)\s*$")
+          check("talos/cluster.yaml.j2", r"factory\.talos\.dev/metal-installer-secureboot/\{\{ schematic \}\}:(v?\d+\.\d+\.\d+)")
+          check("kubernetes/apps/kube-system/etcd-defrag/app/cronjob.yaml", r"(?m)^\s*reference:\s*ghcr\.io/siderolabs/talosctl:(v?\d+\.\d+\.\d+)\s*$")
+          for path, version in (
+              (".mise/config.toml", tomllib.loads(pathlib.Path(".mise/config.toml").read_text())["tools"]["talosctl"]),
+              (".mise/mise.lock", tomllib.loads(pathlib.Path(".mise/mise.lock").read_text())["tools"]["talosctl"][0]["version"]),
+          ):
+              if version != expected:
+                  raise SystemExit(f"{path}: expected {expected}, found {version}")
+          PY
+
   status:
     if: ${{ !cancelled() }}
     name: Build Success
@@ -196,6 +232,7 @@ jobs:
       - grafana-dashboards
       - zizmor
       - ai-guards
+      - talos-versions
     runs-on: ubuntu-26.04
     permissions: {}
     steps:
