@@ -13,7 +13,66 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
 
 ---
 
-## Current review cohort — 2026-11-26
+## Evening PR acceptance — 2026-11-26
+
+- [x] Review all 14 open PRs at the captured heads using the original Kritika
+      comments/inline findings rather than its green completion status.
+      Seven qualified PRs were merged in this pass: #5169, #5170, #5171,
+      #5147, #5141, #5131 and #5125. Dashboard #5167/#5168 had independently
+      auto-merged; their actual JSON, queries and imports were also verified.
+- [x] Repair #631's package lookup failure at its root: the Proxmox publisher
+      moved registry namespaces. Retain the exact 0.7.4 digest, verify native
+      authenticated reads, and confirm the real Renovate run and dashboard
+      no longer contain lookup warnings. No ignore rule or extra access grant.
+- [x] Add hosted dashboard-download CI with six focused regressions and a
+      required Build Success dependency. All 112 automation guards pass.
+      The real new CI job passed on #5169; all three updated dashboards are
+      natively synchronized. Eighteen changed PromQL expressions execute;
+      the two failure-only Pods expressions correctly return no incidents.
+- [x] Deploy Blackbox 12 with the previously tested unprivileged ICMP fix.
+      Preserve the dedicated Zigbee job and verify its real probe.
+- [x] Deploy ToolHive 0.69.1 CRDs before the operator using a temporary operator
+      Helm hold. Validate 23 MCPServer and two VirtualMCPServer objects through
+      the actual API server, restore the exact original hold field, and verify
+      both releases and all 25 objects Ready. No new auth modes enabled.
+- [x] Deploy staged LiteLLM 1.111.0 with a fresh successful database backup.
+      Preserve the original claim; native health, the existing restricted
+      key, one local Ollama chat and anonymous/admin/unapproved-model denials
+      pass. No paid route or new component port was introduced.
+- [x] Deploy kube-prometheus-stack 94.1.0 after exact-values rendering.
+      Alertmanager 0.35.1 and token automount=false are live; writable
+      monitoring storage and existing machine clients remain intact.
+- [x] Deploy PrintGuard 3.0.1 and select Light through the native settings
+      command, then verify persistence. Original settings/monitor hashes,
+      three cameras, two printers, one monitor, one review, three plugins and
+      the original claim are preserved. Discord stays on and actuation off.
+      Native Intel CPU/ONNX benchmarking reports about 414 model inferences/s;
+      that is not whole-frame throughput or detection-accuracy acceptance.
+- [x] Fix Matter's failed upgrade/rollback at its measured startup CPU ceiling:
+      25m caused 100% throttling before health was served. The bounded 500m
+      ceiling restores native 1.6.1 health and Helm readiness without force,
+      storage recreation or changing the Matter fabric.
+- [x] Exclude read-only filesystems from the Ceph-named host capacity forecast.
+      Native promtool controls fail with the original rule and pass with the
+      fix; writable-space warnings remain active. All three backup-image
+      false positives clear without deleting data or globally muting alerts.
+- [?] Remaining PR gates: #5158 needs the approved sibling recipe/publisher
+  commit and matching image publication; #5084 needs supported PG19 operator/
+  extension artifacts and migration rehearsal. #5134/#5145 need their node
+  maintenance windows; #5133 must remain in lockstep with the Talos group.
+  Do not merge the standalone client or bypass these gates to empty the queue.
+- [?] Gatus Pushover still needs valid owner-managed credentials. NAS firmware,
+  a physical disk pilot/remaining long test, protected-network/IoT work and
+  stronger Kritika quality qualification remain separate recorded gates.
+
+Final batch acceptance: all 186 Kustomizations and 106 HelmReleases Ready,
+six nodes unchanged on Talos 1.14.6, all three CNPG clusters healthy, Ceph
+HEALTH_OK with three monitors/six OSDs/265 clean PGs, all 86 Gatus endpoints
+fresh and all 201 scrape targets UP. No unhealthy Pods or deleting PVs.
+Only Watchdog and an informational inhibitor remain active; this is not a
+claim that the Pushover credential gap or the physical UPS batteries are fixed.
+
+## Earlier commissioning and qualification — 2026-11-26
 
 - [x] Commission the owner's new empty NI22 HBA/backplane read-only. Both
       controllers and the new SAS3x28 enclosure were detected; eight host SAS
@@ -59,9 +118,10 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
   preparation can advance; changing production image alone cannot.
 - [x] Resolve the self-authored Talos #5148 approval problem without unsafe
       stack merging. Exact consistency CI passed; reviewed commits were
-      fast-forwarded only into the unprotected Renovate branch, and the now
-      redundant child closed. Bot-authored #5134 includes the fix and remains
-      the separately approved node rollout. Main/Tuppr were not advanced.
+      fast-forwarded only into the unprotected Renovate branch. GitHub now
+      reports #5148 merged into that branch, not main. Bot-authored #5134
+      includes the fix and remains the separately approved node rollout.
+      Main/Tuppr were not advanced.
 - [?] One purchased 8TB SAS drive has a retained completed long test; the
   other's retained records contain short tests only. Neither retained log
   showed a failure. No new test was started; complete the missing long-test
