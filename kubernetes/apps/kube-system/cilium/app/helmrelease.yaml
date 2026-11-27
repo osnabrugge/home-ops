@@ -116,6 +116,4 @@ spec:
           - BPF
     socketLB:
       enabled: true
-      # Avoid double ingress enforcement on local Service replies with netkit/endpoint routes.
-      # https://github.com/cilium/cilium/issues/47913
-      hostNamespaceOnly: false
+      hostNamespaceOnly: true
