@@ -36,7 +36,7 @@ spec:
           app:
             image:
               repository: ghcr.io/matter-js/matterjs-server
-              tag: 1.6.0@sha256:9eb98c839d0b4b07f9230b96ad52de570f7f2a7c286c5992b4c04b6b26c08a3f
+              tag: 1.6.1@sha256:5591f9f65926ca4b13b34cfd9c9888cb9d9ee9f147fe0b04c8e025cbeeee0eb7
             env:
               PORT: &port 5580
               LOG_LEVEL: info
@@ -78,7 +78,7 @@ spec:
                 cpu: 10m
                 memory: 384Mi
               limits:
-                cpu: 25m
+                cpu: 500m
                 memory: 1Gi
     defaultPodOptions:
       # Attach to the IoT VLAN (VLAN70) so the Matter stack shares L2 with the

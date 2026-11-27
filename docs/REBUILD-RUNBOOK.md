@@ -630,6 +630,29 @@ and an IoT destination both select `net1`, then check actual HomeBase session
 connectivity and entity availability. Do not colocate bridge and Home Assistant
 Pods or change firewall rules to compensate for the wrong outgoing interface.
 
+### Rook upgrade acceptance
+
+A successful operator HelmRelease upgrade does not mean its daemon rollout has
+finished. A Rook chart/operator patch can replace OSD Pods without upgrading
+Talos or changing the pinned Ceph runtime. Warn before the storage-maintenance
+window and follow the operator's native safe-to-stop checks; temporary
+OSD-down notifications can occur during the sequential rollout.
+
+Before any further disruption, require the intended daemon rollout to finish,
+all OSDs up/in, monitor quorum, healthy CephFS and all PGs active+clean. Match
+related Prometheus alert intervals to the actual Pod/operator timeline and
+confirm current Alertmanager state. Do not equate operator readiness with
+storage readiness, infer a node upgrade from an OSD restart, or silence alerts
+instead of checking recovery. A newly persistent fault needs its own diagnosis.
+
+`CephNodeDiskspaceWarning` uses node-exporter filesystem forecasts, not OSD
+capacity. Its Helm post-renderer excludes read-only filesystems, including
+mounted backup images, while keeping writable-host warnings. The patch tests
+the rendered group/rule identity before replacing its expression; re-render it
+when upgrading Rook so a changed rule layout cannot target another alert.
+Check instance, mountpoint, read-only state and native Ceph health before
+planning capacity remediation. Do not delete backup data to silence this rule.
+
 ### Shared RBD client read-only recovery
 
 `emergency_ro` is ext4's protective response to an I/O failure. Healthy Ceph
@@ -712,6 +735,13 @@ credentials must never be committed or published.
 
 ### Matter Server dashboard
 
+The server needs startup CPU burst capacity even when steady-state demand is
+small. A 25m CPU limit left the 1.6.1 process fully throttled before it could
+serve health checks, exhausting Helm/startup deadlines and even rollback
+readiness. The 500m limit is a ceiling, not a reservation or steady-state target.
+Preserve the original external claim and verify a completed backup before a
+normal controller retry; do not force Helm or replace Matter fabric storage.
+
 The Matter.js dashboard is already included and enabled by default in 1.6.0,
 served at `https://matter-server.homeops.ca` through the internal gateway.
 `--production-mode` makes its WebSocket use that reverse-proxy origin. Require
@@ -730,6 +760,18 @@ in kernel I/O. Failed readiness exposes the fault; it does not pretend that a
 container restart can repair a shared node client.
 
 ### Grafana operator dashboards
+
+PR CI fetches added or changed `GrafanaDashboard.spec.url` downloads on a hosted
+runner and rejects HTTP failures, invalid JSON and non-dashboard payloads.
+The guard handles multi-document YAML and preserves unchanged URL references;
+its tests are part of Automation Guardrails. This proves download/parse
+compatibility, not that every PromQL query has data or that a panel is correct.
+Validate native import status and affected panel queries after a revision update.
+
+Renovate's repository-wide lookup warning is not necessarily about the package
+in the PR. Read the Dependency Dashboard's exact affected path and test its
+registry namespace. The Proxmox MCP publisher moved to `im-xiangda-li`; the
+namespace correction retains the verified `v0.7.4` digest and native permissions.
 
 Grafana's browser OAuth consumer uses its app-owned Authentik provider. Restore
 the identity and Vault-backed client ID/secret plus the private legacy-subject
@@ -825,13 +867,37 @@ application configuration. Confirm native UI assets, login/logout/session
 revocation, indexed generation and isolated runner behavior; a proxy's HTTP
 response is not a human-login or review-publication test.
 
-The running pilot uses a separate `kritika-db` PostgreSQL/VectorChord cluster.
+The 0.0.125/0.0.126 upgrade contains one-way database migrations: model slots
+become provider/account-scoped, existing ephemeral leases are discarded, and
+historical hourly-limited follow-ups become ignored entries with their reason
+preserved. Wait for native review/model work to be idle, verify a completed
+consistent database backup and rehearse the exact migrations in a rollback-only
+transaction. Record all claim identities and existing reconciliation/remediation
+settings. Temporarily hold only the app Kustomization and use
+`RetryOnFailure` without automatic downgrade before advancing the pinned OCI
+chart; the global remediation patch otherwise enables rollback. A successful
+migration makes an image-only downgrade unsafe. After native configuration,
+schema, paired images, isolation and repository-policy checks pass, restore
+every recorded hold and remediation setting. Do not restore or replace a
+production PVC without the separate storage approval.
+
+The running pilot uses a separate `kritika-db` PostgreSQL cluster with separately
+mounted VectorChord/pgvector extensions. A standard PostgreSQL base image does
+not remove that dependency: its major version, extension bundle and library/
+control paths must remain compatible. Do not merge a primary-image-only major
+upgrade while the mounted extension image and paths still target the old major.
+The verified 1.30.2 operator support table lists PostgreSQL 15–18, not 19.
+The checked VectorChord scratch registry has no PG19 bundle. Operator support
+and a matching extension artifact are separate prerequisites; backup, byte/
+claim budgeting and restore preparation can advance without changing production.
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`
 volume as startup recovery. Verify all eight Kritika Kustomizations, its
 HelmRelease and the database are Ready before investigating the application.
-The namespace allows five PVCs within the unchanged 20Gi aggregate storage
-ceiling. The held database, running database, embedding cache and 2Gi backup
-cache use four claims and 19Gi, leaving one transient restore-cache claim slot.
+The namespace allows five PVCs within a 25Gi aggregate storage ceiling.
+The held 10Gi database, running 5Gi database, 2Gi embedding cache and 2Gi backup
+cache use four claims and 19Gi, leaving one claim slot and 6Gi of requested-byte
+headroom. Budget a parallel database and its recovery/cache needs together,
+preserving the held original volume rather than freeing it to make a plan fit.
 This does not authorize creating or replacing a production volume.
 The owner permits maintenance downtime for the singleton `kritika-db` and
 `litellm-db` pilots: both declare `enablePDB: false` through CNPG rather than
@@ -850,6 +916,13 @@ and recreate only that terminal stateless Job with a UID precondition before
 reconciling its Kustomization. Verify successful completion and the installed
 repository guards; do not enable reviews or remove access restrictions to
 recover this installer.
+
+The repository policy permits explicit dashboard opt-in for public
+repositories under the existing approved GitHub owner. It does not activate
+all discovered repositories, accept private repositories, or enable automatic
+reviews. The signed webhook gate enforces the same public-owner boundary.
+Changing only the UI or webhook cannot override the database's `turned_on`
+guard; verify both layers when a repository switch silently resets.
 
 An index job cancelled with `no embedder is configured` is a real configuration
 gap, not a GitHub App permission failure. Check `kritika-embeddings`, its
@@ -1048,6 +1121,82 @@ restart Cilium agents. Verify backend readiness and real machine clients
 separately from an anonymous SSO redirect. The read-only outside exposure job
 checks public reachability with a positive control.
 
+Autobrr instead uses its native OIDC client, not a proxy-auth bypass. Provision
+the app-owned provider and both namespace-local ESO credentials first, then
+enable the native client with the existing owner's immutable allowed subject.
+Keep local password login enabled and automatic redirect disabled. Verify
+discovery/PKCE, strict callback and state rejection, the unchanged original PVC,
+and both visible login choices. The existing owner's ordinary browser
+login/logout remains separate acceptance; do not generate an impersonated
+token or reset the local account to manufacture it. See
+[the authentication architecture](AUTH-ARCHITECTURE.md).
+
+### ToolHive CRD and operator ordering
+
+The CRD and operator Kustomizations both wait for readiness, and the operator
+HelmRelease depends on `toolhive-operator-crds`. Application alone is not CRD
+Helm readiness. An OCIRepository's one-hour polling interval does not delay a
+changed spec by one hour; shortening it is not a substitute for readiness.
+For a grouped version upgrade, verify the actual new CRD chart is applied before
+advancing the operator source, then verify generated workloads and normal MCP
+clients. A dependency on Ready alone is not a strict chart-version lock.
+Structural checks of current objects against proposed CRDs do not certify CEL,
+authorization behavior or a successful controller rollout.
+
+### Blackbox unprivileged ICMP
+
+The LAN exporter permits `net.ipv4.ping_group_range = 1000 1000`, matching its
+non-root group, while retaining RuntimeDefault seccomp and dropped capabilities.
+Do not add `NET_RAW` or privileged mode for its ordinary IPv4 ICMP module.
+This namespaced sysctl is for the normal Pod network, not `hostNetwork` or a
+raw-socket `dont_fragment` configuration.
+
+Validate a denied-group control and real loopback/node/device ICMP probes after
+a security-default upgrade. Preserve the dedicated `zig01_probe` job: it gates
+the Zigbee zeroscaler, and opening the single-client serial TCP endpoint can
+evict Zigbee2MQTT. Token absence is safe for the current exporter-only Pod.
+The proposed chart rejects simultaneous configReloader/configAutoReload; neither
+is enabled here, so no extra sidecar or conflicting value is needed.
+
+### LiteLLM image component upgrades
+
+The 1.111 entrypoint preserves the monolithic proxy when its first argument is
+a flag. The existing config/port/telemetry arguments therefore continue serving 4000. Ports 3000 and 4001 belong to explicitly selected UI/backend components;
+image EXPOSE metadata alone is not permission to publish them.
+
+Before a breaking image update, stage the exact digest against an isolated
+database with no production credentials or external inference. Verify old-to-new
+startup, native health/readiness, the managed virtual-key restrictions, allowed
+model routing and denied anonymous/admin/unapproved requests. Local protocol
+fixtures verify routing, not model quality or production MCP connectivity.
+Retain the native database backup and test real approved clients after rollout.
+
+### PrintGuard detector upgrades
+
+The v3 detection model is a native persisted `settings.model` value:
+`legacy`, `light` or `standard`. Do not invent a detection-model environment
+variable or rewrite live state from an init container. Use the supported
+settings interface for a reviewed change.
+
+An allocated Intel device does not prove inference uses it. Check the native
+runtime/device readout and model throughput on the actual node. A bounded
+one-CPU, CPU-only full-HD synthetic check found Light had more frame headroom
+than Standard for the active approximately 15 FPS camera; this is not an
+accuracy evaluation. Choose the model deliberately before commissioning v3.
+Preserve the current notification-only `on_defect: none`, threshold and cooldown;
+do not turn on printer pause/cancel or MQTT control as upgrade acceptance.
+Check actual plugin, Git and live Home Assistant consumers for removed
+`margin`/`distances` fields; current v3 results use `defect_score`.
+
+### NAS disk removal and cooling dependencies
+
+For NAS disk maintenance, coordinate ZFS/SMART changes with the private SMFC
+temperature inventory before handing back cooling. Its watchdog reads expected
+disk counts from the same SMFC configuration and intentionally fails high on
+incomplete telemetry. Follow the
+[disk-change checklist](OOB-MANAGEMENT.md#disk-removal-and-replacement-checklist);
+an exporter exclusion alone is not a complete hardware-change procedure.
+
 ### PrintStash browser capture
 
 PrintStash uses a local 20 GiB Ceph PVC for SQLite, model files, thumbnails and
@@ -1226,6 +1375,19 @@ recipe and container tests live in the `containers` fork; the
 `container-images` publication workflow builds that exact source revision.
 The chart pins the published image digest, and plugin OAuth settings come from
 the existing Key Vault data through a separate ExternalSecret.
+
+Chart and custom-image updates are grouped by Renovate. CI uses the exact OCI
+chart appVersion and the custom image's version/base labels to reject drift.
+The existing flate image-extraction job already renders the chart with repository
+values; a successful render does not imply the pinned application moved to the
+chart's newer default image. Verify both.
+
+The tested publisher change tracks one immutable upstream NetBox base, derives
+its published version, checks the native release and preserves packages already
+provided by that base. The addon-only hashed lock plus `uv pip check` must fail
+instead of downgrading a newer upstream dependency. Recipe/publisher publication
+is still owner-gated; the tested 4.7.6 candidate is not a deployed release until
+its approved recipe commit, publisher checkout pin and image digest are landed.
 
 The Diode Auth initializer creates absent Hydra clients from the existing
 ExternalSecret and verifies a real token with the exact role-specific scopes.

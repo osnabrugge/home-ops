@@ -1,0 +1,42 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: autobrr
+spec:
+  slug: autobrr
+  name: Autobrr
+  group: Downloads
+  deletionPolicy: Retain
+  adopt: Never
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-implicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    oauth2:
+      clientType: Confidential
+      redirectURIs:
+        - url: https://autobrr.homeops.ca/api/auth/oidc/callback
+          matchingMode: Strict
+      scopes:
+        - scopeName: openid
+        - scopeName: profile
+        - scopeName: email
+      grantTypes:
+        - AuthorizationCode
+      subjectMode: HashedUserID
+      issuerMode: PerProvider
+      includeClaimsInIDToken: true
+      signingKey:
+        name: authentik Self-signed Certificate
+      credentials:
+        clientID: autobrr
+        secretRef:
+          name: autobrr-oidc
+  access:
+    mode: Any
+    rules:
+      - user:
+          username: sean
