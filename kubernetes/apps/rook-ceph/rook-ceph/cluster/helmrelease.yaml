@@ -10,6 +10,27 @@ spec:
     name: rook-ceph-cluster
   interval: 1h
   timeout: 10m
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: monitoring.coreos.com
+              version: v1
+              kind: PrometheusRule
+              name: prometheus-ceph-rules
+            patch: |-
+              - op: test
+                path: /spec/groups/6/name
+                value: nodes
+              - op: test
+                path: /spec/groups/6/rules/4/alert
+                value: CephNodeDiskspaceWarning
+              - op: replace
+                path: /spec/groups/6/rules/4/expr
+                value: >-
+                  (predict_linear(node_filesystem_free_bytes{device=~"/.*"}[2d], 3600 * 24 * 5)
+                  * on(cluster, instance) group_left(nodename) node_uname_info < 0)
+                  and on(cluster, instance, device, mountpoint) (node_filesystem_readonly == 0)
   values:
     # Pin the Ceph image FORWARD at v20.2.2. On 2026-07-08 the rook chart bump
     # v1.20.1->v1.20.2 started a Ceph 20.2.1->20.2.2 upgrade (mons/mgr/mds reached

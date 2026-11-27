@@ -645,6 +645,14 @@ confirm current Alertmanager state. Do not equate operator readiness with
 storage readiness, infer a node upgrade from an OSD restart, or silence alerts
 instead of checking recovery. A newly persistent fault needs its own diagnosis.
 
+`CephNodeDiskspaceWarning` uses node-exporter filesystem forecasts, not OSD
+capacity. Its Helm post-renderer excludes read-only filesystems, including
+mounted backup images, while keeping writable-host warnings. The patch tests
+the rendered group/rule identity before replacing its expression; re-render it
+when upgrading Rook so a changed rule layout cannot target another alert.
+Check instance, mountpoint, read-only state and native Ceph health before
+planning capacity remediation. Do not delete backup data to silence this rule.
+
 ### Shared RBD client read-only recovery
 
 `emergency_ro` is ext4's protective response to an I/O failure. Healthy Ceph
@@ -745,6 +753,18 @@ in kernel I/O. Failed readiness exposes the fault; it does not pretend that a
 container restart can repair a shared node client.
 
 ### Grafana operator dashboards
+
+PR CI fetches added or changed `GrafanaDashboard.spec.url` downloads on a hosted
+runner and rejects HTTP failures, invalid JSON and non-dashboard payloads.
+The guard handles multi-document YAML and preserves unchanged URL references;
+its tests are part of Automation Guardrails. This proves download/parse
+compatibility, not that every PromQL query has data or that a panel is correct.
+Validate native import status and affected panel queries after a revision update.
+
+Renovate's repository-wide lookup warning is not necessarily about the package
+in the PR. Read the Dependency Dashboard's exact affected path and test its
+registry namespace. The Proxmox MCP publisher moved to `im-xiangda-li`; the
+namespace correction retains the verified `v0.7.4` digest and native permissions.
 
 Grafana's browser OAuth consumer uses its app-owned Authentik provider. Restore
 the identity and Vault-backed client ID/secret plus the private legacy-subject
