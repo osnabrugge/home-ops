@@ -28,7 +28,7 @@ spec:
           containers:
             - name: apply
               # Match Authentik's native blueprint importer; no app/provider ownership here.
-              image: ghcr.io/goauthentik/server:2026.8.6
+              image: ghcr.io/goauthentik/server:2026.8.7
               command:
                 - ak
                 - shell

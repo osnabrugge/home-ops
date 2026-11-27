@@ -13,7 +13,123 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
 
 ---
 
-## Current priority pass — 2026-11-22
+## Evening PR acceptance — 2026-11-26
+
+- [x] Review all 14 open PRs at the captured heads using the original Kritika
+      comments/inline findings rather than its green completion status.
+      Seven qualified PRs were merged in this pass: #5169, #5170, #5171,
+      #5147, #5141, #5131 and #5125. Dashboard #5167/#5168 had independently
+      auto-merged; their actual JSON, queries and imports were also verified.
+- [x] Repair #631's package lookup failure at its root: the Proxmox publisher
+      moved registry namespaces. Retain the exact 0.7.4 digest, verify native
+      authenticated reads, and confirm the real Renovate run and dashboard
+      no longer contain lookup warnings. No ignore rule or extra access grant.
+- [x] Add hosted dashboard-download CI with six focused regressions and a
+      required Build Success dependency. All 112 automation guards pass.
+      The real new CI job passed on #5169; all three updated dashboards are
+      natively synchronized. Eighteen changed PromQL expressions execute;
+      the two failure-only Pods expressions correctly return no incidents.
+- [x] Deploy Blackbox 12 with the previously tested unprivileged ICMP fix.
+      Preserve the dedicated Zigbee job and verify its real probe.
+- [x] Deploy ToolHive 0.69.1 CRDs before the operator using a temporary operator
+      Helm hold. Validate 23 MCPServer and two VirtualMCPServer objects through
+      the actual API server, restore the exact original hold field, and verify
+      both releases and all 25 objects Ready. No new auth modes enabled.
+- [x] Deploy staged LiteLLM 1.111.0 with a fresh successful database backup.
+      Preserve the original claim; native health, the existing restricted
+      key, one local Ollama chat and anonymous/admin/unapproved-model denials
+      pass. No paid route or new component port was introduced.
+- [x] Deploy kube-prometheus-stack 94.1.0 after exact-values rendering.
+      Alertmanager 0.35.1 and token automount=false are live; writable
+      monitoring storage and existing machine clients remain intact.
+- [x] Deploy PrintGuard 3.0.1 and select Light through the native settings
+      command, then verify persistence. Original settings/monitor hashes,
+      three cameras, two printers, one monitor, one review, three plugins and
+      the original claim are preserved. Discord stays on and actuation off.
+      Native Intel CPU/ONNX benchmarking reports about 414 model inferences/s;
+      that is not whole-frame throughput or detection-accuracy acceptance.
+- [x] Fix Matter's failed upgrade/rollback at its measured startup CPU ceiling:
+      25m caused 100% throttling before health was served. The bounded 500m
+      ceiling restores native 1.6.1 health and Helm readiness without force,
+      storage recreation or changing the Matter fabric.
+- [x] Exclude read-only filesystems from the Ceph-named host capacity forecast.
+      Native promtool controls fail with the original rule and pass with the
+      fix; writable-space warnings remain active. All three backup-image
+      false positives clear without deleting data or globally muting alerts.
+- [?] Remaining PR gates: #5158 needs the approved sibling recipe/publisher
+  commit and matching image publication; #5084 needs supported PG19 operator/
+  extension artifacts and migration rehearsal. #5134/#5145 need their node
+  maintenance windows; #5133 must remain in lockstep with the Talos group.
+  Do not merge the standalone client or bypass these gates to empty the queue.
+- [?] Gatus Pushover still needs valid owner-managed credentials. NAS firmware,
+  a physical disk pilot/remaining long test, protected-network/IoT work and
+  stronger Kritika quality qualification remain separate recorded gates.
+
+Final batch acceptance: all 186 Kustomizations and 106 HelmReleases Ready,
+six nodes unchanged on Talos 1.14.6, all three CNPG clusters healthy, Ceph
+HEALTH_OK with three monitors/six OSDs/265 clean PGs, all 86 Gatus endpoints
+fresh and all 201 scrape targets UP. No unhealthy Pods or deleting PVs.
+Only Watchdog and an informational inhibitor remain active; this is not a
+claim that the Pushover credential gap or the physical UPS batteries are fixed.
+
+## Earlier commissioning and qualification — 2026-11-26
+
+- [x] Commission the owner's new empty NI22 HBA/backplane read-only. Both
+      controllers and the new SAS3x28 enclosure were detected; eight host SAS
+      links negotiated at 12Gb/s and PCIe at Gen3 x8. Original pools remained
+      healthy, fresh complete cooling matched both physical fan duties, and all
+      36 NAS-backed backup schedules were restored exactly. No drive moved,
+      firmware flashed, driver reloaded or pool recreated by the assistant.
+      StorCLI reads enclosure status OK, revision `0601` and vendor firmware
+      identification `x28-66.6.1.5`; no board-approved latest/rollback pairing
+      has been established.
+- [x] Complete maintenance handback: the owned Alertmanager silence expired,
+      Gatus loaded disabled maintenance, and the owned override/helper Jobs
+      were removed. Original configuration and older UPS silences remain.
+- [?] Gatus Pushover delivery is not qualified: both referenced credential
+  fields have 11 characters rather than the required 30, so native validation
+  ignores the provider. Correct the Key Vault values through the secret
+  management workflow; no credentials were edited during maintenance.
+- [~] NetBox #5155: exact 8.3.116/current-values render passed. The custom
+  4.7.6 candidate passes native tests and preserves all 130 upstream packages.
+  Renovate grouping and CI drift checks are implemented; sibling recipe/
+  publisher publication remains owner-gated, not a deployed image update.
+- [x] Address Blackbox #5147 with explicit unprivileged ICMP group permission,
+      keeping restricted security. Actual deny/allow, node and Zigbee-host
+      probes passed. Token/reloader findings have no active conflicting
+      consumer/value here; version rollout remains a separate acceptance.
+- [x] Address ToolHive #5141 ordering with CRD/operator readiness waits and
+      operator HR dependency. All 31 current objects passed structural checks
+      against 14 proposed CRDs. CEL/authentication/controller rollout remain
+      native acceptance checks, not claims from schema success alone.
+- [x] Qualify LiteLLM #5131 in an isolated old-to-new database stage: exact
+      entrypoint/arguments, health/readiness, managed-key policy, local protocol
+      routing and denials passed. No production credentials, real/paid model
+      calls or new service ports were used. Production rollout remains separate.
+- [?] Choose PrintGuard #5125 model deliberately. Existing monitor is enabled
+  with Discord notifications but no pause/cancel action. Same-node, one-CPU
+  synthetic full-HD checks measured conservative frame capacities around
+  40.3 FPS Legacy, 36.6 Light and 18.9 Standard versus the active 15 FPS camera.
+  Keep actuation off; do not invent an environment variable. These are capacity
+  checks, not detection accuracy or live camera acceptance.
+- [?] Keep PG19 #5084 held: current CNPG 1.30.2 support policy lists PG15–18;
+  no PG19 VectorChord bundle was published in the verified registry lookup.
+  The PR also retains the PG18 bundle/library paths. Backup/capacity/restore
+  preparation can advance; changing production image alone cannot.
+- [x] Resolve the self-authored Talos #5148 approval problem without unsafe
+      stack merging. Exact consistency CI passed; reviewed commits were
+      fast-forwarded only into the unprotected Renovate branch. GitHub now
+      reports #5148 merged into that branch, not main. Bot-authored #5134
+      includes the fix and remains the separately approved node rollout.
+      Main/Tuppr were not advanced.
+- [?] One purchased 8TB SAS drive has a retained completed long test; the
+  other's retained records contain short tests only. Neither retained log
+  showed a failure. No new test was started; complete the missing long-test
+  qualification before describing both as fully tested.
+
+---
+
+## Current priority pass — 2026-11-25
 
 This status supersedes the historical August inventory and empty-NAS claims
 below. New operational findings belong in MCP; this list tracks requested work,
@@ -40,15 +156,31 @@ not private account, billing, device-identity or application data.
   deployed evidence/severity rules. Keep those receipts and the aborted
   pre-inference attempt. Paid-model qualification needs an approved enforced
   cap; automatic reviews/approval/fixes remain disabled. Upgrading the runtime
-  to 0.0.124 is not a new quality-qualification pass.
+  to 0.0.124 or 0.0.126 is not a new quality-qualification pass.
 - [x] Review and deploy Kritika #5100 to 0.0.124. Exact-head CI/render and
       native health/readiness passed; application/tools images remain paired,
       four PVC identities unchanged, PostgreSQL stays on 18.7 and the optional
       Linear integration remains unconfigured.
-- [~] NAS01 staging media fault: ZFS recovered the encountered reads, but the
-  affected member has pending/reallocated/offline-uncorrectable sectors
-  despite overall SMART passing. Do not clear counters or resume bulk
-  migration/benchmarks. See [the new staging hold](NAS01-POST-MIGRATION-DESIGN.md#november-22-staging-read-error-hold).
+- [x] Repair Kritika repository enrollment at both the SQL and signed-webhook
+      boundaries. Additional public repositories under the approved owner now
+      allow explicit native dashboard opt-in. Eighteen focused gateway tests
+      and native rollback/live SQL controls passed; private/foreign repositories
+      remain blocked and no additional repository was enabled automatically.
+- [x] Deploy Kritika #5120 to 0.0.126 after exact source/render review, an idle
+      work check, a consistent database-backup receipt and rollback-only
+      rehearsal of both one-way migrations. Native health/readiness, paired
+      images, fresh isolation and enrollment checks passed; four claims and
+      PostgreSQL 18.7 were preserved. All temporary holds were restored.
+- [~] NAS01 staging qualification: the owner removed the rejected disk and
+  rebuilt a nine-member RAIDZ1. Fresh native reads show all data pools healthy
+  with zero actual data/special/log member counters. This is not a new burn-in,
+  a matched long-test history or permission to resume bulk migration.
+  See [the current follow-up](NAS01-POST-MIGRATION-DESIGN.md#read-only-follow-up--2026-11-25).
+- [x] Add the missing disk-change/cooling-dependency procedure. SMFC and
+      smartctl-exporter inventories must match actual hardware; the watchdog
+      derives counts from the same SMFC configuration and cannot autodiscover
+      omitted additions. Preserve emergency duty and require fresh complete
+      readings plus physical BMC duty verification. No live fan config changed.
 - [x] Close the monitoring gap with a raw pending-sector alert independent
       of overall SMART. Native promtool regressions failed before and passed
       after the change; the exact Flux build and deployed rule were verified.
@@ -81,48 +213,77 @@ not private account, billing, device-identity or application data.
 - [x] Verify Maddy #5063 on 0.9.8: two ready replicas, native EHLO/NOOP 250
       and strict TLS/forced outgoing AUTH LOGIN 235. The earlier SMTP-target
       LOGIN fix remains supported. No test email or end-to-end receipt was sent.
-- [~] Finish the selected complex-upgrade action plans. Keep PostgreSQL
-  #5084 held for a verified PG19 extension build and rehearsed migration,
-  archives/backup/rollback. Dispatcharr #5033 needs GPU/client acceptance
-  and deliberate profile selection: the live bare HDHR export contains
-  all 351 channels; no channel profiles/global hidden flags exist.
+- [~] Finish the selected complex-upgrade action plans. The current #5084
+  targets the standard `kritika-db` PostgreSQL image and policy installer,
+  not the main database. It still leaves the mounted `pg18` VectorChord bundle
+  and PostgreSQL 18 library/control paths unchanged, although the live database
+  uses both VectorChord and pgvector. Keep it held for a verified compatible
+  extension bundle, operator support and a rehearsed 18-to-19 data migration,
+  backup/restore and rollback plan; an approved image-only PR is not that plan.
+  Dispatcharr #5033 is deployed on 0.34.1; offline
+  profile/guide setup and real export consistency are complete, but live-feed
+  playback/GPU/client acceptance and deliberate Plex tuner selection remain.
   Preserve the existing Plex DVR/mappings rather than recreate them. New
   plugin-history variables added by the cloud agent are valid upstream
   defaults, not a required defect fix; preserve that user-requested commit.
-  MongoDB #5101 renders no workload changes but remains held for explicit
-  stateful Helm upgrade approval.
+  Keep node/cluster maintenance separate from ordinary app updates.
+- [x] Deploy and verify the bounded MCP/app patch cohort: NAS MCP #5113,
+      Grafana MCP #5135, MKTXP #5130 and brrpolice #5144. Native MCP reads,
+      Grafana datasource/Prometheus reads, exact renders, actual running images
+      and applicable original PVC identities were checked.
+- [x] Deploy Ollama #5129 to 0.40.18 only after the native review queue drained.
+      Workstation registry DNS blocked flate, so a checksum-verified deployed
+      chart artifact supplied an exact offline old/new render; only the image
+      changed. Both services passed real local chat/embedding checks: five
+      finite 384-dimensional cases had minimum cosine 0.999999928 against the
+      required 0.99999. Model digests, original claims and completed
+      `IfNotPresent` bootstrap Jobs were preserved; no model pull reran and
+      cloud stayed disabled. This is not a new reviewer-quality qualification.
+- [~] MKTXP's HTTP target is UP but the existing external-switch collection is
+  not healthy: only exporter self metrics are available. The configured
+  hostname resolves to the documented management address, but API-SSL TCP 8729
+  is unreachable from its Pod. No credential was sent to an unverified
+  replacement target and no DNS/switch/firewall change was made. Repair needs
+  an approved protected-network scope; do not call HTTP readiness router health.
+- [x] Investigate the OSD-down notifications after the independently merged
+      Rook #5138 update. Operator/Pod/Prometheus timelines match a completed
+      sequential OSD rollout, not a Talos upgrade. Native Ceph, workloads and
+      all database clusters recovered healthy; node-upgrade PRs remain held.
 - [x] Produce the formal local-first IoT gateway comparison and phased
       consolidation strategy, delivered privately to Windows Downloads.
       Native Hue/OTBR reads and HA model/protocol inventory were checked;
       no pairing, reset, physical-device operation or hub retirement occurred.
-- [?] Choose an approved TrueNAS integration repair. Installed stable 1.3.1
-  uses obsolete REST requests against 25.10.8; the same credential works
-  through supported asynchronous JSON-RPC. A synchronous-client probe also
-  timed out, so do not call the old beta validated. The maintained CE fork
-  has an explicit domain/device migration and rollback to review.
-- [?] Approve a bounded HA OIDC rollout if desired. Authentik community OIDC
-  works through an additional integration; preserve local recovery, existing
-  identity ownership and mobile/API access. Session revocation and role
-  lifecycle limitations are explicit in the private strategy. No auth changed.
+- [x] Respect the owner's working Home Assistant `truenas_ce` migration.
+      The existing credential also passed supported native API/MCP reads.
+      Do not reinstall the obsolete provider or claim the owner-fixed repair
+      as an assistant deployment. Existing ZFS/SMART browser views work; only
+      core/targeted coverage was checked, not every optional dashboard panel.
+- [~] Continue bounded SSO rollout. Autobrr now has an app-owned, owner-subject
+  restricted native OIDC option with strict callback/PKCE and bad-state
+  rejection. Original PVC/password login and API behavior are preserved;
+  automatic redirect stays off. Real owner login/logout awaits the normal
+  Authentik browser session. HA integration/role/session compatibility and
+  protected-device RADIUS/SSID changes retain their separate acceptance gates.
 - [~] Spatial Context is already installed/loaded. Deliver the local
   Sweet Home 3D/manual-measurement and mobile-capture workflows; actual
   measured floor geometry remains an input, not something to invent.
-- [~] Prepare overlapping soccer, country and curated Plex profiles from
-  cached channel/guide metadata without requiring provider renewal.
-  Only 66/351 channels are currently guide-mapped and cached event names
-  can be stale. Review exact guide identities and the custom default stream
-  profile; the allocated GPU is Intel, not an NVENC requirement.
-  No provider stream, membership write or Plex DVR change was made.
+- [x] Persist five additive overlapping profiles from cached channel/guide
+      metadata and fill five exact regular-guide mappings using existing current
+      programme rows. Native serializer rollback and real HDHR/M3U/XMLTV
+      consistency passed for every profile. Other channel fields, memberships
+      and Plex configuration were preserved; no refresh task, provider download
+      or stream was started. Live event/source availability remains unverified.
 - [?] Approve concise AI-disclosed DNS RecordError/mobile-review-context PR
   drafts. Both candidate branches are pushed/validated; no new PR has
   been opened. The mobile button invokes native Copilot code review, not
   a custom coding-agent profile or Kritika.
-- [~] Preserve hardware/maintenance alerts rather than silence them. The new
-  pending-sector alert is actually firing for the affected member. Three
-  pre-existing NAS02 I/O-saturation alerts correlate with an active Btrfs
-  scrub; native MD status shows all configured members present. Do not cancel
-  protected-source maintenance or run a bakeoff through it. UPS service-age
-  alerts remain suppressed, not repaired, and no deleting PV remains.
+- [~] Preserve hardware/maintenance alerts rather than silence them. The removed
+  disk's incident remains historical; the Rook OSD alerts resolved after its
+  rollout. No active operational/Ceph incident remains; distinguish Watchdog
+  and informational routing inhibitors from device failures. Two existing
+  UPS battery-replacement alerts remain silenced, not repaired. Do not cancel protected
+  source maintenance or run a bakeoff through it. Recheck full active/suppressed
+  states and deleting PVs at the next acceptance pass.
   Earlier GitHub notification primary/secondary limits recovered through the
   normal credential/cooldown path, not credential rotation or a bypass.
 - [x] Assess Scrutiny as an optional focused SMART UI. It has separate

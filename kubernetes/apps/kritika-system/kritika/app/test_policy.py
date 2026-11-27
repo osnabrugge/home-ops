@@ -297,13 +297,30 @@ class HTTPPolicyTests(unittest.TestCase):
         self.assertTrue(response["accepted"])
         self.assertEqual(self.calls[0][0], "http://kritika-api-direct:8080/hooks/github")
 
-    def test_public_repository_allowlist_and_private_rejection(self):
+    def test_signed_public_owner_repositories_are_forwarded(self):
         repo = {
-            "full_name": policy.REPOSITORY, "private": False,
+            "full_name": "osnabrugge/home-ops", "private": False,
+            "visibility": "public", "owner": {"login": "osnabrugge"},
+        }
+        for name in ("home-ops", "container-images", "SpoolmanDB"):
+            with self.subTest(name=name):
+                self.assertEqual(self.hook(
+                    {"repository": {**repo, "full_name": f"osnabrugge/{name}"}},
+                    "pull_request",
+                )[0], 202)
+
+    def test_foreign_private_or_invalid_repositories_never_reach_native_server(self):
+        repo = {
+            "full_name": "osnabrugge/home-ops", "private": False,
             "visibility": "public", "owner": {"login": "osnabrugge"},
         }
         for payload in (
-            {"repository": {**repo, "full_name": "osnabrugge/other"}},
+            {"repository": {**repo, "full_name": "another-owner/home-ops"}},
+            {"repository": {**repo, "full_name": "osnabrugge-other/home-ops"}},
+            {"repository": {**repo, "full_name": "osnabrugge/"}},
+            {"repository": {**repo, "full_name": "osnabrugge/a/b"}},
+            {"repository": {**repo, "full_name": None}},
+            {"repository": {**repo, "owner": {"login": "another-owner"}}},
             {"repository": {**repo, "private": True}},
             {"repository": {**repo, "visibility": "private"}},
             {"repository": []},
@@ -311,7 +328,6 @@ class HTTPPolicyTests(unittest.TestCase):
             with self.subTest(payload=payload):
                 self.assertIn(self.hook(payload, "pull_request")[0], (400, 403))
         self.assertEqual(self.calls, [])
-        self.assertEqual(self.hook({"repository": repo}, "pull_request")[0], 202)
 
     def test_public_listener_has_no_dashboard_api_or_model_route(self):
         for path in ("/", "/api/v1/meta", "/v1/models", "/hooks/github"):
