@@ -17,7 +17,7 @@ spec:
           app:
             image:
               repository: ghcr.io/berriai/litellm
-              tag: 1.110.2@sha256:ef798594ca3db8d81bad2e1439f536f49b71fe095ee9f20416f5e149b4e22035
+              tag: 1.111.0@sha256:ce00096d012719d58c52cecfa373f7c6256dd1b0ff08f6fa607e10e9628f1f46
             args: ["--config", "/etc/litellm/config.yaml", "--port", "4000", "--telemetry", "False"]
             env:
               DATABASE_URL:
@@ -35,6 +35,7 @@ spec:
                   secretKeyRef:
                     name: litellm-auth
                     key: salt-key
+              LITELLM_TELEMETRY_DISABLED: "true"
               LITELLM_MODE: PRODUCTION
               LITELLM_LOG: INFO
               LITELLM_LOCAL_MODEL_COST_MAP: "true"

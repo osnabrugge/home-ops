@@ -105,6 +105,18 @@
     },
     // Grouping rules
     {
+      description: "NetBox chart and tested plugin-enabled application image",
+      groupName: "netbox-application",
+      matchDatasources: ["docker"],
+      matchPackageNames: [
+        "ghcr.io/netbox-community/netbox-chart/netbox",
+        "ghcr.io/osnabrugge/netbox-diode",
+      ],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+    },
+    {
       description: "Actions Runner Controller Group",
       groupName: "actions-runner-controller",
       matchDatasources: ["docker"],

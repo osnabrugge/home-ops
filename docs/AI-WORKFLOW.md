@@ -792,15 +792,19 @@ The owner enabled public `osnabrugge/home-ops`; other discovered repositories
 remain dashboard-disabled. Automatic review triggers are still held. PR discovery,
 an owner-requested review attempt and a completed review are separate acceptance
 checks; a failed attempt can still leave a GitHub status or summary comment.
-Only public `osnabrugge/home-ops` is eligible for enablement.
-Database enforcement rejects other repositories/accounts
-and turns a repository off if it becomes private. Native `enabled` indicates
-forge reachability; the dashboard switch is `turned_on`.
+The original single-`home-ops` commissioning guard prevented additional
+repository switches from sticking even for the owner. The database and signed
+webhook gate now permit **public repositories under `osnabrugge`** to be
+individually opted in through the native dashboard. The installer does not turn
+additional repositories on. Other accounts, private repositories and
+repositories transferred outside that owner remain blocked; a privacy change
+turns an affected repository off. Native `enabled` indicates forge reachability;
+the dashboard switch is `turned_on`.
 
 Successful owner-requested public reviews have verified manual publication.
 There is no remaining first-publication setup step for this installation.
-Keep only home-ops enabled and manually request the intended PR through the
-dashboard. The manual rerun API addresses a PR, not a pre-existing review:
+Enable only the intended public repository and manually request the intended
+PR through the dashboard. The manual rerun API addresses a PR, not a pre-existing review:
 `POST /api/v1/accounts/github/osnabrugge/pulls/osnabrugge/home-ops/<number>/rerun`.
 Webhook activation and automatic-review enablement are separate owner decisions.
 The `owner-manual-pilot` include expression `false` intentionally skips automatic

@@ -1,5 +1,37 @@
 # nas01 — loaner-assisted migration and final layout
 
+## Read-only follow-up — 2026-11-25
+
+The owner removed the rejected disk and rebuilt `staging`. A fresh native
+TrueNAS read through the read-only MCP server now shows **nine data members in
+RAIDZ1**, not the ten-member layout measured below. All five data pools are
+ONLINE and healthy. Actual read/write/checksum fields were present and zero
+for every inspected data, special and log member; missing fields were not
+treated as zero. The boot pool is outside this `pool.query` result.
+
+The current topology also includes two-member special mirrors on `nfs`, `smb`
+and `staging`, plus the existing two-member `nfs` log mirror. The dated table
+below is retained as a measurement baseline, not a current inventory or capacity
+budget. Re-measure dataset availability and headroom after the rebuild; do not
+carry its former 71.222 TB combined budget forward as migration acceptance.
+
+The assistant did not rebuild pools, clear counters, alter firmware, start a
+disk test or change cooling configuration. Zero counters on the rebuilt pool
+do not rehabilitate the removed disk's historical media faults. A passed long
+test on another member must be matched to that member's stable identity, test
+date, error history and current counters before comparing the two.
+
+Disk changes must include the
+[SMFC cooling-dependency checklist](OOB-MANAGEMENT.md#disk-removal-and-replacement-checklist).
+An exporter exclusion alone does not remove a missing SMFC sensor. Preserve
+fail-high protection and verify complete fresh telemetry plus both physical fan
+duties before handing back cooling.
+
+Staging parity remains an owner decision. RAIDZ2 does not create an independent
+backup, a failed member is not a spare, and reusing NAS02 donor disks can remove
+the source rollback. The original November 22 incident below remains historical
+evidence; the final donor-pool design and protected source data are unchanged.
+
 ## Current readiness — 2026-11-20
 
 This section supersedes the older inventory and staging examples below.
