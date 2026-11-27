@@ -56,16 +56,32 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
       Native promtool controls fail with the original rule and pass with the
       fix; writable-space warnings remain active. All three backup-image
       false positives clear without deleting data or globally muting alerts.
-- [?] Remaining PR gates: #5158 needs the approved sibling recipe/publisher
-  commit and matching image publication; #5084 needs supported PG19 operator/
-  extension artifacts and migration rehearsal. #5134/#5145 need their node
-  maintenance windows; #5133 must remain in lockstep with the Talos group.
-  Do not merge the standalone client or bypass these gates to empty the queue.
-- [?] Gatus Pushover still needs valid owner-managed credentials. NAS firmware,
-  a physical disk pilot/remaining long test, protected-network/IoT work and
-  stronger Kritika quality qualification remain separate recorded gates.
+- [x] Publish the tested NetBox/Diode producer and publisher, then merge #5158
+      with the matching 4.7.6 image. Native web/worker version, plugin, inventory,
+      tokens and original media claim are verified. Future base updates now
+      test/publish before Renovate's grouped chart/image consumer update.
+- [x] Execute the PG19 recovery prerequisites: an actual isolated logical
+      restore verifies application rows, extensions, vector execution and
+      indexes without another application PVC or replacing retained claims.
+- [?] Keep #5084 held for actual external compatibility: the current operator
+  supports PostgreSQL 15–18 and the verified VectorChord registry has no PG19
+  bundle. Do not merge a primary-image-only update with PG18 extension paths.
+- [~] The authorized Talos 1.14.7 group #5134 reached all six nodes; #5133
+  auto-closed as superseded. Kubernetes #5145 remains unmerged after an observed
+  same-node Cilium Service-return fault. A stateless reschedule restored
+  monitoring, but that containment is not a permanent datapath fix or clearance
+  for another rollout. Detailed evidence and recovery state are in MCP.
+- [x] Verify the actual outside monitor: the active GitHub-hosted
+      [External Uptime workflow](../.github/workflows/external-uptime.yaml)
+      replaced paid Azure web tests. Legacy Buddy Pushover fields are optional
+      notification credentials, not Gatus/Azure login or a prerequisite for
+      these free external probes.
+- [?] NAS firmware, a physical disk pilot/remaining long test, protected-network/
+  IoT work and stronger Kritika quality qualification remain separate recorded
+  gates. NAS shutdown is not cleared merely because a node rollout completed.
 
-Final batch acceptance: all 186 Kustomizations and 106 HelmReleases Ready,
+Earlier batch acceptance, before the authorized node rollout: all 186
+Kustomizations and 106 HelmReleases Ready,
 six nodes unchanged on Talos 1.14.6, all three CNPG clusters healthy, Ceph
 HEALTH_OK with three monitors/six OSDs/265 clean PGs, all 86 Gatus endpoints
 fresh and all 201 scrape targets UP. No unhealthy Pods or deleting PVs.
@@ -944,45 +960,50 @@ wrong path produces a false "still read-only".
       3× spare 2.5" SATA SSD.
 - [ ] P1: Document pve01's current disk/NIC layout in NetBox.
 
-### C.2 pve02 — NOT DEPLOYED (raised 2026-09-18)
+### C.2 pve02 — existing host, commissioning audit outstanding
 
-- [ ] P1: **pve02 has never been deployed.** Verified via NetBox 2026-09-18: a device
-      search for `pve` returns **only pve01** (id 70, `192.168.42.40`, Gowin
-      GW-BS-1UR2-25G, role Hypervisor). There is no pve02 record at all.
-- [ ] P1: Decide what pve02 runs and on what hardware — this overlaps directly with
-      §F (the idle ASRock X570D4U + 128 GB ECC). Answer §F's "second NAS vs second
-      PVE node vs sell" question before buying anything.
-- [ ] P2: Once decided, create the NetBox record **first**, then build. NetBox is
-      meant to be the source of truth; pve02/gw02/pi01–04 being absent or
-      unmodelled is itself the §E "clean up against reality" problem.
+- [x] P1: Verify actual host presence through the read-only Proxmox MCP's
+      explicit `pve02` target. It is an online standalone host, not unpurchased
+      hardware. The September NetBox absence report was not current evidence.
+- [x] P1: Read-only native host audit confirms a healthy mirrored rpool with no
+      known data errors and no failed system units. The `local` directory
+      datastore is explicitly disabled, not a failed pool to enable blindly.
+      Existing VM disks, boot order and OVS bridge/bond membership were captured.
+- [ ] P1: Finish guest installation/address acceptance, WAN carrier, sync-link
+      ownership and rollback before commissioning. VM 200 boots its small
+      secondary disk rather than its 100 GB main disk and has no saved VM
+      checkpoint; its installed-guest state must not be assumed.
+- [ ] P2: Reconcile NetBox against the current native host and VM inventory.
+      Keep its source-of-truth role without treating old missing records as
+      proof that equipment has never been deployed.
 
 ---
 
 ## C.3 gw02 — firewall HA with CARP + pfSync (raised 2026-09-18)
 
-- [ ] P1: **gw02 has never been deployed.** Verified via NetBox 2026-09-18: a device
-      search for `gw` returns **zero** results.
-- [ ] P1: ⚠️ **Naming inconsistency to resolve first.** NetBox models the firewall as
-      **`fw01`** (role Firewall, model FW6C, no primary IP set), while this repo,
-      the copilot instructions and all memory files call it **`gw01`**. Pick one
-      name and make NetBox, DNS and the docs agree before adding a second unit —
-      otherwise HA config will be written against two different identities.
-- [ ] P1: Configure **CARP** (virtual IP failover) on gw01/gw02 for each routed
-      interface, so the LAN gateway address floats between units.
+- [~] P1: **gw02 already exists as stopped VM 200 on pve02.** Inspect its actual
+  disks, boot and NIC configuration, unique addresses, isolation and tested
+  rollback before starting it. Do not create another clone or assume its
+  guest has already been safely commissioned; follow
+  [the HA preparation guide](./OPNSENSE-HA-GW02.md).
+- [ ] P1: Reconcile current NetBox/native records to the canonical gw01/gw02
+      names and logical interfaces; the old `fw01` inventory is historical,
+      not a reason to rename a working firewall blindly.
+- [~] P1: gw01 already has configured CARP VIPs. Preserve them; the backup's
+  unique addresses/priority and actual paired failover remain unverified.
 - [ ] P1: Configure **pfSync** so state tables replicate and existing connections
       survive a failover.
 - [ ] P1: Dedicated pfSync link between the two units (direct cable or its own
       VLAN) — do not run pfSync over a shared user VLAN.
-- [ ] P2: Decide CARP interaction with the Bell WAN. A single PPPoE/ONT handoff
-      cannot be CARP'd on both units simultaneously; document what actually
-      fails over vs what needs manual intervention.
-- [ ] P2: ⚠️ **Sequencing:** the §A0 transit-VLAN work (VLAN 200 / ve 200, removing
-      gw01's VLAN10/42 interfaces) changes which interfaces exist on the
-      firewall. Do that **before** building gw02, or the HA pair gets built
-      against a layout that is about to be torn up.
-- [ ] P2: gw01 SSH access is currently broken (orphaned `sean@DESKTOP` key
-      authorized, private half gone) — fix via the OPNsense GUI before any HA
-      work needs CLI access.
+- [ ] P2: Verify CARP interaction with the actual WAN handoff and account/session
+      limits; document what fails over and what must reconnect. Do not assume a
+      provider-wide single-session policy or claim WAN HA from a LAN-only test.
+- [ ] P2: Verify the current topology and separately approved target deltas
+      before HA work. Do not remove working gateway VLANs merely because a
+      historical transit-VLAN proposal described that migration.
+- [x] P2: Existing gw01 SSH access works with the configured, strictly checked
+      identity. Read-only interface/CARP/sync inspection succeeded; no key,
+      firewall XML, interface or service change was required.
 
 ---
 

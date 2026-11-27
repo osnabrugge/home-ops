@@ -1,6 +1,6 @@
 # Identity & Auth Integration Matrix
 
-## Current migration status (2026-11-12)
+## Current migration status (2026-11-27)
 
 The approved target is **Authentik CE + authentik-operator for supported
 OAuth2/proxy application resources + native blueprints for the remaining
@@ -20,21 +20,22 @@ require account/role/MFA/recovery validation; a technical canary is not that pro
 
 | Consumer                                                    | Current source evidence                                                                                                                                                           | Migration gate                                                                                                                    |
 | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Grafana                                                     | [Active OAuth configuration](../kubernetes/apps/observability/grafana-operator/instance/grafana.yaml) points to Authelia                                                          | First consumer canary; preserve user IDs, dashboard ownership and admin/editor/viewer mappings                                    |
+| Grafana                                                     | [Active OAuth configuration](../kubernetes/apps/observability/grafana-operator/instance/grafana.yaml) uses Authentik with the private legacy-subject scope                        | Preserve user IDs, dashboard ownership and roles; real owner login/MFA and recovery remain separate acceptance                    |
 | Proxmox                                                     | [Authelia client registration](../kubernetes/apps/auth/authelia/app/configmap.yaml) exists                                                                                        | Read-only verification of the actual realm, then a separate approved host-change window                                           |
 | NetBox                                                      | [Current app configuration](../kubernetes/apps/observability/netbox/app/helmrelease.yaml) uses LLDAP                                                                              | Choose and verify the actual LDAP/OIDC migration; its Authelia registration is not proof of live OIDC use                         |
 | Omada                                                       | [App-owned SAML blueprint](../kubernetes/apps/network/omada-controller/identity/blueprint.yaml) is applied                                                                        | SSO currently fails; confirm the controller's SAML group/role and application entitlement before claiming it commissioned         |
 | PrintStash                                                  | [App-owned native OIDC](../kubernetes/apps/printing/printstash/identity/application.yaml) and [app-only role scope](../kubernetes/apps/auth/authentik/blueprints/printstash.yaml) | Real human sign-in/library check; local recovery and original device ownership remain separate and preserved                      |
+| Autobrr                                                     | [App-owned native OIDC](../kubernetes/apps/default/autobrr/identity/application.yaml), restricted to the existing owner subject                                                   | Additive login only; preserve the original password/API path and validate real owner login/logout                                 |
+| FreeRADIUS                                                  | [Current LDAP module](../kubernetes/apps/auth/freeradius/app/configmap.yaml) still binds to LLDAP                                                                                 | Authentik browser SSO has not migrated RADIUS; verify each device's protocol, role mapping and recovery before a canary cutover   |
 | Hubble, netboot.xyz, Prometheus, Alertmanager, VictoriaLogs | [Shared app-owned proxy component](../kubernetes/components/authentik-proxy/README.md), private routes and workload-scoped ingress policies                                       | Human first-use checks; preserve direct cluster Service clients and independent boot/syslog traffic                               |
 | Unpackerr                                                   | [App-owned proxy application](../kubernetes/apps/default/unpackerr/identity/application.yaml) is reconciled by authentik-operator                                                 | HTTPS reaches the IdP, backend reads/denials/metrics/WebSocket and ingress policy are verified; human SSO remains to be exercised |
 | Other LDAP/RADIUS/forward-auth clients                      | Historical list below is a discovery starting point only                                                                                                                          | Verify live consumers and machine API bypasses before retiring either Authelia or LLDAP                                           |
 
-Grafana's live read-only inventory confirms an existing Generic OAuth account
-and a separately verified local administrator recovery path. Preserve that
-external account's identity and ownership during issuer migration; do not rely
-on the currently enabled insecure email lookup to auto-link it to a new IdP.
-Human mapping/login validation was unavailable during the operator rollout, so
-the existing Authelia issuer and Grafana consumer configuration remain unchanged.
+Grafana's Generic OAuth configuration now uses Authentik and explicitly disables
+insecure email lookup. Its private legacy-subject mapping preserves the existing
+OAuth identity rather than creating a second account by email. Retain the local
+administrator recovery path. Provider/configuration readiness is not proof of
+the owner's actual login, MFA, dashboard ownership and role checks.
 
 ### Live surface review and remaining gates
 
@@ -43,14 +44,15 @@ routes; the smaller set of explicit route files is not an estate inventory.
 This is a staged migration, not a claim that every route or appliance now uses
 Authentik.
 
-- **Current Authentik consumers:** the five infrastructure UI proxies above,
-  native PrintStash/PDM OIDC, existing Bifrost/Kritika/Radar/Unpackerr proxies,
-  and Omada SAML. The existing Unpackerr binding now explicitly includes the
+- **Current Authentik consumers:** Grafana, Autobrr and PrintStash/PDM native OIDC,
+  the five infrastructure UI proxies above, existing Bifrost/Kritika/Radar/Unpackerr
+  proxies, and Omada SAML. The existing Unpackerr binding now explicitly includes the
   infrastructure owner; no directory-group membership was added.
-- **Legacy consumer cutovers:** Grafana and NetBox retain their current
-  Authelia/LLDAP paths until actual identity/role/ownership and recovery checks
-  pass. Do not adopt or recreate an existing manual provider without reviewing
-  its identity and current owner.
+- **Legacy consumer cutovers:** NetBox and FreeRADIUS retain their current LLDAP
+  paths; remaining Authelia consumers must be identified before retiring that
+  issuer. Grafana's Authentik configuration is already migrated, but human
+  acceptance remains distinct. Do not adopt or recreate an existing manual
+  provider without reviewing its identity and current owner.
 - **Media application routes:** agregarr, autobrr, bazarr, dispatcharr, frigate,
   lidarr, prowlarr, qbittorrent, qui, radarr, seerr, sonarr, tautulli and thelounge
   remain unchanged pending app-specific user/role and API, webhook, stream and

@@ -219,6 +219,10 @@ For an initial network attempt, `BOOT_ORDER=0xf142` retains USB/SD fallbacks,
 this boot server. `NET_BOOT_MAX_RETRIES=0` means no additional retries; `-1`
 would retry indefinitely and is not the bounded test.
 
+Use a fresh `inspect` report for current firmware, EEPROM and wired carrier;
+a reachable desktop with `LOWER_UP` still does not establish a Talos maintenance
+boot. Historical no-carrier evidence must not be presented as a current diagnosis.
+
 Pi04's November 8 remote update was read back after reboot with these exact
 network-first settings. It fell back to its preserved desktop; the subsequent
 native interface report showed `NO-CARRIER` and no IPv4 address. That is **not**

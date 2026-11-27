@@ -1,7 +1,7 @@
 # Talos Control-Plane Rebuild Runbook
 
 > **Scope:** Rebuild a 3-node Talos control plane from scratch.
-> **Talos:** v1.13.0 · **Kubernetes:** v1.36.0 · **Secrets:** Azure Key Vault (`keyvault-kube/talos`)
+> **Versions:** follow the [Talos target](../kubernetes/apps/system-upgrade/tuppr/upgrades/talosupgrade.yaml) and [Kubernetes target](../kubernetes/apps/system-upgrade/tuppr/upgrades/kubernetesupgrade.yaml). **Secrets:** Azure Key Vault (`keyvault-kube/talos`).
 
 ---
 
@@ -890,6 +890,23 @@ The verified 1.30.2 operator support table lists PostgreSQL 15–18, not 19.
 The checked VectorChord scratch registry has no PG19 bundle. Operator support
 and a matching extension artifact are separate prerequisites; backup, byte/
 claim budgeting and restore preparation can advance without changing production.
+An isolated logical-restore rehearsal does not require another application PVC:
+use a tokenless, restricted PostgreSQL Pod with bounded `emptyDir` storage, the
+same major/extension images and loader paths, loopback-only listening and a
+deny-all NetworkPolicy. Precreate the declared `kritika` and `kritika_app` roles
+and empty target database. Point a native Restore's `source.snapshotRef` at a
+completed backup and `target.streamExec.fileName` at `kritika.dump`; select only
+the test Pod and run `pg_restore --single-transaction --exit-on-error --no-owner
+--no-acl` into that database. `mover.cache.mode: Ephemeral` avoids consuming the
+remaining persistent-cache slot. Budget both test containers' compute/storage
+limits against the namespace quota before starting.
+
+Snapshots finish as `Succeeded`; stream Restores finish as `Completed` with
+Ready=True/reason `RestoreSucceeded`. Do not assume their phase names match.
+Verify real restored rows, extension versions, a vector operation and valid
+indexes; compare every original PVC UID and binding. Retain the backup and
+redacted receipt, then remove only the owned test Restore, Pod and policy.
+
 Do not attach, reinitialize or delete the original held `kritika-postgres-1`
 volume as startup recovery. Verify all eight Kritika Kustomizations, its
 HelmRelease and the database are Ready before investigating the application.
