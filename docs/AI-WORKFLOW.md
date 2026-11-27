@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-11-17. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-27. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Start here: what each application actually does
@@ -9,21 +9,24 @@ These are different layers, not one commissioned fleet of autonomous agents.
 An idle gateway dashboard is not a scheduler, and a successful repository index
 is not a completed PR review.
 
-| Component             | Current role                                                                                       | What it does not do                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| VS Code / Copilot SDK | Interactive engineering through the selected Copilot model and authorized MCP tools                | It is not automatically routed through either cluster model gateway                              |
-| Kritika               | Repository indexing and working manual PR reviews; automatic reviews remain owner-gated            | It does not autonomously create fix PRs for the owner to approve                                 |
-| LiteLLM               | The active local advisory's model/MCP gateway, with scoped keys and request limits                 | Its gateway and optional admin UI do not themselves run an agent loop                            |
-| LiteLLM Operator      | An inactive draft, not a deployed controller                                                       | It is not required to run the current chart-managed LiteLLM proxy                                |
-| Bifrost               | A separate local-only gateway evaluation                                                           | No scheduled production client is routed through it; old test activity is not ongoing agent work |
-| Ollama                | Local model serving; the advisory uses Qwen, while a separate instance supplies Kritika embeddings | It is not a PR reviewer, MCP lifecycle controller or task scheduler                              |
-| ToolHive              | MCP server lifecycle, transport proxies and caller/backend authorization boundaries                | It is not an LLM inference gateway; its operator is not a universal browser dashboard            |
-| The triage CronJob    | Two fixed evidence checks and a bounded local explanation at minutes 7 and 37                      | It cannot repair infrastructure, publish issues or make arbitrary tool plans                     |
+| Component             | Current role                                                                                                     | What it does not do                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| VS Code / Copilot SDK | Interactive engineering through the selected Copilot model and authorized MCP tools                              | It is not automatically routed through either cluster model gateway                               |
+| Kritika               | Repository indexing and working manual PR reviews; automatic reviews remain owner-gated                          | It does not autonomously create fix PRs for the owner to approve                                  |
+| LiteLLM               | The active local advisory's model/MCP gateway, with scoped keys and request limits                               | Its gateway and optional admin UI do not themselves run an agent loop                             |
+| LiteLLM Operator      | An inactive draft, not a deployed controller                                                                     | It is not required to run the current chart-managed LiteLLM proxy                                 |
+| Bifrost               | A separate local-only gateway evaluation                                                                         | No scheduled production client is routed through it; old test activity is not ongoing agent work  |
+| Ollama                | Local model serving; the advisory uses Qwen, while a separate instance supplies Kritika embeddings               | It is not a PR reviewer, MCP lifecycle controller or task scheduler                               |
+| memory-service        | The active semantic memory MCP, using local MiniLM embeddings; the legacy graph remains available for comparison | It is used by explicit memory-tool calls, not automatically by the inference gateways             |
+| Memini                | A staged alternative memory application, excluded from the AI namespace Kustomization                            | It is not deployed, does not back the current memory-service connection and has no live dashboard |
+| ToolHive              | MCP server lifecycle, transport proxies and caller/backend authorization boundaries                              | It is not an LLM inference gateway; its operator is not a universal browser dashboard             |
+| The triage CronJob    | Two fixed evidence checks and a bounded local explanation at minutes 7 and 37                                    | It cannot repair infrastructure, publish issues or make arbitrary tool plans                      |
 
 The deliberately simple active paths are:
 
 ```text
 Owner -> VS Code / Copilot SDK -> authorized MCP endpoints -> backend permissions
+                              -> memory-service / retained memory graph
 
 Scheduled SMART advisory -> LiteLLM -> private Ollama generation model
                         -> one allowlisted existing Kubesearch MCP
@@ -66,6 +69,16 @@ are separate concerns; see [the authentication strategy](AUTH-ARCHITECTURE.md).
   This does not publish the management UI or commission Authentik SSO.
 - Bifrost remains an evaluation with no scheduled production client. Its idle
   dashboard is expected; do not add another agent just to populate it.
+- Use [AI Operations in Grafana](https://grafana.homeops.ca/d/homeops-ai-operations)
+  for available/missing replicas, CPU, memory, restarts and the actual time since
+  the scheduled advisory last succeeded. Its links lead to the separate native
+  review/gateway consoles. Health panels do not measure token usage or review quality.
+- The configured `memory-service` MCP connection still targets the Doobidoo
+  service, not Memini. Both that service and the retained graph can be queried
+  directly through MCP. Memini's manifests and Grafana import are staged only;
+  its namespace entry is commented out. Its staged OpenRouter embedding route
+  must not be activated as an accidental paid dependency or a second unplanned
+  memory migration.
 
 Neither a GPU nor an OpenRouter top-up completes these workflows. The current
 small local model is inadequate for general tool planning; a separately approved,

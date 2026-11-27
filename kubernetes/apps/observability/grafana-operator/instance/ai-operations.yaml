@@ -1,0 +1,143 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: ai-operations
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasources:
+    - datasourceName: prometheus
+      inputName: DS_PROMETHEUS
+  json: |
+    {
+      "uid": "homeops-ai-operations",
+      "title": "AI Operations",
+      "description": "Workload health and the bounded scheduled advisory, not inference billing or review-quality certification.",
+      "tags": ["ai", "home-ops"],
+      "schemaVersion": 39,
+      "timezone": "browser",
+      "refresh": "1m",
+      "time": {"from": "now-6h", "to": "now"},
+      "links": [
+        {"title": "Kritika reviews", "type": "link", "url": "https://kritika.homeops.ca", "targetBlank": true},
+        {"title": "Bifrost evaluation", "type": "link", "url": "https://bifrost.homeops.ca", "targetBlank": true},
+        {"title": "Operating guide", "type": "link", "url": "https://github.com/osnabrugge/home-ops/blob/main/docs/AI-WORKFLOW.md", "targetBlank": true}
+      ],
+      "panels": [
+        {
+          "id": 1,
+          "type": "text",
+          "title": "Actual paths",
+          "gridPos": {"x": 0, "y": 0, "w": 24, "h": 4},
+          "options": {
+            "mode": "markdown",
+            "content": "**Scheduled advisory:** LiteLLM -> Ollama Qwen. **PR reviews:** Kritika -> its free-only policy gateway, with a separate local Granite embedder; not Bifrost.\n\nBifrost is an idle evaluation. Memini and LiteLLM Operator are not deployed. ToolHive manages MCP servers, not inference. This dashboard shows health/resources, not tokens, review quality or autonomous repairs."
+          }
+        },
+        {
+          "id": 2,
+          "type": "bargauge",
+          "title": "Available deployment replicas",
+          "description": "Running replicas are not evidence of working user login, model calls or review correctness.",
+          "gridPos": {"x": 0, "y": 4, "w": 10, "h": 6},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "fieldConfig": {"defaults": {"unit": "short", "min": 0, "color": {"mode": "fixed", "fixedColor": "blue"}}},
+          "options": {"orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"]}},
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max by (namespace,deployment) (kube_deployment_status_replicas_available{namespace=~\"ai|kritika-system\"})",
+              "instant": true,
+              "legendFormat": "{{namespace}} / {{deployment}}"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Since successful advisory",
+          "description": "The fixed-scope SMART transport/tool advisory runs at minutes 7 and 37. Completion is not an all-clear for disks or the cluster.",
+          "gridPos": {"x": 10, "y": 4, "w": 4, "h": 6},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "fieldConfig": {"defaults": {"unit": "s", "min": 0, "color": {"mode": "fixed", "fixedColor": "blue"}}},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "graphMode": "none", "colorMode": "value"},
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "time() - max(kube_cronjob_status_last_successful_time{namespace=\"ai\",cronjob=\"ai-triage-worker\"})",
+              "instant": true
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "bargauge",
+          "title": "Unavailable deployment replicas",
+          "gridPos": {"x": 14, "y": 4, "w": 10, "h": 6},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "fieldConfig": {"defaults": {"unit": "short", "min": 0, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}},
+          "options": {"orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"]}},
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max by (namespace,deployment) (kube_deployment_spec_replicas{namespace=~\"ai|kritika-system\"}) - max by (namespace,deployment) (kube_deployment_status_replicas_available{namespace=~\"ai|kritika-system\"})",
+              "instant": true,
+              "legendFormat": "{{namespace}} / {{deployment}}"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Container CPU",
+          "gridPos": {"x": 0, "y": 10, "w": 12, "h": 8},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "fieldConfig": {"defaults": {"unit": "cores", "min": 0, "custom": {"lineWidth": 1, "fillOpacity": 10, "showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (namespace,pod) (rate(container_cpu_usage_seconds_total{namespace=~\"ai|kritika-system\",container!=\"\",container!=\"POD\",image!=\"\"}[5m]))",
+              "legendFormat": "{{namespace}} / {{pod}}"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Container working-set memory",
+          "gridPos": {"x": 12, "y": 10, "w": 12, "h": 8},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "fieldConfig": {"defaults": {"unit": "bytes", "min": 0, "custom": {"lineWidth": 1, "fillOpacity": 10, "showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (namespace,pod) (container_memory_working_set_bytes{namespace=~\"ai|kritika-system\",container!=\"\",container!=\"POD\",image!=\"\"})",
+              "legendFormat": "{{namespace}} / {{pod}}"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "Container restarts in the preceding hour",
+          "gridPos": {"x": 0, "y": 18, "w": 24, "h": 8},
+          "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+          "fieldConfig": {"defaults": {"unit": "short", "min": 0, "custom": {"lineWidth": 1, "showPoints": "never"}}},
+          "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (namespace,pod) (increase(kube_pod_container_status_restarts_total{namespace=~\"ai|kritika-system\"}[1h]))",
+              "legendFormat": "{{namespace}} / {{pod}}"
+            }
+          ]
+        }
+      ]
+    }

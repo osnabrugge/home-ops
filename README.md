@@ -69,6 +69,11 @@ My cluster runs [Talos Linux](https://talos.dev) on 6 Lenovo ThinkCentre M920q n
 
 Ownership changes require a verified prune fence and inventory handoff before removing the old owner. Unapproved applications must stay off main or explicitly suspended. The [bounded free-only Kritika pilot](docs/AI-WORKFLOW.md#kritika-bounded-free-only-pilot) now runs with restricted native user-namespace runners and a separate local embedder, not the held gVisor proposal. Its original database PVC remains preserved and unmounted. Only explicitly owner-enabled public repositories under the approved GitHub owner are eligible; private repositories stay blocked and automatic reviews remain owner-gated. A manual review has published successfully, which proves publication rather than review quality or approval for unattended decisions. No gVisor extension rollout or node reboot is authorized by this pilot.
 
+[AI Operations in Grafana](https://grafana.homeops.ca/d/homeops-ai-operations)
+shows workload health, resources and scheduled-advisory freshness. The
+[operating guide](docs/AI-WORKFLOW.md#start-here-what-each-application-actually-does)
+explains which gateways, memory tools and review paths are actually active.
+
 ```
 📁 kubernetes
 ├── 📁 apps           # Namespace builds, app resources and Flux Operator configuration
@@ -231,7 +236,7 @@ Work in progress — updated each session with Copilot. The full backlog with pr
 | ✅     | Reintroduce CloudNativePG operator in-cluster for shared PostgreSQL workloads                                                                                                                                                                                                                 |
 | ✅     | Reintroduce shared Redis-compatible cache layer with Dragonfly in `database`                                                                                                                                                                                                                  |
 | ✅     | Add NetBox deployment wired to shared PostgreSQL and Redis-compatible cache                                                                                                                                                                                                                   |
-| ✅     | Wire Grafana SSO through Authelia OIDC                                                                                                                                                                                                                                                        |
+| ✅     | Configure native Grafana OIDC through Authentik with preserved legacy subjects; real owner login/MFA acceptance remains separate                                                                                                                                                              |
 | ⏳     | Plex: decide architecture for direct LAN/WAN access without Cloudflare relay (CF tunnel intercepts `*.homeops.ca`, mangles Plex binary protocol)                                                                                                                                              |
 | ⏳     | Diagnose & fix kromgo / alertmanager 404 via Cloudflare edge (direct envoy is 200) — [#3171](https://github.com/osnabrugge/home-ops/issues/3171)                                                                                                                                              |
 | ⏳     | Restore SNMP visibility — every device on `192.168.99.0/24` mgmt VLAN ignores SNMP v2c (both `public` and `private`) from laptop _and_ in-cluster; pings/HTTP fine. Device-side fix needed; also no Ruckus ICX dashboard exists — [#3175](https://github.com/osnabrugge/home-ops/issues/3175) |
