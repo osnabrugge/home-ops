@@ -1,5 +1,23 @@
 # nas01 — loaner-assisted migration and final layout
 
+## SAS3 hardware validation — 2026-11-27
+
+All six SAS disks are now attached to the NI22 SAS3816 HBA/new SAS3 backplane:
+two data members of `nfs` and four of `smb`. The remaining data members use
+the old SAS2 path. Pool members may span raw-disk controllers; the move did
+not require a pool export, recreation, detach or replacement. All six pools,
+including boot, were ONLINE with zero read/write/checksum counters on the
+inspected data, special and log members. Preserve every special/log mirror.
+
+One of the two Seagate ST4000VN000 ATA members of `smb` retains six reported
+UNC errors, all logged at 21,169 power-on hours. At 63,270 hours it had zero
+reallocated, pending, offline-uncorrectable and CRC counts; its recorded
+extended test at 62,741 hours completed without error. A passed test does not
+erase historical UNC events or justify clearing their counters. Plan replacement
+of the aging member with verified backups and explicit storage sign-off; do not
+classify it as a staging member or identify it by model alone. Stable disk
+identities remain in private recovery receipts.
+
 ## Read-only follow-up — 2026-11-25
 
 The owner removed the rejected disk and rebuilt `staging`. A fresh native
