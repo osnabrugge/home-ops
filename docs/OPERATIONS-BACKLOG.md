@@ -66,19 +66,40 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
 - [?] Keep #5084 held for actual external compatibility: the current operator
   supports PostgreSQL 15–18 and the verified VectorChord registry has no PG19
   bundle. Do not merge a primary-image-only update with PG18 extension paths.
-- [~] The authorized Talos 1.14.7 group #5134 reached all six nodes; #5133
-  auto-closed as superseded. Kubernetes #5145 remains unmerged after an observed
-  same-node Cilium Service-return fault. A stateless reschedule restored
-  monitoring, but that containment is not a permanent datapath fix or clearance
-  for another rollout. Detailed evidence and recovery state are in MCP.
+- [x] The authorized Talos 1.14.7 group #5134 and Kubernetes 1.37.3 patch #5145
+      reached all six Ready, uncordoned nodes. Kubernetes completed November 27 at
+      20:08 UTC; all three API versions/readiness checks, nine static component
+      images, etcd quorum and before/after native user-namespace mappings passed.
+      Fresh private etcd snapshots and the original backup/restore/Ceph gates were
+      preserved; #5133 auto-closed as superseded.
+- [x] Make the LAN prober's anti-Prometheus hostname placement durable and
+      restore monitoring without weakening ingress. All 201 scrapes and 17 HPAs
+      recovered. Both rejected Cilium canaries and their diagnostic resources were
+      removed; the host-only socket setting is retained for Ceph.
+- [?] The underlying same-node netkit Service-return defect remains upstream
+  [cilium/cilium#47913](https://github.com/cilium/cilium/issues/47913), not repaired.
+  A global pod-socket-LB candidate lost Ceph monitor quorum despite passing a
+  local HTTP/ingress canary; normal Git rollback restored all three monitors
+  and 265 clean PGs. The route-only alternative was ineffective and reverted.
+  Do not repeat either globally or migrate workload networking without
+  representative storage/network qualification. Detailed evidence is in MCP.
+- [x] Bound Kritika upstream stalls at 60 seconds inside its native 90-second
+      provider deadline with one retry, retaining the 20-minute work allowance,
+      exact free model and no-fallback/publication gates. Nineteen regressions,
+      the actual chart-pinned parser and a zero-cost nonpublishing tool call passed.
 - [x] Verify the actual outside monitor: the active GitHub-hosted
       [External Uptime workflow](../.github/workflows/external-uptime.yaml)
       replaced paid Azure web tests. Legacy Buddy Pushover fields are optional
       notification credentials, not Gatus/Azure login or a prerequisite for
       these free external probes.
-- [?] NAS firmware, a physical disk pilot/remaining long test, protected-network/
-  IoT work and stronger Kritika quality qualification remain separate recorded
-  gates. NAS shutdown is not cleared merely because a node rollout completed.
+- [x] Verify the owner's completed SAS3 disk move: six SAS members now use the
+      new HBA, all six pools are ONLINE with zero inspected ZFS error counters, and
+      all 36 original backup-schedule identities/fields were restored. Frigate's
+      owner-resumed cameras write fresh NFS segments. The aging SMB ATA member's
+      six historical UNC events remain visible; no disk/pool change or new test
+      was performed by the assistant.
+- [?] NAS firmware/remaining long-test qualification, protected-network/IoT work
+  and stronger Kritika review-quality acceptance remain separate recorded work.
 
 Earlier batch acceptance, before the authorized node rollout: all 186
 Kustomizations and 106 HelmReleases Ready,
