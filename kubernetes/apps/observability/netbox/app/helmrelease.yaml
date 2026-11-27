@@ -63,6 +63,8 @@ spec:
     # source: granian respawns a worker once it exceeds max-rss, or every 12h, reusing
     # the remaining workers meanwhile so there is no request-visible restart.
     # `resources` is set explicitly because it makes the chart ignore resourcesPreset.
+    granian:
+      workers: 4
     resources:
       requests:
         cpu: 500m
