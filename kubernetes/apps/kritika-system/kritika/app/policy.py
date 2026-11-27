@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import threading
 import urllib.error
 import urllib.request
@@ -12,7 +13,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
-REPOSITORY = "osnabrugge/home-ops"
+REPOSITORY_OWNER = "osnabrugge"
 API = "https://openrouter.ai/api/v1"
 MAX_BODY = 4 * 1024 * 1024
 MAX_HOOK_BODY = 128 * 1024
@@ -167,14 +168,16 @@ def approved_hook(body, headers, secret):
     if not isinstance(repo, dict) or not isinstance(repo.get("owner", {}), dict):
         raise Refused(400, "Invalid repository object")
     owner = repo.get("owner", {})
+    name = repo.get("full_name")
     if (
         event not in EVENTS
-        or repo.get("full_name") != REPOSITORY
-        or owner.get("login") != "osnabrugge"
+        or not isinstance(name, str)
+        or not re.fullmatch(REPOSITORY_OWNER + r"/[A-Za-z0-9_.-]+", name)
+        or owner.get("login") != REPOSITORY_OWNER
         or repo.get("private") is not False
         or repo.get("visibility", "public") != "public"
     ):
-        raise Refused(403, "Only signed events for the approved public repository are accepted")
+        raise Refused(403, "Only signed events for the approved owner's public repositories are accepted")
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):

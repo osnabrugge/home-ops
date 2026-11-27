@@ -31,13 +31,22 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
-      any-changed: ${{ steps.changed-files.outputs.any_changed }}
+      any-changed: ${{ steps.changed-files.outputs.changed_any_changed }}
+      netbox-changed: ${{ steps.changed-files.outputs.netbox_any_changed }}
+      grafana-changed: ${{ steps.changed-files.outputs.grafana_any_changed }}
     steps:
       - name: Get Changed Files
         id: changed-files
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
-          files: kubernetes/**
+          files_yaml: |
+            changed:
+              - kubernetes/**
+            netbox:
+              - kubernetes/apps/observability/netbox/**
+            grafana:
+              - kubernetes/**/*.yaml
+              - kubernetes/**/*.yml
 
   extract:
     if: >-
@@ -75,6 +84,12 @@ jobs:
           images="$(jq -ce 'if type == "array" and all(.[]; type == "string") then . else error("expected an image string array") end' <<< "$images")"
           printf 'images=%s\n' "$images" >> "$GITHUB_OUTPUT"
 
+      - name: Verify NetBox chart and custom-image application versions
+        if: needs.filter.outputs.netbox-changed == 'true'
+        env:
+          MISE_GITHUB_TOKEN: ${{ github.token }}
+        run: mise exec crane yq -- python3 scripts/check_netbox_image.py
+
   image-pull:
     if: >-
       ${{
@@ -104,6 +119,39 @@ jobs:
           MISE_GITHUB_TOKEN: ${{ github.token }}
         run: mise exec "talosctl@${TALOS_VERSION}" -- talosctl --nodes "$NODE" image pull "$IMAGE"
 
+  grafana-dashboards:
+    if: needs.filter.outputs.grafana-changed == 'true'
+    needs: filter
+    name: Grafana Dashboard Downloads
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      # Hosted CI must not load local cluster secrets or run workstation hooks.
+      MISE_NO_ENV: "1"
+      MISE_NO_HOOKS: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Mise
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false
+          install: false
+
+      - name: Check added or changed dashboard downloads
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MISE_GITHUB_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: mise exec yq -- python3 scripts/check_grafana_dashboards.py --base-ref "$BASE_SHA"
+
   zizmor:
     name: Zizmor
     runs-on: ubuntu-26.04
@@ -116,7 +164,7 @@ jobs:
           persist-credentials: false
 
       - name: Run zizmor
-        uses: zizmorcore/zizmor-action@bd12b495c90993a4301c73398142281a61499af3 # v0.9.0
+        uses: zizmorcore/zizmor-action@a818f16177a5395fc11d3c73577caabaa7119391 # v0.9.1
         with:
           advanced-security: false
           annotations: true
@@ -132,11 +180,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Test triage, migration, power and thermal safety guards
+      - name: Test triage, migration, power, thermal and dashboard safety guards
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           PYTHONPATH: scripts:kubernetes/apps/ai/litellm/app:kubernetes/apps/ai/triage-worker/app
-        run: python3 -m unittest test_alert_triage test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown test_smfc_watchdog -v
+        run: python3 -m unittest test_alert_triage test_triage_readonly test_key_policy test_worker test_nas01_migration test_ups_shutdown test_smfc_watchdog test_netbox_image test_grafana_dashboards -v
 
   status:
     if: ${{ !cancelled() }}
@@ -145,6 +193,7 @@ jobs:
       - filter
       - extract
       - image-pull
+      - grafana-dashboards
       - zizmor
       - ai-guards
     runs-on: ubuntu-26.04

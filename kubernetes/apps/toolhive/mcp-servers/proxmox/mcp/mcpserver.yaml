@@ -4,7 +4,8 @@ kind: MCPServer
 metadata:
   name: proxmox-mcp
 spec:
-  image: ghcr.io/rekklesna/proxmoxmcp-plus:v0.7.2@sha256:fce2fe00f2922056fc0f28c54b86602013186d8be719f8fd7f159780e6ab9577
+  # The publisher moved namespaces; retain the verified v0.7.4 image bytes.
+  image: ghcr.io/im-xiangda-li/proxmoxmcp-plus:v0.7.4@sha256:7f8831f97a0d4cb852f3e2066251e796f13fc33944a8f18306996f7abd969ac1
   transport: streamable-http
   proxyMode: streamable-http
   proxyPort: 8080
