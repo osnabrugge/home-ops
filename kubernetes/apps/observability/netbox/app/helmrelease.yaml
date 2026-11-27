@@ -13,8 +13,8 @@ spec:
     image:
       registry: ghcr.io
       repository: osnabrugge/netbox-diode
-      tag: "4.7.4"
-      digest: sha256:cf43a867810460a084a8e0ea97401f478c5d99fdabcb321b8e3f5b0748c5130f
+      tag: "4.7.6"
+      digest: sha256:f4f562090eec63aff4897a77b01341fcfbfbecd47411fd0b8dd6acba497f3fe5
     plugins:
       - netbox_diode_plugin
     extraConfig:
