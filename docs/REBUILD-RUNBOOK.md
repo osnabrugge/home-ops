@@ -1431,6 +1431,20 @@ and PostgreSQL peers in the client port range, as used by LiteLLM. These are
 bounded transport exceptions, not an upstream Cilium repair or permission for
 those peers to access Hydra's administrative port.
 
+**Cilium same-node Service fault:** The LAN blackbox exporter must remain off
+the Prometheus node while
+[cilium/cilium#47913](https://github.com/cilium/cilium/issues/47913) is unresolved.
+Its required hostname anti-affinity makes the earlier stateless reschedule
+durable; this is containment, not a repaired upstream datapath. Keep netkit,
+endpoint routes and `socketLB.hostNamespaceOnly: true` unchanged. A local
+HTTP/ingress canary passed with full pod socket LB, but the global change lost
+Ceph monitor quorum and was rolled back; all three monitors and clean PGs
+recovered without a storage reset. The route-only alternative did not repair
+the existing Service path and was also reverted. Do not repeat either
+experiment globally, widen client ephemeral ingress, use an unqualified image,
+or migrate all workload networking without a representative storage/network
+qualification plan.
+
 The reconciler uses NetBox's `/api/plugins/diode` endpoint. The NetBox plugin and
 discovery agents also need a front door serving both prefixed Diode gRPC methods
 and `/diode/auth` HTTP endpoints on the same authority, with authentication on

@@ -11,6 +11,15 @@ spec:
   interval: 1h
   values:
     fullnameOverride: blackbox-exporter-lan
+    # Durable containment for https://github.com/cilium/cilium/issues/47913.
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: prometheus
+            namespaces: [observability]
+            topologyKey: kubernetes.io/hostname
     podSecurityContext:
       sysctls:
         - name: net.ipv4.ping_group_range
