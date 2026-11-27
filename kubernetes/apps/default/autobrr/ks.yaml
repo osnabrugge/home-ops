@@ -11,6 +11,7 @@ spec:
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
+    - name: autobrr-identity
   interval: 1h
   path: ./kubernetes/apps/default/autobrr/app
   postBuild:
@@ -23,3 +24,48 @@ spec:
     namespace: flux-system
   targetNamespace: default
   wait: false
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: autobrr-identity-secrets
+spec:
+  dependsOn:
+    - name: azurekv
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/default/autobrr/identity/secrets
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: autobrr-identity
+spec:
+  dependsOn:
+    - name: authentik-operator
+      namespace: auth
+    - name: autobrr-identity-secrets
+  healthChecks:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      name: autobrr
+      namespace: auth
+  healthCheckExprs:
+    - apiVersion: authentik.starry.blue/v1alpha1
+      kind: AuthentikApplication
+      current: has(status.conditions) && status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')
+  interval: 1h
+  path: ./kubernetes/apps/default/autobrr/identity
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth

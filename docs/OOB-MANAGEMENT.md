@@ -531,6 +531,28 @@ curl -sk https://prometheus.homeops.ca/api/v1/query?query=upsAdvBatteryCapacity 
 
 ### NAS01 temperature-based fan control
 
+For a new controller/backplane, commission it empty while leaving existing
+drives, data/special/log vdevs and original cabling unchanged. Check the exact
+PCI subsystem, loaded driver, firmware, negotiated PCIe/SAS width and empty
+expander before a later disk move. Controller recognition does not qualify
+every bay or a populated data path.
+
+The SAS3816 NI22 uses the SAS3.5 IT StorCLI package with administrator privileges,
+not an assumption that legacy SAS3IRCU supports it. Keep TrueNAS's `/tmp`
+`noexec` protection and use an already-executable application/user filesystem
+for a temporary diagnostic tool; remove its binary/logs afterward. Do not
+reload the shared `mpt3sas` driver to fix a utility error, initialize disks or
+flash another controller by assuming its index.
+
+On the BPN-SAS3-826EL1-N4, SASP1–SASP4 on J14/J15 are the SAS links;
+J16/J17 are the separate NVMe paths. Extra host links add possible bandwidth,
+not expander disk-count capacity. Measure negotiated width and the motherboard's
+PCIe ceiling before adding cables. A short enclosure revision is not proof of
+the full firmware-region version or latest board-approved firmware. Firmware
+updates require exact board/card compatibility, driver and rollback review,
+plus a separate maintenance window; never run a vendor flash script merely
+because a newer-looking package exists.
+
 The separate [SMFC project](../infrastructure/nas01/smfc/) is deployed under
 `/mnt/local/apps/smfc`, not in the existing Garage/Zot Compose project. Its
 controller uses a digest-pinned derivative of SMFC 6.5.0, while the independent
@@ -561,6 +583,37 @@ configured disk counts and both zone levels; an HTTP 200 alone is insufficient.
 Stale or failed control drives both zones to 100%. Normal SMFC termination
 also requests 100%, and its Compose entrypoint invokes `smfc` directly so that
 SIGTERM reaches its native handler.
+
+#### Disk removal and replacement checklist
+
+A disk change also changes cooling dependencies, not only ZFS and SMART
+monitoring. Removing a disk from smartctl-exporter does not remove its
+temperature sensor from SMFC.
+
+1. Match the physical disk to its stable by-id identity, pool/vdev membership,
+   cooling sensor and exporter entry. Inspect the other members and shared
+   storage path; record copy/backup consequences before an approved removal.
+2. Warn the operator that missing telemetry, controller stops and inventory
+   transitions can deliberately drive both zones to full speed. Keep that
+   protection active throughout the change.
+3. Coordinate the private `smfc.conf` inventories (`HD.hd_names` and
+   `NVME.nvme_names`) with the actual installed devices and smartctl-exporter
+   filters. The watchdog derives its expected counts from this same
+   configuration; there is no separate count file to maintain. An added disk
+   omitted from the configuration is not automatically discovered by that
+   completeness check. Compare against the actual installed inventory, retain
+   the old configuration and review every exclusion, including existing
+   unsupported sensor exceptions.
+4. Validate the native configuration and obtain complete, fresh per-device
+   readings with the read-only client. Account for ATA, SAS and NVMe devices;
+   overall SMART health alone does not validate temperature coverage.
+5. Require the guarded stable-recovery interval below, then independently read
+   both physical BMC duties. Cached snapshot duty and HTTP 200 are insufficient.
+   Preserve the fan curves, emergency response and uninstrumented-card floor.
+
+Do not suppress the missing-device error, disable the watchdog or force quiet
+duty to make an incomplete inventory appear healthy. Hardware removal, pool
+changes and live cooling-configuration edits still need their approved scope.
 
 After watchdog failover, recovery requires the same SMFC process to provide
 complete, error-free CPU/disk/NVMe readings for at least 30 seconds and two

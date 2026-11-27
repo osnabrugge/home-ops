@@ -57,12 +57,13 @@ spec:
                 CHECK (NOT enabled OR (forge = 'github' AND name = 'osnabrugge'));
               ALTER TABLE repositories DROP CONSTRAINT IF EXISTS homeops_pilot_repository;
               -- enabled records forge reachability; turned_on is dashboard enablement.
-              -- Disable privacy/name/account changes rather than retaining stale public state.
+              -- The owner opts in through turned_on; never enable repositories here.
               CREATE OR REPLACE FUNCTION public.homeops_pilot_repository_guard()
                 RETURNS trigger LANGUAGE plpgsql
                 SET search_path = pg_catalog, public AS $guard$
               BEGIN
-                IF NEW.name <> 'osnabrugge/home-ops' OR NEW.visibility <> 'public'
+                IF NOT COALESCE(NEW.name ~ '^osnabrugge/[A-Za-z0-9_.-]+$', false)
+                  OR NEW.visibility IS DISTINCT FROM 'public'
                   OR NOT EXISTS (
                     SELECT 1 FROM public.accounts
                     WHERE id = NEW.account_id AND forge = 'github'
@@ -80,12 +81,21 @@ spec:
                 BEFORE INSERT OR UPDATE ON repositories
                 FOR EACH ROW EXECUTE FUNCTION public.homeops_pilot_repository_guard();
               UPDATE repositories SET turned_on = false
-                WHERE name <> 'osnabrugge/home-ops' OR visibility <> 'public';
+                WHERE NOT COALESCE(name ~ '^osnabrugge/[A-Za-z0-9_.-]+$', false)
+                  OR visibility IS DISTINCT FROM 'public'
+                  OR NOT EXISTS (
+                    SELECT 1 FROM accounts
+                    WHERE id = repositories.account_id AND forge = 'github'
+                      AND name = 'osnabrugge' AND enabled
+                  );
               ALTER TABLE repositories ADD CONSTRAINT homeops_pilot_repository
                 CHECK (turned_on IS DISTINCT FROM true
-                  OR (name = 'osnabrugge/home-ops' AND visibility = 'public'));
+                  OR COALESCE(
+                    name ~ '^osnabrugge/[A-Za-z0-9_.-]+$' AND visibility = 'public',
+                    false
+                  ));
               COMMIT;
-              SELECT 'public_homeops_only_policy_installed' AS result;
+              SELECT 'owner_public_repository_opt_in_policy_installed' AS result;
               SQL
           securityContext:
             allowPrivilegeEscalation: false
