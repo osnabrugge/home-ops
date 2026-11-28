@@ -26,7 +26,7 @@
   ],
   // LibreNMS has no Flux wiring or chart source yet, so its updates cannot deploy.
   ignorePaths: ["kubernetes/apps/observability/librenms/**"],
-  // Add to the preset's custom managers; image-volume references need their own capture.
+  // Add to the preset's custom managers; image volumes and chart annotations need their own capture.
   customManagers: [
     {
       customType: "regex",
@@ -34,6 +34,13 @@
       matchStrings: [
         "image:\\s*\\n\\s*reference:\\s*[\"']?(?<depName>[^\"'\\s:]+):(?<currentValue>[^\"'\\s@]+)[\"']?",
       ],
+      datasourceTemplate: "docker",
+    },
+    {
+      customType: "regex",
+      managerFilePatterns: ["/^kubernetes/apps/observability/radar/app/ocirepository\\.yaml$/"],
+      matchStrings: ["helm-chart-version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"],
+      depNameTemplate: "ocharted.homeops.ca/skyhook-io.github.io/helm-charts/radar",
       datasourceTemplate: "docker",
     },
   ],
