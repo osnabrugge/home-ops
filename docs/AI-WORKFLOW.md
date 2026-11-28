@@ -1,6 +1,6 @@
 # AI workflow and escalation
 
-Updated 2026-11-27. This is the reusable operating policy, not an incident journal.
+Updated 2026-11-28. This is the reusable operating policy, not an incident journal.
 Current infrastructure facts, handoffs and upstream observations belong in MCP.
 
 ## Start here: what each application actually does
@@ -46,8 +46,13 @@ activity. Do not add another operator, model provider or gateway to resolve this
 confusion. Consolidation or retiring the evaluation is a separately reviewed
 change, not something to do by silently rerouting working clients.
 
-LiteLLM does have an admin dashboard, but this pilot deliberately publishes only
-keyed `/v1` and `/mcp` paths plus liveness, not `/ui` or its management APIs.
+LiteLLM's machine endpoint publishes only keyed `/v1` and `/mcp` paths plus
+liveness, not `/ui` or its management APIs. The separate LAN-only
+`litellm-admin.homeops.ca` front door uses Authentik's full proxy for the
+existing owner/administrator binding. Its identity and route reconcile
+independently; an identity-provider outage does not gate the working inference
+gateway. The native LiteLLM administrator login still applies after Authentik:
+this is protected dashboard access, not Enterprise OIDC or identity auto-linking.
 Bifrost has its own private native admin dashboard. Kritika has a separate
 review/index dashboard. ToolHive's MCP management facilities do not mean a
 cluster browser console has been deployed. Human login and machine API keys
@@ -62,11 +67,15 @@ are separate concerns; see [the authentication strategy](AUTH-ARCHITECTURE.md).
 - Use Kritika for reviewing an existing, explicitly approved PR, not generating
   new fix PRs. Indexing builds retrieval context; it does not create review work.
   Manual publication works; the false automatic-trigger rule remains a separate hold.
-- LiteLLM's deployed native UI exists. For private administration, use
+- Open [LiteLLM administration](https://litellm-admin.homeops.ca/ui/) on the LAN,
+  then complete Authentik and the existing native administrator login. Use the
+  dashboard to inspect gateway requests, keys and budgets; Copilot and Kritika
+  traffic still do not pass through LiteLLM. Local recovery access remains
   `kubectl -n ai port-forward --address 127.0.0.1 service/litellm 4000:4000`
   with the repository kubeconfig, then open `http://127.0.0.1:4000/ui/` and use
   approved administrator credentials, not the advisory's restricted key.
-  This does not publish the management UI or commission Authentik SSO.
+  This bypasses only the browser front door on a local authorized connection,
+  not LiteLLM's native credentials. It does not commission native OIDC.
 - Bifrost remains an evaluation with no scheduled production client. Its idle
   dashboard is expected; do not add another agent just to populate it.
 - Use [AI Operations in Grafana](https://grafana.homeops.ca/d/homeops-ai-operations)

@@ -32,6 +32,11 @@ spec:
             ai.homeops.ca/role: triage-worker
         - matchLabels:
             ai.homeops.ca/role: key-policy
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: auth
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/instance: authentik
+            app.kubernetes.io/component: server
       toPorts:
         - ports:
             - port: "4000"

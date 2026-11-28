@@ -1,0 +1,31 @@
+---
+apiVersion: authentik.starry.blue/v1alpha1
+kind: AuthentikApplication
+metadata:
+  name: litellm-admin
+spec:
+  slug: litellm-admin
+  name: LiteLLM Administration
+  group: AI
+  deletionPolicy: Retain
+  adopt: Never
+  provider:
+    flows:
+      authorization:
+        slug: default-provider-authorization-implicit-consent
+      invalidation:
+        slug: default-provider-invalidation-flow
+    proxy:
+      proxy:
+        externalHost: https://litellm-admin.homeops.ca
+        # Direct endpoint lookup avoids same-node ClusterIP reply policy faults.
+        internalHost: http://litellm-admin-direct.ai.svc.cluster.local:4000
+      outpost:
+        name: authentik Embedded Outpost
+  access:
+    mode: Any
+    rules:
+      - group:
+          name: authentik Admins
+      - user:
+          username: sean
