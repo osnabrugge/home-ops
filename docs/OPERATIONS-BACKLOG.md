@@ -13,6 +13,71 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done · `[?]` needs 
 
 ---
 
+## PR feedback and follow-up acceptance — 2026-11-28
+
+- [x] Read the marked Kritika comments and inline findings at the captured PR
+      heads. Eight of the nine updates landed; PG19 #5084 remains held.
+      Corrected and merged Recyclarr #5187 without a permanent API service:
+      direct CLI, empty server URL, unchanged midnight/Forbid schedule and
+      original claim, with the measured 128/256 MiB memory budget. Corrected
+      Konflate #5186 with a 128 MiB ephemeral reservation/4 GiB ceiling.
+      Its removed cache sweep was not restored by that storage bound.
+- [x] Publish Radar annotation tracking in `fbce49803`. Native Renovate RE2
+      extraction verifies the OCI tag and annotation are two occurrences of
+      one Docker dependency; native configuration validation, Flux build and
+      exact-head CI passed. Other cohort upgrades merged independently.
+      Radar's existing read scope was not silently expanded: root-level
+      `crdGroups` is unused, and enabling its supported wildcard would need a
+      deliberate permission decision. Missing private-chart credentials can
+      still yield an empty CI render; the actual Radar chart was qualified
+      separately, not certified by that empty result.
+- [x] Verify both actual Ollama engines on 0.40.19, unchanged model digests,
+      native local chat and five 384-dimensional embeddings. Minimum cosine
+      was 0.9999999284914846 against 0.99999. Completed bootstrap Jobs were
+      preserved; no model download or external inference was requested.
+- [x] Publish and verify the independent LAN LiteLLM admin front door.
+      Normal anonymous access redirects to Authentik; the machine hostname's
+      UI remains 404 and liveness 200. The outside Azure check passed its HTTPS
+      and public-DNS controls, then returned authoritative no-address
+      `EAI_NODATA` for the private name. Four classifier tests pass; the owned
+      probe was deleted and its absence verified. Inference is not gated by
+      the new identity objects.
+- [?] Native administrator login/human MFA, broader identity migration and
+  stronger review-quality qualification remain separate. Automatic review,
+  approval and fixes were not enabled; green completion is not quality proof.
+- [x] Reverify all nine managed/generated PXE boot rules and both DNS daemons
+      read-only. All three routed TFTP loaders match the serving Pod exactly.
+      No gateway configuration, service, firmware or disk was changed.
+- [?] Pi04's current SSH identity changed and could not be independently
+  confirmed. Leave its keys, desktop and boot state untouched. Do not repeat
+  the old no-carrier report as current: the November 27 trusted inspection
+  superseded it. No actual client maintenance boot or lab commissioning is
+  certified by the successful server transfers.
+- [x] Read-only Proxmox inventory confirms both existing hosts are standalone
+      on 9.3.1, with no current guest-ID collision. Preserve guest backups/IDs
+      before a future join. The separate ASRock/5700X/ECC platform is a proposed
+      third host, not permission to reinstall TrueNAS, join hosts or move disks.
+- [x] Current native acceptance: 188 Kustomizations, 106 HelmReleases,
+      23 MCPServer/two VirtualMCPServer objects Ready; six uncordoned nodes on
+      Kubernetes 1.37.3/Talos 1.14.7; three API checks and etcd status/alarms
+      pass; three databases healthy; all 201 scrapes, 17 HPAs and 87 newest
+      Gatus results healthy. Ceph has three monitors/six up-in OSDs/265 clean
+      PGs. No unhealthy Pods or active actionable alerts remain. Watchdog and
+      two informational inhibitors are active; two existing UPS battery
+      alerts stay suppressed, not fixed.
+- [?] The current Radar issue count could not be freshly authenticated:
+  direct API-server transport is denied/times out and authorized loopback
+  access returns 401 without an identity. Its 1.22.0 workload, retained
+  timeline claim and normal protected front door are verified. Do not reuse
+  November 27's zero count as a new authenticated result or forge headers.
+- [x] Remove only the two successful, UID-guarded current-task test Pods and
+      three clean qualification worktrees. Preserve original claims, failure
+      history, recovery receipts, inactive proposals and the dirty older Pi
+      worktree. External verification and local forwarding helpers are stopped.
+
+The genuine Cilium/PG19 compatibility blockers in the following section remain
+unchanged; neither is a missing generic upgrade approval.
+
 ## Evening PR acceptance — 2026-11-26
 
 - [x] Review all 14 open PRs at the captured heads using the original Kritika
