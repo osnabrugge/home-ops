@@ -29,9 +29,12 @@ spec:
               tag: 9.0.0@sha256:4973d11b18b5ef09fb226f4161eecb16434ff7e6b43c56d50fceb52fb22c66c7
             env:
               RECYCLARR_DATA_DIR: /tmp
+              RECYCLARR_SERVER_URL: ""
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
+            # The CLI starts a loopback-only, one-command server with a one-time key.
+            command: ["/sbin/tini", "--", "/app/recyclarr/recyclarr"]
             args:
               - sync
             securityContext:
@@ -41,8 +44,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-              limits:
                 memory: 128Mi
+              limits:
+                memory: 256Mi
         pod:
           restartPolicy: Never
     defaultPodOptions:
