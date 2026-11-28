@@ -37,5 +37,8 @@ spec:
     resources:
       requests:
         cpu: 50m
+        ephemeral-storage: 128Mi
       limits:
         memory: 1Gi
+        # 0.7 no longer sweeps source caches; bound the regenerable emptyDir.
+        ephemeral-storage: 4Gi
