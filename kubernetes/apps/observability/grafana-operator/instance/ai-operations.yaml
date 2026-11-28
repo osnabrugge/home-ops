@@ -25,6 +25,7 @@ spec:
       "time": {"from": "now-6h", "to": "now"},
       "links": [
         {"title": "Kritika reviews", "type": "link", "url": "https://kritika.homeops.ca", "targetBlank": true},
+        {"title": "LiteLLM administration", "type": "link", "url": "https://litellm-admin.homeops.ca/ui/", "targetBlank": true},
         {"title": "Bifrost evaluation", "type": "link", "url": "https://bifrost.homeops.ca", "targetBlank": true},
         {"title": "Operating guide", "type": "link", "url": "https://github.com/osnabrugge/home-ops/blob/main/docs/AI-WORKFLOW.md", "targetBlank": true}
       ],

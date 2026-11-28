@@ -208,6 +208,17 @@ adoption, use `Retain` plus reviewed `IfMatch`, and stop on mismatches rather th
 using `Force` to make the migration succeed. Test the operator first with a new
 non-production application and both allowed and denied principals.
 
+LiteLLM administration uses a separate app-owned full-proxy application at
+`litellm-admin.homeops.ca`, restricted to the existing owner/administrator
+binding. The LAN route goes through Authentik, never directly to LiteLLM's
+management API. Its native administrator login remains required; this is not
+Enterprise OIDC, identity auto-linking or a new application-role grant. The
+admin identity/route depend on the gateway, not the reverse, so failed identity
+reconciliation does not stop the keyed inference/MCP endpoint. The headless
+proxy backend avoids the known same-node ClusterIP return-path fault, while
+backend ingress permits only the existing Authentik server selector in addition
+to the gateway's existing approved clients.
+
 The [private loopback OIDC canary](../kubernetes/apps/auth/authentik-operator/canary/application.yaml)
 passed normal technical-user authentication and consent, PKCE authorization-code
 exchange, ID-token signature/audience/issuer/nonce validation and userinfo matching.
